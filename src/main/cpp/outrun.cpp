@@ -1,5 +1,14 @@
 #include "outrun.hpp"
 
+/***************************************************************************
+    OutRun Engine Entry Point.
+
+    This is the hub of the ported OutRun code.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 Outrun outrun;
 
 /*
@@ -171,17 +180,17 @@ void Outrun::tick()
 // Vertical Interrupt
 void Outrun::vint()
 {
-	otiles.write_tilemap_hw();
+    otiles.write_tilemap_hw();
 
-	if (osprites.do_sprite_swap)
-	{
-		osprites.do_sprite_swap = false;
+    if (osprites.do_sprite_swap)
+    {
+        osprites.do_sprite_swap = false;
 
-		video.sprite_layer->swap();
+        video.sprite_layer->swap();
 
-		// Do Sprite RAM Swap and copy new palette data if necessary
-		osprites.copy_palette_data();
-	}
+        // Do Sprite RAM Swap and copy new palette data if necessary
+        osprites.copy_palette_data();
+    }
     otiles.update_tilemaps();
 
     if (FRAMES_PER_SECOND < 120 || (frame & 1))
@@ -200,8 +209,8 @@ void Outrun::jump_table()
 {
     if (tick_frame)
     {
-	    main_switch();                  // Address #1 (0xB128) - Main Switch
-	    oinputs.adjust_inputs();        // Address #2 (0x74D8) - Adjust Analogue Inputs
+        main_switch();                  // Address #1 (0xB128) - Main Switch
+        oinputs.adjust_inputs();        // Address #2 (0x74D8) - Adjust Analogue Inputs
     }
 
     switch (game_state)
@@ -241,7 +250,7 @@ void Outrun::jump_table()
         // ----------------------------------------------------------------------------------------
         // Core Game Engine Routines
         // ----------------------------------------------------------------------------------------
-	    case GS_LOGO:
+        case GS_LOGO:
             if (!outrun.tick_frame)
                 ologo.blit();
         default:
@@ -260,16 +269,16 @@ void Outrun::jump_table()
             oferrari.tick();
             if (oferrari.state != OFerrari::FERRARI_END_SEQ)
             {
-	            oanimseq.flag_seq();
+                oanimseq.flag_seq();
                 ocrash.tick();
                 osmoke.draw_ferrari_smoke(&osprites.jump_table[OSprites::SPRITE_SMOKE1]); // Do Left Hand Smoke
                 oferrari.draw_shadow();                                                   // (0xF1A2) - Draw Ferrari Shadow
-	            osmoke.draw_ferrari_smoke(&osprites.jump_table[OSprites::SPRITE_SMOKE2]); // Do Right Hand Smoke
+                osmoke.draw_ferrari_smoke(&osprites.jump_table[OSprites::SPRITE_SMOKE2]); // Do Right Hand Smoke
             }
             else
             {
                 osmoke.draw_ferrari_smoke(&osprites.jump_table[OSprites::SPRITE_SMOKE1]); // Do Left Hand Smoke
-	            osmoke.draw_ferrari_smoke(&osprites.jump_table[OSprites::SPRITE_SMOKE2]); // Do Right Hand Smoke
+                osmoke.draw_ferrari_smoke(&osprites.jump_table[OSprites::SPRITE_SMOKE2]); // Do Right Hand Smoke
             }
             break;
     }
@@ -281,10 +290,10 @@ void Outrun::jump_table()
 void Outrun::main_switch()
 {
     // bsr.w   ReadButtons2    
-	
+    
     switch (game_state)
     {
-	    case GS_INIT:
+        case GS_INIT:
             oferrari.car_inc_old = car_inc_bak >> 16;
             oinitengine.car_increment = car_inc_bak;
             oferrari.car_ctrl_active = true;
@@ -620,7 +629,7 @@ void Outrun::init_jump_table()
     // Reset value to restore car increment to during attract mode
     car_inc_bak = 0;
 
-	osprites.init();
+    osprites.init();
     if (!LOAD_LEVEL) olevelobjs.default_entries();
     otraffic.init();
     osmoke.init();
@@ -681,7 +690,7 @@ void Outrun::controls()
 }
 
 // -------------------------------------------------------------------------------
-// Decrement Game Time [DONE]
+// Decrement Game Time
 // 
 // Decrements Frame Count, and Overall Time Counter
 //

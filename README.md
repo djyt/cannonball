@@ -1,33 +1,62 @@
-Outrun Port
-===========
+Cannonball - OutRun Engine
+==========================
+
+See [Reassembler Blog](http://reassembler.blogspot.co.uk/).
 
 Credits
 -------
 
-It's all down to Chris; See [Reassembler Blog](http://reassembler.blogspot.co.uk/).
+* Chris White - Project creator.
+* Arun Horne  - Cross platform work.
 
-Build & Run
------------
+Getting Started
+---------------
+* Install your favourite C++ environment (e.g. GCC, Visual Studio, Xcode, MingGW etc.)
+* Install [CMake](http://www.cmake.org/). This generates your platform and compiler build files. 
+* Extract the [Boost Library](http://www.boost.org/) somewhere, for example: c:\dev\lib\boost
+* Extract the [SDL Library](http://www.libsdl.org/download-1.2.php) somewhere, for example: c:\dev\lib\sdl
+* Read the SDL documentation & compile the SDL Library for your system.
+* Extract the Cannonball code somewhere, for example: c:\dev\cannonball
+* Configure the CMakeLists.txt file to reflect the correct directory structure for your libraries.
 
-### Non-IDE
+Build
+-----
 
-    mdkir build && cd build
-    cmake ../cmake
+* Run CMake to generate the relevant build files for your compiler.
+* Compile using your chosen compiler. Further details below.
+
+###
+
+    mkdir build
+    cd build
+
+### Non-IDE (e.g. straight GCC)
+    
+    cmake -G "Insert Generator Name Here" ../cmake
     make
-    ln -s ../roms roms
-    ./outrun
 
-### Xcode
+### MingGW
 
-Before can run, will need to link roms directory:
-
-    cd xcode/Debug 
-    ln -s ../../roms roms
-
+    cmake -G "MinGW Makefiles" ../cmake
+    mingw32-make
+    
 ### Visual Studio
 
-TBC - but will need to make roms directory available
+* Right click the project in the IDE and choose 'Set as default project'. 
+* You can then compile, debug and run from Visual Studio as expected.
 
+Run
+---
+
+* Copy the OutRun revision B romset to the roms subdirectory. Rename the files if necessary.
+* Copy or link the roms subdirectory to whereever your executable resides.
+
+###
+
+    ln -s ../roms roms
+    ./outrun
+    
+    
 Building SDL-1.2.15 on Darwin
 -----------------------------
 

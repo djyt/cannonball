@@ -1,3 +1,10 @@
+/***************************************************************************
+    Cannonball Game Engine Code Entry Point.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 /*
 void aMethod(aParameter p) { }  --- Pass by value. Copy is made
 void aMethod(aParameter& p) { } --- Pass by reference. Copy not made
@@ -10,7 +17,7 @@ void aMethod(aParameter& p) { } --- Pass by reference. Copy not made
 // Base SDL header, needed for any SDL functions
 #include <SDL.h>
 
-// This library replaces the main function with a function called SDL_main that performs the same task plus some other shit I can't remember now.
+// This library replaces the main function with a function called SDL_main that performs the same task.
 #pragma comment(lib, "SDLmain.lib")
 
 // This library has most SDL functions you'll use and a lot more you probably wont need.
@@ -38,17 +45,17 @@ void aMethod(aParameter& p) { } --- Pass by reference. Copy not made
 
 static void quit_func(int code)
 {
-  /*
+    /*
     * Quit SDL so we can release the fullscreen
     * mode and restore the previous video settings,
     * etc.
     */
-  SDL_Quit();
+    SDL_Quit();
 
-  // Exit program.
-  exit(code);
+    // Exit program.
+    exit(code);
 
-  return;
+    return;
 }
 
 static void process_events(void)
@@ -84,11 +91,11 @@ static void process_events(void)
 
 static void tick(void)
 {
-	process_events();
-	outrun.tick();
+    process_events();
+    outrun.tick();
   //menu.tick();
     
-	return;
+    return;
 }
 
 static void draw_screen(void)
@@ -99,23 +106,23 @@ static void draw_screen(void)
 
 static void main_loop(void)
 {
-	Timer fps;
+    Timer fps;
 
-  while(true)
-  {
-	//Start the frame timer
-	fps.start();
+    while(true)
+    {
+        //Start the frame timer
+        fps.start();
 
-	tick();
-	draw_screen();
+        tick();
+        draw_screen();
 
-	// Cap Frame Rate
-	if (fps.get_ticks() < 1000 / FRAMES_PER_SECOND)
-	{
-		//Sleep the remaining frame time
-	    SDL_Delay( ( 1000 / FRAMES_PER_SECOND ) - fps.get_ticks() );
+        // Cap Frame Rate
+        if (fps.get_ticks() < 1000 / FRAMES_PER_SECOND)
+        {
+            //Sleep the remaining frame time
+            SDL_Delay( ( 1000 / FRAMES_PER_SECOND ) - fps.get_ticks() );
+        }
     }
-  }
 }
 
 int main(int argc, char* argv[])
@@ -123,8 +130,8 @@ int main(int argc, char* argv[])
     // Initialize all SDL subsystems
     if( SDL_Init( SDL_INIT_EVERYTHING ) == -1 ) 
     { 
-	    std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
-	    return 1; 
+        std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
+        return 1; 
     } 
 
     // Load Roms
@@ -135,7 +142,7 @@ int main(int argc, char* argv[])
 
     // Initialize SDL Video
     if (!video.init(roms.tiles.rom, roms.sprites.rom, roms.road.rom))
-	    quit_func(1);
+        quit_func(1);
 
     outrun.init();
     //menu.init();

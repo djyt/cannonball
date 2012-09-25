@@ -1,11 +1,20 @@
 #include "input.hpp"
 
+/***************************************************************************
+    SDL Based Input Handling.
+
+    Populates keys array with user input.
+    Will need to be replaced if SDL library is replaced.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 Input input;
 
 Input::Input(void)
 {
 }
-
 
 Input::~Input(void)
 {
@@ -32,19 +41,19 @@ void Input::frame_done()
 void Input::handle_key_down(SDL_keysym* keysym)
 {
     handle_key(keysym, true);
-	return;
+    return;
 }
 
 void Input::handle_key_up(SDL_keysym* keysym)
 {
     handle_key(keysym, false);
-	return;
+    return;
 }
 
 void Input::handle_key(SDL_keysym* keysym, bool is_pressed)
 {
-	switch(keysym->sym)
-	{
+    switch(keysym->sym)
+    {
         case SDLK_UP:
             keys[UP] = is_pressed;
             break;
@@ -69,17 +78,17 @@ void Input::handle_key(SDL_keysym* keysym, bool is_pressed)
             keys[BUTTON2] = is_pressed;
             break;
 
-		case SDLK_SPACE:
+        case SDLK_SPACE:
             keys[BUTTON3] = is_pressed;
-			break;
+            break;
 
-		case SDLK_1:
+        case SDLK_1:
             keys[START] = is_pressed;
-			break;
+            break;
 
-		case SDLK_5:
+        case SDLK_5:
             keys[COIN] = is_pressed;
-			break;
+            break;
 
         case SDLK_F1:
             keys[PAUSE] = is_pressed;
@@ -96,8 +105,8 @@ void Input::handle_key(SDL_keysym* keysym, bool is_pressed)
         case SDLK_F5:
             keys[END_SEQ] = is_pressed;
             break;
-		
+        
         default:
-			break;
-	}
+            break;
+    }
 }

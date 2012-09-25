@@ -2,6 +2,15 @@
 #include <SDL.h>
 #include "Timer.hpp"
 
+/***************************************************************************
+    SDL Based Timer.
+    
+    Will need to be replaced if SDL library is replaced.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 Timer::Timer()
 {
     //Initialize the variables

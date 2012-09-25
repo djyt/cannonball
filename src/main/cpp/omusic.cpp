@@ -49,7 +49,7 @@ void OMusic::enable()
 
 void OMusic::disable()
 {
-    // Enable block of sprites
+    // Disable block of sprites
     for (int i = entry_start; i < entry_start + 5; i++)
     {
         osprites.jump_table[i].control &= ~OSprites::ENABLE;

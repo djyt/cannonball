@@ -14,7 +14,10 @@ void aMethod(aParameter& p) { } --- Pass by reference. Copy not made
 
 */
 
-// Base SDL header, needed for any SDL functions
+// Error reporting
+#include <iostream>
+
+// SDL Library
 #include <SDL.h>
 
 // This library replaces the main function with a function called SDL_main that performs the same task.
@@ -26,20 +29,14 @@ void aMethod(aParameter& p) { } --- Pass by reference. Copy not made
 // This library defines some helper functions that make things easier for you.
 #pragma comment(lib, "glu32.lib")
 
-// For reporting errors :)
-#include <iostream>
-
-// FPS Rate stuff
-#include "Timer.hpp"
+#include "sdl/timer.hpp" // SDL Timer for Frame Rate
+#include "sdl/input.hpp" // SDL Input
+#include "sdl/video.hpp" // SDL Rendering
 
 //#include "menu.hpp"
-
 #include "romloader.hpp"
-#include "video.hpp"
 #include "stdint.hpp"
-#include "outrun.hpp"
-#include "input.hpp"
-#include "oinputs.hpp"
+#include "engine/outrun.hpp"
 
 //Menu menu;
 

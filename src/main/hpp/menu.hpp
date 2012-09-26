@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "stdint.hpp"
-#include "ologo.hpp"
+#include "engine/ologo.hpp"
 
 class Menu
 {

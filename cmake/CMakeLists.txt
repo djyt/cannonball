@@ -7,16 +7,34 @@ set(main_cpp_base ${main_base}/cpp)
 set(main_hpp_base ${main_base}/hpp)
 
 #Dependency locations
-set(boost_root c:/dev/lib/boost_1_51_0)
-set(sdl_root c:/dev/lib/SDL-1.2.15)
+#TODO: These should be located using standard CMake macros
+if (WIN32)
+    set(boost_root c:/dev/lib/boost_1_51_0)
+    set(sdl_root c:/dev/lib/SDL-1.2.15)
+else()
+    set(boost_root ~/Tools/boost_1_51_0)
+    set(sdl_root ~/Tools/SDL-1.2.15/build)    
+endif()
 
-#Build the program!
+#Include
 include_directories(
     "${main_hpp_base}"
     "${boost_root}"    
-    "${sdl_root}/include"
 )
 
+#SDL includes
+#TODO: This should not be platform specific, just need to agree standard
+if (WIN32)
+    include_directories(
+        "${sdl_root}/include"
+    )
+else()
+    include_directories( 
+        "${sdl_root}/include/SDL"
+    )
+endif()
+
+#Linking
 link_directories(
     "${sdl_root}/lib"
 )

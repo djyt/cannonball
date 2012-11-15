@@ -252,8 +252,6 @@ void Video::write_pal16(uint32_t* palAddr, const uint16_t data)
 
 void Video::write_pal32(uint32_t* palAddr, const uint32_t data)
 {    
-    //std::cout << std::hex << "pal adr: " << *palAddr << " data: " << data << std::endl;
-
     uint32_t adr = *palAddr & 0x1fff;
 
     palette[adr] = (data >> 24) & 0xFF;
@@ -316,11 +314,11 @@ void Video::refresh_palette(uint32_t palAddr)
     uint32_t g = (a & 0x00f0) >> 3; // g ggg0
     uint32_t b = (a & 0x0f00) >> 7; // b bbb0
     if ((a & 0x1000) != 0)
-      r |= 1; // r rrrr
+        r |= 1; // r rrrr
     if ((a & 0x2000) != 0)
-      g |= 1; // g gggg
+        g |= 1; // g gggg
     if ((a & 0x4000) != 0)
-      b |= 1; // b bbbb
+        b |= 1; // b bbbb
 
     r = r * 255 / 31;
     g = g * 255 / 31;

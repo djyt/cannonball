@@ -105,11 +105,11 @@
 
 HWRoad hwroad;
 
-HWRoad::HWRoad(void)
+HWRoad::HWRoad()
 {
 }
 
-HWRoad::~HWRoad(void)
+HWRoad::~HWRoad()
 {
 }
 

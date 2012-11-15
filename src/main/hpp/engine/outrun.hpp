@@ -28,6 +28,7 @@
 #include "ohiscore.hpp"
 #include "omusic.hpp"
 #include "obonus.hpp"
+#include "audio/osoundint.hpp"
 
 // Globals
 enum 

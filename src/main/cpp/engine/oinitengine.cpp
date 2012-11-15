@@ -51,6 +51,8 @@ void OInitEngine::init()
 
     ocrash.clear_crash_state();
     ocrash.skid_counter = 0;
+
+    osoundint.init();
 }
 
 void OInitEngine::debug_load_level(uint8_t level)

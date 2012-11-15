@@ -29,9 +29,11 @@ void aMethod(aParameter& p) { } --- Pass by reference. Copy not made
 // This library defines some helper functions that make things easier for you.
 #pragma comment(lib, "glu32.lib")
 
-#include "sdl/timer.hpp" // SDL Timer for Frame Rate
-#include "sdl/input.hpp" // SDL Input
-#include "sdl/video.hpp" // SDL Rendering
+// SDL Code
+#include "sdl/timer.hpp"
+#include "sdl/input.hpp"
+#include "sdl/audio.hpp"
+#include "sdl/video.hpp"
 
 //#include "menu.hpp"
 #include "romloader.hpp"
@@ -40,13 +42,11 @@ void aMethod(aParameter& p) { } --- Pass by reference. Copy not made
 
 //Menu menu;
 
+Audio audio;
+
 static void quit_func(int code)
 {
-    /*
-    * Quit SDL so we can release the fullscreen
-    * mode and restore the previous video settings,
-    * etc.
-    */
+    audio.stop_audio();
     SDL_Quit();
 
     // Exit program.
@@ -86,46 +86,55 @@ static void process_events(void)
     return;
 }
 
-static void tick(void)
+static void tick()
 {
     process_events();
+
+    // Tick Main Program Code
     outrun.tick();
-  //menu.tick();
-    
-    return;
+
+    // Process audio commands from main program code
+    osoundint.play_queued_sound();
+
+    // Tick audio program code
+    osoundint.tick();
+
+    // Tick SDL Audio
+    audio.tick();
+
+    // Draw SDL Video
+    video.draw_frame();  
 }
 
-static void draw_screen(void)
-{
-    video.draw_frame();
-    return;
-}
-
-static void main_loop(void)
+static void main_loop()
 {
     Timer fps;
 
-    while(true)
+    int t;
+    int deltatime = 0;
+    const int FRAME_MS = 1000 / FRAMES_PER_SECOND;
+
+    while (true)
     {
         //Start the frame timer
         fps.start();
-
         tick();
-        draw_screen();
+        deltatime = (int) (FRAME_MS * audio.adjust_speed());
+        t = fps.get_ticks();
 
         // Cap Frame Rate
-        if (fps.get_ticks() < 1000 / FRAMES_PER_SECOND)
+        if (t < deltatime)
         {
             //Sleep the remaining frame time
-            SDL_Delay( ( 1000 / FRAMES_PER_SECOND ) - fps.get_ticks() );
+            SDL_Delay( deltatime - t );
         }
     }
 }
 
 int main(int argc, char* argv[])
 {
-    // Initialize all SDL subsystems
-    if( SDL_Init( SDL_INIT_EVERYTHING ) == -1 ) 
+    // Initialize timer and video systems
+    if( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO ) == -1 ) 
     { 
         std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
         return 1; 
@@ -140,6 +149,8 @@ int main(int argc, char* argv[])
     // Initialize SDL Video
     if (!video.init(roms.tiles.rom, roms.sprites.rom, roms.road.rom))
         quit_func(1);
+
+    audio.init();
 
     outrun.init();
     //menu.init();

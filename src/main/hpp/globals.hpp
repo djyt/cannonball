@@ -22,6 +22,9 @@ const uint8_t DIP_TRAFFIC = 1;
 // 0 = Easy, 1 = Normal, 2 = Hard, 3 = Very Hard
 const uint8_t DIP_TIME = 0;
 
+// 0 = Do not advertise sound, 1 = advertise sound
+const uint8_t DIP_ADVERTISE = 1;
+
 // Automatic Gears
 const bool GEAR_AUTO = false;
 

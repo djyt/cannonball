@@ -1,3 +1,7 @@
+#include <iostream>
+#include <fstream>
+
+#include "stdint.hpp"
 #include "romloader.hpp"
 
 /***************************************************************************
@@ -25,6 +29,7 @@ RomLoader::~RomLoader()
 
 void RomLoader::init(const uint32_t length)
 {
+    this->length = length;
     rom = new uint8_t[length];
 }
 
@@ -93,6 +98,33 @@ uint16_t RomLoader::read16(uint32_t addr)
 }
 
 uint8_t RomLoader::read8(uint32_t addr)
+{
+    return rom[addr];
+}
+
+// ----------------------------------------------------------------------------
+// Used by translated Z80 Code
+// Note that the endian is reversed compared with the 68000 code.
+// ----------------------------------------------------------------------------
+
+uint16_t RomLoader::read16(uint16_t* addr)
+{
+    uint16_t data = (rom[*addr+1] << 8) | (rom[*addr]);
+    *addr += 2;
+    return data;
+}
+
+uint8_t RomLoader::read8(uint16_t* addr)
+{
+    return rom[(*addr)++]; 
+}
+
+uint16_t RomLoader::read16(uint16_t addr)
+{
+    return (rom[addr+1] << 8) | rom[addr];
+}
+
+uint8_t RomLoader::read8(uint16_t addr)
 {
     return rom[addr];
 }

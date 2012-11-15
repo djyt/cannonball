@@ -1,6 +1,6 @@
-#include <boost/static_assert.hpp>
-
 #pragma once
+
+#include <boost/static_assert.hpp>
 
 /** C99 Standard Naming */
 #if defined(_MSC_VER)

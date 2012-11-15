@@ -11,6 +11,8 @@ public:
     RomLoader tiles;
     RomLoader sprites;
     RomLoader road;
+    RomLoader z80;
+    RomLoader pcm;
 
     //RomLoader road_y;
 
@@ -20,4 +22,3 @@ public:
 };
 
 extern Roms roms;
-

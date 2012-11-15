@@ -42,7 +42,8 @@ Build
     
 ### Visual Studio
 
-* Right click the project in the IDE and choose 'Set as default project'. 
+* Copy SDL.DLL and the roms subdirectory to the build directory.
+* Right click the 'outrun' project in the IDE and choose 'Set as StartUp project'. 
 * You can then compile, debug and run from Visual Studio as expected.
 
 Run

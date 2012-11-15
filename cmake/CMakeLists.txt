@@ -9,8 +9,8 @@ set(main_hpp_base ${main_base}/hpp)
 #Dependency locations
 #TODO: These should be located using standard CMake macros
 if (WIN32)
-    set(boost_root c:/dev/lib/boost_1_51_0)
-    set(sdl_root c:/dev/lib/SDL-1.2.15)
+    set(boost_root c:/coding/lib/boost_1_51_0)
+    set(sdl_root c:/coding/lib/SDL-1.2.14)
 else()
     set(boost_root ~/Tools/boost_1_51_0)
     set(sdl_root ~/Tools/SDL-1.2.15/build)    
@@ -52,53 +52,54 @@ link_libraries(outrun
     SDLmain
 )
 
-add_executable(outrun
+set(src_main
+    "${main_hpp_base}/asmhelper.hpp"
+    "${main_hpp_base}/menu.hpp"
+    "${main_hpp_base}/globals.hpp"
+    "${main_hpp_base}/romloader.hpp"
+    "${main_hpp_base}/roms.hpp"
+    "${main_hpp_base}/stdint.hpp"
 
-    #Source
     "${main_cpp_base}/asmhelper.cpp"
-    "${main_cpp_base}/hwvideo/hwroad.cpp"
-    "${main_cpp_base}/hwvideo/hwsprites.cpp"
-    "${main_cpp_base}/hwvideo/hwtiles.cpp"
-    "${main_cpp_base}/sdl/timer.cpp"
-    "${main_cpp_base}/sdl/input.cpp"
-    "${main_cpp_base}/sdl/video.cpp"
     "${main_cpp_base}/main.cpp"
     "${main_cpp_base}/menu.cpp"
-    "${main_cpp_base}/engine/oanimseq.cpp"
-    "${main_cpp_base}/engine/oattractai.cpp"
-    "${main_cpp_base}/engine/obonus.cpp"
-    "${main_cpp_base}/engine/ocrash.cpp"
-    "${main_cpp_base}/engine/oferrari.cpp"
-    "${main_cpp_base}/engine/ohiscore.cpp"
-    "${main_cpp_base}/engine/ohud.cpp"
-    "${main_cpp_base}/engine/oinitengine.cpp"
-    "${main_cpp_base}/engine/oinputs.cpp"
-    "${main_cpp_base}/engine/olevelobjs.cpp"
-    "${main_cpp_base}/engine/ologo.cpp"
-    "${main_cpp_base}/engine/omap.cpp"
-    "${main_cpp_base}/engine/omusic.cpp"
-    "${main_cpp_base}/engine/opalette.cpp"
-    "${main_cpp_base}/engine/oroad.cpp"
-    "${main_cpp_base}/engine/osmoke.cpp"
-    "${main_cpp_base}/engine/osprite.cpp"
-    "${main_cpp_base}/engine/osprites.cpp"
-    "${main_cpp_base}/engine/ostats.cpp"
-    "${main_cpp_base}/engine/otiles.cpp"
-    "${main_cpp_base}/engine/otraffic.cpp"
-    "${main_cpp_base}/engine/outils.cpp"
-    "${main_cpp_base}/engine/outrun.cpp"
     "${main_cpp_base}/romloader.cpp"
     "${main_cpp_base}/roms.cpp"
+)
 
-    #Header (included so auto-included in IDE projects)
-    "${main_hpp_base}/asmhelper.hpp"
+set(src_hwvideo
     "${main_hpp_base}/hwvideo/hwroad.hpp"
     "${main_hpp_base}/hwvideo/hwsprites.hpp"
     "${main_hpp_base}/hwvideo/hwtiles.hpp"
+
+    "${main_cpp_base}/hwvideo/hwroad.cpp"
+    "${main_cpp_base}/hwvideo/hwsprites.cpp"
+    "${main_cpp_base}/hwvideo/hwtiles.cpp"
+    )
+    
+set(src_hwaudio
+    "${main_hpp_base}/hwaudio/segapcm.hpp"
+    "${main_hpp_base}/hwaudio/soundchip.hpp"
+    "${main_hpp_base}/hwaudio/ym2151.hpp"
+    
+    "${main_cpp_base}/hwaudio/segapcm.cpp"
+    "${main_cpp_base}/hwaudio/soundchip.cpp"
+    "${main_cpp_base}/hwaudio/ym2151.cpp"
+    )
+    
+set(src_sdl
+    "${main_hpp_base}/sdl/audio.hpp"
     "${main_hpp_base}/sdl/timer.hpp"
     "${main_hpp_base}/sdl/input.hpp"
     "${main_hpp_base}/sdl/video.hpp"
-    "${main_hpp_base}/menu.hpp"
+
+    "${main_cpp_base}/sdl/audio.cpp"
+    "${main_cpp_base}/sdl/timer.cpp"
+    "${main_cpp_base}/sdl/input.cpp"
+    "${main_cpp_base}/sdl/video.cpp"
+)
+
+set(src_engine
     "${main_hpp_base}/engine/oaddresses.hpp"
     "${main_hpp_base}/engine/oanimseq.hpp"
     "${main_hpp_base}/engine/oanimsprite.hpp"
@@ -126,10 +127,57 @@ add_executable(outrun
     "${main_hpp_base}/engine/outils.hpp"
     "${main_hpp_base}/engine/outrun.hpp"
     "${main_hpp_base}/engine/ozoom_lookup.hpp"
-    "${main_hpp_base}/globals.hpp"
-    "${main_hpp_base}/romloader.hpp"
-    "${main_hpp_base}/roms.hpp"
-    "${main_hpp_base}/stdint.hpp"
+
+    "${main_cpp_base}/engine/oanimseq.cpp"
+    "${main_cpp_base}/engine/oattractai.cpp"
+    "${main_cpp_base}/engine/obonus.cpp"
+    "${main_cpp_base}/engine/ocrash.cpp"
+    "${main_cpp_base}/engine/oferrari.cpp"
+    "${main_cpp_base}/engine/ohiscore.cpp"
+    "${main_cpp_base}/engine/ohud.cpp"
+    "${main_cpp_base}/engine/oinitengine.cpp"
+    "${main_cpp_base}/engine/oinputs.cpp"
+    "${main_cpp_base}/engine/olevelobjs.cpp"
+    "${main_cpp_base}/engine/ologo.cpp"
+    "${main_cpp_base}/engine/omap.cpp"
+    "${main_cpp_base}/engine/omusic.cpp"
+    "${main_cpp_base}/engine/opalette.cpp"
+    "${main_cpp_base}/engine/oroad.cpp"
+    "${main_cpp_base}/engine/osmoke.cpp"
+    "${main_cpp_base}/engine/osprite.cpp"
+    "${main_cpp_base}/engine/osprites.cpp"
+    "${main_cpp_base}/engine/ostats.cpp"
+    "${main_cpp_base}/engine/otiles.cpp"
+    "${main_cpp_base}/engine/otraffic.cpp"
+    "${main_cpp_base}/engine/outils.cpp"
+    "${main_cpp_base}/engine/outrun.cpp"
+    )
+
+set(src_engine_audio
+    "${main_hpp_base}/engine/audio/commands.hpp"
+    "${main_hpp_base}/engine/audio/osound.hpp"
+    "${main_hpp_base}/engine/audio/osoundint.hpp"
+    "${main_hpp_base}/engine/audio/osoundadr.hpp"
+
+    "${main_cpp_base}/engine/audio/osound.cpp"
+    "${main_cpp_base}/engine/audio/osoundint.cpp"
+    )
+
+# Group files into relevant filters for Visual Studio build
+SOURCE_GROUP(src FILES ${src_main})
+SOURCE_GROUP(src\\hwvideo FILES ${src_hwvideo})
+SOURCE_GROUP(src\\hwaudio FILES ${src_hwaudio})
+SOURCE_GROUP(src\\sdl FILES ${src_sdl})
+SOURCE_GROUP(src\\engine FILES ${src_engine})
+SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
+
+add_executable(outrun
+    ${src_main}
+    ${src_hwvideo}
+    ${src_hwaudio}
+    ${src_sdl}
+    ${src_engine}
+    ${src_engine_audio}
 )
 
 # Microsoft Visual Studio 2010

@@ -517,7 +517,7 @@ void OSprites::finalise_sprites(void)
     // TODO: Code to wait for interrupt goes here
     blit_sprites();
     otraffic.traffic_logic();
-    // TODO: traffic sound FX
+    otraffic.traffic_sound();
     spr_cnt_main = spr_cnt_shadow = 0;
 
     // Ready to swap buffer and blit

@@ -124,6 +124,7 @@ set(src_engine
     "${main_hpp_base}/engine/osprites.hpp"
     "${main_hpp_base}/engine/ostats.hpp"
     "${main_hpp_base}/engine/otiles.hpp"
+    "${main_hpp_base}/engine/otraffic.hpp"
     "${main_hpp_base}/engine/outils.hpp"
     "${main_hpp_base}/engine/outrun.hpp"
     "${main_hpp_base}/engine/ozoom_lookup.hpp"

@@ -39,6 +39,8 @@ void OSound::init(YM2151* ym, uint8_t* pcm_ram)
     counter3      = 0;
     counter4      = 0;
 
+    engine_counter= 0;
+
     // Clear AM RAM 0xF800 - 0xFFFF
     for (uint16_t i = 0; i < CHAN_RAM_SIZE; i++)
         chan_ram[i] = 0;
@@ -67,9 +69,10 @@ void OSound::init_fm_chip()
 
 void OSound::tick()
 {
-    fm_dotimera();      // FM: Process Timer A. Stop Timer B
-    process_command();  // Process Command sent by main program code (originally the main 68k processor)
-    process_channels(); // Run logic on individual sound channel (both YM & PCM channels)
+    fm_dotimera();          // FM: Process Timer A. Stop Timer B
+    process_command();      // Process Command sent by main program code (originally the main 68k processor)
+    process_channels();     // Run logic on individual sound channel (both YM & PCM channels)
+    process_engine_tones(); // Ferrari Engine Tone & Traffic Noise
 }
 
 // PCM RAM Read/Write Helper Functions
@@ -334,7 +337,7 @@ void OSound::check_fm_mapping()
             // Map back to corresponding music channel
             chan_ram[chan_id - 0x2C0] |= BIT_2;
         }
-        chan_id += 0x20;
+        chan_id += CHAN_SIZE;
     }
 }
 
@@ -355,7 +358,7 @@ void OSound::process_channels()
         if (chan_ram[chan_id] & BIT_7)
             process_channel(chan_id);
 
-        chan_id += 0x20; // Advance to next channel in memory
+        chan_id += CHAN_SIZE; // Advance to next channel in memory
     }
 }
 
@@ -811,7 +814,7 @@ void OSound::init_sound(uint8_t cmd, uint16_t src, uint16_t dst)
 
         // Write zero 17 times (essentially pad out the 0x20 byte entry)
         // This empty space is updated later
-        for (int i = 0xF; i < 0x20; i++)
+        for (int i = 0xF; i < CHAN_SIZE; i++)
             chan_ram[dst++] = 0;
     }
 }
@@ -1249,4 +1252,392 @@ void OSound::write_seq_adr(uint8_t* chan)
     chan[offset-1] = pos & 0xFF;
 
     pos = value - 1;
+}
+
+// ----------------------------------------------------------------------------
+//                                ENGINE TONE CODE 
+// ----------------------------------------------------------------------------
+
+// Process Ferrari Engine Tone & Traffic Sound Effects
+//
+// Original addresses used: 
+// 0xFC00: Engine Channel - Player's Car
+// 0xFC20: Engine Channel - Traffic 1
+// 0xFC40: Engine Channel - Traffic 2
+// 0xFC60: Engine Channel - Traffic 3
+// 0xFC80: Engine Channel - Traffic 4
+//
+// counter = Increments every tick (0 - 0xFF)
+//
+// Source: 0x7501
+void OSound::process_engine_tones()
+{
+    // Return 1 in 2 times when this routine is called
+    if ((++engine_counter & 1) == 0)
+        return;
+
+    uint16_t ix = 0;                    // PCM Channel RAM Address
+    uint16_t iy = channel::ENGINE_CH1;  // Internal Channel RAM Address
+
+    engine_channel = 6;
+    uint8_t counter = engine_channel;
+
+    for (uint8_t i = engine_channel; i > 1; i--)
+    {
+        process_engine_chan(&chan_ram[iy], &pcm_ram[ix]);
+        ix += 0x10;
+        iy += CHAN_SIZE;
+    }
+}
+
+// Source: 0x7531
+void OSound::process_engine_chan(uint8_t* chan, uint8_t* pcm)
+{
+    // Return if PCM Sample Being Played On Channel
+    if (engine_channel < 3)
+    {
+        if (sound_props & BIT_1)
+            return;
+    }
+
+    store_engine_pitch(chan, pcm);
+
+    // ------------------------------------------------------------------------
+    // Car is stationary, do rev effect at start line
+    // ------------------------------------------------------------------------
+    if (sound_props & BIT_0)
+    {
+        // 0x7663
+        uint16_t revs = pcm[0x0] + (pcm[0x1] << 8);
+
+        if (revs == 0)
+        {
+            mute_engine_channel(chan, pcm);
+            return;
+        }
+        // 0x766E
+        // Do Vroom (used at starting line)
+        if (revs >= 0xFA)
+        {
+            // 0x7682
+            // Return if channel already active
+            if (!(pcm[0x86] & BIT_0))
+                return;
+
+            if (engine_channel < 3)
+            {
+                pcm[2] = 0x20; // l
+                pcm[3] = 0;    // r
+                pcm[7] = 0x41; // pitch
+            }
+            else if (engine_channel < 5)
+            {
+                pcm[2] = 0x10; // l
+                pcm[3] = 0x10; // r
+                pcm[7] = 0x42; // pitch
+            }
+            else
+            {
+                pcm[2] = 0x20; // l
+                pcm[3] = 0;    // r
+                pcm[7] = 0x40; // pitch
+            }
+
+            pcm[4] = pcm[0x84] = 0;    // start/loop low
+            pcm[5] = pcm[0x85] = 0x36; // start/loop high
+            pcm[6] = 0x36;             // end address high
+            pcm[0x86] = 2;             // Flags: Enable loop, set active
+
+            return;
+        }
+        // Some code relating to 0xFD08 that I don't think is used
+    }
+    // 0x754A
+    if (engine_channel & BIT_0)
+    {
+        // todo: call    nz, sub_78C7
+    }
+
+    // Check engine volume and mute channel if disabled
+    if (!chan[ch_engines::VOL0])
+    {
+        mute_engine_channel(chan, pcm);
+        return;
+    }
+
+    // Set Engine Volume
+    if (chan[ch_engines::VOL0] == chan[ch_engines::VOL1])
+    {
+        // Denote volume already set
+        chan[ch_engines::FLAGS] |= BIT_1; 
+    }
+    else
+    {
+        chan[ch_engines::FLAGS] &= ~BIT_1; 
+        chan[ch_engines::VOL1] = chan[ch_engines::VOL0];
+    }
+
+    // 0x755C
+    // Check we have some revs
+    uint16_t revs = pcm[0x0] + (pcm[0x1] << 8);
+    if (revs == 0)
+    {
+        mute_engine_channel(chan, pcm);
+        return;
+    }
+
+    // Offset into engine_adr_table for start address
+    // 0x774E routine rolled in here
+    uint16_t offset = pcm[0x80] + (pcm[0x81] << 8);
+    if (revs - offset == 0)
+    {
+        chan[ch_engines::FLAGS] |= BIT_0; // denotes start address / end address has been set
+    }
+    else 
+    {
+        if (revs - offset < 0)
+            chan[ch_engines::FLAGS] &= ~BIT_2; // loop enabled
+        else
+            chan[ch_engines::FLAGS] &= ~BIT_2; // loop disabled
+
+        chan[ch_engines::FLAGS] &= ~BIT_0; // Start end address not set
+    }
+
+    // 0x756A
+    chan[ch_engines::ACTIVE] &= ~BIT_0; // Mute
+
+    // Return if addresses have already been set
+    if ((chan[ch_engines::FLAGS] & BIT_0) && chan[ch_engines::FLAGS] & BIT_1)
+        return;
+
+    // 0x757A
+    // PLAYER'S CAR
+    if (engine_channel >= 5)
+    {
+        //todo fix stuff here: ix and iy might be swapped
+        int16_t off = r16(chan) - 0x30;
+
+        if (off >= 0)
+        {
+            // Pitch Slide
+            if (pcm[0x82] & BIT_4)
+            {
+                pcm[0x82] &= ~BIT_3; // Disable Traffic Sound
+                pcm[0x82] &= ~BIT_4;
+            }
+
+            // todo JUMP TO 75DA
+        }
+        else
+        {
+            // Pitch Slide
+            if (pcm[0x82] & BIT_4)
+            {
+                pcm[0x82] &= ~BIT_3; // Disable Traffic Sound
+                pcm[0x82] |=  BIT_4;
+            }
+        }
+    }
+    // 0x75B2
+    uint16_t engine_pos = get_engine_table_adr(chan, pcm); // hl
+    
+    // Mute Engine Channel
+    if (pcm[0x82] & BIT_5)
+    {
+        mute_engine_channel(chan, pcm, false);
+        return;
+    }
+    // Traffic Volume Unchanged: Skip past start address entries in table
+    if (pcm[0x82] & BIT_0)
+    {
+        engine_pos += 2;
+    }
+    else
+    {
+        uint16_t start_adr = set_engine_adr(engine_pos, chan, pcm); // Set Start Address
+        set_engine_adr_end(engine_pos, start_adr, chan, pcm);       // Set End Address
+    }
+
+    vol_thicken(engine_pos, chan, pcm); // Thicken engine effect by panning left/right dependent on channel.
+    set_engine_pitch(engine_pos, pcm);  // Set Engine Pitch from lookup table specified by hl
+    pcm[0x86] = 0;                      // Set Active & Loop Enabled
+}
+
+// Set Table Index For Engine Sample Start / End Addresses
+// Table starts at ENGINE_ADR_TABLE offset in ROM.
+// Source: 0x7819
+uint16_t OSound::get_engine_table_adr(uint8_t* chan, uint8_t* pcm)
+{
+    int16_t off = r16(chan) - 0x52;
+
+    int16_t table_offset;
+
+    if (off < 0)
+    {
+        pcm[0x82] &= ~BIT_5; // Unmute Engine Sounds
+        table_offset = r16(chan);
+        w16(chan + ch_engines::OFFSET, 0);
+    }
+    else
+    {
+        pcm[0x82] |= BIT_5; // Mute Engine Sounds
+        table_offset = 1;
+        w16(chan + ch_engines::OFFSET, off);
+    }
+    // get_adr:
+    table_offset--;
+
+    const static uint8_t ENTRY = 5; // bytes per entry
+    return (ENGINE_ADR_TABLE + ENTRY) + (table_offset * ENTRY);
+}
+
+// Setup engine addresses from table (START, LOOP)
+// Source: 0x77AD
+uint16_t OSound::set_engine_adr(uint16_t& pos, uint8_t* chan, uint8_t* pcm)
+{
+    uint16_t start_adr = roms.z80.read16(pos++);
+    pcm[0x4] = start_adr; // Set Wave Start Address
+
+    // TRAFFIC
+    if (engine_channel < 5)
+    {
+        if (chan[ch_engines::FLAGS] & BIT_5) // Mute
+        {
+            if (chan[ch_engines::FLAGS] & BIT_6)
+                chan[ch_engines::FLAGS] |= BIT_6;
+        }
+        else
+        {
+            chan[ch_engines::FLAGS] &= ~BIT_6;
+        }
+    }
+
+    // Return if loop address already set
+    if (chan[ch_engines::FLAGS] & BIT_3)
+        return start_adr;
+
+    // Denote loop address set
+    chan[ch_engines::FLAGS] |= BIT_3;
+    // Set default loop address to start address
+    pcm[0x84] = start_adr;
+
+    return start_adr;
+}
+
+// Source: 0x7853
+void OSound::set_engine_adr_end(uint16_t& pos, uint16_t loop_adr, uint8_t* chan, uint8_t* pcm)
+{
+    // Set wave end address from table
+    pcm[0x6] = roms.z80.read8(++pos);
+
+    // Loop Disabled
+    if (chan[ch_engines::FLAGS] & BIT_2)
+        return;
+
+    // Loop Address = End Address
+    if (pcm[0x85] == pcm[0x6])
+        return;
+
+    // Set loop address
+    pcm[0x84] = loop_adr;
+}
+
+// Thicken engine effect by panning left/right dependent on channel.
+// Source: 0x77EA
+void OSound::vol_thicken(uint16_t& pos, uint8_t* chan, uint8_t* pcm)
+{
+    pos++; // Address of volume multiplier
+
+    // Odd Channels: Pan Left
+    if (engine_channel & BIT_0)
+    {
+        pcm[0x2] = pcm[0x82] & BIT_5 ? 0 : get_adjusted_vol(pos, chan); // left (if enabled)
+        pcm[0x3] = 0; // right
+    }
+    // Even Channels: Pan Right
+    else
+    {
+        pcm[0x2] = 0; // left
+        pcm[0x3] = pcm[0x83] & BIT_5 ? 0 : get_adjusted_vol(pos, chan); // right (if enabled)
+    }
+}
+
+// Get Adjusted Volume
+// Source: 0x78A7
+uint8_t OSound::get_adjusted_vol(uint16_t& pos, uint8_t* chan)
+{
+    uint8_t multiply =  roms.z80.read8(pos);
+    uint16_t vol = (chan[ch_engines::VOL1] * multiply) >> 6;
+
+    if (vol > 0x3F)
+        vol = 0x3F;
+
+    //return vol >> 1;
+    return vol;
+}
+
+// Set Engine Pitch From Table
+// Source: 0x7870
+void OSound::set_engine_pitch(uint16_t& pos, uint8_t* pcm)
+{
+    pos++; // Increment to pitch entry in table
+
+    uint16_t bc = pcm[0x82] + (pcm[0x83] << 8);
+    bc >>= 2;
+
+    if (bc & 0xFF00)
+        bc = (bc & 0xFF00) | 0xFF;
+
+    uint16_t pitch = roms.z80.read8(pos);
+
+    // Read pitch from table
+    if (bc)
+    {
+        pitch += (bc & 0xFF);
+        if (pitch > 0xFF)
+            pitch = 0xFC;
+    }
+    // Adjust the pitch slightly dependent on the channel selected
+    if (engine_channel & BIT_0)
+        pcm[0x7] = pitch;
+    else
+        pcm[0x7] = pitch + 3;
+}
+
+// Mute an engine channel
+// Source: 0x7639
+void OSound::mute_engine_channel(uint8_t* chan, uint8_t* pcm, bool do_check)
+{
+    // Return if already muted
+    if (do_check && (chan[ch_engines::ACTIVE] & BIT_0))
+        return;
+
+    // Denote channel muted
+    chan[ch_engines::ACTIVE] |= BIT_0;
+
+    pcm[0x02] = 0;      // Clear volume left
+    pcm[0x03] = 0;      // Clear volume right
+    pcm[0x07] = 0;      // Clear pitch
+    pcm[0x86] |= BIT_0; // Denote not active
+
+    // Clear some stuff
+    chan[ch_engines::VOL0]    = 0;
+    chan[ch_engines::VOL1]    = 0;
+    chan[ch_engines::FLAGS]   = 0;
+    chan[ch_engines::PITCH_L] = 0;
+    chan[ch_engines::PITCH_H] = 0;
+    chan[ch_engines::VOL6]    = 0;
+}
+
+// Store the engine pitch and volume to PCM Channel RAM
+// Source: 0x778D
+void OSound::store_engine_pitch(uint8_t* chan, uint8_t* pcm)
+{
+    uint16_t pitch = (engine_data[sound::ENGINE_PITCH_H] << 8) + engine_data[sound::ENGINE_PITCH_L];
+    pitch = (pitch / 5) & 0x1FF;
+
+    // Store pitch in scratch space of channel (due to mirroring this wraps round to 0x00 in the channel)
+    pcm[0x0] = pitch & 0xFF;
+    pcm[0x1] = (pitch >> 8) & 0xFF;
+    chan[ch_engines::VOL0] = engine_data[sound::ENGINE_VOL];
 }

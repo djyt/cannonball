@@ -90,4 +90,8 @@ namespace z80_adr
 
     // PCM: Wave Sample
     const static uint16_t DATA_WAVE = 0x748B;
+
+    // Engine Table. 5 Bytes per entry.
+    // Engine Note: Start Address Low, Start Address High, Volume Multiplier, Unknown, Pitch
+    const static uint16_t ENGINE_ADR_TABLE = 0x7951;
 };

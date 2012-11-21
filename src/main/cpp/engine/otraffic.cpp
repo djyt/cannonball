@@ -673,3 +673,44 @@ void OTraffic::check_collision(oentry* sprite)
             sprite->traffic_proximity = 0xFF;
     }
 }
+
+// Passing Traffic Sound Effects
+// Handle up to four cars passing simulataneously
+// Source: 0x7A8C
+void OTraffic::traffic_sound()
+{
+    // Clear traffic data
+    osoundint.engine_data[sound::TRAFFIC1] = 0;
+    osoundint.engine_data[sound::TRAFFIC2] = 0;
+    osoundint.engine_data[sound::TRAFFIC3] = 0;
+    osoundint.engine_data[sound::TRAFFIC4] = 0;
+
+    if (outrun.game_state != GS_INGAME && outrun.game_state != GS_ATTRACT)
+        return;
+
+    // Return if we have chosen not to play sound in attract mode
+    if (outrun.game_state == GS_ATTRACT && !DIP_ADVERTISE)
+        return;
+
+    // Return if we haven't spawned any traffic
+    if (!traffic_count)
+        return;
+
+    // Max number of sounds we can do is 4
+    int16_t sounds = traffic_count <= 4 ? traffic_count : 4;
+
+    // Loop through traffic objects that re on screen
+    for (int16_t i = sounds - 1; i >= 0; i--)
+    {
+        oentry* t = traffic_adr[traffic_count - i - 1];
+        // Used to set panning of sound as car moves left and right in front of the player
+        int16_t pan = t->x >> 5; 
+        if (pan < -3) pan = -3;
+        if (pan >  3) pan =  3;
+        pan &= 7;
+        // Position into screen is used to set volume
+        int16_t vol = (t->road_priority & 0x1F0) >> 1;
+        osoundint.engine_data[i] = pan | vol;
+    }
+
+}

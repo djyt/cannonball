@@ -99,8 +99,7 @@ void OInitEngine::setup_stage1()
     ostats.score = 0;
     ostats.clear_stage_times();
     oferrari.reset_car();               // Reset Car Speed/Rev Values
-    // todo: engine pitch code
-    //oferrari.engine_pitch = 0x3F;
+    osoundint.engine_data[sound::ENGINE_VOL] = 0x3F;
     ostats.extend_play_timer = 0;
     checkpoint_marker = 0;              // Denote not past checkpoint marker
     otraffic.set_max_traffic();         // Set Number Of Enemy Cars Based On Dip Switches

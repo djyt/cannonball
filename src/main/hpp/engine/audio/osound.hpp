@@ -9,6 +9,205 @@
 #include "engine/audio/commands.hpp"
 #include "engine/audio/osoundadr.hpp"
 
+// PCM Sample Indexes
+namespace pcm_sample
+{
+    enum
+    {
+        CRASH1  = 0xD0, // 0xD0 - Crash 1
+        GURGLE  = 0xD1, // 0xD1 - Gurgle
+        SLIP    = 0xD2, // 0xD2 - Slip
+        CRASH2  = 0xD3, // 0xD3 - Crash 2
+        CRASH3  = 0xD4, // 0xD4 - Crash 3
+        SKID    = 0xD5, // 0xD5 - Skid
+        REBOUND = 0xD6, // 0xD6 - Rebound
+        HORN    = 0xD7, // 0xD7 - Horn
+        TYRES   = 0xD8, // 0xD8 - Tyre Squeal
+        SAFETY  = 0xD9, // 0xD9 - Safety Zone
+        LOSKID  = 0xDA, // 0xDA - Lofi skid (is this used)
+        CHEERS  = 0xDB, // 0xDB - Cheers
+        VOICE1  = 0xDC, // 0xDC - Voice 1, Checkpoint
+        VOICE2  = 0xDD, // 0xDD - Voice 2, Congratulations
+        VOICE3  = 0xDE, // 0xDE - Voice 3, Get Ready
+        VOICE4  = 0xDF, // 0xDF - Voice 4, You're doing great (unused, plays at wrong pitch)
+        WAVE    = 0xE0, // 0xE0 - Wave
+        CRASH4  = 0xE1, // 0xE1 - Crash 4
+    };
+};
+
+// Internal Channel Offsets in RAM
+namespace channel
+{
+    // Channels 0-7: YM Channels
+    const static uint16_t YM1 = 0x020; // f820
+    const static uint16_t YM2 = 0x040;
+    const static uint16_t YM3 = 0x060;
+    const static uint16_t YM4 = 0x080;
+    const static uint16_t YM5 = 0x0A0;
+    const static uint16_t YM6 = 0x0C0;
+    const static uint16_t YM7 = 0x0E0;
+    const static uint16_t YM8 = 0x100; // f900
+
+    // Channels 8-13: PCM Drum Channels for music
+    const static uint16_t PCM_DRUM1 = 0x120;
+    const static uint16_t PCM_DRUM2 = 0x140;
+    const static uint16_t PCM_DRUM3 = 0x160;
+    const static uint16_t PCM_DRUM4 = 0x180;
+    const static uint16_t PCM_DRUM5 = 0x1A0;
+    const static uint16_t PCM_DRUM6 = 0x1C0;
+
+    // Channels 14-21: PCM Sound Effects
+    const static uint16_t PCM_FX1 = 0x1E0; // f9e0: Crowd, Cheers, Wave
+    const static uint16_t PCM_FX2 = 0x200;
+    const static uint16_t PCM_FX3 = 0x220; // fa20: Slip, Safety Zone
+    const static uint16_t PCM_FX4 = 0x240;
+    const static uint16_t PCM_FX5 = 0x260; // fa60: Crash 1, Rebound, Crash2
+    const static uint16_t PCM_FX6 = 0x280;
+    const static uint16_t PCM_FX7 = 0x2A0; // faa0: Voices
+    const static uint16_t PCM_FX8 = 0x2C0;
+
+    // Channel Mapping Info. Used to play sound effects and music at the same time. 
+    const static uint16_t MAP1 = 0x2E0;
+    const static uint16_t MAP2 = 0x300;
+    const static uint16_t MAP3 = 0x320;
+    const static uint16_t MAP4 = 0x340;
+    const static uint16_t MAP5 = 0x360;
+    const static uint16_t MAP6 = 0x380;
+    const static uint16_t MAP7 = 0x3A0;
+
+    // Channels 22-23: YM Sound Effects
+    const static uint16_t YM_FX1 = 0x3C0; // fbc0: Signal 1, Signal 2
+    const static uint16_t YM_FX2 = 0x3E0;
+
+    // Engine Commands in RAM
+    const static int16_t ENGINE_CH1 = 0x400; // 0xFC00: Engine Channel - Player's Car
+    const static int16_t ENGINE_CH2 = 0x420; // 0xFC20: Engine Channel - Traffic 1
+    const static int16_t ENGINE_CH3 = 0x440; // 0xFC40: Engine Channel - Traffic 2
+    const static int16_t ENGINE_CH4 = 0x460; // 0xFC60: Engine Channel - Traffic 3
+    const static int16_t ENGINE_CH5 = 0x480; // 0xFC80: Engine Channel - Traffic 4
+
+};
+
+// ------------------------------------------------------------------------------------------------
+// Internal Format of Sound Data in RAM before sending to hardware
+// ------------------------------------------------------------------------------------------------
+//
+//0x20 byte chunks of information per channel in memory. Format is as follows:
+//
+//+0x00: [Byte] Flags e65--cn-
+//              n = FM noise channel (1 = yes, 0 = no)
+//              c = Corresponding music channel is enabled
+//              5 = Code exists to support this being set. But OutRun doesn't use it. Not sure of it's purpose.
+//              6 = ???
+//              e = channel enable (1 = active, 0 = disabled). 
+//+0x01: [Byte] Flags -m---ccc
+//	    c = YM Channel Number
+//              m = possibly a channel mute? 
+//                  Counters and positions still tick.  (1 = active, 0 = disabled).
+//+0x02: [Byte] Used as end marker when bit 1 of 0x0D is set
+//+0x03: [Word] Position in sequence
+//+0x05: [Word] Sequence End Marker
+//+0x07: [Word] Address of next command (see 0x2E7)
+//              This is essentially within the same block of sound information
+//+0x09: [Byte] Note Offset: From lowest note. Essentially an index into a table.
+//+0x0A: [Byte] Offset into 0x20 block of memory. Used to store positioning info.
+//+0x0B: [Byte] Use Phase and Amplitude Modulation Sensitivity Table
+//+0x0C: [Byte] FM: Select FM Data Block To Send. 0 = No Block.
+//+0x0D: [Byte] FM: End Marker Flags
+//              Flags ------10
+//              0 = Set high byte of end marker from data.
+//              1 = Do not calculate end marker. Use value from data.
+//+0x0E: [Byte] Sample Index / Command
+//+0x0F: [Word] ?
+//+0x10: [Byte] Offset into Phase and Amplitude Modulation Sensitivity Table (see 0x1DF)
+//+0x11: [Byte] Volume: Left Channel
+//+0x12: [Byte] Volume: Right Channel
+//+0x13: [Word] PCM: Wave Start Address / Loop Address 
+//              FM:  Note & Octave Info (top bit denotes noise channel?)
+//+0x14: [Byte] FM Channels only. Phase and Amplitude Modulation Sensitivity
+//+0x15: [Byte] Wave End Address HIGH 8 bits
+//+0x16: [Byte] PCM Pitch
+//+0x17: [Byte] Flags m-bbccla
+//              a = active (0 = active,  1 = inactive) 
+//              l = loop   (0 = enabled, 1 = disabled)
+//              c = channel pair select
+//              b = bank
+//              m = Music Sample (Drums etc.)
+//+0x18: [Byte] FM Loop Counter. Specifies number of times to trigger command sequence. 
+//              Counter used at 0x45f
+//
+//+0x1C: [Word] Sequence Address #1
+//+0x1E: [Word] Sequence Address #2
+
+namespace ch
+{
+    enum
+    {
+        FLAGS       = 0x00,
+        FM_FLAGS    = 0x01,
+        END_MARKER  = 0x02,
+        SEQ_POS     = 0x03,
+        SEQ_END     = 0x05,
+        SEQ_CMD     = 0x07,
+        NOTE_OFFSET = 0x09,
+        MEM_OFFSET  = 0x0A,
+        FM_PHASETBL = 0x0B,
+        FM_BLOCK    = 0x0C,
+        FM_MARKER   = 0x0D,
+        COMMAND     = 0x0E,
+        UNKNOWN     = 0x0F,
+        FM_PHASEOFF = 0x10,
+        VOL_L       = 0x11,
+        VOL_R       = 0x12,
+        PCM_ADR1L   = 0x13,
+        FM_NOTE     = 0x13,
+        PCM_ADR1H   = 0x14,
+        FM_PHASE_AMP= 0x14,
+        PCM_ADR2    = 0x15,
+        PCM_PITCH   = 0x16,
+        CTRL        = 0x17,
+        FM_LOOP     = 0x18,
+        SEQ_ADR1    = 0x1C,
+        SEQ_ADR2    = 0x1E,
+    };
+};
+
+// +0x00: [Byte] Engine Volume
+// +0x01: [Byte] Engine Volume (seems same as 0x00)
+// +0x02: [Byte] Flags -6543210
+//               6 = 
+//               5 = Set mutes channel completely
+//               4 = 
+//               3 = Set denotes loop address has been set
+//               2 = Set denotes loop disabled
+//               1 = Denote engine volume set
+//               0 = Set denotes start address / end address has been set
+// +0x03: [Byte] Engine Sample Loop counter (0 - 8) 
+//               Used as offset into separate 0x20 block to store data at (e.g. Engine Pitch1, Pitch2, Vol)
+// +0x04: [Byte] Engine Pitch Low
+// +0x05: [Byte] Engine Pitch High
+// +0x06: [Byte] Volume adjusted by 0x76D7 routine
+// +0x07: [Byte]
+// +0x08: [Byte] 0 = Channel Muted, 1 = Channel Active
+
+namespace ch_engines
+{
+    enum
+    {
+        VOL0    = 0x00,
+        VOL1    = 0x01,
+        FLAGS   = 0x02,
+        OFFSET  = 0x02,
+        LOOP    = 0x03,
+        PITCH_L = 0x04,
+        PITCH_H = 0x05,
+        VOL6    = 0x06,
+        ACTIVE  = 0x08,
+    };
+};
+
+
+
 class OSound
 {
 public:
@@ -38,6 +237,9 @@ private:
 
     // Internal channel format
     uint8_t chan_ram[CHAN_RAM_SIZE];
+
+    // Size of each internal channel entry
+    const static uint8_t CHAN_SIZE = 0x20;
 
     // ------------------------------------------------------------------------------------------------
     // Format of Data in PCM RAM
@@ -127,14 +329,20 @@ private:
     const static uint8_t PAN_RIGHT = 0x80;
     const static uint8_t PAN_CENTRE = PAN_LEFT | PAN_RIGHT;
 
+    // ------------------------------------------------------------------------
+    // ENGINE TONE CODE
+    // ------------------------------------------------------------------------
+    // Used to skip the engine code 1/2 times
+    uint8_t engine_counter;
+
+    // Engine Channel: Selects Channel at offset 0xF800 for engine tones
+    uint8_t engine_channel;
+
     inline uint8_t pcm_r(uint16_t adr);
     inline void    pcm_w(uint16_t adr, uint8_t v);
-
     inline uint16_t r16(uint8_t* adr);
     inline void     w16(uint8_t* adr, uint16_t v);
-
     void process_command();
-
     void pcm_backup();
     void check_fm_mapping();
     void process_channels();
@@ -165,159 +373,15 @@ private:
     void ym_finalize(uint8_t* chan);
     void read_mod_table(uint8_t* chan);
     void write_seq_adr(uint8_t* chan);
-};
 
-// PCM Sample Indexes
-namespace pcm_sample
-{
-    enum
-    {
-        CRASH1  = 0xD0, // 0xD0 - Crash 1
-        GURGLE  = 0xD1, // 0xD1 - Gurgle
-        SLIP    = 0xD2, // 0xD2 - Slip
-        CRASH2  = 0xD3, // 0xD3 - Crash 2
-        CRASH3  = 0xD4, // 0xD4 - Crash 3
-        SKID    = 0xD5, // 0xD5 - Skid
-        REBOUND = 0xD6, // 0xD6 - Rebound
-        HORN    = 0xD7, // 0xD7 - Horn
-        TYRES   = 0xD8, // 0xD8 - Tyre Squeal
-        SAFETY  = 0xD9, // 0xD9 - Safety Zone
-        LOSKID  = 0xDA, // 0xDA - Lofi skid (is this used)
-        CHEERS  = 0xDB, // 0xDB - Cheers
-        VOICE1  = 0xDC, // 0xDC - Voice 1, Checkpoint
-        VOICE2  = 0xDD, // 0xDD - Voice 2, Congratulations
-        VOICE3  = 0xDE, // 0xDE - Voice 3, Get Ready
-        VOICE4  = 0xDF, // 0xDF - Voice 4, You're doing great (unused, plays at wrong pitch)
-        WAVE    = 0xE0, // 0xE0 - Wave
-        CRASH4  = 0xE1, // 0xE1 - Crash 4
-    };
-};
-
-// Internal Channel Offsets in RAM
-namespace channel
-{
-    // Channels 0-7: YM Channels
-    const static uint16_t YM1 = 0x020; // f820
-    const static uint16_t YM2 = 0x040;
-    const static uint16_t YM3 = 0x060;
-    const static uint16_t YM4 = 0x080;
-    const static uint16_t YM5 = 0x0A0;
-    const static uint16_t YM6 = 0x0C0;
-    const static uint16_t YM7 = 0x0E0;
-    const static uint16_t YM8 = 0x100; // f900
-
-    // Channels 8-13: PCM Drum Channels for music
-    const static uint16_t PCM_DRUM1 = 0x120;
-    const static uint16_t PCM_DRUM2 = 0x140;
-    const static uint16_t PCM_DRUM3 = 0x160;
-    const static uint16_t PCM_DRUM4 = 0x180;
-    const static uint16_t PCM_DRUM5 = 0x1A0;
-    const static uint16_t PCM_DRUM6 = 0x1C0;
-
-    // Channels 14-21: PCM Sound Effects
-    const static uint16_t PCM_FX1 = 0x1E0; // f9e0: Crowd, Cheers, Wave
-    const static uint16_t PCM_FX2 = 0x200;
-    const static uint16_t PCM_FX3 = 0x220; // fa20: Slip, Safety Zone
-    const static uint16_t PCM_FX4 = 0x240;
-    const static uint16_t PCM_FX5 = 0x260; // fa60: Crash 1, Rebound, Crash2
-    const static uint16_t PCM_FX6 = 0x280;
-    const static uint16_t PCM_FX7 = 0x2A0; // faa0: Voices
-    const static uint16_t PCM_FX8 = 0x2C0;
-
-    // Channel Mapping Info. Used to play sound effects and music at the same time. 
-    const static uint16_t MAP1 = 0x2E0;
-    const static uint16_t MAP2 = 0x300;
-    const static uint16_t MAP3 = 0x320;
-    const static uint16_t MAP4 = 0x340;
-    const static uint16_t MAP5 = 0x360;
-    const static uint16_t MAP6 = 0x380;
-    const static uint16_t MAP7 = 0x3A0;
-
-    // Channels 22-23: YM Sound Effects
-    const static uint16_t YM_FX1 = 0x3C0; // fbc0: Signal 1, Signal 2
-    const static uint16_t YM_FX2 = 0x3E0;
-};
-
-// ------------------------------------------------------------------------------------------------
-// Internal Format of Sound Data in RAM before sending to hardware
-// ------------------------------------------------------------------------------------------------
-//
-//0x20 byte chunks of information per channel in memory. Format is as follows:
-//
-//+0x00: [Byte] Flags e65--cn-
-//              n = FM noise channel (1 = yes, 0 = no)
-//              c = Corresponding music channel is enabled
-//              5 = Code exists to support this being set. But OutRun doesn't use it. Not sure of it's purpose.
-//              6 = ???
-//              e = channel enable (1 = active, 0 = disabled). 
-//+0x01: [Byte] Flags -m---ccc
-//	    c = YM Channel Number
-//              m = possibly a channel mute? 
-//                  Counters and positions still tick.  (1 = active, 0 = disabled).
-//+0x02: [Byte] Used as end marker when bit 1 of 0x0D is set
-//+0x03: [Word] Position in sequence
-//+0x05: [Word] Sequence End Marker
-//+0x07: [Word] Address of next command (see 0x2E7)
-//              This is essentially within the same block of sound information
-//+0x09: [Byte] Note Offset: From lowest note. Essentially an index into a table.
-//+0x0A: [Byte] Offset into 0x20 block of memory. Used to store positioning info.
-//+0x0B: [Byte] Use Phase and Amplitude Modulation Sensitivity Table
-//+0x0C: [Byte] FM: Select FM Data Block To Send. 0 = No Block.
-//+0x0D: [Byte] FM: End Marker Flags
-//              Flags ------10
-//              0 = Set high byte of end marker from data.
-//              1 = Do not calculate end marker. Use value from data.
-//+0x0E: [Byte] Sample Index / Command
-//+0x0F: [Word] ?
-//+0x10: [Byte] Offset into Phase and Amplitude Modulation Sensitivity Table (see 0x1DF)
-//+0x11: [Byte] Volume: Left Channel
-//+0x12: [Byte] Volume: Right Channel
-//+0x13: [Word] PCM: Wave Start Address / Loop Address 
-//              FM:  Note & Octave Info (top bit denotes noise channel?)
-//+0x14: [Byte] FM Channels only. Phase and Amplitude Modulation Sensitivity
-//+0x15: [Byte] Wave End Address HIGH 8 bits
-//+0x16: [Byte] PCM Pitch
-//+0x17: [Byte] Flags m-bbccla
-//              a = active (0 = active,  1 = inactive) 
-//              l = loop   (0 = enabled, 1 = disabled)
-//              c = channel pair select
-//              b = bank
-//              m = Music Sample (Drums etc.)
-//+0x18: [Byte] FM Loop Counter. Specifies number of times to trigger command sequence. 
-//              Counter used at 0x45f
-//
-//+0x1C: [Word] Sequence Address #1
-//+0x1E: [Word] Sequence Address #2
-
-namespace ch
-{
-    enum
-    {
-        FLAGS       = 0x00,
-        FM_FLAGS    = 0x01,
-        END_MARKER  = 0x02,
-        SEQ_POS     = 0x03,
-        SEQ_END     = 0x05,
-        SEQ_CMD     = 0x07,
-        NOTE_OFFSET = 0x09,
-        MEM_OFFSET  = 0x0A,
-        FM_PHASETBL = 0x0B,
-        FM_BLOCK    = 0x0C,
-        FM_MARKER   = 0x0D,
-        COMMAND     = 0x0E,
-        UNKNOWN     = 0x0F,
-        FM_PHASEOFF = 0x10,
-        VOL_L       = 0x11,
-        VOL_R       = 0x12,
-        PCM_ADR1L   = 0x13,
-        FM_NOTE     = 0x13,
-        PCM_ADR1H   = 0x14,
-        FM_PHASE_AMP= 0x14,
-        PCM_ADR2    = 0x15,
-        PCM_PITCH   = 0x16,
-        CTRL        = 0x17,
-        FM_LOOP     = 0x18,
-        SEQ_ADR1    = 0x1C,
-        SEQ_ADR2    = 0x1E,
-    };
+    void process_engine_tones();
+    void process_engine_chan(uint8_t* chan, uint8_t* pcm);
+    void vol_thicken(uint16_t& pos, uint8_t* chan, uint8_t* pcm);
+    uint8_t get_adjusted_vol(uint16_t& pos, uint8_t* chan);
+    void set_engine_pitch(uint16_t& pos, uint8_t* pcm);
+    void mute_engine_channel(uint8_t* chan, uint8_t* pcm, bool do_check = true);
+    void store_engine_pitch(uint8_t* chan, uint8_t* pcm);
+    uint16_t get_engine_table_adr(uint8_t* chan, uint8_t* pcm);
+    uint16_t set_engine_adr(uint16_t& pos, uint8_t* chan, uint8_t* pcm);
+    void set_engine_adr_end(uint16_t& pos, uint16_t loop_adr, uint8_t* chan, uint8_t* pcm);
 };

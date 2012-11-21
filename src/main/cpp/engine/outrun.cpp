@@ -298,7 +298,7 @@ void Outrun::main_switch()
     {
         case GS_INIT:
             // disable block - music testing only ---------------------------
-            if (!osoundint.has_booted)
+           /* if (!osoundint.has_booted)
             {
                 osoundint.has_booted = true;
                 osoundint.queue_sound(sound::RESET);
@@ -307,19 +307,19 @@ void Outrun::main_switch()
                 osoundint.tick();
                 osoundint.queue_sound(sound::YM_SET_LEVELS);
                 osoundint.tick();
-                osoundint.queue_sound(sound::UFO);
+                osoundint.queue_sound(sound::VOICE_CHECKPOINT);
             }
-           break;
+           break;*/
             // end ----------------------------------------------------------
             
-            /*osoundint.has_booted = true;
+            osoundint.has_booted = true;
             oferrari.car_inc_old = car_inc_bak >> 16;
             oinitengine.car_increment = car_inc_bak;
             oferrari.car_ctrl_active = true;
             ostats.time_counter = 0x15;
             ostats.frame_counter = ostats.frame_reset;
             // todo: turn screen on
-            game_state = GS_ATTRACT;*/
+            game_state = GS_ATTRACT;
             // fall through
             
         // ----------------------------------------------------------------------------------------

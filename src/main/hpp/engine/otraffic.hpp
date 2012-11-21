@@ -32,6 +32,7 @@ public:
     void set_max_traffic();
     void tick(oentry* sprite);
     void traffic_logic();
+    void traffic_sound();
 
 private:
     // Onscreen traffic objects

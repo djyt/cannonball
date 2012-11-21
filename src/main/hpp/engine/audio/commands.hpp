@@ -1,4 +1,5 @@
 #pragma once
+
 // ----------------------------------------------------------------------------
 // Commands to send from main program code
 // ----------------------------------------------------------------------------
@@ -39,4 +40,22 @@ namespace sound
         PCM_WAVE = 0xA4,        // Wave Sample
         MUSIC_LASTWAVE = 0xA5,  // Music: Last Wave
     };
+
+    // ----------------------------------------------------------------------------
+    // Engine Commands to send from main program code
+    // ----------------------------------------------------------------------------
+
+    enum
+    {
+        UNUSED,
+        ENGINE_PITCH_H,
+        ENGINE_PITCH_L,
+        ENGINE_VOL,
+        TRAFFIC1,
+        TRAFFIC2,
+        TRAFFIC3,
+        TRAFFIC4,
+    };
+
 };
+

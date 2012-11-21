@@ -1414,7 +1414,7 @@ void OFerrari::convert_revs_speed(int32_t new_torque, int32_t &d2)
             int16_t d4 = rev_stop_flag;
             if (revs_top >= d5)
             {
-                    d5 >>= 1;
+                d5 >>= 1;
                 d4 >>= 1;
                 if (revs_top >= d5)
                     d4 >>= 1;
@@ -1437,7 +1437,7 @@ void OFerrari::convert_revs_speed(int32_t new_torque, int32_t &d2)
     {
         std::cout << "convert_revs_speed error!" << std::endl;
     }
-    //d2 = ((d2 & 0xFFFF) / new_torque) * 0x480;
+
     d2 = (d2 / new_torque) * 0x480;
     
     if (d2 < 0) d2 = 0;
@@ -1484,6 +1484,20 @@ int32_t OFerrari::tick_smoke()
 // Source: 0xBD78
 void OFerrari::do_sound_score_slip()
 {
+    // ------------------------------------------------------------------------
+    // ENGINE PITCH SOUND
+    // ------------------------------------------------------------------------
+    uint16_t engine_pitch = 0;
+
+    // Do Engine Rev
+    if (outrun.game_state >= GS_START1 && outrun.game_state <= GS_INGAME)
+    {
+        engine_pitch = rev_pitch2 + (rev_pitch2 >> 1);
+    }
+
+    osoundint.engine_data[sound::ENGINE_PITCH_H] = engine_pitch & 0xFF;
+    osoundint.engine_data[sound::ENGINE_PITCH_L] = engine_pitch >> 8;
+
     // Curved Road
     if (oinitengine.road_type != OInitEngine::ROAD_STRAIGHT)
     {

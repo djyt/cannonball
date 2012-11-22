@@ -197,7 +197,7 @@ namespace ch_engines
         VOL0    = 0x00,
         VOL1    = 0x01,
         FLAGS   = 0x02,
-        OFFSET  = 0x02,
+        OFFSET  = 0x03,
         LOOP    = 0x03,
         PITCH_L = 0x04,
         PITCH_H = 0x05,
@@ -245,24 +245,24 @@ private:
     // Format of Data in PCM RAM
     // ------------------------------------------------------------------------------------------------
 
-    //RAM DESCRIPTION ===============
+    // RAM DESCRIPTION ===============
     //
-    //0x00 - 0x07, 0x80 - 0x87 : CHANNEL #1  
-    //0x08 - 0x0F, 0x88 - 0x8F : CHANNEL #2
-    //0x10 - 0x17, 0x90 - 0x97 : CHANNEL #3  
-    //0x18 - 0x1F, 0x98 - 0x9F : CHANNEL #4
-    //0x20 - 0x27, 0xA0 - 0xA7 : CHANNEL #5  
-    //0x28 - 0x2F, 0xA8 - 0xAF : CHANNEL #6
-    //0x30 - 0x37, 0xB0 - 0xB7 : CHANNEL #7  
-    //0x38 - 0x3F, 0xB8 - 0xBF : CHANNEL #8
-    //0x40 - 0x47, 0xC0 - 0xC7 : CHANNEL #9  
-    //0x48 - 0x4F, 0xC8 - 0xCF : CHANNEL #10
-    //0x50 - 0x57, 0xD0 - 0xD7 : CHANNEL #11 
-    //0x58 - 0x5F, 0xD8 - 0xDF : CHANNEL #12
-    //0x60 - 0x67, 0xE0 - 0xE7 : CHANNEL #13 
-    //0x68 - 0x6F, 0xE8 - 0xEF : CHANNEL #14
-    //0x70 - 0x77, 0xF0 - 0xF7 : CHANNEL #15 
-    //0x78 - 0x7F, 0xF8 - 0xFF : CHANNEL #16
+    // 0x00 - 0x07, 0x80 - 0x87 : CHANNEL #1  
+    // 0x08 - 0x0F, 0x88 - 0x8F : CHANNEL #2
+    // 0x10 - 0x17, 0x90 - 0x97 : CHANNEL #3  
+    // 0x18 - 0x1F, 0x98 - 0x9F : CHANNEL #4
+    // 0x20 - 0x27, 0xA0 - 0xA7 : CHANNEL #5  
+    // 0x28 - 0x2F, 0xA8 - 0xAF : CHANNEL #6
+    // 0x30 - 0x37, 0xB0 - 0xB7 : CHANNEL #7  
+    // 0x38 - 0x3F, 0xB8 - 0xBF : CHANNEL #8
+    // 0x40 - 0x47, 0xC0 - 0xC7 : CHANNEL #9  
+    // 0x48 - 0x4F, 0xC8 - 0xCF : CHANNEL #10
+    // 0x50 - 0x57, 0xD0 - 0xD7 : CHANNEL #11 
+    // 0x58 - 0x5F, 0xD8 - 0xDF : CHANNEL #12
+    // 0x60 - 0x67, 0xE0 - 0xE7 : CHANNEL #13 
+    // 0x68 - 0x6F, 0xE8 - 0xEF : CHANNEL #14
+    // 0x70 - 0x77, 0xF0 - 0xF7 : CHANNEL #15 
+    // 0x78 - 0x7F, 0xF8 - 0xFF : CHANNEL #16
     //
     //
     // CHANNEL DESCRIPTION ===================
@@ -374,14 +374,21 @@ private:
     void read_mod_table(uint8_t* chan);
     void write_seq_adr(uint8_t* chan);
 
+    // ------------------------------------------------------------------------
+    // ENGINE TONE FUNCTIONS
+    // ------------------------------------------------------------------------
     void process_engine_tones();
     void process_engine_chan(uint8_t* chan, uint8_t* pcm);
     void vol_thicken(uint16_t& pos, uint8_t* chan, uint8_t* pcm);
     uint8_t get_adjusted_vol(uint16_t& pos, uint8_t* chan);
     void set_engine_pitch(uint16_t& pos, uint8_t* pcm);
     void mute_engine_channel(uint8_t* chan, uint8_t* pcm, bool do_check = true);
-    void store_engine_pitch(uint8_t* chan, uint8_t* pcm);
+    void unk78c7(uint8_t* chan, uint8_t* pcm);
+    void ferrari_vol_pan(uint8_t* chan, uint8_t* pcm);
     uint16_t get_engine_table_adr(uint8_t* chan, uint8_t* pcm);
     uint16_t set_engine_adr(uint16_t& pos, uint8_t* chan, uint8_t* pcm);
+    void adjust_volume(uint8_t* chan);
     void set_engine_adr_end(uint16_t& pos, uint16_t loop_adr, uint8_t* chan, uint8_t* pcm);
+    void set_engine_pan(uint16_t& pos, uint8_t* chan, uint8_t* pcm);
+    void read_engine_data(uint8_t* chan, uint8_t* pcm);
 };

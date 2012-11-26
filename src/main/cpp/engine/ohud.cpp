@@ -309,7 +309,6 @@ void OHud::draw_rev_counter()
         if (i & 1)
             addr += 2;
     }
-
     oferrari.rev_pitch2 = oferrari.rev_pitch1;
 }
 

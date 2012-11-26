@@ -20,6 +20,7 @@ OSound osound;
 OSoundInt::OSoundInt()
 {
     pcm_ram = new uint8_t[PCM_RAM_SIZE];
+    has_booted = false;
 }
 
 OSoundInt::~OSoundInt()
@@ -39,8 +40,6 @@ void OSoundInt::init()
         ym = new YM2151(0.5f, (uint32_t) (SOUND_CLOCK * 1.024));
         ym->init(44100, FRAMES_PER_SECOND);
     }
-
-    has_booted = false;
 
     sound_counter = 0;
     sound_head    = 0;
@@ -86,8 +85,6 @@ void OSoundInt::play_queued_sound()
         return;
     }
 
-    //uint8_t counter = sound_counter & 7;
-
     // Process the lot in one go. 
     for (int counter = 0; counter < 8; counter++)
     {
@@ -111,8 +108,6 @@ void OSoundInt::play_queued_sound()
             osound.engine_data[counter] = engine_data[counter];
         }
     }
-
-    //sound_counter++;
 }
 
 // Queue a sound in service mode

@@ -119,7 +119,6 @@ void Outrun::tick()
     if (input.has_pressed(Input::PAUSE))
     {
         pause = !pause;
-        osoundint.queue_sound(sound::COIN_IN); // debug
     }
 
     if (!pause || input.has_pressed(Input::STEP))
@@ -225,15 +224,21 @@ void Outrun::jump_table()
             omap.tick();
             break;
 
-        // ----------------------------------------------------------------------------------------
-        // Best OutRunners Entry (EditJumpTable3 Entries)
-        // ----------------------------------------------------------------------------------------
+
         case GS_MUSIC:
+            osprites.tick();
+            olevelobjs.do_sprite_routine();
+
             if (!outrun.tick_frame)
             {
                 omusic.check_start();
                 omusic.blit();
             }
+            break;
+
+        // ----------------------------------------------------------------------------------------
+        // Best OutRunners Entry (EditJumpTable3 Entries)
+        // ----------------------------------------------------------------------------------------
         case GS_INIT_BEST2:
         case GS_BEST2:
             osprites.tick();
@@ -298,7 +303,7 @@ void Outrun::main_switch()
     {
         case GS_INIT:
             // disable block - music testing only ---------------------------
-            if (!osoundint.has_booted)
+            /*if (!osoundint.has_booted)
             {
                 osoundint.has_booted = true;
                 osoundint.queue_sound(sound::RESET);
@@ -309,9 +314,9 @@ void Outrun::main_switch()
                 //osoundint.tick();
                 //osoundint.queue_sound(sound::VOICE_CHECKPOINT);
             }
-           break;
+           break;*/
             // end ----------------------------------------------------------
-            /*
+            
             osoundint.has_booted = true;
             oferrari.car_inc_old = car_inc_bak >> 16;
             oinitengine.car_increment = car_inc_bak;
@@ -321,7 +326,7 @@ void Outrun::main_switch()
             // todo: turn screen on
             game_state = GS_ATTRACT;
             // fall through
-            */
+            
         // ----------------------------------------------------------------------------------------
         // Attract Mode
         // ----------------------------------------------------------------------------------------

@@ -710,7 +710,7 @@ void OTraffic::traffic_sound()
         pan &= 7;
         // Position into screen is used to set volume
         int16_t vol = (t->road_priority & 0x1F0) >> 1;
-        osoundint.engine_data[i] = pan | vol;
+        //osoundint.engine_data[i] = pan | vol; DISABLED FOR NOW (CHRIS)
     }
 
 }

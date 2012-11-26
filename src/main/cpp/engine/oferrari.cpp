@@ -1495,8 +1495,8 @@ void OFerrari::do_sound_score_slip()
         engine_pitch = rev_pitch2 + (rev_pitch2 >> 1);
     }
 
-    osoundint.engine_data[sound::ENGINE_PITCH_H] = engine_pitch & 0xFF;
-    osoundint.engine_data[sound::ENGINE_PITCH_L] = engine_pitch >> 8;
+    osoundint.engine_data[sound::ENGINE_PITCH_H] = engine_pitch >> 8;
+    osoundint.engine_data[sound::ENGINE_PITCH_L] = engine_pitch & 0xFF;
 
     // Curved Road
     if (oinitengine.road_type != OInitEngine::ROAD_STRAIGHT)

@@ -377,18 +377,31 @@ private:
     // ------------------------------------------------------------------------
     // ENGINE TONE FUNCTIONS
     // ------------------------------------------------------------------------
-    void process_engine_tones();
-    void process_engine_chan(uint8_t* chan, uint8_t* pcm);
+    void engine_process();
+    void engine_process_chan(uint8_t* chan, uint8_t* pcm);
     void vol_thicken(uint16_t& pos, uint8_t* chan, uint8_t* pcm);
     uint8_t get_adjusted_vol(uint16_t& pos, uint8_t* chan);
-    void set_engine_pitch(uint16_t& pos, uint8_t* pcm);
-    void mute_engine_channel(uint8_t* chan, uint8_t* pcm, bool do_check = true);
+    void engine_set_pitch(uint16_t& pos, uint8_t* pcm);
+    void engine_mute_channel(uint8_t* chan, uint8_t* pcm, bool do_check = true);
     void unk78c7(uint8_t* chan, uint8_t* pcm);
     void ferrari_vol_pan(uint8_t* chan, uint8_t* pcm);
-    uint16_t get_engine_table_adr(uint8_t* chan, uint8_t* pcm);
-    uint16_t set_engine_adr(uint16_t& pos, uint8_t* chan, uint8_t* pcm);
-    void adjust_volume(uint8_t* chan);
-    void set_engine_adr_end(uint16_t& pos, uint16_t loop_adr, uint8_t* chan, uint8_t* pcm);
-    void set_engine_pan(uint16_t& pos, uint8_t* chan, uint8_t* pcm);
-    void read_engine_data(uint8_t* chan, uint8_t* pcm);
+    uint16_t engine_get_table_adr(uint8_t* chan, uint8_t* pcm);
+    void engine_adjust_volume(uint8_t* chan);
+    uint16_t engine_set_adr(uint16_t& pos, uint8_t* chan, uint8_t* pcm);
+    void engine_set_adr_end(uint16_t& pos, uint16_t loop_adr, uint8_t* chan, uint8_t* pcm);
+    void engine_set_pan(uint16_t& pos, uint8_t* chan, uint8_t* pcm);
+    void engine_read_data(uint8_t* chan, uint8_t* pcm);
+
+    // ----------------------------------------------------------------------------
+    //                               PASSING TRAFFIC FX 
+    // ----------------------------------------------------------------------------
+    void traffic_process();
+    void traffic_process_chan(uint8_t* pcm);
+    void traffic_process_entry(uint8_t* pcm);
+    void traffic_disable(uint8_t* pcm);
+    void traffic_set_vol(uint8_t* pcm);
+    void traffic_set_pan(uint8_t* pcm);
+    uint8_t traffic_get_vol(uint16_t pos, uint8_t* pcm);
+    void traffic_note_changes(uint8_t new_vol, uint8_t* pcm);
+    void traffic_copy_info(uint8_t* pcm);
 };

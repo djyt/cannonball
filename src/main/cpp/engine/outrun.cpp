@@ -354,7 +354,7 @@ void Outrun::main_switch()
             ostats.time_counter = 5;
             ostats.frame_counter = ostats.frame_reset;
             ohiscore.init();
-            // todo: clear sound
+            osoundint.queue_sound(sound::FM_RESET);
             game_state = GS_BEST1;
 
         case GS_BEST1:
@@ -375,8 +375,8 @@ void Outrun::main_switch()
             oferrari.car_inc_old = 0;
             ostats.time_counter = 5;
             ostats.frame_counter = ostats.frame_reset;
-            // todo: clear sound
-            ologo.enable(0);
+            osoundint.queue_sound(0);
+            ologo.enable(sound::FM_RESET);
             game_state = GS_LOGO;
 
         case GS_LOGO:
@@ -432,8 +432,8 @@ void Outrun::main_switch()
             oroad.tick();
             oroad.tick();
             oroad.tick();
-
-            // todo: play get ready voice
+            osoundint.queue_sound(sound::STOP_CHEERS);
+            osoundint.queue_sound(sound::VOICE_GETREADY);
             // todo: play selected music
             ostats.time_counter = ostats.TIME[DIP_TIME * 40];   // Set time to begin level with
             ostats.frame_counter = ostats.frame_reset + 50;     // set this to 49 for testing purposes
@@ -442,7 +442,7 @@ void Outrun::main_switch()
             ohud.blit_text1(TEXT1_CLEAR_START);
             ohud.blit_text1(TEXT1_CLEAR_CREDITS);
             oroad.road_width = 0x1C2 << 16;
-            // todo: sound
+            osoundint.queue_sound(sound::INIT_CHEERS);
             game_state = GS_START1;
             // fall through
 
@@ -451,7 +451,7 @@ void Outrun::main_switch()
         case GS_START2:
             if (--ostats.frame_counter < 0)
             {
-                // Play ding sound
+                osoundint.queue_sound(sound::SIGNAL1);
                 ostats.frame_counter = ostats.frame_reset;
                 game_state++;
             }
@@ -460,7 +460,8 @@ void Outrun::main_switch()
         case GS_START3:
             if (--ostats.frame_counter < 0)
             {
-                // Play different sounds
+                osoundint.queue_sound(sound::SIGNAL2);
+                osoundint.queue_sound(sound::STOP_CHEERS);
                 ostats.frame_counter = ostats.frame_reset;
                 game_state++;
             }
@@ -502,7 +503,7 @@ void Outrun::main_switch()
             ostats.time_counter = 3;
             ostats.frame_counter = ostats.frame_reset;
             ohud.blit_text2(TEXT2_GAMEOVER);
-            // todo: play sound
+            osoundint.queue_sound(sound::NEW_COMMAND);
             game_state = GS_GAMEOVER;
 
         case GS_GAMEOVER:
@@ -555,7 +556,7 @@ void Outrun::main_switch()
             ostats.time_counter = 0x30;
             ostats.frame_counter = ostats.frame_reset;
             ohiscore.init();
-            // todo: play sound 0x93
+            osoundint.queue_sound(sound::NEW_COMMAND);
             game_state = GS_BEST2;
             // fall through
 

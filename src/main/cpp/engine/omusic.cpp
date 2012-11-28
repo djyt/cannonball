@@ -31,7 +31,9 @@ void OMusic::enable()
     ohud.blit_text2(TEXT2_SELECT_MUSIC); // Select Music By Steering
     ostats.time_counter = 0x30; // Move 30 seconds to timer countdown (note on the original roms this is 15 seconds)
     ostats.frame_counter = ostats.frame_reset;  
-    // todo: play sounds, waves etc.
+    
+    osoundint.queue_sound(sound::RESET);
+    osoundint.queue_sound(sound::PCM_WAVE); // Wave Noises
 
     entry_start = OSprites::SPRITE_ENTRIES - 0x10;
     // Enable block of sprites

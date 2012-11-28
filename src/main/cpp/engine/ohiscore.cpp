@@ -93,7 +93,8 @@ void OHiScore::tick()
             // New High Score
             if (score_pos != -1)
             {
-                //todo: play wave sound (a4, a5)
+                osoundint.queue_sound(sound::PCM_WAVE);
+                osoundint.queue_sound(sound::MUSIC_LASTWAVE);
                 insert_score();               
             }
             // Not a High Score

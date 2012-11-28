@@ -94,4 +94,7 @@ namespace z80_adr
     // Engine Table. 5 Bytes per entry.
     // Engine Note: Start Address Low, Start Address High, Volume Multiplier, Unknown, Pitch
     const static uint16_t ENGINE_ADR_TABLE = 0x7951;
+
+    // Traffic Volume Multiply Table. How much to increase traffic volume by dependent on distance.
+    const static uint16_t TRAFFIC_VOL_MULTIPLY = 0x7CEF;
 };

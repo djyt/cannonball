@@ -435,7 +435,7 @@ void OSprites::do_spr_order_shadows(oentry* input)
 // Output:         None
 //
 
-void OSprites::sprite_copy(void)
+void OSprites::sprite_copy()
 {
     if (spr_cnt_main == 0)
     {
@@ -506,7 +506,7 @@ void OSprites::sprite_copy(void)
 // Output:         None
 //
 
-void OSprites::finalise_sprites(void)
+void OSprites::finalise_sprites()
 {
     sprite_count = spr_cnt_main + spr_cnt_shadow;
     
@@ -531,7 +531,7 @@ void OSprites::finalise_sprites(void)
 // Output:         None
 //
 
-void OSprites::blit_sprites(void)
+void OSprites::blit_sprites()
 {
     uint32_t dst_addr = SPRITE_RAM;
 

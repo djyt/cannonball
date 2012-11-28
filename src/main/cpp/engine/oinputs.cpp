@@ -75,8 +75,6 @@ void OInputs::simulate_analog()
         if (input_acc < 0) input_acc = 0;
     }
 
-    //input_acc = PEDAL_MAX; // hack !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
     // ------------------------------------------------------------------------
     // BRAKE
     // ------------------------------------------------------------------------
@@ -172,8 +170,8 @@ void OInputs::do_credits()
         if (ostats.credits < 9)
         {
             ostats.credits++;
-            // Increment credits total for bookkeeping
-            // Play 0x84 coin in sound
+            // todo: Increment credits total for bookkeeping
+            osoundint.queue_sound(sound::COIN_IN);
         }
     }
 }

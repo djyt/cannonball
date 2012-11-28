@@ -8,6 +8,7 @@ namespace sound
 {
     enum
     {
+        FM_RESET = 0,
         RESET  = 0x80,          // Reset sound code
         MUSIC_BREEZE = 0x81,    // Music: Passing Breeze
         MUSIC_SPLASH = 0x82,    // Music: Splash Wave
@@ -18,12 +19,12 @@ namespace sound
         STOP_SLIP = 0x8B,
         INIT_CHEERS = 0x8D,
         STOP_CHEERS = 0x8E,
-        INIT_CRASH1 = 0x8F,
-        INIT_REBOUND = 0x90,
-        INIT_CRASH2 = 0x92,
+        CRASH1 = 0x8F,
+        REBOUND = 0x90,
+        CRASH2 = 0x92,
         NEW_COMMAND = 0x93,
-        INIT_SIGNAL1 = 0x94,
-        INIT_SIGNAL2 = 0x95,
+        SIGNAL1 = 0x94,
+        SIGNAL2 = 0x95,
         INIT_WEIRD = 0x96,
         STOP_WEIRD = 0x97,
         BEEP1 = 0x99,            // YM Beep

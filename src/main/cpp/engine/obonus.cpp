@@ -111,14 +111,9 @@ void OBonus::decrement_bonus_secs()
         return;
     }
 
-    // TODO: Use counter to play signal 1 sound continually
-    //ROM:00009A16                 move.w  d0,d1                               ; Now use counter to play signal 1 sound intermittantly
-    //ROM:00009A18                 subq.w  #1,d1                               ; ..
-    //ROM:00009A1A                 eor.w   d1,d0                               ; ..
-    //ROM:00009A1C                 btst    #2,d0                               ; ..
-    //ROM:00009A20                 bne.w   cont1                               ; ..
-    //ROM:00009A24                 move.b  #$94,d0                             ; Play signal 1 sound
-    //ROM:00009A28                 bsr.w   QueueSound2                         ; ..
+    // Play Signal 1 Sound In A Steady Fashion
+    if ((((bonus_counter - 1) ^ bonus_counter) & BIT_2) == 0)
+        osoundint.queue_sound(sound::SIGNAL1);
 
     // Increment Score by 100K points
     ostats.update_score(100000);

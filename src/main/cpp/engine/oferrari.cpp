@@ -60,7 +60,7 @@ void OFerrari::reset_car()
     rev_stop_flag = 0;
     oinitengine.ingame_engine = false;
     oinitengine.ingame_counter = 0x1E; // Set ingame counter (time until we hand control to user)
-    // TODO: move.w  #$8B,(sound_slip).l ; 'ï'           ; Turn slip sound off
+    slip_sound = sound::STOP_SLIP;
     acc_adjust1 = acc_adjust2 = acc_adjust3 = 0;
     brake_adjust1 = brake_adjust2 = brake_adjust3 = 0;
     auto_brake = false;
@@ -954,7 +954,7 @@ void OFerrari::move()
 
             // check_time_expired:
             // 631E: Clear acceleration value if time out
-            if ((   ostats.time_counter & 0xFF) == 0)
+            if ((ostats.time_counter & 0xFF) == 0)
                 oinputs.acc_adjust = 0;
         
             // --------------------------------------------------------------------
@@ -1063,13 +1063,17 @@ void OFerrari::move()
         car_state = CAR_SMOKE; // Set smoke from car wheels
         if (oinitengine.car_increment >> 16)
         {
-            // Play slip sound
+            if (slip_sound != sound::STOP_SLIP)
+                osoundint.queue_sound(slip_sound = sound::INIT_SLIP);
         }
+        else
+            osoundint.queue_sound(slip_sound = sound::STOP_SLIP);
     }
     // no_smoke:
     else
     {
-        // Stop slip sound if necessary
+        if (slip_sound != sound::STOP_SLIP)
+            osoundint.queue_sound(slip_sound = sound::STOP_SLIP);        
     }
     // move_car
     car_inc_old = oinitengine.car_increment >> 16;
@@ -1542,6 +1546,7 @@ void OFerrari::do_sound_score_slip()
         if (ocrash.skid_counter)
         {
             is_slipping = -1;
+            osoundint.queue_sound(sound::INIT_SLIP);
         }
     }
     // 0xBE94
@@ -1550,6 +1555,7 @@ void OFerrari::do_sound_score_slip()
         if (!ocrash.skid_counter)
         {
             is_slipping = 0;
+            osoundint.queue_sound(sound::STOP_SLIP);
         }
     }
     // 0xBEAC
@@ -1566,6 +1572,7 @@ void OFerrari::do_sound_score_slip()
             if (cornering)
             {
                 is_slipping = -1;
+                osoundint.queue_sound(sound::INIT_SLIP);
             }
         }
         // 0xBEE4: Stop Cornering   
@@ -1574,6 +1581,7 @@ void OFerrari::do_sound_score_slip()
             if (!cornering)
             {
                 is_slipping = 0;
+                osoundint.queue_sound(sound::STOP_SLIP);
             }
         }
     }

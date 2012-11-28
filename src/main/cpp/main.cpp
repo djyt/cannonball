@@ -93,9 +93,6 @@ static void tick()
     // Tick Main Program Code
     outrun.tick();
 
-    // Process audio commands from main program code
-    osoundint.play_queued_sound();
-
     // Tick audio program code
     osoundint.tick();
 

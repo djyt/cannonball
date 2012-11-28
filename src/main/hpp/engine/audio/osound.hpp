@@ -403,5 +403,5 @@ private:
     void traffic_set_pan(uint8_t* pcm);
     uint8_t traffic_get_vol(uint16_t pos, uint8_t* pcm);
     void traffic_note_changes(uint8_t new_vol, uint8_t* pcm);
-    void traffic_copy_info(uint8_t* pcm);
+    void traffic_read_data(uint8_t* pcm);
 };

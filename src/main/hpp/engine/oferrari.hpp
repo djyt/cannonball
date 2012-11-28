@@ -111,6 +111,9 @@ public:
     // Ferrari is slipping/skidding either after collision or round bend
     uint16_t is_slipping;
 
+    // Slip Command Sent To Sound Hardware
+    uint8_t slip_sound;
+
     // Stores previous value of car_increment
     uint16_t car_inc_old;
 

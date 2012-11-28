@@ -334,7 +334,7 @@ void OTraffic::update_props(oentry* sprite)
     // Overtake Traffic Object
     if (z16 >= 0x200)
     {
-        // TODO: Code to play sound at 0x51CC
+        osoundint.queue_sound(sound::RESET);
         if (outrun.game_state == GS_INGAME)
         {
             // Update score on overtake
@@ -656,7 +656,7 @@ void OTraffic::check_collision(oentry* sprite)
                 if (traffic_speed < 0) traffic_speed = 0;
                 oinitengine.car_increment = (traffic_speed << 16) | (oinitengine.car_increment & 0xFFFF);
                 oferrari.car_inc_old = traffic_speed;
-                d0 = 0x90; // rebound sound effect
+                d0 = sound::REBOUND; // rebound sound effect
                 collision_traffic++; // denote collision with traffic
             }
         }
@@ -668,6 +668,7 @@ void OTraffic::check_collision(oentry* sprite)
     // New sound effect triggered
     if (!traffic_fx_old && sprite->traffic_fx)
     {
+        osoundint.queue_sound(sprite->traffic_fx);
         // Set all proximity bits on
         if (outils::random() & 1)
             sprite->traffic_proximity = 0xFF;
@@ -699,17 +700,18 @@ void OTraffic::traffic_sound()
     // Max number of sounds we can do is 4
     int16_t sounds = traffic_count <= 4 ? traffic_count : 4;
 
-    // Loop through traffic objects that re on screen
+    // Loop through traffic objects that are on screen
     for (int16_t i = sounds - 1; i >= 0; i--)
     {
-        oentry* t = traffic_adr[traffic_count - i - 1];
+        oentry* t = traffic_adr[i];
         // Used to set panning of sound as car moves left and right in front of the player
         int16_t pan = t->x >> 5; 
         if (pan < -3) pan = -3;
         if (pan >  3) pan =  3;
         pan &= 7;
         // Position into screen is used to set volume
-        int16_t vol = (t->road_priority & 0x1F0) >> 1;
-        osoundint.engine_data[i + sound::TRAFFIC1] = pan | vol;
+        uint8_t vol = (t->road_priority & 0x1F0) >> 1;
+        osoundint.engine_data[sound::TRAFFIC1 + i] = pan | vol;
+        //std::cout << (sound::TRAFFIC1 + i) << std::hex << " pan: " << pan << " vol: " << vol << std::endl;
     }
 }

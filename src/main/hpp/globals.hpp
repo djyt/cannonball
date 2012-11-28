@@ -28,16 +28,16 @@ const uint8_t DIP_ADVERTISE = 1;
 // Automatic Gears
 const bool GEAR_AUTO = false;
 
-enum 
+enum
 {
-	BIT_0 = 0x01,
-	BIT_1 = 0x02,
-	BIT_2 = 0x04,
-	BIT_3 = 0x08,
-	BIT_4 = 0x10,
-	BIT_5 = 0x20,
-	BIT_6 = 0x40,
-	BIT_7 = 0x80,
+    BIT_0 = 0x01,
+    BIT_1 = 0x02,
+    BIT_2 = 0x04,
+    BIT_3 = 0x08,
+    BIT_4 = 0x10,
+    BIT_5 = 0x20,
+    BIT_6 = 0x40,
+    BIT_7 = 0x80,
     BIT_8 = 0x100,
     BIT_9 = 0x200,
     BIT_A = 0x400,

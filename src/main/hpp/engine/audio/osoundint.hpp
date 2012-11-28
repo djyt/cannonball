@@ -54,7 +54,7 @@ private:
     uint8_t sound_counter;
 
     static const uint8_t QUEUE_LENGTH = 0x1F;
-    uint8_t queue[QUEUE_LENGTH];
+    uint8_t queue[QUEUE_LENGTH + 1];
 
     // Number of sounds queued
     uint8_t sounds_queued;

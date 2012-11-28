@@ -57,14 +57,20 @@ void OSoundInt::tick()
 {
     if (FRAMES_PER_SECOND == 30)
     {
+        play_queued_sound(); // Process audio commands from main program code
         osound.tick();
+        play_queued_sound();
         osound.tick();
+        play_queued_sound();
         osound.tick();
+        play_queued_sound();
         osound.tick();
     }
     else if (FRAMES_PER_SECOND == 60)
     {
+        play_queued_sound(); // Process audio commands from main program code
         osound.tick();
+        play_queued_sound();
         osound.tick();
     }
 }
@@ -74,7 +80,7 @@ void OSoundInt::tick()
 // ----------------------------------------------------------------------------
 
 // Play Queued Sounds & Send Engine Noise Commands to Z80
-// Called by interrupt routine
+// Was called by horizontal interrupt routine
 // Source: 0x564E
 void OSoundInt::play_queued_sound()
 {

@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6.2)
 project (outrun)
 
-#Source and header locations
+# Source and header locations
 set(main_base ../src/main)
 set(main_cpp_base ${main_base}/cpp)
 set(main_hpp_base ${main_base}/hpp)
@@ -9,8 +9,8 @@ set(main_hpp_base ${main_base}/hpp)
 #Dependency locations
 #TODO: These should be located using standard CMake macros
 if (WIN32)
-    set(boost_root c:/coding/lib/boost_1_51_0)
-    set(sdl_root c:/coding/lib/SDL-1.2.14)
+    set(boost_root c:/dev/lib/boost_1_51_0)
+    set(sdl_root c:/dev/lib/SDL-1.2.15)
 else()
     set(boost_root ~/Tools/boost_1_51_0)
     set(sdl_root ~/Tools/SDL-1.2.15/build)    

@@ -1,4 +1,5 @@
 #include <iostream> // needed for debugging only. Can be removed.
+#include <cstring> // For memset on GCC
 #include "engine/audio/osound.hpp"
 
 /***************************************************************************

@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <cmath>
+#include <cstring> // For memset on GCC
 
 #include "hwaudio/ym2151.hpp"
 

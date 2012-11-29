@@ -1,9 +1,16 @@
+/***************************************************************************
+    Sega 8-Bit PCM Driver.
+    
+    This driver is based upon the MAME source code, with some minor 
+    modifications to integrate it into the Cannonball framework.
+
+    Note, that I've altered this driver to output at a fixed 44,100Hz.
+    This is to avoid the need for downsampling.  
+    
+    See http://mamedev.org/source/docs/license.txt for more details.
+***************************************************************************/
+
 /**
- * SEGA PCM SOUND CHIP ------------------- 
- * 16 Channel PCM sound hardware, used
- * in many arcades such as X/Y Board, Out Run etc.
- * This code has been translated from the original C code from MAME (www.mame.net).
- * 
  * RAM DESCRIPTION ===============
  * 
  * 0x00 - 0x07, 0x80 - 0x87 : CHANNEL #1  
@@ -42,8 +49,8 @@
  * 0x83 | -------- | (unknown) 
  * 0x84 | llllllll | Wave Loop Address LOW 8 bits
  * 0x85 | llllllll | Wave Loop Address HIGH 8 bits 
- * 0x86 | ------la | Flags: a = active (0 = active, 1 = inactive) 
- *      |          |        l = loop (0 = enabled, 1 = disabled)
+ * 0x86 | ------la | Flags: a = active (0 = active,  1 = inactive) 
+ *      |          |        l = loop   (0 = enabled, 1 = disabled)
  * 
  */
 
@@ -78,7 +85,6 @@ SegaPCM::~SegaPCM()
 
 void SegaPCM::init(int32_t fps)
 {
-    //SoundChip::init(STEREO, 32000, fps);
     SoundChip::init(STEREO, 44100, fps);
 }
 
@@ -99,19 +105,6 @@ void SegaPCM::stream_update()
             uint32_t addr = (regs[0x85] << 16) | (regs[0x84] << 8) | low[ch];
             uint32_t loop = (regs[0x05] << 16) | (regs[0x04] << 8);
             uint8_t end   =  regs[0x06] + 1;
-
-            /*if (regs[2] == 0 && regs[3] == 0)
-            {
-
-            }
-            // Loop enabled
-            else if ((regs[0x86] & 2) == 0)
-                printf("Channel: %02X | Vol Left: %02X Right: %02X | Current Address: %04X | Loop: %04X | End: %04X | Pitch: %02X\n", 
-                    ch, regs[0x2], regs[0x3], (addr >> 8), (loop >> 8), (end << 8), regs[7]);
-            // No looping
-            else
-                printf("Channel: %02X | Vol Left: %02X Right: %02X | Current Address: %04X | Loop: OFF  | End: %04X | Pitch: %02X\n", 
-                    ch, regs[0x2], regs[0x3], (addr >> 8), (end << 8), regs[7]);*/
 
             uint32_t i;
 
@@ -141,7 +134,8 @@ void SegaPCM::stream_update()
                 write_buffer(LEFT,  i, read_buffer(LEFT,  i) + (v * regs[2]));
                 write_buffer(RIGHT, i, read_buffer(RIGHT, i) + (v * regs[3]));
 
-                // Advance. Note 
+                // Advance.
+                // Cannonball Change: Output at a fixed 44,100Hz. [Added the (regs[7] >> 2)]
                 addr = (addr + regs[7] - (regs[7] >> 2)) & 0xffffff;
             }
 

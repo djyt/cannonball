@@ -1,15 +1,15 @@
-#include "stdint.hpp"
-#include "hwaudio/soundchip.hpp"
-
 /***************************************************************************
     Sound Chip  
 
-    This is an abstract class, used by the PCM and YM2151 chips.
+    This is an abstract class, used by the Sega PCM and YM2151 chips.
     It facilitates writing to a buffer of sound data.
 
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
+
+#include "stdint.hpp"
+#include "hwaudio/soundchip.hpp"
 
 SoundChip::SoundChip()
 {

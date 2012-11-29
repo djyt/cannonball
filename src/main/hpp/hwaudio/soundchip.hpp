@@ -1,3 +1,13 @@
+/***************************************************************************
+    Sound Chip  
+
+    This is an abstract class, used by the Sega PCM and YM2151 chips.
+    It facilitates writing to a buffer of sound data.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 class SoundChip

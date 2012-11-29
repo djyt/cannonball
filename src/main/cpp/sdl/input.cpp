@@ -1,14 +1,14 @@
-#include "sdl/input.hpp"
-
 /***************************************************************************
     SDL Based Input Handling.
 
     Populates keys array with user input.
-    Will need to be replaced if SDL library is replaced.
+    If porting to a non-SDL platform, you would need to replace this class.
 
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
+
+#include "sdl/input.hpp"
 
 Input input;
 

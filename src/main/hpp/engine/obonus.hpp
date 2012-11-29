@@ -1,3 +1,12 @@
+/***************************************************************************
+    Bonus Points Code.
+    
+    This is the code that displays your bonus points on completing the game.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"

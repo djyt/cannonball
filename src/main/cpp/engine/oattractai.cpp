@@ -1,11 +1,26 @@
-#include "engine/oattractai.hpp"
+/***************************************************************************
+    Ferrari AI and Logic Routines.
+    Used by Attract Mode and the end of game Bonus Sequence. 
+    
+    The final behaviour of the AI differs from the original game.
+    
+    This is because the core Ferrari logic the AI relies on is in turn
+    dependent on timing behaviour between the two 68k CPUs.
+    
+    Differences in timing lead to subtle differences in the road x position 
+    at that particular point of time. Over time, these differences are 
+    magnified. 
+    
+    MAME does not accurately reproduce the arcade machine with regard to
+    this. And the Saturn conversion also exhibits different behaviour.
+    
+    The differences are relatively minor but noticeable.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
 
-// AI/Logic Routines for Attract Mode and Bonus Sequence.
-// Automatically drive Ferrari 
-//
-// Notes:
-// AI Behaviour can be slightly different from the original as it ties in with the main ferrari logic
-// which is dependent on road x timing updates.
+#include "engine/oattractai.hpp"
 
 OAttractAI oattractai;
 
@@ -157,7 +172,7 @@ void OAttractAI::set_steering()
         else
             x -= x_change;
 
-        car_x    = x;
+        car_x = x;
         x_change = oferrari.sprite_ai_x - x;
     }
     // Start Road Split / Not Road Split

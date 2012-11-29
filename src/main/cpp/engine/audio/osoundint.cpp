@@ -1,8 +1,3 @@
-#include "engine/outrun.hpp"
-
-#include "engine/audio/osound.hpp"
-#include "engine/audio/osoundint.hpp"
-
 /***************************************************************************
     Interface to Ported Z80 Code.
     Handles the interface between 68000 program code and Z80.
@@ -13,6 +8,10 @@
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
+
+#include "engine/outrun.hpp"
+#include "engine/audio/osound.hpp"
+#include "engine/audio/osoundint.hpp"
 
 OSoundInt osoundint;
 OSound osound;
@@ -25,6 +24,7 @@ OSoundInt::OSoundInt()
 
 OSoundInt::~OSoundInt()
 {
+    delete[] pcm_ram;
 }
 
 void OSoundInt::init()

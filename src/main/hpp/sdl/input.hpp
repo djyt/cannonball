@@ -1,3 +1,13 @@
+/***************************************************************************
+    SDL Based Input Handling.
+
+    Populates keys array with user input.
+    If porting to a non-SDL platform, you would need to replace this class.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include <SDL.h>
@@ -42,4 +52,3 @@ private:
 };
 
 extern Input input;
-

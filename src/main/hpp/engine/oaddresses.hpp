@@ -1,17 +1,24 @@
+/***************************************************************************
+    68000 Program Code Addresses 
+    Addresses to data within the Master and Sub CPU Program ROMs.
+    
+    These are typically large blocks of data that we don't want to include
+    in the codebase. 
+    
+    To convert Cannonball to work with a different version of the program
+    roms (e.g. the Japanese edition), this file would need to be updated.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 // ----------------------------------------------------------------------------
-// Locations in ROM
-//
-// Stored in one place for ease of use
+// Text Structures
 // ----------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------
-// Text Structures
-//
-// Text1 = Use BlitText1 routine
-// Text2 = Use BlitText2 routine
-// ----------------------------------------------------------------------------
+// Text1 = Use BlitText1 routine | Text2 = Use BlitText2 routine
 
 // Text: Credits
 const uint16_t TEXT1_CREDIT  = 0x6D38;
@@ -80,7 +87,7 @@ const uint16_t TEXT1_LAPTIME_CLEAR1 = 0x915C;
 const uint16_t TEXT1_LAPTIME_CLEAR2 = 0x917A;
 
 // Text: Easter Egg
-const uint16_t TEXT1_EASTER = 0x91B4;
+const uint16_t TEXT1_EASTER       = 0x91B4;
 const uint16_t TEXT1_EASTER_CLEAR = 0x91D6;
 
 // Text: Bonus Points Section
@@ -126,26 +133,26 @@ const uint16_t HUD_LAP2 = 0xBCE6;
 // ----------------------------------------------------------------------------
 
 // Tilemap hardware addresses
-const uint32_t HW_FG_PSEL = 0xE80;
-const uint32_t HW_BG_PSEL = 0xE82;
-const uint32_t HW_BG_HSCROLL = 0xE9A;
-const uint32_t HW_FG_VSCROLL = 0xE90;
-const uint32_t HW_BG_VSCROLL = 0xE92;
-const uint32_t HW_FG_HSCROLL = 0xE98;
+const uint32_t HW_FG_PSEL       = 0xE80;
+const uint32_t HW_BG_PSEL       = 0xE82;
+const uint32_t HW_BG_HSCROLL    = 0xE9A;
+const uint32_t HW_FG_VSCROLL    = 0xE90;
+const uint32_t HW_BG_VSCROLL    = 0xE92;
+const uint32_t HW_FG_HSCROLL    = 0xE98;
 
 // In-Game Tilemap Defaults
-const uint32_t TILES_PAGE_FG1 = 0x17E4C;
-const uint32_t TILES_PAGE_BG1 = 0x17E5C;
-const uint32_t TILES_PAGE_FG2 = 0x17E68;    // Used for road split
-const uint32_t TILES_PAGE_BG2 = 0x17E78;    // Used for road split
+const uint32_t TILES_PAGE_FG1   = 0x17E4C;
+const uint32_t TILES_PAGE_BG1   = 0x17E5C;
+const uint32_t TILES_PAGE_FG2   = 0x17E68;  // Used for road split
+const uint32_t TILES_PAGE_BG2   = 0x17E78;  // Used for road split
 const uint32_t TILES_DEF_LOOKUP = 0x17E84;  // Tilemap default lookup indexes, for values in table below
-const uint32_t TILES_TABLE = 0x17EAC;       // Stage Tilemap Default Values
+const uint32_t TILES_TABLE      = 0x17EAC;  // Stage Tilemap Default Values
 
-const uint32_t TILES_MINIMAP = 0x8C04;
+const uint32_t TILES_MINIMAP    = 0x8C04;
 
 // Table of h_scroll offsets (words) for road split
 // Note the h_scroll is set manually during the road split from the actual road position
-const uint32_t H_SCROLL_TABLE = 0x30B00;
+const uint32_t H_SCROLL_TABLE   = 0x30B00;
 
 // Tilemap: Music Selection Screen
 const uint32_t TILEMAP_MUSIC_SELECT = 0x383F2;
@@ -178,14 +185,14 @@ const uint32_t PAL_BESTOR = 0x17DCC;
 
 // Sprite Animation Sequences For Crashes
 //
-//+00 [Long] Sprite Data Frame Address
-//+04 [Byte] Bit 7: Set to H-Flip Sprite
-//           Bit 0: Set Sprite to Sprite Priority Higher (Unused so far?)
-//+05 [Byte] Sprite Colour Palette
-//+06 [Byte] Passenger Frame
-//           OR FOR Passenger Sprites: X Offset
-//+07 [Byte] Set to denote end of frame sequence
-//           OR FOR Passenger Sprites: Y Offset
+// +00 [Long] Sprite Data Frame Address
+// +04 [Byte] Bit 7: Set to H-Flip Sprite
+//            Bit 0: Set Sprite to Sprite Priority Higher (Unused so far?)
+// +05 [Byte] Sprite Colour Palette
+// +06 [Byte] Passenger Frame
+//            OR FOR Passenger Sprites: X Offset
+// +07 [Byte] Set to denote end of frame sequence
+//            OR FOR Passenger Sprites: Y Offset
 
 const uint32_t SPRITE_CRASH_SPIN1      = 0x2294;
 const uint32_t SPRITE_CRASH_SPIN2      = 0x22D4;
@@ -303,13 +310,12 @@ const uint32_t SPRITE_HAND_RIGHT  = 0x118F6;
 const uint32_t SPRITE_SHDW_SMALL = 0x1193C;
 
 
-//Sprite Collision X Offsets [Signed]
-//Table is indexed with the type of sprite. 
+// Sprite Collision X Offsets [Signed]
+// Table is indexed with the type of sprite. 
 //
-//Format:
-//Word 1: X-Left Offset
-//Word 2: X-Right Offset
-
+// Format:
+// Word 1: X-Left Offset
+// Word 2: X-Right Offset
 const uint32_t SPRITE_X_OFFS = 0x1212A;
 
 // Sprite Zoom Lookup Table.
@@ -373,23 +379,23 @@ const uint32_t ROAD_DATA_SPLIT_SEGS = 0x1DFA4;
 // Traffic Property Table
 const uint32_t TRAFFIC_PROPS = 0x4CFA;
 
-//There are six types of traffic in OutRun:
-//Lorry, Pickup, Beetle, BMW, Corvette, Porsche.
+// There are six types of traffic in OutRun:
+// Lorry, Pickup, Beetle, BMW, Corvette, Porsche.
 //
-//Each has 5 directional frames, including horizontal flipping.
-//Some vehicles have different frames for inclines.
+// Each has 5 directional frames, including horizontal flipping.
+// Some vehicles have different frames for inclines.
 //
-//Format is [0x20 byte boundaries]:
+// Format is [0x20 byte boundaries]:
 //
-//[+0] Straight Frame
-//[+4] Straight Frame (same as above)
-//[+8] Right Frame
-//[+C] Rightmost Frame 
+// [+0] Straight Frame
+// [+4] Straight Frame (same as above)
+// [+8] Right Frame
+// [+C] Rightmost Frame 
 //
-//[+10] Straight Frame [uphill version]
-//[+14] Straight Frame [uphill version] (same as above)
-//[+18] Right Frame [uphill version]
-//[+1C] Rightmost Frame [uphill version]
+// [+10] Straight Frame  [uphill version]
+// [+14] Straight Frame  [uphill version] (same as above)
+// [+18] Right Frame     [uphill version]
+// [+1C] Rightmost Frame [uphill version]
 
 const uint32_t TRAFFIC_DATA = 0x5424;
 
@@ -506,19 +512,19 @@ const uint32_t MUSIC_EQ_PAL = 0xCCAA;
 // Data
 // ----------------------------------------------------------------------------
 
-//X,Y Offsets of passenger 1 (Man) from car
+// X,Y Offsets of passenger 1 (Man) from car
 //
-//Format 
+// Format 
 //
-//Word 1: Frame 1 X Offset
-//Word 2: Frame 1 Y Offset 
-//Word 3: Frame 1 X Offset H-FLIP
-//Word 4: Frame 1 Y Offset H-FLIP
+// Word 1: Frame 1 X Offset
+// Word 2: Frame 1 Y Offset 
+// Word 3: Frame 1 X Offset H-FLIP
+// Word 4: Frame 1 Y Offset H-FLIP
 //
-//Word 5: Frame 2 X Offset
-//Word 6: Frame 2 Y Offset
+// Word 5: Frame 2 X Offset
+// Word 6: Frame 2 Y Offset
 //
-//etc.
+// etc.
 const uint32_t PASS1_OFFSET = 0xA6FC;
 const uint32_t PASS2_OFFSET = 0xA75C;
 
@@ -528,11 +534,12 @@ const uint32_t MAP_STAGE_ID = 0xDDB4;
 // Width / Height Table for sprites
 const uint32_t WH_TABLE = 0x20000;
 
-// Movement Lookup Table For Bird Animation In Attract Mode
+// Movement Lookup Table
+// Used by:
+// - Logo Bird Animation In Attract Mode
+// - Car Flip In Crash Scenario
 //
 // Entries 
 // 0     - 0xFF : X Position
 // 0x100 - 0x1FF: Y Position
-//
-// Also Used By Car Flip In Crash Scenario
 const uint32_t DATA_MOVEMENT = 0x30800;

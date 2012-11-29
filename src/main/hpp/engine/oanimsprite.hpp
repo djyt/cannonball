@@ -1,10 +1,24 @@
+/***************************************************************************
+    Animated Sprites. 
+    
+    This format is essentially a deviation from the normal sprites used in
+    the game.
+    
+    Some of the entries in the block of memory are replaced and used for 
+    other purposes, which can be seen below.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "oentry.hpp"
 
-class oanimsprite//: public oentry
+class oanimsprite
 {
 public:
+    // Base Sprite
     oentry* sprite;
 
     //+0x06 [Byte] Sprite/Object Index Being Processed

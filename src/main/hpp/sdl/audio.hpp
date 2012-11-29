@@ -1,3 +1,19 @@
+/***************************************************************************
+    SDL Audio Code.
+    
+    This is the SDL specific audio code.
+    If porting to a non-SDL platform, you would need to replace this class.
+    
+    It takes the output from the PCM and YM chips, mixes them and then
+    outputs appropriately.
+    
+    In order to achieve seamless audio, when audio is enabled the framerate
+    is adjusted to essentially sync the video to the audio output.
+    
+    This is based upon code from the Atari800 emulator project.
+    Copyright (c) 1998-2008 Atari800 development team
+***************************************************************************/
+
 #pragma once
 
 class Audio
@@ -28,14 +44,14 @@ private:
     // High value = Laggy, less chance of drop out.
     static const uint32_t SAMPLES  = 1024;
 
-    // Buffer used to mix PCM and YM channels together
-    uint16_t* mix_buffer;
-
     // Latency (in ms) and thus target buffer size
     const static int SND_DELAY = 20;
 
     // allowed "spread" between too many and too few samples in the buffer (ms)
     const static int SND_SPREAD = 7;
+    
+    // Buffer used to mix PCM and YM channels together
+    uint16_t* mix_buffer;
 
     // Estimated gap
     int gap_est;

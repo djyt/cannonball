@@ -1,12 +1,19 @@
+/***************************************************************************
+    Interface to Ported Z80 Code.
+    Handles the interface between 68000 program code and Z80.
+
+    Also abstracted here, so the more complex OSound class isn't exposed
+    to the main code directly
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "hwaudio/segapcm.hpp"
 #include "hwaudio/ym2151.hpp"
-
 #include "engine/audio/commands.hpp"
-
-class SegaPCM;
-class YM2151;
 
 class OSoundInt
 {

@@ -1,21 +1,29 @@
-#pragma once
+/***************************************************************************
+    Shared Sound Commands.
+    Used by both the ported 68K and Z80 program code.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
 
-// ----------------------------------------------------------------------------
-// Commands to send from main program code
-// ----------------------------------------------------------------------------
+#pragma once
 
 namespace sound
 {
+    // ----------------------------------------------------------------------------
+    // Commands to send from main program code
+    // ----------------------------------------------------------------------------
+
     enum
     {
-        FM_RESET = 0,
-        RESET  = 0x80,          // Reset sound code
-        MUSIC_BREEZE = 0x81,    // Music: Passing Breeze
-        MUSIC_SPLASH = 0x82,    // Music: Splash Wave
-        COIN_IN = 0x84,         // Coin IN Effect
-        MUSIC_MAGICAL = 0x85,   // Music: Magical Sound Shower
-        YM_CHECKPOINT = 0x86,   // YM: Checkpoint Ding
-        INIT_SLIP = 0x8A,       // Slip (Looped)
+        FM_RESET = 0,            // Reset FM Chip (Stop Music etc.)
+        RESET  = 0x80,           // Reset sound code
+        MUSIC_BREEZE = 0x81,     // Music: Passing Breeze
+        MUSIC_SPLASH = 0x82,     // Music: Splash Wave
+        COIN_IN = 0x84,          // Coin IN Effect
+        MUSIC_MAGICAL = 0x85,    // Music: Magical Sound Shower
+        YM_CHECKPOINT = 0x86,    // YM: Checkpoint Ding
+        INIT_SLIP = 0x8A,        // Slip (Looped)
         STOP_SLIP = 0x8B,
         INIT_CHEERS = 0x8D,
         STOP_CHEERS = 0x8E,
@@ -38,8 +46,8 @@ namespace sound
         STOP_SAFETYZONE  = 0xA1,
         YM_SET_LEVELS    = 0xA2,
         // 0xA3 Unused - Should be voice 4, but isn't hooked up
-        PCM_WAVE = 0xA4,        // Wave Sample
-        MUSIC_LASTWAVE = 0xA5,  // Music: Last Wave
+        PCM_WAVE = 0xA4,         // Wave Sample
+        MUSIC_LASTWAVE = 0xA5,   // Music: Last Wave
     };
 
     // ----------------------------------------------------------------------------
@@ -57,6 +65,4 @@ namespace sound
         TRAFFIC3,
         TRAFFIC4,
     };
-
 };
-

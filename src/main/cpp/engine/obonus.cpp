@@ -1,3 +1,12 @@
+/***************************************************************************
+    Bonus Points Code.
+    
+    This is the code that displays your bonus points on completing the game.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "engine/obonus.hpp"
 
 OBonus obonus;
@@ -5,7 +14,6 @@ OBonus obonus;
 OBonus::OBonus(void)
 {
 }
-
 
 OBonus::~OBonus(void)
 {

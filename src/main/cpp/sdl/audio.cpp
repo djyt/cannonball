@@ -1,7 +1,23 @@
+/***************************************************************************
+    SDL Audio Code.
+    
+    This is the SDL specific audio code.
+    If porting to a non-SDL platform, you would need to replace this class.
+    
+    It takes the output from the PCM and YM chips, mixes them and then
+    outputs appropriately.
+    
+    In order to achieve seamless audio, when audio is enabled the framerate
+    is adjusted to essentially sync the video to the audio output.
+    
+    This is based upon code from the Atari800 emulator project.
+    Copyright (c) 1998-2008 Atari800 development team
+***************************************************************************/
+
 #include <iostream>
 #include <SDL.h>
 #include "sdl/audio.hpp"
-#include "globals.hpp" // for FPS
+#include "globals.hpp"                 // for FPS
 #include "engine/audio/osoundint.hpp"
 
 /* ----------------------------------------------------------------------------
@@ -128,32 +144,33 @@ void Audio::tick()
     
     SDL_LockAudio();
 
-    /* this is the gap as of the most recent callback */
+    // this is the gap as of the most recent callback
     int gap = dsp_write_pos - dsp_read_pos;
-    /* an estimation of the current gap, adding time since then */
+    // an estimation of the current gap, adding time since then
     if (callbacktick != 0)
         gap_est = (int) (gap - (bytes_per_ms)*(SDL_GetTicks() - callbacktick));
 
-    /* if there isn't enough room... */
+    // if there isn't enough room...
     while (gap + bytes_written > dsp_buffer_bytes) 
     {
-        /* then we allow the callback to run.. */
+        // then we allow the callback to run..
         SDL_UnlockAudio();
-        /* and delay until it runs and allows space. */
+        // and delay until it runs and allows space.
         SDL_Delay(1);
         SDL_LockAudio();
         //printf("sound buffer overflow:%d %d\n",gap, dsp_buffer_bytes);
         gap = dsp_write_pos - dsp_read_pos;
     }
-    /* now we copy the data into the buffer and adjust the positions */
+    // now we copy the data into the buffer and adjust the positions
     newpos = dsp_write_pos + bytes_written;
-    if (newpos/dsp_buffer_bytes == dsp_write_pos/dsp_buffer_bytes) {
-        /* no wrap */
+    if (newpos/dsp_buffer_bytes == dsp_write_pos/dsp_buffer_bytes) 
+    {
+        // no wrap
         memcpy(dsp_buffer+(dsp_write_pos%dsp_buffer_bytes), mbuf8, bytes_written);
     }
     else 
     {
-        /* wraps */
+        // wraps
         int first_part_size = dsp_buffer_bytes - (dsp_write_pos%dsp_buffer_bytes);
         memcpy(dsp_buffer+(dsp_write_pos%dsp_buffer_bytes), mbuf8, first_part_size);
         memcpy(dsp_buffer, mbuf8+first_part_size, bytes_written-first_part_size);
@@ -164,10 +181,6 @@ void Audio::tick()
     if (callbacktick == 0)
         dsp_read_pos += bytes_written;
 
-    //if (dsp_write_pos < dsp_read_pos) {
-        /* should not occur */
-    //    printf("Error: dsp_write_pos < dsp_read_pos\n");
-    //}
     while (dsp_read_pos > dsp_buffer_bytes) 
     {
         dsp_write_pos -= dsp_buffer_bytes;

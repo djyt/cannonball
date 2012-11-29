@@ -1,19 +1,25 @@
-#pragma once
+/***************************************************************************
+    Z80 Program Code Addresses. 
+    Addresses to data within the Z80 Program ROM.
+    
+    These are typically large blocks of data that we don't want to include
+    in the codebase. 
+    
+    For example the music tracks are stored and referenced here.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
 
-// ----------------------------------------------------------------------------
-// Z80 Addresses
-// ----------------------------------------------------------------------------
+#pragma once
 
 namespace z80_adr
 {
     // FM Note & Octave Lookup Table
     const static uint16_t YM_NOTE_OCTAVE = 0xAC9;
 
-    // Command Lists to send to FM Chip.
-    // Format is register, value pairs
+    // Command Lists to send to FM Chip. Format is register, value pairs
     const static uint16_t YM_INIT_CMDS = 0xB29;
-
-    // Format is register, value pairs
     // Address is ($60 + (8 * Operator) + Channel). Total Level affects the total output volume of the sound.
     const static uint16_t YM_LEVEL_CMDS1  = 0xB49;
     const static uint16_t YM_LEVEL_CMDS2  = 0xB81;
@@ -82,7 +88,7 @@ namespace z80_adr
     // PCM: Voice 3, Get Ready
     const static uint16_t DATA_VOICE3 = 0x7003;
 
-    // YM: UFO (Unused?)
+    // YM: UFO (Unused)
     const static uint16_t DATA_UFO = 0x703D;
 
     // YM: Beep 2 Sound
@@ -91,7 +97,7 @@ namespace z80_adr
     // PCM: Wave Sample
     const static uint16_t DATA_WAVE = 0x748B;
 
-    // Engine Table. 5 Bytes per entry.
+    // Engine Tone Table. 5 Bytes per entry.
     // Engine Note: Start Address Low, Start Address High, Volume Multiplier, Unknown, Pitch
     const static uint16_t ENGINE_ADR_TABLE = 0x7951;
 

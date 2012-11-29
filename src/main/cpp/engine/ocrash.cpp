@@ -1,42 +1,27 @@
+/***************************************************************************
+    Collision & Crash Code. 
+    
+    There are two types of collision: Scenery & Traffic.
+    
+    1/ Traffic: The Ferrari will spin after a collision.
+    2/ Scenery: There are three types of scenery collision:
+       - Low speed bump. Car rises slightly in the air and stalls.
+       - Mid speed spin. Car spins and slides after collision.
+       - High speed flip. If slightly slower, car rolls into screen.
+         Otherwise, grows towards screen and vanishes
+         
+    Known Issues With Original Code:
+    - Passenger sprites flicker if they land moving in the water on Stage 1
+    
+    The Ferrari sprite is used differently by the crash code.
+    As there's only one of them, I've rolled the additional variables into
+    this class. 
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "engine/ocrash.hpp"
-
-/*
- There are two types of collision: Scenery & Traffic.
- 
- TRAFFIC: Car will spin after collision.
-
- SCENERY: There are three types of scenery collision:
-
- 1/ Low speed bump. Car rises slightly in the air and stalls.
- 2/ Mid speed spin. Car spins and slides after collision.
- 3/ High speed flip. If slightly slower, car rolls into screen.
-    Otherwise, grows towards screen and vaniches
-
-
- Known Issues With Crash Code:
-
-
- X Collisions with traffic can be odd. Stalling when hitting truck at high speed
- X After crashing once in Attract mode, gear change smokes every time.
- X Rev counter / torque problems after reset from crash
-   This might just be launching the car at the right time from standstill?
- X H-Flip appears to be wrong for flips including passengers. Not an issue
- X Flip: Passengers are missing
- X Flip: Passenger shadows are missing
- X Flip: Bounces off scenery are probably wrong [possibly fixed, needs double check]
-         check collide_fast() <- problem was here
-         check do_car_flip()
- X Spin: Possible to hang after a series of crashes [was a problem with decrementing car_increment]
-
- Known Issues With Original Code:
-
- - Passenger sprites flicker if they land moving in the water on Stage 1
-
- To Do:
-
- X Write code to step through frames on a line by line basis
-
-*/
 
 OCrash ocrash;
 
@@ -130,7 +115,6 @@ void OCrash::tick()
     // Do Passenger 2
     if (spr_pass2->control & OSprites::ENABLE)
         if (outrun.tick_frame) ((ocrash).*(function_pass2))(spr_pass2);
-        //else done(spr_pass2);
         else osprites.do_spr_order_shadows(spr_pass2);
 
     // Do Passenger 2 Shadow
@@ -919,11 +903,6 @@ void OCrash::collide_slow()
     frame_restore = 0;
     if (y >= 0x12) frame_restore++;
     if (y >= 0x13) frame_restore++;
-
-    // Now setup dipped frame for bumped routine
-    // TODO - investigate whether the frame stuff is needed here as it gets cleared later anyway
-    //frame = frame_restore + 1;
-    //if (frame < 2) frame = 2;
     
     // Right Hand Side: Increment Frame Entry By 3
     if (oinitengine.car_x_pos < 0)

@@ -1,7 +1,14 @@
+/***************************************************************************
+    Patched version of zoom lookup table which fixes sprite zoom bug.
+    
+    This is used to scale all sprites in the game. 
+    
+    The original game features a bug, which causes sprites at certain z 
+    positions to be scaled incorrectly.
+***************************************************************************/
+
 #include "stdint.hpp"
 
-// Patched version of zoom lookup table which fixes sprite zoom bug
-//
 // Format is: vzoom & hzoom, width/height lookup, src offsets, unused
 const static uint16_t ZOOM_LOOKUP[] =
 {

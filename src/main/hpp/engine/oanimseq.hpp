@@ -1,3 +1,18 @@
+/***************************************************************************
+    Animation Sequences.
+    
+    Used in three areas of the game:
+    - The sequence at the start with the Ferrari driving in from the side
+    - Flag Waving Man
+    - 5 x End Sequences
+    
+    See "oanimsprite.hpp" for the specific format used by animated sprites.
+    It is essentially a deviation from the normal sprites in the game.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"

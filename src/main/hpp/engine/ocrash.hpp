@@ -1,3 +1,26 @@
+/***************************************************************************
+    Collision & Crash Code. 
+    
+    There are two types of collision: Scenery & Traffic.
+    
+    1/ Traffic: The Ferrari will spin after a collision.
+    2/ Scenery: There are three types of scenery collision:
+       - Low speed bump. Car rises slightly in the air and stalls.
+       - Mid speed spin. Car spins and slides after collision.
+       - High speed flip. If slightly slower, car rolls into screen.
+         Otherwise, grows towards screen and vanishes
+         
+    Known Issues With Original Code:
+    - Passenger sprites flicker if they land moving in the water on Stage 1
+    
+    The Ferrari sprite is used differently by the crash code.
+    As there's only one of them, I've rolled the additional variables into
+    this class. 
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
@@ -85,10 +108,13 @@ public:
     void tick();
 
 private:
+
+    // This is the rolled Ferrari sprite, which is configured differently for
+    // the crash code. 
+    // The offsets indicate the original offsets in memory.
+
     //+1E [Word] Spins/Flips Remaining
     int16_t spinflipcount1;
-    //+20 [Word] Ferrari Crash Z
-    //int16_t ferrari_crash_z;
     //+22 [Word] Crash Spin/Flip Count Copy
     int16_t spinflipcount2;
     //+24 [Word] Crash Slide Value (After Spin/Flip etc.)

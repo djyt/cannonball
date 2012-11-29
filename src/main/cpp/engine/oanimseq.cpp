@@ -1,48 +1,38 @@
+/***************************************************************************
+    Animation Sequences.
+    
+    Used in three areas of the game:
+    - The sequence at the start with the Ferrari driving in from the side
+    - Flag Waving Man
+    - 5 x End Sequences
+    
+    See "oanimsprite.hpp" for the specific format used by animated sprites.
+    It is essentially a deviation from the normal sprites in the game.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "engine/oanimseq.hpp"
 
-// ANIMATION SEQUENCES
-// 
-// This is used in three main areas of the game:
-// 1) The sequence at the start with the Ferrari driving in from the side
-// 2) Starter waving flag
-// 3) The five end sequences
+// ----------------------------------------------------------------------------
+// Animation Data Format.
+// Animation blocks are stored in groups of 8 bytes, and formatted as follows:
 //
-//
-//Animation Sprites have the following additional properties:
-//
-//+0x06 [Byte] Sprite/Object Index Being Processed
-//             1 = Car Door
-//             2 = Ferrari Interior
-//             3 = Car Shadow
-//             4 = Man Sprite
-//             5 = Man Shadow
-//             6 = Female Sprite
-//             7 = Female Shadow
-//             8 = Trophy Person
-//             9 = Trophy Shadow
-//             A = After Effects (e.g. smoke cloud on genie animation)
-//+0x1E [Long] Reference to the CURRENT block of animation data.
-//+0x22 [Long] Reference to the NEXT block of animation data.
-//+0x26 [Word] Animation Frame Number
-//+0x28 [Word] Frame Delay (Before increment to next frame)
-//+0x2A [Word]
-//
-//Animation Data Format.
-//Animation blocks are stored in groups of 8 bytes, and formatted as follows:
-//
-//+00 [Byte] Sprite Colour Palette
-//+01 [Byte] Bit 7: Make X Position Negative
-//           Bits 4-6: Sprite To Sprite Priority
-//           Bits 0-3: Top Bits Of Sprite Data Address
-//+02 [Word] Sprite Data Address
-//+04 [Byte] Sprite X Position
-//+05 [Byte] Sprite Y Position
-//+06 [Byte] Sprite To Road Priority
-//+07 [Byte] Bit 7: Set To Load Next Block Of Sprite Animation Data To 0x1E
-//           Bit 6: Set For H-Flip
-//           Bit 4:
-//           Bits 0-3: Animation Frame Delay (Before Incrementing To Next Block Of 8 Bytes)
-
+// +00 [Byte] Sprite Colour Palette
+// +01 [Byte] Bit 7: Make X Position Negative
+//            Bits 4-6: Sprite To Sprite Priority
+//            Bits 0-3: Top Bits Of Sprite Data Address
+// +02 [Word] Sprite Data Address
+// +04 [Byte] Sprite X Position
+// +05 [Byte] Sprite Y Position
+// +06 [Byte] Sprite To Road Priority
+// +07 [Byte] Bit 7: Set To Load Next Block Of Sprite Animation Data To 0x1E
+//            Bit 6: Set For H-Flip
+//            Bit 4:
+//            Bits 0-3: Animation Frame Delay 
+//                     (Before Incrementing To Next Block Of 8 Bytes)
+// ----------------------------------------------------------------------------
 
 OAnimSeq oanimseq;
 
@@ -55,7 +45,6 @@ OAnimSeq::~OAnimSeq(void)
 {
 }
 
-//void OAnimSeq::init(oentry* sprite_flag, oentry* sprite_ferrari, oentry* sprite_pass1, oentry* sprite_pass2)
 void OAnimSeq::init(oentry* jump_table)
 {
     // --------------------------------------------------------------------------------------------
@@ -597,8 +586,7 @@ void OAnimSeq::anim_seq_shadow(oanimsprite* parent, oanimsprite* anim)
         return;
 
     if (outrun.tick_frame)
-    {
-    
+    {  
         uint8_t zoom_shift = 3;
 
         // Car Shadow

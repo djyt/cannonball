@@ -3,14 +3,13 @@ project (outrun)
 
 # Source and header locations
 set(main_base ../src/main)
-set(main_cpp_base ${main_base}/cpp)
-set(main_hpp_base ${main_base}/hpp)
+set(main_cpp_base ${main_base})
 
 #Dependency locations
 #TODO: These should be located using standard CMake macros
 if (WIN32)
     set(boost_root c:/dev/lib/boost_1_51_0)
-    set(sdl_root c:/dev/lib/SDL-1.2.14)
+    set(sdl_root c:/dev/lib/SDL-1.2.15)
 else()
     set(boost_root ~/Tools/boost_1_51_0)
     set(sdl_root ~/Tools/SDL-1.2.15/build)    
@@ -18,7 +17,7 @@ endif()
 
 #Include
 include_directories(
-    "${main_hpp_base}"
+    "${main_cpp_base}"
     "${boost_root}"    
 )
 
@@ -53,12 +52,12 @@ link_libraries(outrun
 )
 
 set(src_main
-    "${main_hpp_base}/asmhelper.hpp"
-    "${main_hpp_base}/menu.hpp"
-    "${main_hpp_base}/globals.hpp"
-    "${main_hpp_base}/romloader.hpp"
-    "${main_hpp_base}/roms.hpp"
-    "${main_hpp_base}/stdint.hpp"
+    "${main_cpp_base}/asmhelper.hpp"
+    "${main_cpp_base}/menu.hpp"
+    "${main_cpp_base}/globals.hpp"
+    "${main_cpp_base}/romloader.hpp"
+    "${main_cpp_base}/roms.hpp"
+    "${main_cpp_base}/stdint.hpp"
 
     "${main_cpp_base}/asmhelper.cpp"
     "${main_cpp_base}/main.cpp"
@@ -68,9 +67,9 @@ set(src_main
 )
 
 set(src_hwvideo
-    "${main_hpp_base}/hwvideo/hwroad.hpp"
-    "${main_hpp_base}/hwvideo/hwsprites.hpp"
-    "${main_hpp_base}/hwvideo/hwtiles.hpp"
+    "${main_cpp_base}/hwvideo/hwroad.hpp"
+    "${main_cpp_base}/hwvideo/hwsprites.hpp"
+    "${main_cpp_base}/hwvideo/hwtiles.hpp"
 
     "${main_cpp_base}/hwvideo/hwroad.cpp"
     "${main_cpp_base}/hwvideo/hwsprites.cpp"
@@ -78,9 +77,9 @@ set(src_hwvideo
     )
     
 set(src_hwaudio
-    "${main_hpp_base}/hwaudio/segapcm.hpp"
-    "${main_hpp_base}/hwaudio/soundchip.hpp"
-    "${main_hpp_base}/hwaudio/ym2151.hpp"
+    "${main_cpp_base}/hwaudio/segapcm.hpp"
+    "${main_cpp_base}/hwaudio/soundchip.hpp"
+    "${main_cpp_base}/hwaudio/ym2151.hpp"
     
     "${main_cpp_base}/hwaudio/segapcm.cpp"
     "${main_cpp_base}/hwaudio/soundchip.cpp"
@@ -88,10 +87,10 @@ set(src_hwaudio
     )
     
 set(src_sdl
-    "${main_hpp_base}/sdl/audio.hpp"
-    "${main_hpp_base}/sdl/timer.hpp"
-    "${main_hpp_base}/sdl/input.hpp"
-    "${main_hpp_base}/sdl/video.hpp"
+    "${main_cpp_base}/sdl/audio.hpp"
+    "${main_cpp_base}/sdl/timer.hpp"
+    "${main_cpp_base}/sdl/input.hpp"
+    "${main_cpp_base}/sdl/video.hpp"
 
     "${main_cpp_base}/sdl/audio.cpp"
     "${main_cpp_base}/sdl/timer.cpp"
@@ -100,34 +99,34 @@ set(src_sdl
 )
 
 set(src_engine
-    "${main_hpp_base}/engine/oaddresses.hpp"
-    "${main_hpp_base}/engine/oanimseq.hpp"
-    "${main_hpp_base}/engine/oanimsprite.hpp"
-    "${main_hpp_base}/engine/oattractai.hpp"
-    "${main_hpp_base}/engine/obonus.hpp"
-    "${main_hpp_base}/engine/ocrash.hpp"
-    "${main_hpp_base}/engine/oentry.hpp"
-    "${main_hpp_base}/engine/oferrari.hpp"
-    "${main_hpp_base}/engine/ohiscore.hpp"
-    "${main_hpp_base}/engine/ohud.hpp"
-    "${main_hpp_base}/engine/oinitengine.hpp"
-    "${main_hpp_base}/engine/oinputs.hpp"
-    "${main_hpp_base}/engine/olevelobjs.hpp"
-    "${main_hpp_base}/engine/ologo.hpp"
-    "${main_hpp_base}/engine/omap.hpp"
-    "${main_hpp_base}/engine/omusic.hpp"
-    "${main_hpp_base}/engine/opalette.hpp"
-    "${main_hpp_base}/engine/options.hpp"
-    "${main_hpp_base}/engine/oroad.hpp"
-    "${main_hpp_base}/engine/osmoke.hpp"
-    "${main_hpp_base}/engine/osprite.hpp"
-    "${main_hpp_base}/engine/osprites.hpp"
-    "${main_hpp_base}/engine/ostats.hpp"
-    "${main_hpp_base}/engine/otiles.hpp"
-    "${main_hpp_base}/engine/otraffic.hpp"
-    "${main_hpp_base}/engine/outils.hpp"
-    "${main_hpp_base}/engine/outrun.hpp"
-    "${main_hpp_base}/engine/ozoom_lookup.hpp"
+    "${main_cpp_base}/engine/oaddresses.hpp"
+    "${main_cpp_base}/engine/oanimseq.hpp"
+    "${main_cpp_base}/engine/oanimsprite.hpp"
+    "${main_cpp_base}/engine/oattractai.hpp"
+    "${main_cpp_base}/engine/obonus.hpp"
+    "${main_cpp_base}/engine/ocrash.hpp"
+    "${main_cpp_base}/engine/oentry.hpp"
+    "${main_cpp_base}/engine/oferrari.hpp"
+    "${main_cpp_base}/engine/ohiscore.hpp"
+    "${main_cpp_base}/engine/ohud.hpp"
+    "${main_cpp_base}/engine/oinitengine.hpp"
+    "${main_cpp_base}/engine/oinputs.hpp"
+    "${main_cpp_base}/engine/olevelobjs.hpp"
+    "${main_cpp_base}/engine/ologo.hpp"
+    "${main_cpp_base}/engine/omap.hpp"
+    "${main_cpp_base}/engine/omusic.hpp"
+    "${main_cpp_base}/engine/opalette.hpp"
+    "${main_cpp_base}/engine/options.hpp"
+    "${main_cpp_base}/engine/oroad.hpp"
+    "${main_cpp_base}/engine/osmoke.hpp"
+    "${main_cpp_base}/engine/osprite.hpp"
+    "${main_cpp_base}/engine/osprites.hpp"
+    "${main_cpp_base}/engine/ostats.hpp"
+    "${main_cpp_base}/engine/otiles.hpp"
+    "${main_cpp_base}/engine/otraffic.hpp"
+    "${main_cpp_base}/engine/outils.hpp"
+    "${main_cpp_base}/engine/outrun.hpp"
+    "${main_cpp_base}/engine/ozoom_lookup.hpp"
 
     "${main_cpp_base}/engine/oanimseq.cpp"
     "${main_cpp_base}/engine/oattractai.cpp"
@@ -155,10 +154,10 @@ set(src_engine
     )
 
 set(src_engine_audio
-    "${main_hpp_base}/engine/audio/commands.hpp"
-    "${main_hpp_base}/engine/audio/osound.hpp"
-    "${main_hpp_base}/engine/audio/osoundint.hpp"
-    "${main_hpp_base}/engine/audio/osoundadr.hpp"
+    "${main_cpp_base}/engine/audio/commands.hpp"
+    "${main_cpp_base}/engine/audio/osound.hpp"
+    "${main_cpp_base}/engine/audio/osoundint.hpp"
+    "${main_cpp_base}/engine/audio/osoundadr.hpp"
 
     "${main_cpp_base}/engine/audio/osound.cpp"
     "${main_cpp_base}/engine/audio/osoundint.cpp"

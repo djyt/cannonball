@@ -1,3 +1,13 @@
+/***************************************************************************
+    Process Inputs.
+    
+    - Read & Process inputs and controls.
+    - Note, this class does not contain platform specific code.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "engine/oinputs.hpp"
 
 OInputs oinputs;

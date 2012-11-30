@@ -1,3 +1,12 @@
+/***************************************************************************
+    Music Selection Screen.
+
+    This is a combination of a tilemap and overlayed sprites.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"

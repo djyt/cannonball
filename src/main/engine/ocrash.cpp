@@ -21,6 +21,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "engine/outils.hpp"
 #include "engine/ocrash.hpp"
 
 OCrash ocrash;

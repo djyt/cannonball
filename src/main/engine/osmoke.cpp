@@ -1,3 +1,12 @@
+/***************************************************************************
+    Smoke & Spray Control.
+    
+    Animate the smoke and spray below the Ferrari's wheels.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "engine/osmoke.hpp"
 
 OSmoke osmoke;
@@ -153,7 +162,7 @@ void OSmoke::setup_smoke_sprite(bool force_load)
     smoke_type_offroad = OFFROAD_SMOKE[stage_lookup] << 2;
 }
 
-// A relatively lengthy routine to set the smoke x,y and z values
+// Set the smoke x,y and z co-ordinates
 // Also sets the speed at which the animation repeats
 //
 // Inputs:

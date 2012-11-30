@@ -1,3 +1,16 @@
+/***************************************************************************
+    Heads-Up Display (HUD) Code
+    
+    - Score Rendering
+    - Timer Rendering
+    - Rev Rendering
+    - Minimap Rendering
+    - Text Rendering
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
@@ -34,4 +47,3 @@ private:
 };
 
 extern OHud ohud;
-

@@ -1,3 +1,13 @@
+/***************************************************************************
+    Hardware Sprites.
+    
+    This class stores sprites in the converted format expected by the
+    OutRun graphics hardware.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "stdint.hpp" 
 
 class osprite
@@ -9,8 +19,8 @@ public:
 	osprite(void);
 	~osprite(void);
 
-	uint16_t get_x(void);
-	uint16_t get_y(void);
+	uint16_t get_x();
+	uint16_t get_y();
 	void set_x(uint16_t);
 	void inc_x(uint16_t);
 	void set_y(uint16_t);
@@ -25,7 +35,7 @@ public:
 	void set_height(uint8_t);
 	void sub_height(uint8_t);
 	void set_bank(uint8_t);
-	void hide(void);
+	void hide();
 
 private:
 

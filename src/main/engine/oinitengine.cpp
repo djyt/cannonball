@@ -1,3 +1,18 @@
+/***************************************************************************
+    Core Game Engine Routines.
+    
+    - The main loop which advances the level onto the next segment.
+    - Code to directly control the road hardware. For example, the road
+      split and bonus points routines.
+    - Code to determine whether to initialize certain game modes
+      (Crash state, Bonus points, road split state) 
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
+#include "engine/outils.hpp"
+#include "engine/opalette.hpp"
 #include "engine/oinitengine.hpp"
 
 OInitEngine oinitengine;
@@ -86,7 +101,7 @@ void OInitEngine::debug_load_level(uint8_t level)
 
     oroad.road_width = RD_WIDTH_MERGE << 16;        // Setup a default road width
 
-    // TODO - Hacks that need replacing
+    // Hacks
     outrun.game_state = 0xC;
     oferrari.reset_car();
     car_x_pos = 0;
@@ -253,8 +268,6 @@ void OInitEngine::check_road_width()
     // Main Car Logic Block
     // ------------------------------------------------------------------------
 
-    // placeholder for do car speed - REPLACE! in MoveCar function
-    
     if (DEBUG_LEVEL)
     {
         uint32_t result = 0x12F * (car_increment >> 16);

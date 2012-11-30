@@ -1,9 +1,29 @@
-#include "engine/oroad.hpp"
+/***************************************************************************
+    Road Rendering & Control
 
-// - Run this after CPU 0
-// - CPU 0 should be initalized before exection
-// - Tick 1: init_road_code only
-// - Tick 2: main loop
+    This is a complete port of the 68000 SUB CPU Program ROM.
+    
+    The original code consists of a shared Sega library and some routines
+    which are OutRun specific.
+    
+    Some of the original code is not used and is therefore not ported.
+    
+    This is the most complex area of the game code, and an area of the code
+    in need of refactoring.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
+#include "stdint.hpp"
+#include "globals.hpp"
+#include "roms.hpp"
+
+#include "engine/oaddresses.hpp"
+#include "engine/outils.hpp"
+#include "engine/oinitengine.hpp"
+
+#include "engine/oroad.hpp"
 
 ORoad oroad;
 
@@ -263,7 +283,6 @@ void ORoad::setup_road_x()
     if (road_pos_change != 0)
     {
         road_data_offset = (road_pos >> 16) << 2;
-        //std::cout << std::hex << "Setup x data: " << road_data_offset << std::endl;
         setup_x_data();
     }
     setup_hscroll();
@@ -312,7 +331,6 @@ void ORoad::setup_road_x()
 // Notes:
 //
 // Stage 1 Data Stored At 3da74
-
 
 void ORoad::setup_x_data()
 {
@@ -716,7 +734,6 @@ void ORoad::init_height_seg()
             break;
         case 3:
             init_level_4d(h_addr);
-            //std::cerr << "init_height_seg() - UNIMPLEMENTED height_ctrl2 value" << std::endl;
             break;
         case 4:
             init_horizon_adjust(h_addr);
@@ -850,7 +867,6 @@ void ORoad::do_level_4d()
     // 1E1C - On crest of hill (hill type >= 6)
     if (height_index >= 6)
     {
-        //std::cout << "untested road code block (level 4d)" << std::endl;
         uint16_t d3 = dist_ctrl;
         if (do_height_inc != 0)
         {
@@ -1309,8 +1325,6 @@ void ORoad::set_horizon_y()
 
     int16_t y_pos = road_y[road_p3] >> 4;
     horizon_y2 = -y_pos + 224;
-
-    //std::cout << std::hex << horizon_y2 << std::endl;
 }
 
 // Parse Road Scanline Data.

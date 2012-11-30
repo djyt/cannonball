@@ -4,6 +4,8 @@
 #include "roms.hpp"
 #include "globals.hpp"
 
+#include "sdl/video.hpp"
+
 // Main include for Ported OutRun Code
 #include "options.hpp"
 #include "oaddresses.hpp"

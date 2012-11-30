@@ -1,8 +1,16 @@
-#include "engine/ologo.hpp"
+/***************************************************************************
+    Attract Mode: Animated OutRun Logo Graphic
+    
+    The logo is built from multiple sprite components.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
 
-// Code to setup Outrun Logo Sprite In Attract Mode
-//
-// Note the logo is made of multiple sprite components
+#include "stdint.hpp"
+#include "engine/osprites.hpp"
+#include "engine/outils.hpp"
+#include "engine/ologo.hpp"
 
 OLogo ologo;
 
@@ -26,7 +34,7 @@ void OLogo::enable(int16_t y)
 {
     y_off = -y;
 
-     entry_start = OSprites::SPRITE_ENTRIES - 0x10;
+    entry_start = OSprites::SPRITE_ENTRIES - 0x10;
 
     // Enable block of sprites
     for (int i = entry_start; i < entry_start + 7; i++)

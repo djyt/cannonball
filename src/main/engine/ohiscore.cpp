@@ -1,3 +1,12 @@
+/***************************************************************************
+    Best Outrunners Name Entry & Display.
+    Used in attract mode, and at game end.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
+#include "engine/outils.hpp"
 #include "engine/ohiscore.hpp"
 
 OHiScore ohiscore;
@@ -5,7 +14,6 @@ OHiScore ohiscore;
 OHiScore::OHiScore(void)
 {
 }
-
 
 OHiScore::~OHiScore(void)
 {

@@ -1,3 +1,12 @@
+/***************************************************************************
+    Palette Control
+
+    Sky, Ground & Road Palettes. Including palette cycling code.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
@@ -78,4 +87,3 @@ private:
 };
 
 extern OPalette opalette;
-

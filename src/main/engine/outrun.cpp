@@ -1,5 +1,3 @@
-#include "engine/outrun.hpp"
-
 /***************************************************************************
     OutRun Engine Entry Point.
 
@@ -8,6 +6,10 @@
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
+
+#include "engine/outrun.hpp"
+#include "engine/opalette.hpp"
+#include "engine/outils.hpp"
 
 Outrun outrun;
 

@@ -1,3 +1,20 @@
+/***************************************************************************
+    Level Object Logic
+    
+    This class handles rendering most of the objects that comprise a typical
+    level. 
+    
+    - Configures rendering properties (co-ordinates, zoom etc.) 
+    - Object specific logic, including collision checks & start lights etc.
+
+    The original codebase contains a large amount of code duplication,
+    much of which is duplicated here.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
+#include "engine/outils.hpp"
 #include "engine/olevelobjs.hpp"
 
 OLevelObjs olevelobjs;
@@ -5,7 +22,6 @@ OLevelObjs olevelobjs;
 OLevelObjs::OLevelObjs(void)
 {
 }
-
 
 OLevelObjs::~OLevelObjs(void)
 {
@@ -22,10 +38,6 @@ void OLevelObjs::default_entries()
 {
     // Return if Music Selection Screen
     if (outrun.game_state == GS_MUSIC) return; 
-
-    // 39 causes problems
-    // 46 is sign
-    // 47 is sign
     init_entries(SPRITE_DEF_PROPS1, DEF_SPRITE_ENTRIES);
 }
 
@@ -111,8 +123,7 @@ void OLevelObjs::setup_sprites(uint32_t z)
             return;
         }
     }
-
-    std::cout << "Need another entry" << std::endl;
+    //std::cout << "Need another entry" << std::endl;
 }
 
 // Setup Sprite from ROM format for use in game
@@ -455,10 +466,10 @@ void OLevelObjs::sprite_lights_countdown(oentry *sprite)
         osprites.map_palette(sprite);
     }
 
-    if ((sprite->control & OSprites::WIDE_ROAD) == 0)
+    /*if ((sprite->control & OSprites::WIDE_ROAD) == 0)
     {
         std::cout << "Made assumption that sprite_lights_countdown always deals with wide road sprites. Looks like I was wrong if this is printed" << std::endl;
-    }
+    }*/
     
     set_spr_zoom_priority(sprite, 1); // WIDE_ROAD must be set for this to work.
 }
@@ -470,16 +481,12 @@ void OLevelObjs::sprite_lights_countdown(oentry *sprite)
 // Source Address: 0x404A
 void OLevelObjs::set_spr_zoom_priority(oentry *sprite, uint8_t zoom)
 {
-    //uint32_t addr = SPRITE_ZOOM_LOOKUP + (((sprite->z >> 16) << 2) | osprites.sprite_scroll_speed);
-    //uint32_t value = roms.rom0.read32(addr);
-    //sprite->z += value;
     osprites.move_sprite(sprite, 0);
     uint16_t z16 = sprite->z >> 16;
 
     if (z16 < 4) return;
     if (z16 >= 0x200)
     {
-        //std::cout << "Hiding sprite set_spr_zoom_priority: "<< std::hex << sprite->jump_index << std::endl;
         hide_sprite(sprite);
         return;
     }
@@ -588,9 +595,6 @@ void OLevelObjs::sprite_collision_z1c(oentry* sprite)
 // Source Address: 0x404A
 void OLevelObjs::set_spr_zoom_priority2(oentry *sprite, uint8_t zoom)
 {
-    //uint32_t addr = SPRITE_ZOOM_LOOKUP + (((sprite->z >> 16) << 2) | osprites.sprite_scroll_speed);
-    //uint32_t value = roms.rom0.read32(addr);
-    //sprite->z += value;
     osprites.move_sprite(sprite, 0);
     uint16_t z16 = sprite->z >> 16;
 
@@ -606,16 +610,15 @@ void OLevelObjs::set_spr_zoom_priority2(oentry *sprite, uint8_t zoom)
 
     // Code differs from below
 
-    //    Set Sprite X Position [SCREEN]
-    //    1/ Use X Offset From Road Position [Screen]
-    //    2/ Use Sprite X World Data
+    // Set Sprite X Position [SCREEN]
+    // 1/ Use X Offset From Road Position [Screen]
+    // 2/ Use Sprite X World Data
 
     int16_t road_x = oroad.road0_h[z16];
     int16_t xw1 = sprite->xw1;
 
     if (xw1 >= 0 && (sprite->control & OSprites::WIDE_ROAD) == 0)
     {
-        //xw1 += (oroad.road_width << 1);
         xw1 +=  ((int16_t) (oroad.road_width >> 16)) << 1;
     }
 
@@ -1000,7 +1003,6 @@ void OLevelObjs::set_spr_zoom_priority_rocks(oentry *sprite, uint8_t zoom)
     if (z16 < 4) return;
     if (z16 >= 0x200)
     {
-        //std::cout << "Hiding sprite set_spr_zoom_priority: "<< std::hex << sprite->jump_index << std::endl;
         hide_sprite(sprite);
         return;
     }

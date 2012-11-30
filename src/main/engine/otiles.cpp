@@ -1,3 +1,4 @@
+#include "engine/opalette.hpp"
 #include "engine/otiles.hpp"
 
 OTiles otiles;

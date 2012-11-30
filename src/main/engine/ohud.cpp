@@ -1,3 +1,17 @@
+/***************************************************************************
+    Heads-Up Display (HUD) Code
+    
+    - Score Rendering
+    - Timer Rendering
+    - Rev Rendering
+    - Minimap Rendering
+    - Text Rendering
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
+#include "engine/outils.hpp"
 #include "engine/ohud.hpp"
 
 OHud ohud;
@@ -124,8 +138,6 @@ void OHud::draw_timer2(uint16_t time_counter, uint32_t addr, uint16_t base_tile)
         video.write_text16(0x00 + addr, 0);
         video.write_text16(0x80 + addr, 0);
     }
-
-
 }
 
 void OHud::draw_lap_timer(uint32_t addr, uint8_t* digits, uint8_t ms_value)
@@ -452,8 +464,8 @@ void OHud::draw_credits()
 void OHud::blit_text1(uint32_t src_addr)
 {
     uint32_t dst_addr = roms.rom0.read32(&src_addr); // Text RAM destination address
-    uint16_t counter = roms.rom0.read16(&src_addr); // Number of tiles to blit
-    uint16_t data = roms.rom0.read16(&src_addr); // Tile data to blit
+    uint16_t counter = roms.rom0.read16(&src_addr);  // Number of tiles to blit
+    uint16_t data = roms.rom0.read16(&src_addr);     // Tile data to blit
 
     // Blit each tile
     for (uint16_t i = 0; i <= counter; i++)

@@ -1,13 +1,27 @@
+/***************************************************************************
+    Sprite Handling Routines.
+    
+    - Initializing Sprites from level data.
+    - Mapping palettes to sprites.
+    - Ordering sprites by priority.
+    - Adding shadows to sprites where appropriate.
+    - Clipping sprites based on priority in relation to road hardware.
+    - Conversion from internal format to output format required by hardware.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
-#include "sdl/video.hpp"
 #include "outrun.hpp"
 
 class OSprites
 {
 public:
 
-	enum {
+	enum 
+    {
 		HFLIP = 0x1,			// Bit 0: Horizontally flip sprite
 		WIDE_ROAD = 0x4,		// Bit 2: Set if road_width >= 0x118, 
         TRAFFIC_SPRITE = 0x8,   // Bit 3: Traffic Sprite - Set for traffic
@@ -114,10 +128,10 @@ public:
     void tick();
 
     void clear_palette_data();
-	void copy_palette_data(void);
+	void copy_palette_data();
 	void map_palette(oentry* spr);
-	void sprite_copy(void);
-	void blit_sprites(void);
+	void sprite_copy();
+	void blit_sprites();
 
 	void do_spr_order_shadows(oentry*);
 	void do_sprite(oentry*);
@@ -141,11 +155,9 @@ private:
 	int16_t pal_copy_count; 
 
 	// Palette Addresses. Used in conjunction with palette lookup table.
-	//
 	// Originally stored between 0x61602 - 0x617FF in RAM
 	//
 	// Format:
-	//
 	// Word 1: ROM Source Offset
 	// Word 2: Palette RAM Destination Offset
 	//
@@ -163,7 +175,6 @@ private:
 	uint8_t sprite_order2[0x2000];
 
     void sprite_control();
-
 	void hide_hwsprite(oentry*, osprite*);
 	void finalise_sprites();
 };

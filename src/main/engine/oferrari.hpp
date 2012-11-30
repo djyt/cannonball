@@ -1,3 +1,22 @@
+/***************************************************************************
+    Ferrari Rendering & Handling Code.
+       
+    Much of the handling code is very messy. As such, the translated code 
+    isn't great as I tried to focus on accuracy rather than refactoring.
+    
+    A good example of the randomness is a routine I've named
+      do_sound_score_slip()
+    which performs everything from updating the score, setting the audio
+    engine tone, triggering smoke effects etc. in an interwoven fashion.
+    
+    The Ferrari sprite has different properties to other game objects
+    As there's only one of them, I've rolled the additional variables into
+    this class. 
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
@@ -125,11 +144,11 @@ public:
 	// -------------------------------------------------------------------------
 
     // Flag set when switching back to in-game engine, to be used with revs_post_stop
-    //
     // This is used to adjust the rev boost when returning to game
     int16_t rev_stop_flag;
 
-    // Rev boost when we switch back to ingame engine and hand user control. Set by user being on revs before initialization.
+    // Rev boost when we switch back to ingame engine and hand user control. 
+    // Set by user being on revs before initialization.
     int16_t revs_post_stop;
 
     int16_t acc_post_stop;
@@ -242,8 +261,7 @@ private:
 	// Smoke
 	// -------------------------------------------------------------------------
 
-    // Counter for smoke after changing gear. 
-    // Values over 0 result in smoke
+    // Counter for smoke after changing gear. Values over 0 result in smoke
     int16_t gear_smoke;
 
     // Similar to above
@@ -282,4 +300,3 @@ private:
 };
 
 extern OFerrari oferrari;
-

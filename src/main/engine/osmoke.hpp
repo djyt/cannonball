@@ -1,3 +1,12 @@
+/***************************************************************************
+    Smoke & Spray Control.
+    
+    Animate the smoke and spray below the Ferrari's wheels.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
@@ -26,8 +35,6 @@ private:
     uint16_t smoke_type_slip;
 
     void tick_smoke_anim(oentry*, int8_t, uint32_t);
-   
 };
 
 extern OSmoke osmoke;
-

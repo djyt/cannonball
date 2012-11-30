@@ -1,8 +1,13 @@
-#pragma once
+/***************************************************************************
+    Attract Mode: Animated OutRun Logo Graphic
+    
+    The logo is built from multiple sprite components.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
 
-#include "stdint.hpp"
-#include "osprites.hpp"
-#include "outils.hpp"
+#pragma once
 
 class OLogo
 {

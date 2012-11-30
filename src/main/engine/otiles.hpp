@@ -1,6 +1,5 @@
 #pragma once
 
-#include "sdl/video.hpp"
 #include "outrun.hpp"
 
 // Forward definition of video for cyclic dependency

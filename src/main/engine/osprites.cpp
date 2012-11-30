@@ -1,16 +1,24 @@
+/***************************************************************************
+    Sprite Handling Routines.
+    
+    - Initializing Sprites from level data.
+    - Mapping palettes to sprites.
+    - Ordering sprites by priority.
+    - Adding shadows to sprites where appropriate.
+    - Clipping sprites based on priority in relation to road hardware.
+    - Conversion from internal format to output format required by hardware.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "engine/osprites.hpp"
 #include "engine/ozoom_lookup.hpp"
-
-// OutRun: Sprite Routines
-
-// Test with the arm from music select as follows:
-// bpset 950e,a4==0x118E2
 
 OSprites osprites;
 
 OSprites::OSprites(void)
 {
-
 }
 
 OSprites::~OSprites(void)
@@ -128,7 +136,6 @@ void OSprites::init()
     // ------------------------------------------------------------------------
 
     jump_table[SPRITE_FLAG].init(SPRITE_FLAG);
-    //oanimseq.init(&jump_table[SPRITE_FLAG], &jump_table[SPRITE_FERRARI], &jump_table[SPRITE_PASS1], &jump_table[SPRITE_PASS2]);
     oanimseq.init(jump_table);
     
     seg_pos = 0;
@@ -214,8 +221,6 @@ void OSprites::tick()
 // The entire sequence can repeat, until the max sprites counter expires.
 //
 // So the above example would draw 3 sprites in succession, then break for three attempts, then three again etc.
-//
-// 3/ See Notepad for format of jump table
 
 void OSprites::sprite_control()
 {
@@ -225,16 +230,16 @@ void OSprites::sprite_control()
     // Populate next road segment
     if (d0 <= oroad.road_pos >> 16)
     {
-        oinitengine.road_seg_addr1 += 4; // Increment to next long
-        seg_pos = roms.rom0.read16(&a0); // Position In Level Data [Word]
+        oinitengine.road_seg_addr1 += 4;          // Increment to next long
+        seg_pos = roms.rom0.read16(&a0);          // Position In Level Data [Word]
         seg_total_sprites = roms.rom0.read8(&a0); // Number Of Sprites In Segment [byte]
-        d0 = roms.rom0.read8(a0) * 4; // Sprite Data Entry Number From Lookup Table * 4 [Byte]
+        d0 = roms.rom0.read8(a0) * 4;             // Sprite Data Entry Number From Lookup Table * 4 [Byte]
 
         a0 = roms.rom0.read32(SPRITE_MASTER_TABLE + d0); // Set a0 to new address from master table of addresses
-        seg_sprite_freq = roms.rom0.read16(&a0); // Set Sprite Frequency Value
-        seg_spr_offset2 = roms.rom0.read16(&a0); // Set Reload value for sprite info offset
-        seg_spr_addr = a0; // Set ROM address for sprite info lookup (x, y, type) NOTE: Sets to value of a0 itself, not memory location
-        seg_spr_offset1 = 0; // And Clear the offset into the above table
+        seg_sprite_freq = roms.rom0.read16(&a0);         // Set Sprite Frequency Value
+        seg_spr_offset2 = roms.rom0.read16(&a0);         // Set Reload value for sprite info offset
+        seg_spr_addr = a0;                               // Set ROM address for sprite info lookup (x, y, type) NOTE: Sets to value of a0 itself, not memory location
+        seg_spr_offset1 = 0;                             // And Clear the offset into the above table
     }
 
     // Process segment
@@ -369,7 +374,6 @@ void OSprites::map_palette(oentry* spr)
 // Input:          Sprite To Copy
 // Output:         None
 //
-
 // Notes:
 // 1/ Reads Sprite-to-Sprite priority of individual sprite
 // 2/ Creates ordered sprite table starting at 0x64000
@@ -879,6 +883,7 @@ void OSprites::set_hrender(oentry* input, osprite* output, uint16_t offset, uint
     output->set_render(props);
 }
 
+// Helper function to vary the move distance, based on the current frame-rate.
 void OSprites::move_sprite(oentry* sprite, uint8_t shift)
 {
     uint32_t addr = SPRITE_ZOOM_LOOKUP + (((sprite->z >> 16) << 2) | sprite_scroll_speed);

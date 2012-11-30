@@ -1,3 +1,19 @@
+/***************************************************************************
+    Level Object Logic
+    
+    This class handles rendering most of the objects that comprise a typical
+    level. 
+    
+    - Configures rendering properties (co-ordinates, zoom etc.) 
+    - Object specific logic, including collision checks & start lights etc.
+
+    The original codebase contains a large amount of code duplication,
+    much of which is duplicated here.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
@@ -42,13 +58,11 @@ class OLevelObjs
         const static uint8_t HISCORE_SPRITE_ENTRIES = 0x40;
 
         const static uint8_t COLLISION_RESET = 4;
-
         const static uint16_t SPRAY_RESET = 0xC;
 
         void init_entries(uint32_t, uint8_t);
 	    void setup_sprite(oentry*, uint32_t);
-	    void setup_sprite_routine(oentry*);
-		
+	    void setup_sprite_routine(oentry*);		
         void sprite_collision_z1c(oentry*);
         void sprite_lights(oentry*);
         void sprite_lights_countdown(oentry*);
@@ -66,4 +80,3 @@ class OLevelObjs
 };
 
 extern OLevelObjs olevelobjs;
-

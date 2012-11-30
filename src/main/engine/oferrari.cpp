@@ -1,13 +1,24 @@
+/***************************************************************************
+    Ferrari Rendering & Handling Code.
+       
+    Much of the handling code is very messy. As such, the translated code 
+    isn't great as I tried to focus on accuracy rather than refactoring.
+    
+    A good example of the randomness is a routine I've named
+      do_sound_score_slip()
+    which performs everything from updating the score, setting the audio
+    engine tone, triggering smoke effects etc. in an interwoven fashion.
+    
+    The Ferrari sprite has different properties to other game objects
+    As there's only one of them, I've rolled the additional variables into
+    this class. 
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
+#include "engine/outils.hpp"
 #include "engine/oferrari.hpp"
-
-/*
-    Ferrari consists of four separate sprites: The car, the shadow and the two passengers.
-
-    0x5796: Start Animation Sequences
-    0x61F2: Car Speed Code
-    0x6ABA: Move Car
-    0x9C84: Main Ferrari Switch & Routine
-*/
 
 OFerrari oferrari;
 
@@ -255,7 +266,6 @@ void OFerrari::ferrari_normal()
         case GS_INIT:
         case GS_ATTRACT:
             oattractai.tick_ai();
-            //std::cout << std::hex << outrun.tick_counter << " - acc: " << oinputs.acc_adjust << " - brake: " << oinputs.brake_adjust << " - steer: " << oinputs.steering_adjust << std::endl;
             setup_ferrari_sprite();
             break;
 
@@ -596,8 +606,6 @@ void OFerrari::set_ferrari_x()
     if (oinitengine.car_x_pos < 0)
         road_width_change = -road_width_change;
     oinitengine.car_x_pos += road_width_change;
-
-    //std::cout << std::hex << road_width_change << std::endl;
 }
 
 // Ensure car does not stray too far from sides of road
@@ -747,13 +755,6 @@ void OFerrari::set_wheels(uint8_t new_state)
 void OFerrari::set_curve_adjust()
 {
     int16_t x_diff = oroad.road_x[170] - oroad.road_x[511];
-
-    /*std::cout << std::hex
-            << outrun.tick_counter
-            << " - xdiff: " << x_diff
-            << " - x1: " << oroad.road_x[170]
-            << " - x2: " << oroad.road_x[511]
-            << std::endl;*/
 
     // Invert x diff when taking roadsplit
     if (oinitengine.rd_split_state && oinitengine.car_x_pos < 0)
@@ -916,8 +917,6 @@ void OFerrari::set_passenger_frame(oentry* sprite)
 // Source: 0x6288
 void OFerrari::move()
 {
-    //std::cout << std::hex << "state=" << (int16_t) outrun.game_state << " revs=" << revs << std::endl;
-
     if (car_ctrl_active)
     {      
         // Auto braking if necessary
@@ -1588,7 +1587,6 @@ void OFerrari::do_sound_score_slip()
     // check_wheels:
     cornering_old = cornering;
 
-    // TODO: Missing sound code here!
     if (sprite_wheel_state)
     {
         // If previous wheels on-road & current wheels off-road - play safety zone sound

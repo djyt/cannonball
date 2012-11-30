@@ -1,3 +1,29 @@
+/***************************************************************************
+    Sprite Entry.
+    
+    This class represents a single sprite object, commonly used by OutRun.
+    
+    In the original codebase, each object consists of a 64 byte block of 
+    memory. Each of these blocks forms part of a jump table that is iterated 
+    each tick. The sprite referenced the address of the routine it used.
+    
+    Unfortunately, the system is messy and the usage of each 64 byte 
+    entry differs dependent on the game object. 
+    
+    However, the majority are similar. And as such, I've tried to convert
+    this structure to a more manageable class. For the conversion, rather
+    than dynamically editing a jump table, I've called the sprite routines
+    from the main code.
+    
+    It's not perfect, but struck a reasonable balance between clarity and
+    being able to debug the conversion.
+    
+    All in-game objects that populate the gameworld use this structure.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "stdint.hpp"
@@ -19,10 +45,7 @@ public:
 	uint8_t jump_index;
 
 	// +02 [Long] Jump Address
-	//void (*f) (oentry);
 	int8_t function_holder;
-
-    void (*function)(oentry*);
 
 	// +06 [Byte] Multiple Uses. Used to identify sprites.
 	// E.g. Passenger Sprites: Denote Man (0) or Woman (1) Sprite.

@@ -1,3 +1,14 @@
+/***************************************************************************
+    In-Game Statistics.
+    - Stage Timers
+    - Route Info
+    - Speed to Score Conversion
+    - Bonus Time Increment
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
@@ -90,7 +101,6 @@ public:
     void init_next_level();
 
 private:
-
     // Converted Stage Millisecond Value
     uint8_t ms_value;
 

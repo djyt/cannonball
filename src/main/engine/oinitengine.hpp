@@ -1,7 +1,19 @@
+/***************************************************************************
+    Core Game Engine Routines.
+    
+    - The main loop which advances the level onto the next segment.
+    - Code to directly control the road hardware. For example, the road
+      split and bonus points routines.
+    - Code to determine whether to initialize certain game modes
+      (Crash state, Bonus points, road split state) 
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
-#include "opalette.hpp"
 
 class OInitEngine
 {
@@ -171,7 +183,6 @@ private:
     void init_split7();
     void init_split9();
     void init_split10();
-
     void bonus1();
     void bonus2();
     void bonus3();
@@ -183,4 +194,3 @@ private:
 };
 
 extern OInitEngine oinitengine;
-

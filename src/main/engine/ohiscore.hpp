@@ -1,3 +1,11 @@
+/***************************************************************************
+    Best Outrunners Name Entry & Display.
+    Used in attract mode, and at game end.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
@@ -120,4 +128,3 @@ private:
 };
 
 extern OHiScore ohiscore;
-

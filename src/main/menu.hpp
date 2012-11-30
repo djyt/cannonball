@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "stdint.hpp"
+#include "engine/osprites.hpp"
 #include "engine/ologo.hpp"
 
 class Menu

@@ -1,3 +1,17 @@
+/***************************************************************************
+    Course Map Logic & Rendering. 
+    
+    This is the full-screen map that is displayed at the end of the game. 
+    
+    The logo is built from multiple sprite components.
+    
+    The course map itself is made up of sprites and pieced together. 
+    It's not a tilemap.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
@@ -5,7 +19,6 @@
 class OMap
 {
 public:
-
     // Load Sprites Needed for Course Map
     bool init_sprites;
 
@@ -45,9 +58,8 @@ private:
 
     // Direction to move on mini-map
 
-    // Bit 0 = 
-    // 0 = Up (Left Route)
-    // 1 = Down (Right Route)
+    // Bit 0: 0 = Up   (Left Route)
+    //        1 = Down (Right Route)
     uint8_t map_route;
 
     // Minimap Position (Per Segment Basis)

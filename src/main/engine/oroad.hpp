@@ -1,35 +1,30 @@
+/***************************************************************************
+    Road Rendering & Control
+
+    This is a complete port of the 68000 SUB CPU Program ROM.
+    
+    The original code consists of a shared Sega library and some routines
+    which are OutRun specific.
+    
+    Some of the original code is not used and is therefore not ported.
+    
+    This is the most complex area of the game code, and an area of the code
+    in need of refactoring.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
-
-#include "stdint.hpp"
-#include "globals.hpp"
-#include "roms.hpp"
-
-#include "oaddresses.hpp"
-#include "outils.hpp"
-#include "oinitengine.hpp"
 
 class ORoad
 {
 public:
     bool debug_road;
 
-    uint32_t road_pos; // 0x6: Current Road Position (addressed as long and word)
+    uint32_t road_pos;        // 0x6: Current Road Position (addressed as long and word)
     int16_t tilemap_h_target; // 0xA: Tilemap H target
 
-	// Stage Order Data Master Table
-
-	// [+0]  Long 0: Stage 1
-	// [+8]  Long 2: Stage 2
-	// [+10] Long 4: Stage 3
-	// [+18] Long 6: Stage 4
-	// [+20] Long 8: Stage 5
-
-	// Each Long contains a list of bytes, denoting the stage.
-
-	// Stage Lookup Offset, offsets into this table.
-
-	//uint8_t stage_master[28]; // 0x10: Stage Master Table Data.
-	
 	// Stage Lookup Offset - Used to retrieve various data from in-game tables
 	//
 	// Stage Map:
@@ -43,8 +38,8 @@ public:
 	// Increments by 8 each stage.
 	// Also increments by +1 during the road split section from the values shown above.
 	//
-	// Set to -8 during bonus mode section
-	int16_t stage_lookup_off; // 0x38
+	// 0x38: Set to -8 during bonus mode section
+	int16_t stage_lookup_off;
 
 	// These pointers rotate and select the current chunk of road data to blit
 	uint16_t road_p0; // 0x3A: Road Pointer 0
@@ -52,16 +47,17 @@ public:
 	uint16_t road_p2; // 0x3E: Road Pointer 2 (Chunk of road to be blitted)
 	uint16_t road_p3; // Ox40: Road Pointer 3 (Horizon Y Position)
 
-    // 4C - Road Width Backup
+    // 0x4C: Road Width Backup
 	int16_t road_width_bak;
 
-    // 4E - Car X Backup
+    // 0x4E: Car X Backup
 	int16_t car_x_bak;
 
     // 0x66: Road Height Lookup 
 	uint16_t height_lookup;
 
-    int32_t road_pos_change; // 0x6C: Change in road position
+    // 0x6C: Change in road position
+    int32_t road_pos_change; 
 	
 	// 0x5E: Instruct CPU 1 to load bonus road. Set Bit 1.
 	uint8_t road_load_bonus;
@@ -159,18 +155,14 @@ private:
 	int16_t curve_x1_diff;
 	// 0x460 - [word] Curve x2 Difference FIRST (e.g. length of segment) [Note this is the first position of the road segment]
 	int16_t curve_x2_diff;
-
 	// 0x470 - [word] Curve x1 Distance [Note this is the first position of the road segment]
 	int16_t curve_x1_dist;
-
-	 // 0x480 - [word] Curve x2 Distance [Note this is the first position of the road segment]
+	// 0x480 - [word] Curve x2 Distance [Note this is the first position of the road segment]
 	int16_t curve_x2_dist;
-
 	// 0x490 - [long] Curve x1 Difference NEXT [This can be any position of the road segment, not just the first]
 	int32_t curve_x1_next;
 	// 0x4a0 - [long] Curve x2 Difference NEXT (e.g. length of road segment)
 	int32_t curve_x2_next;
-
 	// 0x4b0 - [word] Curve Increment Previous
 	int16_t curve_inc_old;
 
@@ -188,12 +180,12 @@ private:
 	uint16_t height_start;
 
 	// 0x536 - [word] Controls switch statement when processing road height
-  //           0 = Clear Road Height Segment
-  //           1 = Init Next Road Height Segment
-  //           2 = Use Elevation
-  //           3 = 
-  //           4 = 
-  //           5 = Set Base Horizon
+    //                0 = Clear Road Height Segment
+    //                1 = Init Next Road Height Segment
+    //                2 = Use Elevation
+    //                3 = 
+    //                4 = 
+    //                5 = Set Base Horizon
 	uint16_t height_ctrl;
 
 	// 0x542: Granular Position Backup.
@@ -206,10 +198,9 @@ private:
 	int8_t counter;
 
 	// 0x710 - Index Into Height Data (generally specifies hill type for specific section of road)
-  // The results of the value will differ depending on which road height section currently on.
-  // Not to be confused with 6072A, which is a much larger number.
-
-  // Hack to see different values: wpset 60710,2,r,1,{w@60710 = 5; g;}
+    // The results of the value will differ depending on which road height section currently on.
+    // Not to be confused with 6072A, which is a much larger number.
+    // Hack to see different values: wpset 60710,2,r,1,{w@60710 = 5; g;}
 	int16_t height_index;
 
 	// 0x712 - [long] Final Height Value. Takes Horizon and distance into screen into account.
@@ -230,8 +221,7 @@ private:
 	// 0x71C - [long] Stores current position into road height data. This is an actual address.
 	uint32_t height_addr;
 
-	// 0x720 - [word] Elevation Flag.
-    // -1 = Up, 0 = Flat, 1 = Down
+	// 0x720 - [word] Elevation Flag
 	int16_t elevation;
 	enum {DOWN = -1, FLAT = 0, UP = 1};
 								 
@@ -268,7 +258,7 @@ private:
 	int8_t length_offset;
 	uint32_t a1_lookup;
 
-    // Registers - refactor these
+    // Registers - todo: refactor these
     int32_t change_per_entry; // [d2]
     int32_t d5_o;
     uint32_t a3_o;
@@ -328,7 +318,6 @@ private:
 	
 	void output_hscroll(int16_t*, uint32_t);
 	void copy_bg_color();
-
 };
 
 extern ORoad oroad;

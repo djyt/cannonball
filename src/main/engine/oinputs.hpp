@@ -1,7 +1,17 @@
+/***************************************************************************
+    Process Inputs.
+    
+    - Read & Process inputs and controls.
+    - Note, this class does not contain platform specific code.
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
-#include "outrun.hpp"
 #include "sdl/input.hpp"
+#include "outrun.hpp"
 
 class OInputs
 {
@@ -24,7 +34,9 @@ public:
     int16_t steering_adjust;
     int16_t acc_adjust;
     int16_t brake_adjust;
-    bool gear; // True is high
+    
+    // True = High Gear. False = Low Gear.
+    bool gear;
 
     OInputs(void);
     ~OInputs(void);
@@ -69,4 +81,3 @@ private:
 };
 
 extern OInputs oinputs;
-

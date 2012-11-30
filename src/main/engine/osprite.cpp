@@ -1,3 +1,13 @@
+/***************************************************************************
+    Hardware Sprites.
+    
+    This class stores sprites in the converted format expected by the
+    OutRun graphics hardware.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "engine/osprite.hpp"
 
 //  Out Run/X-Board-style sprites

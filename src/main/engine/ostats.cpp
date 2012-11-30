@@ -1,3 +1,15 @@
+/***************************************************************************
+    In-Game Statistics.
+    - Stage Timers
+    - Route Info
+    - Speed to Score Conversion
+    - Bonus Time Increment
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
+#include "engine/outils.hpp"
 #include "engine/ostats.hpp"
 
 OStats ostats;
@@ -5,7 +17,6 @@ OStats ostats;
 OStats::OStats(void)
 {
 }
-
 
 OStats::~OStats(void)
 {
@@ -169,11 +180,11 @@ void OStats::init_next_level()
     }
 }
 
-//Time Tables
+// Time Tables
 //
-//- Show how much time will be incremented to the counter at each stage
-//- Rightmost routes first
-//- Note there appears to be an error with the Stage 3a Normal entry
+// - Show how much time will be incremented to the counter at each stage
+// - Rightmost routes first
+// - Note there appears to be an error with the Stage 3a Normal entry
 //
 //         | Easy | Norm | Hard | VHar |
 //         '------'------'------'------'

@@ -18,7 +18,7 @@ OTiles::~OTiles(void)
 // Input:          None
 // Output:         None
 
-void OTiles::write_tilemap_hw(void)
+void OTiles::write_tilemap_hw()
 {
     video.write_text16(HW_FG_HSCROLL, fg_h_scroll & 0x1FF);
     video.write_text16(HW_BG_HSCROLL, bg_h_scroll & 0x1FF);
@@ -34,7 +34,7 @@ void OTiles::write_tilemap_hw(void)
 // Input:          None
 // Output:         None
 
-void OTiles::setup_palette_default(void)
+void OTiles::setup_palette_default()
 {
     uint32_t src_addr = 0x16ED8;
     uint32_t pal_addr = 0x120000;
@@ -52,7 +52,7 @@ void OTiles::setup_palette_default(void)
 // Input:          None
 // Output:         None
 
-void OTiles::setup_palette_tilemap(void)
+void OTiles::setup_palette_tilemap()
 {
     uint32_t src_addr = 0x16FD8;
     uint32_t pal_addr = 0x120080;
@@ -82,8 +82,6 @@ void OTiles::reset_tiles_pal()
 }
 
 // Initialize, Scroll and Update Both FG & BG Tilemaps.
-//
-//
 // Source Address: 0xD812
 //
 // Notes:
@@ -551,7 +549,7 @@ void OTiles::init_next_tilemap()
     h_scroll_lookup = 0;
     clear_name_tables = false;
     page_split = false;
-    opalette.pal_manip_ctrl = 1;            // Enable palette fade routines to transition between levels
+    opalette.pal_manip_ctrl = 1; // Enable palette fade routines to transition between levels
     
     switch (tilemap_setup & 1)
     {

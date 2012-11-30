@@ -1063,7 +1063,7 @@ void OFerrari::move()
         car_state = CAR_SMOKE; // Set smoke from car wheels
         if (oinitengine.car_increment >> 16)
         {
-            if (slip_sound != sound::STOP_SLIP)
+            if (slip_sound == sound::STOP_SLIP)
                 osoundint.queue_sound(slip_sound = sound::INIT_SLIP);
         }
         else
@@ -1589,6 +1589,19 @@ void OFerrari::do_sound_score_slip()
     cornering_old = cornering;
 
     // TODO: Missing sound code here!
+    if (sprite_wheel_state)
+    {
+        // If previous wheels on-road & current wheels off-road - play safety zone sound
+        if (!wheel_state)
+            osoundint.queue_sound(sound::STOP_SAFETYZONE);
+    }
+    // Stop Safety Sound
+    else
+    {
+        if (wheel_state)
+            osoundint.queue_sound(sound::INIT_SAFETYZONE);
+    }
+    sprite_wheel_state = wheel_state;
 }
 
 // Shake Ferrari by altering XY Position when wheels are off-road

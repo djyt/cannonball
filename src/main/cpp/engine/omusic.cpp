@@ -182,7 +182,7 @@ void OMusic::tick()
         e2->addr   = SPRITE_DIAL_LEFT;
         hand->addr = SPRITE_HAND_LEFT;
 
-        // move.w  #0,(music_selected).l
+        music_selected = sound::MUSIC_MAGICAL;
     }
     // Centre
     else if (oinputs.steering_adjust + 0x80 <= 0xAA)
@@ -197,7 +197,7 @@ void OMusic::tick()
         e2->addr   = SPRITE_DIAL_CENTRE;
         hand->addr = SPRITE_HAND_CENTRE;
 
-        // move.w  #1,(music_selected).l
+        music_selected = sound::MUSIC_BREEZE;
     }
     // Steer Right
     else
@@ -212,7 +212,7 @@ void OMusic::tick()
         e2->addr   = SPRITE_DIAL_RIGHT;
         hand->addr = SPRITE_HAND_RIGHT;
 
-        // move.w  #2,(music_selected).l
+        music_selected = sound::MUSIC_SPLASH;
     }
     osprites.do_spr_order_shadows(e);
     osprites.do_spr_order_shadows(e2);

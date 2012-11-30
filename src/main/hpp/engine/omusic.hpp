@@ -5,6 +5,9 @@
 class OMusic
 {
 public:
+    // Music Track Selected By Player
+    uint8_t music_selected;
+
     OMusic(void);
     ~OMusic(void);
 

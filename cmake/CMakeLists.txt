@@ -10,7 +10,7 @@ set(main_hpp_base ${main_base}/hpp)
 #TODO: These should be located using standard CMake macros
 if (WIN32)
     set(boost_root c:/dev/lib/boost_1_51_0)
-    set(sdl_root c:/dev/lib/SDL-1.2.15)
+    set(sdl_root c:/dev/lib/SDL-1.2.14)
 else()
     set(boost_root ~/Tools/boost_1_51_0)
     set(sdl_root ~/Tools/SDL-1.2.15/build)    

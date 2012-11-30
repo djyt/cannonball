@@ -434,7 +434,7 @@ void Outrun::main_switch()
             oroad.tick();
             osoundint.queue_sound(sound::STOP_CHEERS);
             osoundint.queue_sound(sound::VOICE_GETREADY);
-            // todo: play selected music
+            osoundint.queue_sound(omusic.music_selected);
             ostats.time_counter = ostats.TIME[DIP_TIME * 40];   // Set time to begin level with
             ostats.frame_counter = ostats.frame_reset + 50;     // set this to 49 for testing purposes
             ohud.draw_main_hud();

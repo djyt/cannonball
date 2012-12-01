@@ -18,7 +18,7 @@ SoundChip::SoundChip()
 
 SoundChip::~SoundChip()
 {
-
+    delete[] buffer;
 }
 
 void SoundChip::init(uint8_t channels, int32_t sample_freq, int32_t fps)
@@ -29,10 +29,6 @@ void SoundChip::init(uint8_t channels, int32_t sample_freq, int32_t fps)
 
     frame_size =  sample_freq / fps;
     buffer_size = frame_size * channels;
-
-    // Clean up existing array implementation if we've reinitalized
-    //if (buffer != NULL)
-        //delete[] buffer;
 
     buffer = new int16_t[buffer_size];
 }

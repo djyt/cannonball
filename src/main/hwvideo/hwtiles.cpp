@@ -79,7 +79,7 @@ hwtiles::hwtiles(void)
 
 hwtiles::~hwtiles(void)
 {
-    //delete[] text_ram;
+
 }
 
 // Convert S16 tiles to a more useable format
@@ -194,10 +194,7 @@ void hwtiles::render_tile_layer(uint32_t* buf, uint8_t page_index, uint8_t prior
 					ColourOff = 0x300 | TILEMAP_COLOUR_OFFSET;
 
                 if (x > 7 && x < 312 && y > 7 && y <= 216)
-                {
-                    //std::cout << "render masked tile at: " << x << "," << y << " Index: " << Code << " Pal: " << Colour << std::endl;
                     render8x8_tile_mask(buf, Code, x, y, Colour, 3, 0, ColourOff);
-                }
                 else if (x > -8 && x < 320 && y > -8 && y < S16_HEIGHT)
 					render8x8_tile_mask_clip(buf, Code, x, y, Colour, 3, 0, ColourOff);
             } // end priority check

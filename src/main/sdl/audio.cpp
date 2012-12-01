@@ -20,6 +20,8 @@
 #include "globals.hpp"                 // for FPS
 #include "engine/audio/osoundint.hpp"
 
+#ifdef COMPILE_SOUND_CODE
+
 /* ----------------------------------------------------------------------------
    SDL Sound Implementation & Callback Function
    ----------------------------------------------------------------------------*/
@@ -191,13 +193,16 @@ void Audio::tick()
 
 void Audio::stop_audio()
 {
-    sound_enabled = false;
+    if (sound_enabled)
+    {
+        sound_enabled = false;
 
-    SDL_PauseAudio(1);
-    SDL_CloseAudio();
+        SDL_PauseAudio(1);
+        SDL_CloseAudio();
 
-    delete[] dsp_buffer;
-    delete[] mix_buffer;
+        delete[] dsp_buffer;
+        delete[] mix_buffer;
+    }
 }
 
 // Adjust the speed of the emulator, based on audio streaming performance.
@@ -292,3 +297,5 @@ void fill_audio(void *udata, Uint8 *stream, int len)
     // Record the tick at which the callback occured.
     callbacktick = SDL_GetTicks();
 }
+
+#endif

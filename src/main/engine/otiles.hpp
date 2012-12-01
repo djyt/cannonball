@@ -1,3 +1,16 @@
+/***************************************************************************
+    Tilemap Handling Code. 
+
+    Logic for the foreground and background tilemap layers.
+
+    - Read and render tilemaps
+    - H-Scroll & V-Scroll
+    - Palette Initialization
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"

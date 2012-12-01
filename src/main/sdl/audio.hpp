@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include "globals.hpp"
+
+#ifdef COMPILE_SOUND_CODE
+
 class Audio
 {
 public:
@@ -59,3 +63,4 @@ private:
     // Cumulative audio difference
     double avg_gap;
 };
+#endif

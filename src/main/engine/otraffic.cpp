@@ -30,6 +30,45 @@ void OTraffic::init()
     wheel_counter = wheel_reset = 12;
 }
 
+// Tick Spawned Traffic Objects
+//
+// Source: 0x521A
+void OTraffic::tick()
+{
+    if (outrun.tick_frame) 
+        spawn_traffic();
+
+    for (uint8_t i = OSprites::SPRITE_TRAFF1; i <= OSprites::SPRITE_TRAFF8; i++)
+    {
+        oentry* sprite = &osprites.jump_table[i];
+
+        if (sprite->function_holder == OSprites::TRAFFIC_INIT)
+        {
+            if (outrun.game_state != GS_INGAME && outrun.game_state != GS_ATTRACT)
+            {
+                sprite->traffic_proximity = 0;
+                move_spawned_sprite(sprite); // Skip collision code
+                return;
+            }
+
+            sprite->traffic_orig_speed = 0xD4;
+            sprite->function_holder = OSprites::TRAFFIC_ENTRY;
+        }
+
+        // Skip collision code in first section of level
+        if (sprite->function_holder == OSprites::TRAFFIC_ENTRY)
+        {
+            if (oroad.road_pos >> 16 >= 0x80)
+                sprite->function_holder = OSprites::TRAFFIC_TICK;
+            else
+                move_spawned_sprite(sprite); // Skip collision code
+        }
+
+        if (sprite->function_holder == OSprites::TRAFFIC_TICK)
+            tick_spawned_sprite(sprite);
+    }
+}
+
 // Disable Traffic Routines
 // Source: 0x4A78
 void OTraffic::disable_traffic()
@@ -147,37 +186,6 @@ void OTraffic::spawn_car(oentry* sprite)
 
     sprite->type = TYPE[spawn_index] << 3;
     sprite->function_holder = OSprites::TRAFFIC_TICK;
-}
-
-// Traffic Object has been spawned. Initalize it.
-//
-// Source: 0x521A
-void OTraffic::tick(oentry* sprite)
-{
-    if (sprite->function_holder == OSprites::TRAFFIC_INIT)
-    {
-        if (outrun.game_state != GS_INGAME && outrun.game_state != GS_ATTRACT)
-        {
-            sprite->traffic_proximity = 0;
-            move_spawned_sprite(sprite); // Skip collision code
-            return;
-        }
-
-        sprite->traffic_orig_speed = 0xD4;
-        sprite->function_holder = OSprites::TRAFFIC_ENTRY;
-    }
-
-    // Skip collision code in first section of level
-    if (sprite->function_holder == OSprites::TRAFFIC_ENTRY)
-    {
-        if (oroad.road_pos >> 16 >= 0x80)
-            sprite->function_holder = OSprites::TRAFFIC_TICK;
-        else
-            move_spawned_sprite(sprite); // Skip collision code
-    }
-
-    if (sprite->function_holder == OSprites::TRAFFIC_TICK)
-        tick_spawned_sprite(sprite);
 }
 
 // Check Traffic Collision

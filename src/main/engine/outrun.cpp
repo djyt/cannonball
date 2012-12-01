@@ -14,65 +14,19 @@
 Outrun outrun;
 
 /*
+    Known Core Engine Issues:
 
-TODO:
+    - Road split. Minor bug on positioning traffic on correct side of screen for one frame or so at the point of split.
+      This appears to only be present in 60fps mode, indicating it's a bug with my handling of the traffic at 60fps.
 
-X 60 FPS: Accelerator reading on high score entry screen
-X Map drawing code on completing game (travelled left, right, right, right)
-- Road split. Minor bug on positioning traffic on correct side of screen for one frame or so at the point of split.
-X Went left five times, route map showed I went right on final stage
-X Flickering player sprites on spin in 60fps mode.
-X Keypresses not registering in 60fps mode.
-X Start line sprites are zoomed too much after starting game. ok on forced start
-X Easter Egg
-X After entering high score, game doesn't reset correctly on level other than zero.
-X Make everything remaining work at 60fps
-X Map Route code seems wrong. Doesn't draw far enough into route.
-X Crashing at fast speed. Player sprites no longer jump into screen.
-X Red Line is missing on exterior of some start billboard signs
-  Copying sprite ram over causes the sign to be correct. So problem is unlikely to reside in hwsprites.cpp
-X Traffic Collisions: Occasionally possible to bounce off a car and come to an instant standstill
-X AI / Gear Change: After a crash, the AI gear changing constantly shows smoke
-  Possible to replicate by setting up automatic gears in normal mode
-  It's caused when the accelerator is pressed before restart sequence kicks off (reving)
-  Actual number of revs seems higher from onset which causes the smoke. Could be the revs not declining as quickly?
-  Revs seem to be set incorrectly entering oferrari.convert_revs_speed
-  Revs should be 0x6BDA0, but are 0x838C40 which causes the routine to adjust things wrongly
+    Bugs Present In Original 1986 Release:
 
-  MAME Debug stuff:
-
-  Mame debug setting for max acceleration: 
-  bpset 0x757e,1,{pc = 0x758C; g}
-
-  Mame debug for start of move function, print revs out:
-  bpset 0x6288,1,{printf "state=%02x revs=%04x",w@0x6080C, d@0x260782; g}
-
-  Goes wrong from first iteration of game engine onwards when revs are pre-set.
-  Check revs for 0xF8D600 on entry to move routine and debug from there.
-  bpset 0x6288,w@0x6080C == 0xc && d@0x260782 == 0xF8D600;
-
-  Conditional breakpoint:
-  outrun.game_state == 0xc && revs == 0xf8d600
-
-- Level 0x21 background tilemap wraps at end of level
-- Gateway: Tilemap seems to have wrong y position when horizon changes at times. Noticeable on attract mode.
-X Fix bug where sprites don't clip correctly on horizon
-X Level 0x1B needs additional road code (init_height_seg() unimplemented height_ctrl2 value)
-X Level 0x24 needs mini-tree implementation
-X Figure out why second level has rendering problems (wasn't passing stage correctly)
-X Why is there too much smoke on first few bends? (missing code in that sound function)
-X Why do passengers not move horizontally one pixel when car vibrates? (checking HFLIP flag wrongly at start of passenger routine)
-
-BUGS IN ORIGINAL GAME:
-X Millisecond displays incorrectly on Extend Time screen
-X Bad sprite zooming table
-X Shadow popping into position randomly. Try setting car x position to 0x1E2. (0x260050)
-- Best OutRunners screen looks odd after Stage 2 Gateway
-X Stage 2a: Incomplete arches due to lack of sprite slots
-- Stage 3c: Clouds overlapping trees
-
-NOTES:
-X You cannot scroll that far to the left, so the issue with the crowd graphics popping doesn't happen
+    - Millisecond displays incorrectly on Extend Time screen [fixed]
+    - Erroneous values in sprite zooming table [fixed]
+    - Shadow popping into position randomly. Try setting car x position to 0x1E2. (0x260050) [fixed]
+    - Stage 2a: Incomplete arches due to lack of sprite slots [fixed]
+    - Best OutRunners screen looks odd after Stage 2 Gateway
+    - Stage 3c: Clouds overlapping trees
 
 */
 
@@ -91,6 +45,7 @@ void Outrun::init()
     tick_counter = 0;
     ohiscore.init_def_scores();         // Initialize default hi-score entries
     oinitengine.init();
+    osoundint.init();
     init_jump_table();
     game_state = GS_INIT;
 
@@ -101,13 +56,6 @@ void Outrun::init()
 
 void Outrun::tick()
 {
-    // ------------------------------------------------------------------------
-    // DEBUG
-    // ------------------------------------------------------------------------
-
-    if (input.has_pressed(Input::TIMER))
-        options.freeze_timer = !options.freeze_timer;
-
     /*if (input.has_pressed(Input::END_SEQ))
     {
         game_state = GS_INIT_BONUS;
@@ -118,68 +66,46 @@ void Outrun::tick()
         oinitengine.init_bonus();
     }*/
 
-    if (input.has_pressed(Input::PAUSE))
+    frame++;
+
+    // Non standard FPS.
+    // Determine whether to tick the current frame.
+    if (FRAMES_PER_SECOND != 30)
     {
-        pause = !pause;
+        if (FRAMES_PER_SECOND == 60)
+            tick_frame = frame & 1;
+        else if (FRAMES_PER_SECOND == 120)
+            tick_frame = (frame & 3) == 1;
     }
 
-    if (!pause || input.has_pressed(Input::STEP))
+    if (tick_frame)
     {
-        frame++;
+        tick_counter++;       
+        controls();      // Analogue Controls
+    }
+    oinputs.do_gear();   // Digital Gear
 
-        // Non standard FPS
-        if (FRAMES_PER_SECOND != 30)
-        {
-            if (FRAMES_PER_SECOND == 60)
-                tick_frame = frame & 1;
-            else if (FRAMES_PER_SECOND == 120)
-                tick_frame = (frame & 3) == 1;
-        }
-
-        if (tick_frame)
-        {
-            tick_counter++;
-            // Analogue Controls
-            controls();
-        }
-        // Digital Gear
-        oinputs.do_gear();
-
-        // Only tick the road cpu twice for every time we tick the main cpu
-
-        /*std::cout << std::hex
-            << outrun.tick_counter
-            << " - acc: " << oinputs.acc_adjust
-            << " - brake: " << oinputs.brake_adjust
-            << " - steer: " << oinputs.steering_adjust
-            << " - x: " << oinitengine.car_x_pos
-            << " - inc: " << oinitengine.car_increment
-            << " - Road: " << oroad.road_pos
-            << std::endl;*/
-
-        // The timing here isn't perfect, as normally the road CPU would run in parallel with the main CPU.
-        // We can potentially hack this by calling the road CPU twice.
-        // Most noticeable with clipping sprites on hills.
+    // Only tick the road cpu twice for every time we tick the main cpu
+    // The timing here isn't perfect, as normally the road CPU would run in parallel with the main CPU.
+    // We can potentially hack this by calling the road CPU twice.
+    // Most noticeable with clipping sprites on hills.
       
-        // 30 FPS
-        if (FRAMES_PER_SECOND == 30)
-        {
-            jump_table();
-            oroad.tick();
-            vint();
-            vint();
-        }
-        // 60 FPS
-        else
-        {
-            jump_table();
-            oroad.tick();
-            vint();
-        }
-    } 
-    input.frame_done();
+    // 30 FPS
+    if (FRAMES_PER_SECOND == 30)
+    {
+        jump_table();
+        oroad.tick();
+        vint();
+        vint();
+    }
+    // 60 FPS
+    else
+    {
+        jump_table();
+        oroad.tick();
+        vint();
+    }
 }
-
 
 // Vertical Interrupt
 void Outrun::vint()
@@ -263,18 +189,11 @@ void Outrun::jump_table()
         case GS_LOGO:
             if (!outrun.tick_frame)
                 ologo.blit();
+        
         default:
             if (tick_frame) osprites.tick();                // Address #3 Jump_SetupSprites
-            olevelobjs.do_sprite_routine(); // replaces calling each sprite individually
-            if (tick_frame) otraffic.spawn_traffic();
-            otraffic.tick(&osprites.jump_table[OSprites::SPRITE_TRAFF1]);
-            otraffic.tick(&osprites.jump_table[OSprites::SPRITE_TRAFF2]);
-            otraffic.tick(&osprites.jump_table[OSprites::SPRITE_TRAFF3]);
-            otraffic.tick(&osprites.jump_table[OSprites::SPRITE_TRAFF4]);
-            otraffic.tick(&osprites.jump_table[OSprites::SPRITE_TRAFF5]);
-            otraffic.tick(&osprites.jump_table[OSprites::SPRITE_TRAFF6]);
-            otraffic.tick(&osprites.jump_table[OSprites::SPRITE_TRAFF7]);
-            otraffic.tick(&osprites.jump_table[OSprites::SPRITE_TRAFF8]);
+            olevelobjs.do_sprite_routine();                 // replaces calling each sprite individually
+            otraffic.tick();                                // Spawn & Tick Traffic
             if (tick_frame) oinitengine.init_crash_bonus(); // Initalize crash sequence or bonus code
             oferrari.tick();
             if (oferrari.state != OFerrari::FERRARI_END_SEQ)
@@ -299,8 +218,6 @@ void Outrun::jump_table()
 // Source: 0xB15E
 void Outrun::main_switch()
 {
-    // bsr.w   ReadButtons2    
-    
     switch (game_state)
     {
         case GS_INIT:
@@ -312,7 +229,7 @@ void Outrun::main_switch()
                 osoundint.tick();
                 osoundint.queue_sound(sound::NEW_COMMAND);
                 osoundint.tick();
-                //osoundint.queue_sound(sound::YM_SET_LEVELS);
+                osoundint.queue_sound(sound::MUSIC_BREEZE);
                 //osoundint.tick();
                 //osoundint.queue_sound(sound::VOICE_CHECKPOINT);
             }
@@ -428,7 +345,6 @@ void Outrun::main_switch()
             oferrari.car_ctrl_active = true;
             oinitengine.init();
             init_jump_table();
-
             // Timing Hack to ensure horizon is correct
             // Note that the original code disables the screen, and waits for the second CPU's interrupt instead
             oroad.tick();
@@ -596,8 +512,9 @@ void Outrun::main_switch()
 
     oinitengine.check_road_width();
 
-    //HACKS FOLLOW
-
+    // --------------------------------------------------------------------------------------------
+    // Debugging Only
+    // --------------------------------------------------------------------------------------------
     if (DEBUG_LEVEL)
     {
         if (oinitengine.rd_split_state != 0)
@@ -721,11 +638,9 @@ void Outrun::controls()
 // 
 // Decrements Frame Count, and Overall Time Counter
 //
-// Returns:
-// D0 is -1 if time remaining
-// D0 is 0  if time expired
-// -------------------------------------------------------------------------------
+// Returns true if timer expired.
 // Source: 0xB736
+// -------------------------------------------------------------------------------
 bool Outrun::decrement_timers()
 {
     // Cheat

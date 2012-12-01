@@ -52,14 +52,12 @@ link_libraries(outrun
 )
 
 set(src_main
-    "${main_cpp_base}/asmhelper.hpp"
     "${main_cpp_base}/menu.hpp"
     "${main_cpp_base}/globals.hpp"
     "${main_cpp_base}/romloader.hpp"
     "${main_cpp_base}/roms.hpp"
     "${main_cpp_base}/stdint.hpp"
 
-    "${main_cpp_base}/asmhelper.cpp"
     "${main_cpp_base}/main.cpp"
     "${main_cpp_base}/menu.cpp"
     "${main_cpp_base}/romloader.cpp"

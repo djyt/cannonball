@@ -43,6 +43,7 @@ public:
     ~OSoundInt();
 
     void init();
+    void reset();
     void tick();
 
     void play_queued_sound();

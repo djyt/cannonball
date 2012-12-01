@@ -319,10 +319,10 @@ private:
     uint8_t cmd_prev;
 
     // PCM Channel Commands in RAM to send
-    const static int16_t CH09_CMDS1 = 0x570; // 0xFD70;
-    const static int16_t CH09_CMDS2 = 0x578;
-    const static int16_t CH11_CMDS1 = 0x580; // 0xFD80;
-    const static int16_t CH11_CMDS2 = 0x588;
+    const static uint16_t CH09_CMDS1 = 0x570; // 0xFD70;
+    const static uint16_t CH09_CMDS2 = 0x578;
+    const static uint16_t CH11_CMDS1 = 0x580; // 0xFD80;
+    const static uint16_t CH11_CMDS2 = 0x588;
 
     // Panning flags
     const static uint8_t PAN_LEFT  = 0x40;

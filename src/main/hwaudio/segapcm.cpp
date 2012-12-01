@@ -81,6 +81,7 @@ SegaPCM::SegaPCM(uint32_t clock, RomLoader* rom, uint8_t* ram, int32_t bank)
 
 SegaPCM::~SegaPCM()
 {
+    delete[] low;
 }
 
 void SegaPCM::init(int32_t fps)

@@ -27,10 +27,9 @@ public:
     OTraffic(void);
     ~OTraffic(void);
     void init();
+    void tick();
     void disable_traffic();
-    void spawn_traffic();
     void set_max_traffic();
-    void tick(oentry* sprite);
     void traffic_logic();
     void traffic_sound();
 
@@ -67,6 +66,7 @@ private:
     int16_t wheel_counter;
 
     void spawn_car(oentry* sprite);
+    void spawn_traffic();
     void tick_spawned_sprite(oentry* sprite);
     void move_spawned_sprite(oentry* sprite);
     void update_props(oentry* sprite);

@@ -139,6 +139,8 @@ public:
     static const uint8_t stage_data[];
 
 private:
+    // Road width at merge point
+    const static uint16_t RD_WIDTH_MERGE = 0xD4;
 
     // Road width of next section
     int16_t road_width_next;

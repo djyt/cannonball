@@ -11,6 +11,7 @@ Video::Video(void)
 Video::~Video(void)
 {
     delete sprite_layer;
+    delete tile_layer;
 }
 
 int Video::init(uint8_t* tile_rom, uint8_t* sprite_rom, uint8_t* road_rom)
@@ -302,11 +303,11 @@ uint32_t Video::read_pal32(uint32_t* palAddr)
     return (palette[adr] << 24) | (palette[adr+1] << 16) | (palette[adr+2] << 8) | palette[adr+3];
 }
 
+// See: SDL_PixelFormat
+#define CURRENT_RGB() (r << surface->format->Rshift) | (g << surface->format->Gshift) | (b << surface->format->Bshift);
+
 void Video::refresh_palette(uint32_t palAddr)
 {
-    //See: SDL_PixelFormat
-    #define CURRENT_RGB() (r << surface->format->Rshift) | (g << surface->format->Gshift) | (b << surface->format->Bshift);
-
     palAddr &= ~1;
     uint32_t rgbAddr = palAddr >> 1;
     uint32_t a = (palette[palAddr] << 8) | palette[palAddr + 1];

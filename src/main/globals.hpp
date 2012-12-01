@@ -1,7 +1,15 @@
 #pragma once
 
 // ------------------------------------------------------------------------------------------------
+// Compiler Settings
+// ------------------------------------------------------------------------------------------------
+
+// Comment out to disable SDL specific sound code
+#define COMPILE_SOUND_CODE 1
+
+// ------------------------------------------------------------------------------------------------
 // Settings
+// Some of these will move to the options class, once they are dynamic and controllable via a menu
 // ------------------------------------------------------------------------------------------------
 
 // Frame Rate (either 30 which is the same as the original or 60)
@@ -11,10 +19,6 @@ const bool DEBUG_LEVEL = false;
 
 // Fix bugs present in the original game
 const bool FIX_BUGS = true;
-
-// Sega OutRun Screen Properties
-const uint16_t S16_WIDTH = 320;
-const uint16_t S16_HEIGHT = 224;
 
 // 0 = Easy, 1 = Normal, 2 = Hard, 3 = Very Hard (Note these aren't same numbers as original)
 const uint8_t DIP_TRAFFIC = 1;
@@ -27,6 +31,14 @@ const uint8_t DIP_ADVERTISE = 1;
 
 // Automatic Gears
 const bool GEAR_AUTO = false;
+
+// ------------------------------------------------------------------------------------------------
+// General useful stuff
+// ------------------------------------------------------------------------------------------------
+
+// Sega OutRun Screen Properties
+const uint16_t S16_WIDTH = 320;
+const uint16_t S16_HEIGHT = 224;
 
 enum
 {

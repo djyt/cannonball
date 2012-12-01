@@ -41,16 +41,23 @@ void OSoundInt::init()
         ym->init(44100, FRAMES_PER_SECOND);
     }
 
-    sound_counter = 0;
-    sound_head    = 0;
-    sound_tail    = 0;
-    sounds_queued = 0;
+    reset();
 
     // Clear PCM Chip RAM
     for (uint16_t i = 0; i < PCM_RAM_SIZE; i++)
         pcm_ram[i] = 0;
 
     osound.init(ym, pcm_ram);
+}
+
+// Clear sound queue
+// Source: 0x5086
+void OSoundInt::reset()
+{
+    sound_counter = 0;
+    sound_head    = 0;
+    sound_tail    = 0;
+    sounds_queued = 0;
 }
 
 void OSoundInt::tick()

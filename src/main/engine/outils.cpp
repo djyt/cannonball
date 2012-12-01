@@ -1,3 +1,13 @@
+/***************************************************************************
+    OutRun Utility Functions & Assembler Helper Functions. 
+
+    Common OutRun library functions.
+    Helper functions used to facilitate 68K to C++ porting process.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "engine/outils.hpp"
 
 outils::outils(void)
@@ -13,16 +23,6 @@ outils::~outils(void)
 // Source Address: 0x6C8E
 // Input:          None
 // Output:         Long Random
-
-// First set of values should be:
-// 2a6d7fe7
-// 7fe76115
-// 6115388b
-// 388b9bf8
-// 9bf8a878
-// a878cb8d
-// cb8df300
-// f30037e8
 
 // Seed for random number generator
 static uint32_t rnd_seed = 0;
@@ -43,11 +43,11 @@ uint32_t outils::random()
 	seed <<= 3;
 	seed += rnd;
 
-	asmhelper::move16(seed, rnd);
-	asmhelper::swap32(seed);
-	asmhelper::add16(seed, rnd);
-	asmhelper::move16(rnd, seed);
-	asmhelper::swap32(seed);
+	move16(seed, rnd);
+	swap32(seed);
+	add16(seed, rnd);
+	move16(rnd, seed);
+	swap32(seed);
 
 	rnd_seed = seed; // Set new seed
 

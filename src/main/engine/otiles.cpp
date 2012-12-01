@@ -1,3 +1,16 @@
+/***************************************************************************
+    Tilemap Handling Code. 
+
+    Logic for the foreground and background tilemap layers.
+
+    - Read and render tilemaps
+    - H-Scroll & V-Scroll
+    - Palette Initialization
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "engine/opalette.hpp"
 #include "engine/otiles.hpp"
 
@@ -422,13 +435,11 @@ void OTiles::h_scroll_tilemaps()
                 tilemap_h_scr = (tilemap_h_scr & 0xFFFF) | (h_scroll_lookup << 16);
             else
                 tilemap_h_scr += tilemap_x;
-            //std::cout << std::hex << "1a. tilemap_h_scr: " << tilemap_h_scr << " tilemap_x: " << tilemap_x << " tilemap_h_scr: " << oroad.tilemap_h_target << std::endl;
         }
         else
         {
             // DB1E
             tilemap_h_scr += (tilemap_x >> 8);
-            //std::cout << std::hex << "2a. tilemap_h_scr: " << tilemap_h_scr << " tilemap_x: " << tilemap_x << " tilemap_h_scr: " << oroad.tilemap_h_target << std::endl;
         }
     }
     // Road Not Splitting
@@ -448,13 +459,11 @@ void OTiles::h_scroll_tilemaps()
                 tilemap_h_scr = (tilemap_h_scr & 0xFFFF) | (oroad.tilemap_h_target << 16);
             else
                 tilemap_h_scr += tilemap_x;
-            //std::cout << std::hex << "1b. tilemap_h_scr: " << tilemap_h_scr << " tilemap_x: " << tilemap_x << " tilemap_h_scr: " << oroad.tilemap_h_target << std::endl;
         }   
         else
         {
             // DB1E
             tilemap_h_scr += (tilemap_x >> 8);
-            //std::cout << std::hex << "2b. tilemap_h_scr: " << tilemap_h_scr << " tilemap_x: " << tilemap_x << " tilemap_h_scr: " << oroad.tilemap_h_target << std::endl;
         }   
     }
 }

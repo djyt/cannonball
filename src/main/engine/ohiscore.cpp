@@ -597,13 +597,13 @@ void OHiScore::blit_digit()
         if (!(tile & 0xFFFF))
         {
             tile = (tile & 0xFFFF0000) | 0x20;
-            asmhelper::swap32(tile);
+            outils::swap32(tile);
             tile |= 0x30;
         }
         // Draw tile
         else
         {
-            asmhelper::swap32(tile);
+            outils::swap32(tile);
             tile |= 0x300030;
         }
 

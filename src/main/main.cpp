@@ -5,28 +5,13 @@
     See license.txt for more details.
 ***************************************************************************/
 
-/*
-void aMethod(aParameter p) { }  --- Pass by value. Copy is made
-void aMethod(aParameter& p) { } --- Pass by reference. Copy not made
-
-* = Access object pointed to
-& = Access address pointed to
-
-*/
-
 // Error reporting
 #include <iostream>
 
 // SDL Library
 #include <SDL.h>
-
-// This library replaces the main function with a function called SDL_main that performs the same task.
-#pragma comment(lib, "SDLmain.lib")
-
-// This library has most SDL functions you'll use and a lot more you probably wont need.
+#pragma comment(lib, "SDLmain.lib") // Replace main with SDL_main
 #pragma comment(lib, "SDL.lib")
-
-// This library defines some helper functions that make things easier for you.
 #pragma comment(lib, "glu32.lib")
 
 // SDL Code
@@ -42,31 +27,30 @@ void aMethod(aParameter& p) { } --- Pass by reference. Copy not made
 
 //Menu menu;
 
+#ifdef COMPILE_SOUND_CODE
 Audio audio;
+#endif
 
 static void quit_func(int code)
 {
+#ifdef COMPILE_SOUND_CODE
     audio.stop_audio();
+#endif
     SDL_Quit();
-
-    // Exit program.
     exit(code);
-
-    return;
 }
 
 static void process_events(void)
 {
-    /* Our SDL event placeholder. */
     SDL_Event event;
 
-    /* Grab all the events off the queue. */
+    // Grab all events from the queue.
     while(SDL_PollEvent(&event))
     {
         switch(event.type)
         {
             case SDL_KEYDOWN:
-                /* Handle key presses. */
+                // Handle key presses.
                 if (event.key.keysym.sym == SDLK_ESCAPE)
                     quit_func(0);
                 else
@@ -78,26 +62,44 @@ static void process_events(void)
                 break;
 
             case SDL_QUIT:
-                /* Handle quit requests (like Ctrl-c). */
+                // Handle quit requests (like Ctrl-c).
                 quit_func(0);
                 break;
         }
     }
-    return;
 }
 
 static void tick()
 {
     process_events();
 
-    // Tick Main Program Code
-    outrun.tick();
+    if (input.has_pressed(Input::TIMER))
+        outrun.options.freeze_timer = !outrun.options.freeze_timer;
 
-    // Tick audio program code
-    osoundint.tick();
+    if (input.has_pressed(Input::PAUSE))
+        outrun.options.pause = !outrun.options.pause;
 
-    // Tick SDL Audio
-    audio.tick();
+    if (!outrun.options.pause || input.has_pressed(Input::STEP))
+    {
+         // Tick Main Program Code
+        outrun.tick();
+
+        // Denote keys read
+        input.frame_done();
+
+#ifdef COMPILE_SOUND_CODE
+        // Tick audio program code
+        osoundint.tick();
+
+        // Tick SDL Audio
+        audio.tick();
+#endif
+    }
+    else
+    {
+        // Denote keys read
+        input.frame_done();
+    }
 
     // Draw SDL Video
     video.draw_frame();  
@@ -116,7 +118,11 @@ static void main_loop()
         //Start the frame timer
         fps.start();
         tick();
+#ifdef COMPILE_SOUND_CODE
         deltatime = (int) (FRAME_MS * audio.adjust_speed());
+#else
+        deltatime = FRAME_MS;
+#endif
         t = fps.get_ticks();
 
         // Cap Frame Rate
@@ -138,21 +144,29 @@ int main(int argc, char* argv[])
     } 
 
     // Load Roms
-    roms.init();
+    bool roms_loaded = roms.init();
 
-    //Set the window caption 
-    SDL_WM_SetCaption( "OutRun: reassembler.blogspot.com", NULL ); 
+    if (roms_loaded)
+    {
+        //Set the window caption 
+        SDL_WM_SetCaption( "OutRun: reassembler.blogspot.com", NULL ); 
 
-    // Initialize SDL Video
-    if (!video.init(roms.tiles.rom, roms.sprites.rom, roms.road.rom))
+        // Initialize SDL Video
+        if (!video.init(roms.tiles.rom, roms.sprites.rom, roms.road.rom))
+            quit_func(1);
+
+#ifdef COMPILE_SOUND_CODE
+        audio.init();
+#endif
+        outrun.init();
+        //menu.init();
+
+        main_loop();
+    }
+    else
+    {
         quit_func(1);
-
-    audio.init();
-
-    outrun.init();
-    //menu.init();
-
-    main_loop();
+    }
 
     // Never Reached
     return 0;

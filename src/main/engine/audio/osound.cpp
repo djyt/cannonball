@@ -14,7 +14,7 @@
 TODO:
 
 - Double check passing car tones, especially when going through checkpoint areas
-- Finish Ferrari sound code
+X Finish Ferrari sound code
 - Engine tones seem to jump channels. How do we stop this? Is it a bug in the original?
 X More cars seem to be high pitched than on MAME. (Fixed - engine channel setup)
 
@@ -58,7 +58,7 @@ void OSound::init(YM2151* ym, uint8_t* pcm_ram)
 
     // Enable all PCM channels by default
     for (int8_t i = 0; i < 16; i++)
-        pcm_ram[6 + (i *8)] = 1; // Channel Active
+        pcm_ram[0x86 + (i * 8)] = 1; // Channel Active
 
     init_fm_chip();
 }
@@ -832,7 +832,7 @@ void OSound::process_pcm(uint8_t* chan)
     if (chan[ch::CTRL] & BIT_7)
     {
         const uint16_t BASE_ADR = 0xF088; // Channel 2 Base Address
-        const uint16_t CHAN_SIZE = 0x10;  // Size of each channel entry
+        const uint16_t CHAN_SIZE = 0x10;  // Size of each channel entry (2 Channel Increment)
 
         uint16_t adr = BASE_ADR; 
 

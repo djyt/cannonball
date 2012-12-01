@@ -1,3 +1,12 @@
+/***************************************************************************
+    OutRun Engine Entry Point.
+
+    This is the hub of the ported OutRun code.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "stdint.hpp"
@@ -59,19 +68,12 @@ enum
 	GS_REINIT = 21,				//15 = Reinitalize Game (after outrunners screen)
 };
 
-// Road width at merge point
-const uint16_t RD_WIDTH_MERGE = 0xD4;
-
-// Max speed of car
-const uint32_t MAX_SPEED = 0x1260000;
-
 class Outrun
 {
 public:
     Options options;
 
-    bool pause;
-
+    // Service Mode Toggle: Not implemented yet.
     bool service_mode;
 
     // Frame counter
@@ -83,6 +85,7 @@ public:
     // Tick Counter (always syncd to 30 fps to flash text and other stuff)
     uint32_t tick_counter;
 
+    // Main game state
     int8_t game_state;
 
 	Outrun();

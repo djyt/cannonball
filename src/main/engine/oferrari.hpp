@@ -217,6 +217,7 @@ public:
     void do_skid();
     
 private:
+    // Max speed of car
     const static uint32_t MAX_SPEED = 0x1260000;
 
     // Car Base Increment, For Movement

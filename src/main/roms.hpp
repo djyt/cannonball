@@ -1,3 +1,10 @@
+/***************************************************************************
+    Load OutRun ROM Set.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "romloader.hpp"
@@ -14,11 +21,9 @@ public:
     RomLoader z80;
     RomLoader pcm;
 
-    //RomLoader road_y;
-
     Roms();
     ~Roms();
-    void init();
+    bool init();
 };
 
 extern Roms roms;

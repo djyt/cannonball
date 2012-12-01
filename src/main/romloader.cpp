@@ -1,9 +1,3 @@
-#include <iostream>
-#include <fstream>
-
-#include "stdint.hpp"
-#include "romloader.hpp"
-
 /***************************************************************************
     Binary File Loader. 
     
@@ -14,8 +8,13 @@
     See license.txt for more details.
 ***************************************************************************/
 
-// See: http://www.cplusplus.com/doc/tutorial/files/
-// Default path in Visual Studio: Visual Studio 2010\Projects\outrun\outrun
+#include <iostream>
+#include <fstream>
+#include <cstddef>       // for std::size_t
+#include <boost/crc.hpp> // CRC Checking via Boost library.
+
+#include "stdint.hpp"
+#include "romloader.hpp"
 
 RomLoader::RomLoader()
 {
@@ -24,7 +23,6 @@ RomLoader::RomLoader()
 
 RomLoader::~RomLoader()
 {
-    //delete[] rom;
 }
 
 void RomLoader::init(const uint32_t length)
@@ -38,93 +36,41 @@ void RomLoader::unload(void)
     delete[] rom;
 }
 
-int RomLoader::load(const char* filename, const int offset, const int length, const uint8_t interleave)
+int RomLoader::load(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
 {
+    std::string path = "roms/";
+    path += std::string(filename);
+
     // Open rom file
-    std::ifstream src(filename, std::ios::in | std::ios::binary);
+    std::ifstream src(path, std::ios::in | std::ios::binary);
     if (!src)
     {
-        error("cannot open rom:", filename);
-        return 0; // fail
+        std::cout << "cannot open rom: " << filename << std::endl;
+        return 1; // fail
     }
 
-    char ch;
+    // Read file
+    char* buffer = new char[length];
+    src.read(buffer, length);
 
+    // Check CRC on file
+    boost::crc_32_type result;
+    result.process_bytes(buffer, (size_t) src.gcount());
+
+    if (expected_crc != result.checksum())
+    {
+        std::cout << std::hex << 
+            filename << " has incorrect checksum.\nExpected: " << expected_crc << " Found: " << result.checksum() << std::endl;
+    }
+
+    // Interleave file as necessary
     for (int i = 0; i < length; i++)
     {
-        src.get(ch); // Get from source
-        rom[(i * interleave) + offset] = ch;
+        rom[(i * interleave) + offset] = buffer[i];
     }
 
+    // Clean Up
+    delete[] buffer;
     src.close();
-    return 1; // success
-}
-
-void RomLoader::error(const char* p, const char* p2)
-{
-    std::cout << p << ' ' << p2 << std::endl;
-}
-
-uint32_t RomLoader::read32(uint32_t* addr)
-{    
-    //The following returns 4 bytes, but in reverse order.
-    //char* p = &rom0[addr];
-    //return *( reinterpret_cast<uint32_t *>(p) );
-    uint32_t data = (rom[*addr] << 24) | (rom[*addr+1] << 16) | (rom[*addr+2] << 8) | (rom[*addr+3]);
-    *addr += 4;
-    return data;
-}
-
-uint16_t RomLoader::read16(uint32_t* addr)
-{
-    uint16_t data = (rom[*addr] << 8) | (rom[*addr+1]);
-    *addr += 2;
-    return data;
-}
-
-uint8_t RomLoader::read8(uint32_t* addr)
-{
-    return rom[(*addr)++]; 
-}
-
-uint32_t RomLoader::read32(uint32_t addr)
-{    
-    return (rom[addr] << 24) | (rom[addr+1] << 16) | (rom[addr+2] << 8) | rom[addr+3];
-}
-
-uint16_t RomLoader::read16(uint32_t addr)
-{
-    return (rom[addr] << 8) | rom[addr+1];
-}
-
-uint8_t RomLoader::read8(uint32_t addr)
-{
-    return rom[addr];
-}
-
-// ----------------------------------------------------------------------------
-// Used by translated Z80 Code
-// Note that the endian is reversed compared with the 68000 code.
-// ----------------------------------------------------------------------------
-
-uint16_t RomLoader::read16(uint16_t* addr)
-{
-    uint16_t data = (rom[*addr+1] << 8) | (rom[*addr]);
-    *addr += 2;
-    return data;
-}
-
-uint8_t RomLoader::read8(uint16_t* addr)
-{
-    return rom[(*addr)++]; 
-}
-
-uint16_t RomLoader::read16(uint16_t addr)
-{
-    return (rom[addr+1] << 8) | rom[addr];
-}
-
-uint8_t RomLoader::read8(uint16_t addr)
-{
-    return rom[addr];
+    return 0; // success
 }

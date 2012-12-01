@@ -66,7 +66,7 @@ void OLevelObjs::init_entries(uint32_t a4, uint8_t no_entries)
         uint16_t z_orig = roms.rom0.read16(&a4);
 
         uint32_t z = z_orig;
-        asmhelper::swap32(z);
+        outils::swap32(z);
         sprite->z = z;
 
         int16_t road_x = oroad.road0_h[z_orig];
@@ -503,8 +503,8 @@ void OLevelObjs::set_spr_zoom_priority(oentry *sprite, uint8_t zoom)
     if (sprite->yw != 0)
     {
         uint32_t yw = sprite->yw * z16; // Note the final product is a LONG, not a word here
-        asmhelper::swap32(yw);
-        asmhelper::sub16(yw, road_y);
+        outils::swap32(yw);
+        outils::sub16(yw, road_y);
     }
     sprite->y = road_y;
 

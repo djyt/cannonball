@@ -562,12 +562,12 @@ void OHud::blit_text_new(uint16_t x, uint16_t y, const char* text)
 void OHud::blit_debug()
 {
     // Blit Road Position
-    ohud.blit_text_new(1, 0, "POS    ");
+    /*ohud.blit_text_new(1, 0, "POS    ");
 
     // Convert road position to hexadecimal string
-    /*char text[4];
+    char text[4];
     _itoa_s(oroad.road_pos >> 16, text, 16);
-    blit_text_new(5, 0, text);*/
+    blit_text_new(5, 0, text);
 
     // Blit Steering Position
     /*ohud.blit_text_new(1, 1, "STEERING                 ");

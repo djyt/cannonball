@@ -173,8 +173,6 @@ void OSprites::tick()
 //
 // Source: 3BEE
 //
-// Inputs: a5 = 0x61880
-
 // Notes:
 // - Setup Jump Table Entry #2, the sprite control. This in turn is used to control and setup all the sprites.
 // - Read 4 Byte Entry From Road_Seg_Adr1 which indicates the upcoming block of sprite data for the level
@@ -386,7 +384,6 @@ void OSprites::do_spr_order_shadows(oentry* input)
 {
     // Use priority as lookup into table. Assume we're on boundaries of 0x10
     uint16_t priority = (input->priority & 0x1FF) << 4;
-
     uint8_t bytes_to_copy = sprite_order[priority];
 
     // Maximum number of bytes we want to copy is 0x10

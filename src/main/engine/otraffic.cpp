@@ -1,3 +1,15 @@
+/***************************************************************************
+    Traffic Routines.
+
+    - Traffic spawning.
+    - Traffic logic, lane changing & movement.
+    - Collisions.
+    - Traffic panning and volume control to pass to sound program.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "engine/outils.hpp"
 #include "engine/otraffic.hpp"
 
@@ -35,6 +47,7 @@ void OTraffic::init()
 // Source: 0x521A
 void OTraffic::tick()
 {
+    // Lock traffic spawning to 30fps frame rate.
     if (outrun.tick_frame) 
         spawn_traffic();
 
@@ -298,22 +311,24 @@ void OTraffic::move_spawned_sprite(oentry* sprite)
             sprite->traffic_speed += speed;
         }
 
-    }
-    // try_lane_change:
-    int16_t x_diff = sprite->xw2 - sprite->xw1;
 
-    if (x_diff)
-    {
-        if (x_diff > 0)
+        // try_lane_change:
+        int16_t x_diff = sprite->xw2 - sprite->xw1;
+
+        if (x_diff)
         {
-            if ((sprite->traffic_proximity & BIT_0) == 0) // Move Left if no traffic on LHS
-                sprite->xw1 += FRAMES_PER_SECOND == 30 ? 4 : 2;
+            if (x_diff > 0)
+            {
+                if ((sprite->traffic_proximity & BIT_0) == 0) // Move Left if no traffic on LHS
+                    sprite->xw1 += 4;
+            }
+            else if (x_diff < 0)
+            {
+                if ((sprite->traffic_proximity & BIT_1) == 0) // Move Right if no traffic on RHS
+                    sprite->xw1 -= 4;
+            }
         }
-        else if (x_diff < 0)
-        {
-            if ((sprite->traffic_proximity & BIT_1) == 0) // Move Right if no traffic on RHS
-                sprite->xw1 -= FRAMES_PER_SECOND == 30 ? 4 : 2;
-        }
+
     }
     // skip_lane_change:
     update_props(sprite);

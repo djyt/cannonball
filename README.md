@@ -13,8 +13,8 @@ Getting Started
 ---------------
 * Install your favourite C++ environment (e.g. GCC, Visual Studio, Xcode, MingGW etc.)
 * Install [CMake](http://www.cmake.org/). This generates your platform and compiler build files. 
-* Extract the [Boost Library](http://www.boost.org/) somewhere, for example: c:\dev\lib\boost
-* Extract the [SDL Library](http://www.libsdl.org/download-1.2.php) somewhere, for example: c:\dev\lib\sdl
+* Extract the [Boost Library](http://www.boost.org/) somewhere, for example: c:\dev\lib\boost_1_51_0
+* Extract the [SDL Library](http://www.libsdl.org/download-1.2.php) somewhere, for example: c:\dev\lib\SDL-1.2.15
 * Read the SDL documentation & compile the SDL Library for your system.
 * Extract the Cannonball code somewhere, for example: c:\dev\cannonball
 * Configure the CMakeLists.txt file to reflect the correct directory structure for your libraries.

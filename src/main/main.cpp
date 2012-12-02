@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
     if (roms_loaded)
     {
         //Set the window caption 
-        SDL_WM_SetCaption( "OutRun: reassembler.blogspot.com", NULL ); 
+        SDL_WM_SetCaption( "Cannonball", NULL ); 
 
         // Initialize SDL Video
         if (!video.init(roms.tiles.rom, roms.sprites.rom, roms.road.rom))

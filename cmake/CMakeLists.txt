@@ -5,23 +5,18 @@ project (outrun)
 set(main_base ../src/main)
 set(main_cpp_base ${main_base})
 
-#Dependency locations
-#TODO: These should be located using standard CMake macros
-if (WIN32)
-    set(boost_root c:/dev/lib/boost_1_51_0)
-    set(sdl_root c:/dev/lib/SDL-1.2.15)
-else()
-    set(boost_root ~/Tools/boost_1_51_0)
-    set(sdl_root ~/Tools/SDL-1.2.15/build)    
-endif()
+# Library locations
+set(lib_base ../../lib)
+set(boost_root ${lib_base}/boost_1_51_0)
+set(sdl_root ${lib_base}/SDL-1.2.15)
 
-#Include
+# Include
 include_directories(
     "${main_cpp_base}"
     "${boost_root}"    
 )
 
-#SDL includes
+# SDL includes
 #TODO: This should not be platform specific, just need to agree standard
 if (WIN32)
     include_directories(
@@ -33,7 +28,7 @@ else()
     )
 endif()
 
-#Linking
+# Linking
 link_directories(
     "${sdl_root}/lib"
 )

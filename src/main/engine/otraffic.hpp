@@ -1,7 +1,18 @@
+/***************************************************************************
+    Traffic Routines.
+
+    - Traffic spawning.
+    - Traffic logic, lane changing & movement.
+    - Collisions.
+    - Traffic panning and volume control to pass to sound program.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "outrun.hpp"
-#include "osprites.hpp"
 
 class OTraffic
 {

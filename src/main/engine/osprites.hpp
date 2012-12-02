@@ -65,8 +65,8 @@ public:
 	// Jump Table Sprite Entries
 	oentry jump_table[SPRITE_ENTRIES + 24]; // added 24 here for ferrari code and other bits
 
-	// Converted sprite entries in RAM for hardware. Guessed number of entries.
-	osprite sprite_entries[SPRITE_ENTRIES * 2];
+	// Converted sprite entries in RAM for hardware.
+	osprite sprite_entries[SPRITE_ENTRIES + 24];
 
 	// -------------------------------------------------------------------------
 	// Function Holders
@@ -170,7 +170,7 @@ private:
 	// Palette Lookup Table
 	uint8_t pal_lookup[0x100];
 
-	// Converted sprite entries in RAM for hardware. Guessed number of entries.
+	// Converted sprite entries in RAM for hardware.
 	uint8_t sprite_order[0x2000];
 	uint8_t sprite_order2[0x2000];
 

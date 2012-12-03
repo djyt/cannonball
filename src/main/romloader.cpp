@@ -42,7 +42,7 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     path += std::string(filename);
 
     // Open rom file
-    std::ifstream src(path, std::ios::in | std::ios::binary);
+    std::ifstream src(path.c_str(), std::ios::in | std::ios::binary);
     if (!src)
     {
         std::cout << "cannot open rom: " << filename << std::endl;

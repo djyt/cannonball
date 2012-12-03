@@ -121,7 +121,7 @@ void OCrash::tick()
     // Do Passenger 2 Shadow
     if (spr_pass2s->control & OSprites::ENABLE)
         if (outrun.tick_frame) do_shadow(spr_pass2, spr_pass2s);
-        else osprites.do_spr_order_shadows(spr_pass1s);
+        else osprites.do_spr_order_shadows(spr_pass2s);
 }
 
 // Source: 0x1162

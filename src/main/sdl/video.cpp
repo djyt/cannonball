@@ -4,6 +4,8 @@ Video video;
 
 Video::Video(void)
 {
+    // Internal pixel array. The size of this is always a constant
+    pixels = new uint32_t[S16_WIDTH * S16_HEIGHT];
     sprite_layer = new hwsprites();
     tile_layer = new hwtiles();
 }
@@ -12,51 +14,23 @@ Video::~Video(void)
 {
     delete sprite_layer;
     delete tile_layer;
+    delete[] pixels;
 }
 
 int Video::init(uint8_t* tile_rom, uint8_t* sprite_rom, uint8_t* road_rom)
 {
-  // Information about the current video settings.
-  const SDL_VideoInfo* info = SDL_GetVideoInfo();
+    // Information about the current video settings.
+    const SDL_VideoInfo* info = SDL_GetVideoInfo();
 
-  if (!info)
-  {
-      // This should probably never happen.
-      std::cerr << "Video query failed: " << SDL_GetError() << std::endl;
-      return 0;
-  }
-
-    /*
-    * Set our width/height to 640/480 (you would
-    * of course let the user decide this in a normal
-    * app). We get the bpp we will request from
-    * the display. On X11, VidMode can't change
-    * resolution, so this is probably being overly
-    * safe. Under Win32, ChangeDisplaySettings
-    * can change the bpp.
-    */
-    int width = S16_WIDTH;
-    int height = S16_HEIGHT;
-    //int bpp = info->vfmt->BitsPerPixel;
-    int bpp = 32;
-    int flags = SDL_DOUBLEBUF | SDL_SWSURFACE;
-    
-    int available = SDL_VideoModeOK(width, height, bpp, flags);
-
-    // Set the video mode
-    surface = SDL_SetVideoMode(width, height, bpp, flags);
-
-    if (!surface || !available)
+    if (!info)
     {
-        std::cerr << "Video mode set failed: " << SDL_GetError() << std::endl;
+        // This should probably never happen.
+        std::cerr << "Video query failed: " << SDL_GetError() << std::endl;
         return 0;
     }
 
-    // Use this function to perform a fast, low quality, stretch blit between two surfaces of the same pixel format.
-    // Investigate: http://wiki.libsdl.org/moin.cgi/SDL_SoftStretch
-
-    // Convert the SDL pixel surface to 32 bit
-    pixels = (uint32_t*)surface->pixels;
+    if (!set_video_mode(MODE_NOSCALE))
+        return 0;
 
     // Convert S16 tiles to a more useable format & del memory used by original
     tile_layer->init((uint8_t*) tile_rom);
@@ -74,6 +48,127 @@ int Video::init(uint8_t* tile_rom, uint8_t* sprite_rom, uint8_t* road_rom)
 
     return 1;
 }
+
+// ---------------------------------------------------------------------------
+// Choose Video Mode 
+// ---------------------------------------------------------------------------
+
+const static uint16_t VIDEO_MODES[] =
+{
+    //1680, 1050, 
+    640, 480,                                        // Full Screen Mode (Must be bordered 640x480)
+    S16_WIDTH * 1, S16_HEIGHT * 1,                   // 1:1 Original Size
+    S16_WIDTH * 2, S16_HEIGHT * 2,                   // 2:1 Double Size
+    S16_WIDTH * 3, S16_HEIGHT * 3,                   // 3:1 Triple Size
+};
+
+int Video::set_video_mode(uint8_t m)
+{
+    video_mode = m;
+
+    screen_width  = VIDEO_MODES[(video_mode << 1) + 0];
+    screen_height = VIDEO_MODES[(video_mode << 1) + 1];
+
+    // Record how much we are scaling the screen by, from it's original resolution
+    scale_factor = std::min(screen_width / S16_WIDTH, screen_height / S16_HEIGHT);
+
+    screen_xoff = screen_width - (S16_WIDTH * scale_factor);
+    if (screen_xoff)
+        screen_xoff = (screen_xoff / 2);
+
+    screen_yoff = screen_height - (S16_HEIGHT * scale_factor);
+    if (screen_yoff) 
+        screen_yoff = (screen_yoff / 2) * screen_width;
+   
+    //int bpp = info->vfmt->BitsPerPixel;
+    int bpp = 32;
+    int flags = SDL_DOUBLEBUF | SDL_SWSURFACE;
+
+    if (video_mode == MODE_FULLSCREEN)
+    {
+        flags |= SDL_FULLSCREEN;
+        SDL_ShowCursor(false); // Don't show mouse cursor in full-screen mode
+    }
+    else
+        SDL_ShowCursor(true);
+    
+    int available = SDL_VideoModeOK(screen_width, screen_height, bpp, flags);
+
+    // Frees (Deletes) existing surface
+    if (surface)
+        SDL_FreeSurface(surface);
+
+    // Set the video mode
+    surface = SDL_SetVideoMode(screen_width, screen_height, bpp, flags);
+
+    if (!surface || !available)
+    {
+        std::cerr << "Video mode set failed: " << SDL_GetError() << std::endl;
+        return 0;
+    }
+
+    // Convert the SDL pixel surface to 32 bit.
+    // This is potentially a larger surface area than the internal pixel array.
+    screen_pixels = (uint32_t*)surface->pixels;
+
+    return 1;
+}
+
+/**
+* 
+* Fixed point image scaling code (16.16)
+* 
+* Speed increases when scaling smaller images. Scaling images up is expensive.
+* 
+* src          pointer to the image we want to scale
+* srcwid       how wide is the entire source image?
+* srchgt       how tall is the entire source image?
+* dest         pointer to the bitmap we want to scale into (destination)
+* dstwid       how wide do we want the source image to be?
+* dsthgt       how tall do we want the source image to be?
+*            
+* Note that both srcwid&srchgt and dstwid&dsthgt refer to the source image's dimensions. 
+* The destination page size is specified in pagewid&pagehgt.
+* 
+* @author Chris White
+* 
+*/
+void Video::scale( uint32_t* src, int srcwid, int srchgt, 
+                   uint32_t* dest, int dstwid, int dsthgt)
+{
+    int xstep = (srcwid << 16) / dstwid; // calculate distance (in source) between
+    int ystep = (srchgt << 16) / dsthgt; // pixels (in dest)
+    int srcy = 0; // y-cordinate in source image
+        
+    for (int y = 0; y < dsthgt; y++)
+    {
+        int srcx = 0; // reset our x counter before each row...
+
+        for (int x = 0; x < dstwid; x++)
+        {
+            *dest++ = *(src + (srcx >> 16)); // copy next pixel
+            srcx += xstep;                   // move through source image
+        }
+
+        // Ensure we wrap to the next line correctly, when destination screen size
+        // is different aspect ratio (e.g. wider)
+        if (screen_width > dstwid)
+            dest += (screen_width - dstwid);
+            
+        //
+        // figure out if we are still on the same row as last time
+        // through the loop, and if so we move the source pointer accordingly.
+        // If not, we add nothing to the source counter, and go back to the beginning
+        // of the row (in the source image) we just drew.
+        //
+
+        srcy += ystep;                  // move through the source image...
+        src += ((srcy >> 16) * srcwid); // and possibly to the next row.
+        srcy &= 0xffff;                 // set up the y-coordinate between 0 and 1
+    }
+}
+
+
 
 void Video::draw_frame(void)
 {
@@ -99,11 +194,23 @@ void Video::draw_frame(void)
     sprite_layer->render(8);
     tile_layer->render_text_layer(pixels, 1);
 
-    // Iterate pxls backbuffer
-    for (int i = 0; i < (surface->w * surface->h) ; i++) 
+    // Do Scaling
+    if (video_mode != MODE_NOSCALE)
     {
         // Lookup real RGB value from rgb array for backbuffer
-        pixels[i] = rgb[pixels[i] & ((S16_PALETTE_ENTRIES * 3) - 1)];
+        for (int i = 0; i < (S16_WIDTH * S16_HEIGHT); i++)    
+            pixels[i] = rgb[pixels[i] & ((S16_PALETTE_ENTRIES * 3) - 1)];
+
+        // Rescale appropriately
+        scale(pixels, S16_WIDTH, S16_HEIGHT, 
+              screen_pixels + screen_xoff + screen_yoff, S16_WIDTH * scale_factor, S16_HEIGHT * scale_factor);
+    }
+    // No Scaling
+    else
+    {
+        // Lookup real RGB value from rgb array for backbuffer
+        for (int i = 0; i < (S16_WIDTH * S16_HEIGHT); i++)    
+            screen_pixels[i] = rgb[pixels[i] & ((S16_PALETTE_ENTRIES * 3) - 1)];
     }
 
     // Example: Set the pixel at 10,10 to red

@@ -20,11 +20,16 @@ public:
 	hwsprites* sprite_layer;
     hwtiles* tile_layer;
 	uint32_t *pixels;
+    uint32_t *screen_pixels;
 
 	Video();
-	void draw_frame();
+    ~Video();
+    
 	int init(uint8_t*, uint8_t*, uint8_t*);
-	~Video();
+
+    int set_video_mode(uint8_t);
+
+    void draw_frame();
 
     void clear_text_ram();
     void write_text8(uint32_t, const uint8_t);
@@ -57,9 +62,31 @@ private:
 	SDL_Surface *surface;
 
 	uint8_t palette[Video::S16_PALETTE_ENTRIES * 2]; // 2 Bytes Per Palette Entry
-	uint32_t rgb[Video::S16_PALETTE_ENTRIES * 3]; // Extended to hold shadow/hilight colours
+	uint32_t rgb[Video::S16_PALETTE_ENTRIES * 3];    // Extended to hold shadow/hilight colours
+
+    // Video Mode
+    uint8_t video_mode;
+
+    enum
+    {
+        MODE_FULLSCREEN = 0,
+        MODE_NOSCALE    = 1,
+        MODE_2X         = 2,
+        MODE_3X         = 3,
+    };
+
+    // Screen Width/Height
+    uint16_t screen_width, screen_height;
+
+    // Offsets (for full-screen mode, where x/y resolution isn't a multiple of the original height)
+    uint32_t screen_xoff, screen_yoff;
+
+    // Screen Scale multiplication factor
+    uint8_t scale_factor;
 
 	void refresh_palette(uint32_t);
+    void scale( uint32_t* src, int srcwid, int srchgt, 
+                uint32_t* dest, int dstwid, int dsthgt);
 };
 
 extern Video video;

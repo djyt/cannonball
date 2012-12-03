@@ -36,7 +36,7 @@ const bool GEAR_AUTO = false;
 // General useful stuff
 // ------------------------------------------------------------------------------------------------
 
-// Sega OutRun Screen Properties
+// Internal Sega OutRun Screen Properties
 const uint16_t S16_WIDTH = 320;
 const uint16_t S16_HEIGHT = 224;
 

@@ -173,16 +173,6 @@ add_executable(outrun
     ${src_engine_audio}
 )
 
-# Microsoft Visual Studio 2010
-# Turn off some of the default libraries
-# See: http://www.ogre3d.org/forums/viewtopic.php?f=10&t=69994
-if (MSVC)
-    MESSAGE ( STATUS "Turning default MSVC libraries off")
-    SET_TARGET_PROPERTIES(outrun PROPERTIES 
-    LINK_FLAGS "/NODEFAULTLIB:msvcrt.lib"
-    )
-endif(MSVC)
-
 if (APPLE)
     FIND_LIBRARY(COCOA_LIBRARY Cocoa) 
     target_link_libraries(outrun

@@ -47,16 +47,22 @@ link_libraries(outrun
 )
 
 set(src_main
-    "${main_cpp_base}/menu.hpp"
     "${main_cpp_base}/globals.hpp"
     "${main_cpp_base}/romloader.hpp"
     "${main_cpp_base}/roms.hpp"
     "${main_cpp_base}/stdint.hpp"
 
     "${main_cpp_base}/main.cpp"
-    "${main_cpp_base}/menu.cpp"
     "${main_cpp_base}/romloader.cpp"
     "${main_cpp_base}/roms.cpp"
+)
+
+set(src_frontend
+    "${main_cpp_base}/frontend/config.hpp"
+    "${main_cpp_base}/frontend/menu.hpp"
+
+    "${main_cpp_base}/frontend/config.cpp"
+    "${main_cpp_base}/frontend/menu.cpp"
 )
 
 set(src_hwvideo
@@ -158,6 +164,7 @@ set(src_engine_audio
 
 # Group files into relevant filters for Visual Studio build
 SOURCE_GROUP(src FILES ${src_main})
+SOURCE_GROUP(src\\frontend FILES ${src_frontend})
 SOURCE_GROUP(src\\hwvideo FILES ${src_hwvideo})
 SOURCE_GROUP(src\\hwaudio FILES ${src_hwaudio})
 SOURCE_GROUP(src\\sdl FILES ${src_sdl})
@@ -166,11 +173,17 @@ SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
 
 add_executable(outrun
     ${src_main}
+    ${src_frontend}
     ${src_hwvideo}
     ${src_hwaudio}
     ${src_sdl}
     ${src_engine}
     ${src_engine_audio}
+)
+
+# Copy Configuration file to current build
+configure_file(../files/config.xml ./config.xml
+    COPYONLY 
 )
 
 if (APPLE)

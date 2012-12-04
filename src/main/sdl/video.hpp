@@ -5,12 +5,14 @@
 
 #include <SDL.h>
 #include "stdint.hpp"
-#include "romloader.hpp"
+#include "roms.hpp"
 #include "hwvideo/hwtiles.hpp"
 #include "hwvideo/hwsprites.hpp"
 #include "hwvideo/hwroad.hpp"
 
 class hwsprites;
+
+struct video_settings_t;
 
 class Video
 {
@@ -25,9 +27,9 @@ public:
 	Video();
     ~Video();
     
-	int init(uint8_t*, uint8_t*, uint8_t*);
+	int init(Roms* roms, video_settings_t* settings);
 
-    int set_video_mode(uint8_t);
+    int set_video_mode(video_settings_t* settings);
 
     void draw_frame();
 
@@ -69,14 +71,16 @@ private:
 
     enum
     {
-        MODE_FULLSCREEN = 0,
-        MODE_NOSCALE    = 1,
-        MODE_2X         = 2,
-        MODE_3X         = 3,
+        MODE_FULL         = 0, // Fullscreen: No Stretch
+        MODE_FULL_STRETCH = 1, // Fullscreen: Stretch
+        MODE_WINDOW       = 2, // Windowed  : No Scale
     };
 
     // Screen Width/Height
     uint16_t screen_width, screen_height;
+
+    // Scaled Width/Height
+   uint32_t scaled_width, scaled_height;
 
     // Offsets (for full-screen mode, where x/y resolution isn't a multiple of the original height)
     uint32_t screen_xoff, screen_yoff;

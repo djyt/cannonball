@@ -1,4 +1,5 @@
 #include "sdl/video.hpp"
+#include "frontend/config.hpp"
     
 Video video;
 
@@ -17,7 +18,7 @@ Video::~Video(void)
     delete[] pixels;
 }
 
-int Video::init(uint8_t* tile_rom, uint8_t* sprite_rom, uint8_t* road_rom)
+int Video::init(Roms* roms, video_settings_t* settings)
 {
     // Information about the current video settings.
     const SDL_VideoInfo* info = SDL_GetVideoInfo();
@@ -29,69 +30,99 @@ int Video::init(uint8_t* tile_rom, uint8_t* sprite_rom, uint8_t* road_rom)
         return 0;
     }
 
-    if (!set_video_mode(MODE_NOSCALE))
+    if (!set_video_mode(settings))
         return 0;
 
     // Convert S16 tiles to a more useable format & del memory used by original
-    tile_layer->init((uint8_t*) tile_rom);
+    tile_layer->init(roms->tiles.rom);
     clear_tile_ram();
     clear_text_ram();
-    delete[] tile_rom;
+    delete[] roms->tiles.rom;
 
     // Convert S16 sprites
-    sprite_layer->init((uint8_t*) sprite_rom);
-    delete[] sprite_rom;
+    sprite_layer->init(roms->sprites.rom);
+    delete[] roms->sprites.rom;
 
     // Convert S16 Road Stuff
-    hwroad.init((uint8_t*) road_rom);
-    delete[] road_rom;
+    hwroad.init((uint8_t*) roms->road.rom);
+    delete[] roms->road.rom;
 
     return 1;
 }
 
-// ---------------------------------------------------------------------------
-// Choose Video Mode 
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+// Set SDL Video Mode From Configuration File
+// ------------------------------------------------------------------------------------------------
 
-const static uint16_t VIDEO_MODES[] =
+int Video::set_video_mode(video_settings_t* settings)
 {
-    //1680, 1050, 
-    640, 480,                                        // Full Screen Mode (Must be bordered 640x480)
-    S16_WIDTH * 1, S16_HEIGHT * 1,                   // 1:1 Original Size
-    S16_WIDTH * 2, S16_HEIGHT * 2,                   // 2:1 Double Size
-    S16_WIDTH * 3, S16_HEIGHT * 3,                   // 3:1 Triple Size
-};
-
-int Video::set_video_mode(uint8_t m)
-{
-    video_mode = m;
-
-    screen_width  = VIDEO_MODES[(video_mode << 1) + 0];
-    screen_height = VIDEO_MODES[(video_mode << 1) + 1];
-
-    // Record how much we are scaling the screen by, from it's original resolution
-    scale_factor = std::min(screen_width / S16_WIDTH, screen_height / S16_HEIGHT);
-
-    screen_xoff = screen_width - (S16_WIDTH * scale_factor);
-    if (screen_xoff)
-        screen_xoff = (screen_xoff / 2);
-
-    screen_yoff = screen_height - (S16_HEIGHT * scale_factor);
-    if (screen_yoff) 
-        screen_yoff = (screen_yoff / 2) * screen_width;
-   
     //int bpp = info->vfmt->BitsPerPixel;
     int bpp = 32;
     int flags = SDL_DOUBLEBUF | SDL_SWSURFACE;
 
-    if (video_mode == MODE_FULLSCREEN)
+    // --------------------------------------------------------------------------------------------
+    // Full Screen Mode
+    // When using full-screen mode, we attempt to keep the current resolution.
+    // This is because for LCD monitors, I suspect it's what we want to remain in
+    // and we don't want to risk upsetting the aspect ratio.
+    // --------------------------------------------------------------------------------------------
+    if (settings->mode == video_settings_t::FULLSCREEN)
     {
-        flags |= SDL_FULLSCREEN;
-        SDL_ShowCursor(false); // Don't show mouse cursor in full-screen mode
+        video_mode = (settings->stretch) ? MODE_FULL_STRETCH : MODE_FULL;
+
+        const SDL_VideoInfo* info = SDL_GetVideoInfo(); 
+        screen_width  = info->current_w; 
+        screen_height = info->current_h;
+
+        // Record how much we are scaling the screen by, from it's original resolution
+        scale_factor = std::min(screen_width / S16_WIDTH, screen_height / S16_HEIGHT);
+
+        scaled_width  = video_mode == MODE_FULL_STRETCH ? screen_width  : S16_WIDTH  * scale_factor;
+        scaled_height = video_mode == MODE_FULL_STRETCH ? screen_height : S16_HEIGHT * scale_factor;
+
+        flags |= SDL_FULLSCREEN; // Set SDL flag
+        SDL_ShowCursor(false);   // Don't show mouse cursor in full-screen mode
     }
+    // --------------------------------------------------------------------------------------------
+    // Windowed Mode
+    // --------------------------------------------------------------------------------------------
     else
+    {
+        video_mode = MODE_WINDOW;
+
+        if (settings->scale < 1)
+            settings->scale = 1;
+
+        scale_factor  = settings->scale;
+
+        screen_width  = S16_WIDTH  * settings->scale;
+        screen_height = S16_HEIGHT * settings->scale;
+
+        // As we're windowed this is just the same
+        scaled_width  = screen_width;
+        scaled_height = screen_height;
+        
         SDL_ShowCursor(true);
-    
+    }
+
+    // If we're not stretching the screen, centre the image
+    if (video_mode != MODE_FULL_STRETCH)
+    {
+        screen_xoff = screen_width - (S16_WIDTH * scale_factor);
+        if (screen_xoff)
+            screen_xoff = (screen_xoff / 2);
+
+        screen_yoff = screen_height - (S16_HEIGHT * scale_factor);
+        if (screen_yoff) 
+            screen_yoff = (screen_yoff / 2) * screen_width;
+    }
+    // Otherwise set to the top-left corner
+    else
+    {
+        screen_xoff = 0;
+        screen_yoff = 0;
+    }
+   
     int available = SDL_VideoModeOK(screen_width, screen_height, bpp, flags);
 
     // Frees (Deletes) existing surface
@@ -195,7 +226,7 @@ void Video::draw_frame(void)
     tile_layer->render_text_layer(pixels, 1);
 
     // Do Scaling
-    if (video_mode != MODE_NOSCALE)
+    if (scale_factor != 1 || video_mode == MODE_FULL_STRETCH)
     {
         // Lookup real RGB value from rgb array for backbuffer
         for (int i = 0; i < (S16_WIDTH * S16_HEIGHT); i++)    
@@ -203,7 +234,7 @@ void Video::draw_frame(void)
 
         // Rescale appropriately
         scale(pixels, S16_WIDTH, S16_HEIGHT, 
-              screen_pixels + screen_xoff + screen_yoff, S16_WIDTH * scale_factor, S16_HEIGHT * scale_factor);
+              screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
     }
     // No Scaling
     else

@@ -20,16 +20,16 @@
 #include "sdl/audio.hpp"
 #include "sdl/video.hpp"
 
-//#include "menu.hpp"
 #include "romloader.hpp"
 #include "stdint.hpp"
 #include "engine/outrun.hpp"
-
-//Menu menu;
+#include "frontend/config.hpp"
 
 #ifdef COMPILE_SOUND_CODE
 Audio audio;
 #endif
+
+Config config;
 
 static void quit_func(int code)
 {
@@ -148,11 +148,21 @@ int main(int argc, char* argv[])
 
     if (roms_loaded)
     {
+        // Load XML Config
+        try
+        {
+            config.load("config.xml");
+        }
+        catch (std::exception &e)
+        {
+            std::cout << "Error: " << e.what() << "\n";
+        }
+
         //Set the window caption 
         SDL_WM_SetCaption( "Cannonball", NULL ); 
 
         // Initialize SDL Video
-        if (!video.init(roms.tiles.rom, roms.sprites.rom, roms.road.rom))
+        if (!video.init(&roms, &config.video_settings))
             quit_func(1);
 
 #ifdef COMPILE_SOUND_CODE

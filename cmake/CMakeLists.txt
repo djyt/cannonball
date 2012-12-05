@@ -8,22 +8,32 @@ project (cannonball)
 set(main_cpp_base ../src/main)
 
 # Library locations
-set(lib_base ../../lib)
+set(lib_base c:/coding/lib)
+set(sdl_root ${lib_base}/SDL-1.2.15)
 set(BOOST_INCLUDEDIR ${lib_base}/boost_1_51_0)
-set(SDL_INCLUDE_DIR ${lib_base}/SDL-1.2.15/include)
 
-find_package(SDL REQUIRED)
 find_package(Boost REQUIRED)
 
 # Include
 include_directories(
     "${main_cpp_base}"
     "${BOOST_INCLUDEDIR}"
-    "${SDL_INCLUDE_DIR}"
+    "${sdl_root}/include"
 )
 
+# Linking
+link_directories(
+    "${sdl_root}/lib"
+)
+
+# MINGW is fussy regarding library order.
+# Specific order: mingw32, SDL, SDLmain
+if (MINGW)
+    link_libraries(cannonball mingw32)
+endif(MINGW)
+
 link_libraries(cannonball 
-    ${SDL_LIBRARY}
+    SDL
     SDLmain
 )
     

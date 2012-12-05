@@ -70,11 +70,11 @@ void Outrun::tick()
 
     // Non standard FPS.
     // Determine whether to tick the current frame.
-    if (FRAMES_PER_SECOND != 30)
+    if (config.fps != 30)
     {
-        if (FRAMES_PER_SECOND == 60)
+        if (config.fps == 60)
             tick_frame = frame & 1;
-        else if (FRAMES_PER_SECOND == 120)
+        else if (config.fps == 120)
             tick_frame = (frame & 3) == 1;
     }
 
@@ -90,15 +90,31 @@ void Outrun::tick()
     // We can potentially hack this by calling the road CPU twice.
     // Most noticeable with clipping sprites on hills.
       
-    // 30 FPS
-    if (FRAMES_PER_SECOND == 30)
+    // 30 FPS 
+    // Updates Game Logic 1/2 frames
+    // Updates V-Blank 1/2 frames
+    if (config.fps == 30 && config.tick_fps == 30)
     {
         jump_table();
         oroad.tick();
         vint();
         vint();
     }
-    // 60 FPS
+    // 30/60 FPS Hybrid. (This is the same as the original game)
+    // Updates Game Logic 1/2 frames
+    // Updates V-Blank 1/1 frames
+    else if (config.fps == 60 && config.tick_fps == 30)
+    {
+        if (tick_frame)
+        {
+            jump_table();
+            oroad.tick();
+        }
+        vint();
+    }
+    // 60 FPS. Smooth Mode. 
+    // Updates Game Logic 1/1 frames
+    // Updates V-Blank 1/1 frames
     else
     {
         jump_table();
@@ -123,7 +139,7 @@ void Outrun::vint()
     }
     otiles.update_tilemaps();
 
-    if (FRAMES_PER_SECOND < 120 || (frame & 1))
+    if (config.fps < 120 || (frame & 1))
     {
         opalette.cycle_sky_palette();
         opalette.fade_palette();
@@ -193,7 +209,8 @@ void Outrun::jump_table()
         default:
             if (tick_frame) osprites.tick();                // Address #3 Jump_SetupSprites
             olevelobjs.do_sprite_routine();                 // replaces calling each sprite individually
-            otraffic.tick();                                // Spawn & Tick Traffic
+            if (!config.engine.disable_traffic)
+                otraffic.tick();                            // Spawn & Tick Traffic
             if (tick_frame) oinitengine.init_crash_bonus(); // Initalize crash sequence or bonus code
             oferrari.tick();
             if (oferrari.state != OFerrari::FERRARI_END_SEQ)
@@ -338,8 +355,8 @@ void Outrun::main_switch()
             osoundint.queue_sound(sound::STOP_CHEERS);
             osoundint.queue_sound(sound::VOICE_GETREADY);
             osoundint.queue_sound(omusic.music_selected);
-            ostats.time_counter = ostats.TIME[DIP_TIME * 40];   // Set time to begin level with
-            ostats.frame_counter = ostats.frame_reset + 50;     // set this to 49 for testing purposes
+            ostats.time_counter = ostats.TIME[config.engine.dip_time * 40]; // Set time to begin level with
+            ostats.frame_counter = ostats.frame_reset + 50;                 // set this to 49 for testing purposes
             ohud.draw_main_hud();
             ostats.credits--;                                   // Update Credits
             ohud.blit_text1(TEXT1_CLEAR_START);
@@ -627,7 +644,7 @@ void Outrun::controls()
 bool Outrun::decrement_timers()
 {
     // Cheat
-    if (options.freeze_timer)
+    if (config.engine.freeze_timer)
         return false;
 
     if (--ostats.frame_counter >= 0)

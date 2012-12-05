@@ -32,13 +32,13 @@ void OSoundInt::init()
     if (pcm == NULL)
     {
         pcm = new SegaPCM(SOUND_CLOCK, &roms.pcm, pcm_ram, SegaPCM::BANK_512);
-        pcm->init(FRAMES_PER_SECOND);
+        pcm->init(config.fps);
     }
 
     if (ym == NULL)
     {
         ym = new YM2151(0.5f, (uint32_t) (SOUND_CLOCK * 1.024));
-        ym->init(44100, FRAMES_PER_SECOND);
+        ym->init(44100, config.fps);
     }
 
     reset();
@@ -62,7 +62,7 @@ void OSoundInt::reset()
 
 void OSoundInt::tick()
 {
-    if (FRAMES_PER_SECOND == 30)
+    if (config.fps == 30)
     {
         play_queued_sound(); // Process audio commands from main program code
         osound.tick();
@@ -73,7 +73,7 @@ void OSoundInt::tick()
         play_queued_sound();
         osound.tick();
     }
-    else if (FRAMES_PER_SECOND == 60)
+    else if (config.fps == 60)
     {
         play_queued_sound(); // Process audio commands from main program code
         osound.tick();
@@ -144,7 +144,7 @@ void OSoundInt::queue_sound(uint8_t snd)
         if (outrun.game_state == GS_ATTRACT)
         {
             // Return if we are not playing sound in attract mode
-            if (!DIP_ADVERTISE) return;
+            if (!config.engine.dip_advertise) return;
 
             // Do not play music in attract mode, even if attract sound enabled
             if (snd == sound::MUSIC_BREEZE || snd == sound::MUSIC_MAGICAL ||

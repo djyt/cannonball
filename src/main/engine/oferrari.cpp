@@ -924,7 +924,8 @@ void OFerrari::move()
             oinputs.acc_adjust = 0;   
 
         // Set Gear For Demo Mode
-        if (outrun.game_state == GS_ATTRACT || outrun.game_state == GS_BONUS || GEAR_AUTO)
+        if (outrun.game_state == GS_ATTRACT || outrun.game_state == GS_BONUS || 
+            config.engine.gear == config.engine.GEAR_AUTO)
         {
             // demo_mode_gear
             oinputs.gear = (oinitengine.car_increment >> 16 > 0xA0);

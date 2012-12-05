@@ -160,7 +160,7 @@ void OStats::init_next_level()
     {
         oinitengine.checkpoint_marker = 0;
 
-        uint16_t time_lookup = (DIP_TIME * 40) + oroad.stage_lookup_off;
+        uint16_t time_lookup = (config.engine.dip_time * 40) + oroad.stage_lookup_off;
         time_counter = outils::bcd_add(time_counter, TIME[time_lookup]);
         otraffic.set_max_traffic();
         osoundint.queue_sound(sound::YM_CHECKPOINT);

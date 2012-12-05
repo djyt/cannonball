@@ -340,9 +340,9 @@ void OTraffic::update_props(oentry* sprite)
 {
     int32_t z_adjust = (((oinitengine.car_increment >> 16) - sprite->traffic_speed) * (sprite->z >> 16)) << 5;
 
-    if (FRAMES_PER_SECOND == 60)
+    if (config.tick_fps == 60)
         z_adjust >>= 1;
-    else if (FRAMES_PER_SECOND == 120)
+    else if (config.tick_fps == 120)
         z_adjust >>= 2;
 
     sprite->z += z_adjust;
@@ -515,7 +515,7 @@ void OTraffic::set_max_traffic()
         5, 6, 7, 8, 8, // Very Hard Traffic
     };
 
-    uint8_t index = (DIP_TRAFFIC * 5) + (oroad.stage_lookup_off / 8);
+    uint8_t index = (config.engine.dip_traffic * 5) + (oroad.stage_lookup_off / 8);
     max_traffic = MAX_TRAFFIC[index];
 }
 
@@ -714,7 +714,7 @@ void OTraffic::traffic_sound()
         return;
 
     // Return if we have chosen not to play sound in attract mode
-    if (outrun.game_state == GS_ATTRACT && !DIP_ADVERTISE)
+    if (outrun.game_state == GS_ATTRACT && !config.engine.dip_advertise)
         return;
 
     // Return if we haven't spawned any traffic

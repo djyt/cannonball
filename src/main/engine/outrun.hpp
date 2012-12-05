@@ -15,8 +15,9 @@
 
 #include "sdl/video.hpp"
 
+#include "frontend/config.hpp"
+
 // Main include for Ported OutRun Code
-#include "options.hpp"
 #include "oaddresses.hpp"
 #include "otiles.hpp"
 #include "oentry.hpp"
@@ -71,8 +72,6 @@ enum
 class Outrun
 {
 public:
-    Options options;
-
     // Service Mode Toggle: Not implemented yet.
     bool service_mode;
 

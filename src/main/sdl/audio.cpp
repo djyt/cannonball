@@ -17,7 +17,7 @@
 #include <iostream>
 #include <SDL.h>
 #include "sdl/audio.hpp"
-#include "globals.hpp"                 // for FPS
+#include "frontend/config.hpp" // fps
 #include "engine/audio/osoundint.hpp"
 
 #ifdef COMPILE_SOUND_CODE
@@ -97,7 +97,7 @@ void Audio::init()
         dsp_buffer[i] = 0;
 
     // Create Buffer For Mixing
-    uint16_t buffer_size = (FREQ / FRAMES_PER_SECOND) * CHANNELS;
+    uint16_t buffer_size = (FREQ / config.fps) * CHANNELS;
     mix_buffer = new uint16_t[buffer_size];
     for (int i = 0; i < buffer_size; i++)
         mix_buffer[i] = 0;

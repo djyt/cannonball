@@ -29,8 +29,6 @@
 Audio audio;
 #endif
 
-Config config;
-
 static void quit_func(int code)
 {
 #ifdef COMPILE_SOUND_CODE
@@ -69,17 +67,20 @@ static void process_events(void)
     }
 }
 
+// Pause Engine
+bool pause;
+
 static void tick()
 {
     process_events();
 
     if (input.has_pressed(Input::TIMER))
-        outrun.options.freeze_timer = !outrun.options.freeze_timer;
+        config.engine.freeze_timer = !config.engine.freeze_timer;
 
     if (input.has_pressed(Input::PAUSE))
-        outrun.options.pause = !outrun.options.pause;
+        pause = !pause;
 
-    if (!outrun.options.pause || input.has_pressed(Input::STEP))
+    if (!pause || input.has_pressed(Input::STEP))
     {
          // Tick Main Program Code
         outrun.tick();
@@ -111,11 +112,11 @@ static void main_loop()
 
     int t;
     int deltatime = 0;
-    const int FRAME_MS = 1000 / FRAMES_PER_SECOND;
+    const int FRAME_MS = 1000 / config.fps;
 
     while (true)
     {
-        //Start the frame timer
+        // Start the frame timer
         fps.start();
         tick();
 #ifdef COMPILE_SOUND_CODE
@@ -156,13 +157,15 @@ int main(int argc, char* argv[])
         catch (std::exception &e)
         {
             std::cout << "Error: " << e.what() << "\n";
+            quit_func(1);
+            return 1;
         }
 
         //Set the window caption 
         SDL_WM_SetCaption( "Cannonball", NULL ); 
 
         // Initialize SDL Video
-        if (!video.init(&roms, &config.video_settings))
+        if (!video.init(&roms, &config.video))
             quit_func(1);
 
 #ifdef COMPILE_SOUND_CODE

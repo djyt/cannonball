@@ -886,9 +886,9 @@ void OSprites::move_sprite(oentry* sprite, uint8_t shift)
     uint32_t addr = SPRITE_ZOOM_LOOKUP + (((sprite->z >> 16) << 2) | sprite_scroll_speed);
     uint32_t value = roms.rom0.read32(addr) >> shift;
 
-    if (FRAMES_PER_SECOND == 60)
+    if (config.tick_fps == 60)
         value >>= 1;
-    else if (FRAMES_PER_SECOND == 120)
+    else if (config.tick_fps == 120)
         value >>= 2;
 
     sprite->z += value;

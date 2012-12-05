@@ -1,9 +1,16 @@
 <?xml version="1.0"?>
 
 <!-- 
-    Video Settings.
+    Video Settings
 -->
 <video>
+    <!-- FPS 
+         0 = 30    FPS. Optimized Mode       (Slow computers)
+         1 = 30/60 FPS. Original Game Mode.  (The original experience)
+         2 = 60    FPS. Smooth Mode.         (Full 60fps)
+    -->
+    <fps>2</fps>
+
     <!-- Set Screen Mode: 0 is windowed, 1 is full-screen -->
     <mode>0</mode>
 
@@ -23,3 +30,37 @@
         <stretch>0</stretch>
     </fullscreen>
 </video>
+
+<!-- 
+    Game Engine Settings
+-->
+
+<engine>
+    <!-- Game Time: 
+         0 = Easy      (80 seconds)
+         1 = Normal    (75 seconds) 
+         2 = Hard      (72 seconds) 
+         3 = Very Hard (70 seconds)  
+         4 = Infinite Time 
+    -->
+    <time>0</time>
+    
+    <!-- Traffic Difficulty: 
+         0 = Easy, 
+         1 = Normal, 
+         2 = Hard, 
+         3 = Very Hard 
+         4 = No Traffic
+    -->
+    <traffic>1</traffic>
+    
+    <!-- Advertise Sound In Attract Mode -->
+    <advertise>1</advertise>
+    
+    <!-- Gears: 
+        0 = Manual   (Click to shift, for normal play)
+        1 = Manual   (Hold to shift, for cabinet play)
+        2 = Automatic 
+      -->
+    <gear>0</gear>
+</engine>

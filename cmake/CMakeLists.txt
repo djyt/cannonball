@@ -115,7 +115,6 @@ set(src_engine
     "${main_cpp_base}/engine/omap.hpp"
     "${main_cpp_base}/engine/omusic.hpp"
     "${main_cpp_base}/engine/opalette.hpp"
-    "${main_cpp_base}/engine/options.hpp"
     "${main_cpp_base}/engine/oroad.hpp"
     "${main_cpp_base}/engine/osmoke.hpp"
     "${main_cpp_base}/engine/osprite.hpp"

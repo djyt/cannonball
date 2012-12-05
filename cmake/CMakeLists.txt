@@ -162,7 +162,7 @@ add_executable(cannonball
 )
 
 # Copy Configuration file to current build
-configure_file(../files/config.xml ./config.xml
+configure_file(../res/config.xml ./config.xml
     COPYONLY 
 )
 

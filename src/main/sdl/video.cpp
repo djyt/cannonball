@@ -20,20 +20,10 @@ Video::~Video(void)
 
 int Video::init(Roms* roms, video_settings_t* settings)
 {
-    // Information about the current video settings.
-    const SDL_VideoInfo* info = SDL_GetVideoInfo();
-
-    if (!info)
-    {
-        // This should probably never happen.
-        std::cerr << "Video query failed: " << SDL_GetError() << std::endl;
-        return 0;
-    }
-
     if (!set_video_mode(settings))
         return 0;
 
-    // Convert S16 tiles to a more useable format & del memory used by original
+    // Convert S16 tiles to a more useable format
     tile_layer->init(roms->tiles.rom);
     clear_tile_ram();
     clear_text_ram();
@@ -70,7 +60,14 @@ int Video::set_video_mode(video_settings_t* settings)
     {
         video_mode = (settings->stretch) ? MODE_FULL_STRETCH : MODE_FULL;
 
-        const SDL_VideoInfo* info = SDL_GetVideoInfo(); 
+        const SDL_VideoInfo* info = SDL_GetVideoInfo();
+
+        if (!info)
+        {
+            std::cerr << "Video query failed: " << SDL_GetError() << std::endl;
+            return 0;
+        }
+        
         screen_width  = info->current_w; 
         screen_height = info->current_h;
 

@@ -74,12 +74,22 @@ int Video::set_video_mode(video_settings_t* settings)
         screen_width  = info->current_w; 
         screen_height = info->current_h;
 
-        // Record how much we are scaling the screen by, from it's original resolution
-        scale_factor = std::min(screen_width / S16_WIDTH, screen_height / S16_HEIGHT);
-
-        scaled_width  = video_mode == MODE_FULL_STRETCH ? screen_width  : S16_WIDTH  * scale_factor;
-        scaled_height = video_mode == MODE_FULL_STRETCH ? screen_height : S16_HEIGHT * scale_factor;
-
+        scale_factor = 0; // Use scaling code
+        
+        if (video_mode == MODE_FULL_STRETCH)
+        {
+            scaled_width  = screen_width;
+            scaled_height = screen_height;
+        }
+        else
+        {
+            // Calculate how much to scale screen from its original resolution
+            uint32_t w = (screen_width << 16)  / S16_WIDTH;
+            uint32_t h = (screen_height << 16) / S16_HEIGHT;
+            
+            scaled_width  = (S16_WIDTH  * std::min(w, h)) >> 16;
+            scaled_height = (S16_HEIGHT * std::min(w, h)) >> 16;
+        }
         flags |= SDL_FULLSCREEN; // Set SDL flag
         SDL_ShowCursor(false);   // Don't show mouse cursor in full-screen mode
     }
@@ -95,8 +105,8 @@ int Video::set_video_mode(video_settings_t* settings)
 
         scale_factor  = settings->scale;
 
-        screen_width  = S16_WIDTH  * settings->scale;
-        screen_height = S16_HEIGHT * settings->scale;
+        screen_width  = S16_WIDTH  * scale_factor;
+        screen_height = S16_HEIGHT * scale_factor;
 
         // As we're windowed this is just the same
         scaled_width  = screen_width;
@@ -108,11 +118,11 @@ int Video::set_video_mode(video_settings_t* settings)
     // If we're not stretching the screen, centre the image
     if (video_mode != MODE_FULL_STRETCH)
     {
-        screen_xoff = screen_width - (S16_WIDTH * scale_factor);
+        screen_xoff = screen_width - scaled_width;
         if (screen_xoff)
             screen_xoff = (screen_xoff / 2);
 
-        screen_yoff = screen_height - (S16_HEIGHT * scale_factor);
+        screen_yoff = screen_height - scaled_height;
         if (screen_yoff) 
             screen_yoff = (screen_yoff / 2) * screen_width;
     }
@@ -226,7 +236,7 @@ void Video::draw_frame(void)
     tile_layer->render_text_layer(pixels, 1);
 
     // Do Scaling
-    if (scale_factor != 1 || video_mode == MODE_FULL_STRETCH)
+    if (scale_factor != 1)
     {
         // Lookup real RGB value from rgb array for backbuffer
         for (int i = 0; i < (S16_WIDTH * S16_HEIGHT); i++)    

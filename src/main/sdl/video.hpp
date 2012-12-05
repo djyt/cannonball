@@ -80,7 +80,7 @@ private:
     uint16_t screen_width, screen_height;
 
     // Scaled Width/Height
-   uint32_t scaled_width, scaled_height;
+    uint32_t scaled_width, scaled_height;
 
     // Offsets (for full-screen mode, where x/y resolution isn't a multiple of the original height)
     uint32_t screen_xoff, screen_yoff;

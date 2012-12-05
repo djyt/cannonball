@@ -40,7 +40,9 @@ Build
     cmake -G "MinGW Makefiles" ../cmake
     mingw32-make
     
-### Visual Studio
+### Visual Studio 2010
+
+    cmake -G "Visual Studio 10" ../cmake
 
 * Copy SDL.DLL and the roms subdirectory to the build directory.
 * Right click the 'outrun' project in the IDE and choose 'Set as StartUp project'. 

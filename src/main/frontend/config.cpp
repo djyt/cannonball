@@ -38,7 +38,7 @@ void Config::load(const std::string &filename)
     // ------------------------------------------------------------------------
 
     // Video Mode: Default is Windowed
-    video.mode    = pt.get("video.mode", video_settings_t::WINDOW);
+    video.mode    = pt.get("video.mode", 0);
     // Video Scale: Default is 1x
     video.scale   = pt.get("video.window.scale", 1);
     // Stretch in full-screen mode

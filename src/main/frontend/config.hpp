@@ -5,7 +5,7 @@
 
 struct video_settings_t
 {
-    const static int WINDOW = 0;
+    const static int MODE_WINDOW = 0;
     const static int FULLSCREEN = 1;
 
     int mode;

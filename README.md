@@ -67,7 +67,7 @@ Building SDL-1.2.15
 
 ### MinGW
 
-See: [Setting up MSYS/MinGW build system for compiling SDL/OpenGL applications].(http://blog.pantokrator.net/2006/08/08/setting-up-msysmingw-build-system-for-compiling-sdlopengl-applications/)
+See: [Setting up MSYS MinGW build system for compiling SDL OpenGL applications].(http://blog.pantokrator.net/2006/08/08/setting-up-msysmingw-build-system-for-compiling-sdlopengl-applications/)
 
     Lanch msys
     ./configure --prefix=/mingw --enable-stdio-redirect=no

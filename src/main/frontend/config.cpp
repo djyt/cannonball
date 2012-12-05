@@ -31,7 +31,14 @@ void Config::load(const std::string &filename)
     // No namespace qualification is needed, because of Koenig 
     // lookup on the second argument. If reading fails, exception
     // is thrown.
-    read_xml(filename, pt, boost::property_tree::xml_parser::trim_whitespace);
+    try
+    {
+        read_xml(filename, pt, boost::property_tree::xml_parser::trim_whitespace);
+    }
+    catch (std::exception &e)
+    {
+        std::cout << "Error: " << e.what() << "\n";
+    }
 
     // ------------------------------------------------------------------------
     // Video Settings

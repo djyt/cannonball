@@ -150,16 +150,7 @@ int main(int argc, char* argv[])
     if (roms_loaded)
     {
         // Load XML Config
-        try
-        {
-            config.load("config.xml");
-        }
-        catch (std::exception &e)
-        {
-            std::cout << "Error: " << e.what() << "\n";
-            quit_func(1);
-            return 1;
-        }
+        config.load("config.xml");
 
         //Set the window caption 
         SDL_WM_SetCaption( "Cannonball", NULL ); 

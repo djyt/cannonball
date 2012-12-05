@@ -45,7 +45,7 @@ Build
     cmake -G "Visual Studio 10" ../cmake
 
 * Copy SDL.DLL and the roms subdirectory to the build directory.
-* Right click the 'outrun' project in the IDE and choose 'Set as StartUp project'. 
+* Right click the 'cannonball' project in the IDE and choose 'Set as StartUp project'. 
 * You can then compile, debug and run from Visual Studio as expected.
 
 Run
@@ -71,7 +71,8 @@ Building SDL-1.2.15
 
 See: [Setting up MSYS MinGW build system for compiling SDL OpenGL applications](http://blog.pantokrator.net/2006/08/08/setting-up-msysmingw-build-system-for-compiling-sdlopengl-applications/).
 
-    Lanch msys
+Execute the below commands from the msys environment.
+    
     ./configure --prefix=/mingw --enable-stdio-redirect=no
     make
     make install

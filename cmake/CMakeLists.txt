@@ -1,51 +1,32 @@
 cmake_minimum_required (VERSION 2.6.2)
-project (outrun)
+project (cannonball)
 
-# Source and header locations
-set(main_base ../src/main)
-set(main_cpp_base ${main_base})
+# Uncomment for debug output
+#set(Boost_DEBUG 1)
+
+# Source location
+set(main_cpp_base ../src/main)
 
 # Library locations
 set(lib_base ../../lib)
-set(boost_root ${lib_base}/boost_1_51_0)
-set(sdl_root ${lib_base}/SDL-1.2.15)
+set(BOOST_INCLUDEDIR ${lib_base}/boost_1_51_0)
+set(SDL_INCLUDE_DIR ${lib_base}/SDL-1.2.15/include)
+
+find_package(SDL REQUIRED)
+find_package(Boost REQUIRED)
 
 # Include
 include_directories(
     "${main_cpp_base}"
-    "${boost_root}"    
+    "${BOOST_INCLUDEDIR}"
+    "${SDL_INCLUDE_DIR}"
 )
 
-# SDL includes
-#TODO: This should not be platform specific, just need to agree standard
-if (WIN32)
-    include_directories(
-        "${sdl_root}/include"
-    )
-else()
-    include_directories( 
-        "${sdl_root}/include/SDL"
-    )
-endif()
-
-# Linking
-link_directories(
-    "${sdl_root}/lib"
-)
-
-# MINGW is fussy regarding library order.
-# Specific order: mingw32, SDL, SDLmain
-if (MINGW)
-    link_libraries(outrun
-    mingw32
-    )
-endif(MINGW)
-
-link_libraries(outrun
-    SDL
+link_libraries(cannonball 
+    ${SDL_LIBRARY}
     SDLmain
 )
-
+    
 set(src_main
     "${main_cpp_base}/globals.hpp"
     "${main_cpp_base}/romloader.hpp"
@@ -170,7 +151,7 @@ SOURCE_GROUP(src\\sdl FILES ${src_sdl})
 SOURCE_GROUP(src\\engine FILES ${src_engine})
 SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
 
-add_executable(outrun
+add_executable(cannonball
     ${src_main}
     ${src_frontend}
     ${src_hwvideo}
@@ -187,8 +168,7 @@ configure_file(../files/config.xml ./config.xml
 
 if (APPLE)
     FIND_LIBRARY(COCOA_LIBRARY Cocoa) 
-    target_link_libraries(outrun
+    target_link_libraries(cannonball
         ${COCOA_LIBRARY}
     )
 endif(APPLE)
-

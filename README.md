@@ -58,8 +58,18 @@ Run
     ./outrun
     
     
-Building SDL-1.2.15 on Darwin
------------------------------
+Building SDL-1.2.15
+-------------------
+
+### Darwin
 
     ./configure --prefix=~/SDL-1.2.15/build --disable-assembly
 
+### MinGW
+
+See: [Setting up MSYS/MinGW build system for compiling SDL/OpenGL applications].(http://blog.pantokrator.net/2006/08/08/setting-up-msysmingw-build-system-for-compiling-sdlopengl-applications/)
+
+    Lanch msys
+    ./configure --prefix=/mingw --enable-stdio-redirect=no
+    make
+    make install

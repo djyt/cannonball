@@ -28,11 +28,11 @@ private:
     uint16_t ram[SPRITE_RAM_SIZE];
     uint16_t ramBuff[SPRITE_RAM_SIZE];
 
-    void draw_pixel(
+    inline void draw_pixel(
         const int32_t x, 
         const uint16_t pix, 
         const uint16_t colour, 
         const uint8_t shadow, 
-        const uint32_t pPixel);
+        uint32_t* pPixel);
 };
 

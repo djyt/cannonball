@@ -195,7 +195,7 @@ void hwtiles::render_tile_layer(uint32_t* buf, uint8_t page_index, uint8_t prior
 
                 if (x > 7 && x < 312 && y > 7 && y <= 216)
                     render8x8_tile_mask(buf, Code, x, y, Colour, 3, 0, ColourOff);
-                else if (x > -8 && x < 320 && y > -8 && y < S16_HEIGHT)
+                else if (x > -8 && x < S16_WIDTH && y > -8 && y < S16_HEIGHT)
 					render8x8_tile_mask_clip(buf, Code, x, y, Colour, 3, 0, ColourOff);
             } // end priority check
         }
@@ -229,7 +229,7 @@ void hwtiles::render_text_layer(uint32_t* buf, uint8_t priority_draw)
 
                     if (x > 7 && x < 312 && y > 7 && y <= 216)
                         render8x8_tile_mask(buf, Code, x, y, Colour, 3, 0, TILEMAP_COLOUR_OFFSET);
-                    else if (x > -8 && x < 320 && y >= 0 && y < S16_HEIGHT) 
+                    else if (x > -8 && x < S16_WIDTH && y >= 0 && y < S16_HEIGHT) 
                         render8x8_tile_mask_clip(buf, Code, x, y, Colour, 3, 0, TILEMAP_COLOUR_OFFSET);
                 }
             }
@@ -249,12 +249,12 @@ void hwtiles::render8x8_tile_mask(
     uint16_t nPaletteOffset) 
 {
     uint32_t nPalette = (nTilePalette << nColourDepth) | nMaskColour;
-    pTileData = nTileNumber << 3; // was a pointer, now an offset into source
-    pPixel = (StartY * S16_WIDTH) + StartX; // was a pointer now an offset into dest
+    uint32_t* pTileData = tiles + (nTileNumber << 3);
+    buf += (StartY * S16_WIDTH) + StartX;
 
     for (int y = 0; y < 8; y++) 
     {
-        uint32_t p0 = tiles[pTileData];
+        uint32_t p0 = *pTileData;
 
         if (p0 != nMaskColour) 
         {
@@ -267,16 +267,16 @@ void hwtiles::render8x8_tile_mask(
             uint32_t c1 = (p0 >> 24) & 0xf;
             uint32_t c0 = (p0 >> 28);
 
-            if (c0 != 0) buf[pPixel + 0] = nPalette + c0;
-            if (c1 != 0) buf[pPixel + 1] = nPalette + c1;
-            if (c2 != 0) buf[pPixel + 2] = nPalette + c2;
-            if (c3 != 0) buf[pPixel + 3] = nPalette + c3;
-            if (c4 != 0) buf[pPixel + 4] = nPalette + c4;
-            if (c5 != 0) buf[pPixel + 5] = nPalette + c5;
-            if (c6 != 0) buf[pPixel + 6] = nPalette + c6;
-            if (c7 != 0) buf[pPixel + 7] = nPalette + c7;
+            if (c0) buf[0] = nPalette + c0;
+            if (c1) buf[1] = nPalette + c1;
+            if (c2) buf[2] = nPalette + c2;
+            if (c3) buf[3] = nPalette + c3;
+            if (c4) buf[4] = nPalette + c4;
+            if (c5) buf[5] = nPalette + c5;
+            if (c6) buf[6] = nPalette + c6;
+            if (c7) buf[7] = nPalette + c7;
         }
-        pPixel += S16_WIDTH;
+        buf += S16_WIDTH;
         pTileData++;
     }
 }
@@ -292,14 +292,14 @@ void hwtiles::render8x8_tile_mask_clip(
     uint16_t nPaletteOffset) 
 {
     uint32_t nPalette = (nTilePalette << nColourDepth) | nMaskColour;
-    pTileData = nTileNumber << 3; // was a pointer, now an offset into source
-    pPixel = (StartY * S16_WIDTH) + StartX; // was a pointer now an offset into dest
+    uint32_t* pTileData = tiles + (nTileNumber << 3);
+    buf += (StartY * S16_WIDTH) + StartX;
 
     for (int y = 0; y < 8; y++) 
     {
         if ((StartY + y) >= 0 && (StartY + y) < S16_HEIGHT) 
         {
-            uint32_t p0 = tiles[pTileData];
+            uint32_t p0 = *pTileData;
 
             if (p0 != nMaskColour) 
             {
@@ -312,17 +312,17 @@ void hwtiles::render8x8_tile_mask_clip(
                 uint32_t c1 = (p0 >> 24) & 0xf;
                 uint32_t c0 = (p0 >> 28);
 
-                if (c0 != 0 && 0 + StartX >= 0 && 0 + StartX < S16_WIDTH) buf[pPixel + 0] = nPalette + c0;
-                if (c1 != 0 && 1 + StartX >= 0 && 1 + StartX < S16_WIDTH) buf[pPixel + 1] = nPalette + c1;
-                if (c2 != 0 && 2 + StartX >= 0 && 2 + StartX < S16_WIDTH) buf[pPixel + 2] = nPalette + c2;
-                if (c3 != 0 && 3 + StartX >= 0 && 3 + StartX < S16_WIDTH) buf[pPixel + 3] = nPalette + c3;
-                if (c4 != 0 && 4 + StartX >= 0 && 4 + StartX < S16_WIDTH) buf[pPixel + 4] = nPalette + c4;
-                if (c5 != 0 && 5 + StartX >= 0 && 5 + StartX < S16_WIDTH) buf[pPixel + 5] = nPalette + c5;
-                if (c6 != 0 && 6 + StartX >= 0 && 6 + StartX < S16_WIDTH) buf[pPixel + 6] = nPalette + c6;
-                if (c7 != 0 && 7 + StartX >= 0 && 7 + StartX < S16_WIDTH) buf[pPixel + 7] = nPalette + c7;
+                if (c0 && 0 + StartX >= 0 && 0 + StartX < S16_WIDTH) buf[0] = nPalette + c0;
+                if (c1 && 1 + StartX >= 0 && 1 + StartX < S16_WIDTH) buf[1] = nPalette + c1;
+                if (c2 && 2 + StartX >= 0 && 2 + StartX < S16_WIDTH) buf[2] = nPalette + c2;
+                if (c3 && 3 + StartX >= 0 && 3 + StartX < S16_WIDTH) buf[3] = nPalette + c3;
+                if (c4 && 4 + StartX >= 0 && 4 + StartX < S16_WIDTH) buf[4] = nPalette + c4;
+                if (c5 && 5 + StartX >= 0 && 5 + StartX < S16_WIDTH) buf[5] = nPalette + c5;
+                if (c6 && 6 + StartX >= 0 && 6 + StartX < S16_WIDTH) buf[6] = nPalette + c6;
+                if (c7 && 7 + StartX >= 0 && 7 + StartX < S16_WIDTH) buf[7] = nPalette + c7;
             }
         }
-        pPixel += S16_WIDTH;
+        buf += S16_WIDTH;
         pTileData++;
     }
 }

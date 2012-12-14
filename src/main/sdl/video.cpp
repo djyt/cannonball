@@ -231,13 +231,15 @@ void Video::draw_frame(void)
     tile_layer->render_text_layer(pixels, 0);
     sprite_layer->render(8);
     tile_layer->render_text_layer(pixels, 1);
-
+ 
     // Do Scaling
     if (scale_factor != 1)
     {
+        uint32_t* pix = pixels;
+    
         // Lookup real RGB value from rgb array for backbuffer
         for (int i = 0; i < (S16_WIDTH * S16_HEIGHT); i++)    
-            pixels[i] = rgb[pixels[i] & ((S16_PALETTE_ENTRIES * 3) - 1)];
+            *(pix++) = rgb[*pix & ((S16_PALETTE_ENTRIES * 3) - 1)];
 
         // Rescale appropriately
         scale(pixels, S16_WIDTH, S16_HEIGHT, 
@@ -246,9 +248,12 @@ void Video::draw_frame(void)
     // No Scaling
     else
     {
+        uint32_t* pix  = pixels;
+        uint32_t* spix = screen_pixels;
+    
         // Lookup real RGB value from rgb array for backbuffer
-        for (int i = 0; i < (S16_WIDTH * S16_HEIGHT); i++)    
-            screen_pixels[i] = rgb[pixels[i] & ((S16_PALETTE_ENTRIES * 3) - 1)];
+        for (int i = 0; i < (S16_WIDTH * S16_HEIGHT); i++)
+            *(spix++) = rgb[*(pix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
     }
 
     // Example: Set the pixel at 10,10 to red

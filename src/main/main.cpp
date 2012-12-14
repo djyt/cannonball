@@ -68,7 +68,7 @@ static void process_events(void)
 }
 
 // Pause Engine
-bool pause;
+bool pause_engine;
 
 static void tick()
 {
@@ -78,9 +78,9 @@ static void tick()
         config.engine.freeze_timer = !config.engine.freeze_timer;
 
     if (input.has_pressed(Input::PAUSE))
-        pause = !pause;
+        pause_engine = !pause_engine;
 
-    if (!pause || input.has_pressed(Input::STEP))
+    if (!pause_engine || input.has_pressed(Input::STEP))
     {
          // Tick Main Program Code
         outrun.tick();

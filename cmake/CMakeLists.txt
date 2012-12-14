@@ -8,7 +8,7 @@ project (cannonball)
 set(main_cpp_base ../src/main)
 
 # Library locations
-set(lib_base c:/coding/lib)
+set(lib_base c:/dev/lib)
 set(sdl_root ${lib_base}/SDL-1.2.15)
 set(BOOST_INCLUDEDIR ${lib_base}/boost_1_51_0)
 

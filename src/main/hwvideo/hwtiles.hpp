@@ -28,12 +28,6 @@ private:
 
     uint8_t tile_banks[2];
 
-    /** Offset into source data (gfx) */
-    uint32_t pTileData;
-
-    /** Offset into destination buffer */
-    int32_t pPixel;
-
     static const uint16_t NUM_TILES = 0x2000; // Length of graphic rom / 24
     static const uint16_t TILEMAP_COLOUR_OFFSET = 0x1c00;
 

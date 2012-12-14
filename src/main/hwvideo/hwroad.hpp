@@ -14,7 +14,6 @@ public:
 
     void init(const uint8_t*);
 
-    //void write8(uint32_t* adr, const uint8_t data);
     void write16(uint32_t adr, const uint16_t data);
     void write16(uint32_t* adr, const uint16_t data);
     void write32(uint32_t* adr, const uint32_t data);
@@ -34,14 +33,13 @@ private:
     static const uint16_t rom_size = 0x8000;
 
     // Decoded road graphics
-    uint32_t roads[0x40200];
+    uint8_t roads[0x40200];
 
     // Two halves of RAM
     uint16_t ram[ROAD_RAM_SIZE / 2];
     uint16_t ramBuff[ROAD_RAM_SIZE / 2];
 
     void decode_road(const uint8_t*);
-    //uint16_t read16(uint32_t);
 };
 
 extern HWRoad hwroad;

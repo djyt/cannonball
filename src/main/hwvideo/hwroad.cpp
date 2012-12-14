@@ -200,7 +200,6 @@ void HWRoad::render_background(uint32_t* pixels)
 
     for (y = 0; y < S16_HEIGHT; y++) 
     {
-        int dest = (y * S16_WIDTH);
         int data0 = roadram[0x000 + y];
         int data1 = roadram[0x100 + y];
 
@@ -237,8 +236,11 @@ void HWRoad::render_background(uint32_t* pixels)
         // fill the scanline with color
         if (color != -1) 
         {
+            uint32_t* pPixel = pixels + (y * S16_WIDTH);
+            color |= color_offset3;
+            
             for (x = 0; x < S16_WIDTH; x++)
-                pixels[dest + x] = color | color_offset3;
+                *(pPixel)++ = color;
         }
     }
 }
@@ -259,7 +261,7 @@ void HWRoad::render_foreground(uint32_t* pixels)
             { 0x81,0x81,0x81,0x8f,0,0,0,0x80 }
         };
 
-        int32_t dest = (y * S16_WIDTH);
+        uint32_t* pPixel = pixels + (y * S16_WIDTH);
         uint32_t data0 = roadram[0x000 + y];
         uint32_t data1 = roadram[0x100 + y];
 
@@ -270,16 +272,16 @@ void HWRoad::render_foreground(uint32_t* pixels)
         int32_t hpos0, hpos1, color0, color1;
         int32_t control = road_control & 3;
 
-        int32_t src0, src1; // 8 bits
+        uint8_t *src0, *src1;
         int32_t bgcolor; // 8 bits
 
         // get road 0 data
-        src0   = ((data0 & 0x800) != 0) ? 256 * 2 * 512 : ((0x000 + ((data0 >> 1) & 0xff)) * 512);
+        src0   = ((data0 & 0x800) != 0) ? roads + 256 * 2 * 512 : (roads + (0x000 + ((data0 >> 1) & 0xff)) * 512);
         hpos0  = roadram[0x200 + (((road_control & 4) != 0) ? y : (data0 & 0x1ff))] & 0xfff;
         color0 = roadram[0x600 + (((road_control & 4) != 0) ? y : (data0 & 0x1ff))];
 
         // get road 1 data
-        src1   = ((data1 & 0x800) != 0) ? 256 * 2 * 512 : ((0x100 + ((data1 >> 1) & 0xff)) * 512);
+        src1   = ((data1 & 0x800) != 0) ? roads + 256 * 2 * 512 : (roads + (0x100 + ((data1 >> 1) & 0xff)) * 512);
         hpos1  = roadram[0x400 + (((road_control & 4) != 0) ? (0x100 + y) : (data1 & 0x1ff))] & 0xfff;
         color1 = roadram[0x600 + (((road_control & 4) != 0) ? (0x100 + y) : (data1 & 0x1ff))];
 
@@ -308,8 +310,8 @@ void HWRoad::render_foreground(uint32_t* pixels)
                 hpos0 = (hpos0 - (0x5f8 + x_offset)) & 0xfff;
                 for (x = 0; x < S16_WIDTH; x++) 
                 {
-                    int pix0 = (hpos0 < 0x200) ? roads[src0 + hpos0] : 3;
-                    pixels[dest + x] = color_table[0x00 + pix0];
+                    int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
+                    pPixel[x] = color_table[0x00 + pix0];
                     hpos0 = (hpos0 + 1) & 0xfff;
                 }
                 break;
@@ -319,12 +321,12 @@ void HWRoad::render_foreground(uint32_t* pixels)
                 hpos1 = (hpos1 - (0x5f8 + x_offset)) & 0xfff;
                 for (x = 0; x < S16_WIDTH; x++) 
                 {
-                    int pix0 = (hpos0 < 0x200) ? roads[src0 + hpos0] : 3;
-                    int pix1 = (hpos1 < 0x200) ? roads[src1 + hpos1] : 3;
+                    int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
+                    int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
                     if (((priority_map[0][pix0] >> pix1) & 1) != 0)
-                        pixels[dest + x] = color_table[0x10 + pix1];
+                        pPixel[x] = color_table[0x10 + pix1];
                     else
-                        pixels[dest + x] = color_table[0x00 + pix0];
+                        pPixel[x] = color_table[0x00 + pix0];
 
                     hpos0 = (hpos0 + 1) & 0xfff;
                     hpos1 = (hpos1 + 1) & 0xfff;
@@ -336,12 +338,12 @@ void HWRoad::render_foreground(uint32_t* pixels)
                 hpos1 = (hpos1 - (0x5f8 + x_offset)) & 0xfff;
                 for (x = 0; x < S16_WIDTH; x++) 
                 {
-                    int pix0 = (hpos0 < 0x200) ? roads[src0 + hpos0] : 3;
-                    int pix1 = (hpos1 < 0x200) ? roads[src1 + hpos1] : 3;
+                    int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
+                    int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
                     if (((priority_map[1][pix0] >> pix1) & 1) != 0)
-                        pixels[dest + x] = color_table[0x10 + pix1];
+                        pPixel[x] = color_table[0x10 + pix1];
                     else
-                        pixels[dest + x] = color_table[0x00 + pix0];
+                        pPixel[x] = color_table[0x00 + pix0];
 
                     hpos0 = (hpos0 + 1) & 0xfff;
                     hpos1 = (hpos1 + 1) & 0xfff;
@@ -350,12 +352,12 @@ void HWRoad::render_foreground(uint32_t* pixels)
 
             case 3:
                 if (data1 & 0x800)
-                        continue;
+                    continue;
                 hpos1 = (hpos1 - (0x5f8 + x_offset)) & 0xfff;
                 for (x = 0; x < S16_WIDTH; x++) 
                 {
-                    int pix1 = (hpos1 < 0x200) ? roads[src1 + hpos1] : 3;
-                    pixels[dest + x] = color_table[0x10 + pix1];
+                    int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
+                    pPixel[x] = color_table[0x10 + pix1];
                     hpos1 = (hpos1 + 1) & 0xfff;
                 }
                 break;

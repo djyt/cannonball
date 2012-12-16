@@ -3,11 +3,14 @@
 #include <set>
 #include <iostream>
 
+#include "stdint.hpp"
+
 struct video_settings_t
 {
     const static int MODE_WINDOW = 0;
     const static int FULLSCREEN = 1;
 
+    int widescreen;
     int mode;
     int scale;
     int stretch;
@@ -32,6 +35,12 @@ class Config
 public:
     video_settings_t video;
     engine_settings_t engine;
+
+    // Internal screen width
+    uint16_t s16_width;
+
+    // Internal screen x offset
+    uint16_t s16_x_off;
 
     // 30 or 60 fps
     int fps;

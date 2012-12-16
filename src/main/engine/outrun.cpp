@@ -581,6 +581,9 @@ void Outrun::init_jump_table()
     opalette.init();
     oinputs.init();
     obonus.init();
+
+    video.tile_layer->set_x_clamp(video.tile_layer->RIGHT);
+    video.sprite_layer->set_x_clip(false);
 }
 
 void Outrun::controls()

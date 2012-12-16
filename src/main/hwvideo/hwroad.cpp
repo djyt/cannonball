@@ -1,4 +1,5 @@
 #include "hwvideo/hwroad.hpp"
+#include "frontend/config.hpp"
 
 /***************************************************************************
     Video Emulation: OutRun Road Rendering Hardware.
@@ -236,10 +237,10 @@ void HWRoad::render_background(uint32_t* pixels)
         // fill the scanline with color
         if (color != -1) 
         {
-            uint32_t* pPixel = pixels + (y * S16_WIDTH);
+            uint32_t* pPixel = pixels + (y * config.s16_width);
             color |= color_offset3;
             
-            for (x = 0; x < S16_WIDTH; x++)
+            for (x = 0; x < config.s16_width; x++)
                 *(pPixel)++ = color;
         }
     }
@@ -261,7 +262,7 @@ void HWRoad::render_foreground(uint32_t* pixels)
             { 0x81,0x81,0x81,0x8f,0,0,0,0x80 }
         };
 
-        uint32_t* pPixel = pixels + (y * S16_WIDTH);
+        uint32_t* pPixel = pixels + (y * config.s16_width);
         uint32_t data0 = roadram[0x000 + y];
         uint32_t data1 = roadram[0x100 + y];
 
@@ -301,14 +302,17 @@ void HWRoad::render_foreground(uint32_t* pixels)
         color_table[0x13] = ((data1 & 0x200) != 0) ? color_table[0x10] : (color_offset2 ^ 0x10 ^ bgcolor);
         color_table[0x17] = color_offset1 ^ 0x0e ^ ((color1 >> 7) & 1);
 
+        // Shift road dependent on whether we are in widescreen mode or not
+        uint16_t s16_x = 0x5f8 + config.s16_x_off;
+
         // draw the road
         switch (control) 
         {
             case 0:
                 if (data0 & 0x800)
                     continue;
-                hpos0 = (hpos0 - (0x5f8 + x_offset)) & 0xfff;
-                for (x = 0; x < S16_WIDTH; x++) 
+                hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
+                for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     pPixel[x] = color_table[0x00 + pix0];
@@ -317,9 +321,9 @@ void HWRoad::render_foreground(uint32_t* pixels)
                 break;
 
             case 1:
-                hpos0 = (hpos0 - (0x5f8 + x_offset)) & 0xfff;
-                hpos1 = (hpos1 - (0x5f8 + x_offset)) & 0xfff;
-                for (x = 0; x < S16_WIDTH; x++) 
+                hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
+                hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
+                for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
@@ -334,9 +338,9 @@ void HWRoad::render_foreground(uint32_t* pixels)
                 break;
 
             case 2:
-                hpos0 = (hpos0 - (0x5f8 + x_offset)) & 0xfff;
-                hpos1 = (hpos1 - (0x5f8 + x_offset)) & 0xfff;
-                for (x = 0; x < S16_WIDTH; x++) 
+                hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
+                hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
+                for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
@@ -353,8 +357,8 @@ void HWRoad::render_foreground(uint32_t* pixels)
             case 3:
                 if (data1 & 0x800)
                     continue;
-                hpos1 = (hpos1 - (0x5f8 + x_offset)) & 0xfff;
-                for (x = 0; x < S16_WIDTH; x++) 
+                hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
+                for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
                     pPixel[x] = color_table[0x10 + pix1];

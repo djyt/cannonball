@@ -56,6 +56,8 @@ void OMusic::enable()
     setup_sprite3();
     setup_sprite4();
     setup_sprite5();
+
+    video.tile_layer->set_x_clamp(video.tile_layer->CENTRE);
 }
 
 void OMusic::disable()
@@ -65,6 +67,8 @@ void OMusic::disable()
     {
         osprites.jump_table[i].control &= ~OSprites::ENABLE;
     }
+
+    video.tile_layer->set_x_clamp(video.tile_layer->RIGHT);
 }
 
 // Music Selection Screen: Setup Radio Sprite

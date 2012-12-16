@@ -55,6 +55,7 @@ void OMap::tick()
     {
         // Initialise Route Info
         case MAP_INIT:
+            video.sprite_layer->set_x_clip(true); // Clip the area in wide-screen mode
             map_route  = roms.rom0.read8(MAP_ROUTE_LOOKUP + ostats.routes[1]);
             map_pos    = 0;
             map_stage1 = 0;
@@ -258,6 +259,8 @@ void OMap::map_display()
     // Init Best OutRunners
     if (--map_delay <= 0)
     {
+        video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
+
         osprites.disable_sprites();
         oroad.horizon_base = 0x154;
         ohiscore.setup_pal_best();    // Setup Palettes

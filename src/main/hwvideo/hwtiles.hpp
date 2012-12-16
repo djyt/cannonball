@@ -6,6 +6,13 @@
 class hwtiles
 {
 public:
+    enum
+    {
+        LEFT,
+        RIGHT,
+        CENTRE,
+    };
+
     uint8_t text_ram[0x1000]; // Text RAM
     uint8_t tile_ram[0x10000]; // Tile RAM
 
@@ -13,12 +20,15 @@ public:
     ~hwtiles(void);
 
     void init(uint8_t* src_tiles);
-    void update_tile_values(void);
+    void set_x_clamp(uint16_t);
+    void update_tile_values();
     void render_tile_layer(uint32_t*, uint8_t, uint8_t);
     void render_text_layer(uint32_t*, uint8_t);
     void render_all_tiles(uint32_t*);
 
 private:
+    int16_t x_clamp;
+
     static const int TILES_LENGTH = 0x10000;
     uint32_t tiles[TILES_LENGTH]; // Converted tiles
 

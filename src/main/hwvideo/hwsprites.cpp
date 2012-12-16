@@ -1,4 +1,5 @@
 #include "hwvideo/hwsprites.hpp"
+#include "frontend/config.hpp"
 
 /***************************************************************************
     Video Emulation: OutRun Sprite Rendering Hardware.
@@ -76,6 +77,23 @@ void hwsprites::init(const uint8_t* src_sprites)
     }
 }
 
+// Clip areas of the screen in wide-screen mode
+void hwsprites::set_x_clip(bool on)
+{
+    // Clip to central 320 width window.
+    if (on)
+    {
+        x1 = config.s16_x_off;
+        x2 = x1 + S16_WIDTH;
+    }
+    // Allow full wide-screen.
+    else
+    {
+        x1 = 0;
+        x2 = config.s16_width;
+    }
+}
+
 uint8_t hwsprites::read(const uint16_t adr)
 {
     uint16_t a = adr >> 1;
@@ -123,7 +141,7 @@ void hwsprites::render(const uint8_t priority)
         int32_t top     = (ramBuff[data+0] & 0x1ff) - 0x100;
         uint32_t addr    = ramBuff[data+1];
         int32_t pitch  = ((ramBuff[data+2] >> 1) | ((ramBuff[data+4] & 0x1000) << 3)) >> 8;
-        int32_t xpos     = ramBuff[data+2] & 0x1ff;
+        int32_t xpos    =  ramBuff[data+6]; // moved from original structure to accomodate widescreen
         uint8_t shadow  = (ramBuff[data+3] >> 14) & 1;
         int32_t vzoom    = ramBuff[data+3] & 0x7ff;
         int32_t ydelta = ((ramBuff[data+4] & 0x8000) != 0) ? 1 : -1;
@@ -140,6 +158,9 @@ void hwsprites::render(const uint8_t priority)
         if (xpos < 0x80 && xdelta < 0)
             xpos += 0x200;
         xpos -= 0xbe;
+
+        // Adjust for widescreen mode
+        xpos += config.s16_x_off;
 
         // initialize the end address to the start address
         ramBuff[data+7] = addr;
@@ -163,9 +184,9 @@ void hwsprites::render(const uint8_t priority)
         for (y = top; y != ytarget; y += ydelta)
         {
             // skip drawing if not within the cliprect
-            if (y >= 0 && y <= 223) 
+            if (y >= 0 && y < S16_HEIGHT) 
             {
-                uint32_t* pPixel = &video.pixels[y * S16_WIDTH];
+                uint32_t* pPixel = &video.pixels[y * config.s16_width];
 
                 int32_t xacc = 0;
 
@@ -175,7 +196,7 @@ void hwsprites::render(const uint8_t priority)
                     // start at the word before because we preincrement below
                     ramBuff[data+7] = (addr - 1);
 
-                    for (x = xpos; (xdelta > 0 && x < S16_WIDTH) || (xdelta < 0 && x >= 0); )
+                    for (x = xpos; (xdelta > 0 && x < config.s16_width) || (xdelta < 0 && x >= 0); )
                     {
                         uint32_t pixels = sprites[spritedata + ++ramBuff[data+7]];
 
@@ -201,7 +222,7 @@ void hwsprites::render(const uint8_t priority)
                     // start at the word after because we predecrement below
                     ramBuff[data+7] = (addr + 1);
 
-                    for (x = xpos; (xdelta > 0 && x < S16_WIDTH) || (xdelta < 0 && x >= 0); )
+                    for (x = xpos; (xdelta > 0 && x < config.s16_width) || (xdelta < 0 && x >= 0); )
                     {
                         uint32_t pixels = sprites[spritedata + --ramBuff[data+7]];
 
@@ -231,7 +252,7 @@ void hwsprites::render(const uint8_t priority)
 
 void hwsprites::draw_pixel(const int32_t x, const uint16_t pix, const uint16_t colour, const uint8_t shadow, uint32_t* pPixel)
 {
-    if (x >= 0 && x < S16_WIDTH && pix != 0 && pix != 15)
+    if (x >= x1 && x < x2 && pix != 0 && pix != 15)
     {
         if (shadow && pix == 0xa) 
         {        

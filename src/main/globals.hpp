@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stdint.hpp"
+
 // ------------------------------------------------------------------------------------------------
 // Compiler Settings
 // ------------------------------------------------------------------------------------------------
@@ -22,8 +24,11 @@ const bool FIX_BUGS = true;
 // ------------------------------------------------------------------------------------------------
 
 // Internal Sega OutRun Screen Properties
-const uint16_t S16_WIDTH = 320;
-const uint16_t S16_HEIGHT = 224;
+const uint16_t S16_WIDTH      = 320;
+const uint16_t S16_HEIGHT     = 224;
+
+// Internal Widescreen Width
+const uint16_t S16_WIDTH_WIDE = 398;
 
 enum
 {

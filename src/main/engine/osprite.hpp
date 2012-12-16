@@ -13,7 +13,7 @@
 class osprite
 {
 public:
-	uint16_t data[0x6];
+	uint16_t data[0x7];
 	uint32_t scratch;
 
 	osprite(void);

@@ -1,5 +1,7 @@
 #include "hwvideo/hwtiles.hpp"
 
+#include "frontend/config.hpp"
+
 /***************************************************************************
     Video Emulation: OutRun Tilemap Hardware.
     Based on MAME source code.
@@ -75,6 +77,8 @@ hwtiles::hwtiles(void)
 {
     for (int i = 0; i < 2; i++)
         tile_banks[i] = i;
+
+    set_x_clamp(CENTRE);
 }
 
 hwtiles::~hwtiles(void)
@@ -103,7 +107,31 @@ void hwtiles::init(uint8_t* src_tiles)
     }
 }
 
-void hwtiles::update_tile_values(void)
+// Set Tilemap X Clamp
+//
+// This is used for the widescreen mode, in order to clamp the tilemap to
+// a location of the screen. 
+//
+// In-Game we must clamp right to avoid page scrolling issues.
+//
+// The clamp will always be 192 for the non-widescreen mode.
+void hwtiles::set_x_clamp(uint16_t props)
+{
+    if (props == LEFT)
+    {
+        x_clamp = 192;
+    }
+    else if (props == RIGHT)
+    {
+        x_clamp = (512 - config.s16_width);
+    }
+    else if (props == CENTRE)
+    {
+        x_clamp = 192 - config.s16_x_off;
+    }
+}
+
+void hwtiles::update_tile_values()
 {
     for (int i = 0; i < 4; i++)
     {
@@ -149,13 +177,13 @@ void hwtiles::render_tile_layer(uint32_t* buf, uint8_t page_index, uint8_t prior
     {
         for (int mx = 0; mx < 128; mx++) 
         {
-            if (my < 32 && mx < 64)
+            if (my < 32 && mx < 64)                    // top left
                 ActPage = (EffPage >> 0) & 0x0f;
-            if (my < 32 && mx >= 64)
+            if (my < 32 && mx >= 64)                   // top right
                 ActPage = (EffPage >> 4) & 0x0f;
-            if (my >= 32 && mx < 64)
+            if (my >= 32 && mx < 64)                   // bottom left
                 ActPage = (EffPage >> 8) & 0x0f;
-            if (my >= 32 && mx >= 64)
+            if (my >= 32 && mx >= 64)                  // bottom right page
                 ActPage = (EffPage >> 12) & 0x0f;
 
             uint32_t TileIndex = 64 * 32 * 2 * ActPage + ((2 * 64 * my) & 0xfff) + ((2 * mx) & 0x7f);
@@ -177,11 +205,15 @@ void hwtiles::render_tile_layer(uint32_t* buf, uint8_t page_index, uint8_t prior
                 x = 8 * mx;
                 y = 8 * my;
 
-                x -= (192 - xScroll) & 0x3ff;
+                // We take into account the internal screen resolution here
+                // to account for widescreen mode.
+                x -= (x_clamp - xScroll) & 0x3ff;
+
+                if (x < -x_clamp)
+                    x += 1024;
+
                 y -= yScroll & 0x1ff;
 
-                if (x < -192)
-					x += 1024;
                 if (y < -288)
                     y += 512;
 
@@ -193,9 +225,9 @@ void hwtiles::render_tile_layer(uint32_t* buf, uint8_t page_index, uint8_t prior
                 if (Colour >= 0x60)
 					ColourOff = 0x300 | TILEMAP_COLOUR_OFFSET;
 
-                if (x > 7 && x < 312 && y > 7 && y <= 216)
+                if (x > 7 && x < (config.s16_width - 8) && y > 7 && y <= (S16_HEIGHT - 8))
                     render8x8_tile_mask(buf, Code, x, y, Colour, 3, 0, ColourOff);
-                else if (x > -8 && x < S16_WIDTH && y > -8 && y < S16_HEIGHT)
+                else if (x > -8 && x < config.s16_width && y > -8 && y < S16_HEIGHT)
 					render8x8_tile_mask_clip(buf, Code, x, y, Colour, 3, 0, ColourOff);
             } // end priority check
         }
@@ -227,10 +259,12 @@ void hwtiles::render_text_layer(uint32_t* buf, uint8_t priority_draw)
 
                     x -= 192;
 
-                    if (x > 7 && x < 312 && y > 7 && y <= 216)
-                        render8x8_tile_mask(buf, Code, x, y, Colour, 3, 0, TILEMAP_COLOUR_OFFSET);
-                    else if (x > -8 && x < S16_WIDTH && y >= 0 && y < S16_HEIGHT) 
-                        render8x8_tile_mask_clip(buf, Code, x, y, Colour, 3, 0, TILEMAP_COLOUR_OFFSET);
+                    // We also adjust the text layer for wide-screen below. But don't allow painting in the 
+                    // wide-screen areas to avoid graphical glitches.
+                    if (x > 7 && x < (config.s16_width - 8) && y > 7 && y <= (S16_HEIGHT - 8))
+                        render8x8_tile_mask(buf, Code, x + config.s16_x_off, y, Colour, 3, 0, TILEMAP_COLOUR_OFFSET);
+                    else if (x > -8 && x < config.s16_width && y >= 0 && y < S16_HEIGHT) 
+                        render8x8_tile_mask_clip(buf, Code, x + config.s16_x_off, y, Colour, 3, 0, TILEMAP_COLOUR_OFFSET);
                 }
             }
             TileIndex += 2;
@@ -250,7 +284,7 @@ void hwtiles::render8x8_tile_mask(
 {
     uint32_t nPalette = (nTilePalette << nColourDepth) | nMaskColour;
     uint32_t* pTileData = tiles + (nTileNumber << 3);
-    buf += (StartY * S16_WIDTH) + StartX;
+    buf += (StartY * config.s16_width) + StartX;
 
     for (int y = 0; y < 8; y++) 
     {
@@ -276,7 +310,7 @@ void hwtiles::render8x8_tile_mask(
             if (c6) buf[6] = nPalette + c6;
             if (c7) buf[7] = nPalette + c7;
         }
-        buf += S16_WIDTH;
+        buf += config.s16_width;
         pTileData++;
     }
 }
@@ -293,7 +327,7 @@ void hwtiles::render8x8_tile_mask_clip(
 {
     uint32_t nPalette = (nTilePalette << nColourDepth) | nMaskColour;
     uint32_t* pTileData = tiles + (nTileNumber << 3);
-    buf += (StartY * S16_WIDTH) + StartX;
+    buf += (StartY * config.s16_width) + StartX;
 
     for (int y = 0; y < 8; y++) 
     {
@@ -312,17 +346,17 @@ void hwtiles::render8x8_tile_mask_clip(
                 uint32_t c1 = (p0 >> 24) & 0xf;
                 uint32_t c0 = (p0 >> 28);
 
-                if (c0 && 0 + StartX >= 0 && 0 + StartX < S16_WIDTH) buf[0] = nPalette + c0;
-                if (c1 && 1 + StartX >= 0 && 1 + StartX < S16_WIDTH) buf[1] = nPalette + c1;
-                if (c2 && 2 + StartX >= 0 && 2 + StartX < S16_WIDTH) buf[2] = nPalette + c2;
-                if (c3 && 3 + StartX >= 0 && 3 + StartX < S16_WIDTH) buf[3] = nPalette + c3;
-                if (c4 && 4 + StartX >= 0 && 4 + StartX < S16_WIDTH) buf[4] = nPalette + c4;
-                if (c5 && 5 + StartX >= 0 && 5 + StartX < S16_WIDTH) buf[5] = nPalette + c5;
-                if (c6 && 6 + StartX >= 0 && 6 + StartX < S16_WIDTH) buf[6] = nPalette + c6;
-                if (c7 && 7 + StartX >= 0 && 7 + StartX < S16_WIDTH) buf[7] = nPalette + c7;
+                if (c0 && 0 + StartX >= 0 && 0 + StartX < config.s16_width) buf[0] = nPalette + c0;
+                if (c1 && 1 + StartX >= 0 && 1 + StartX < config.s16_width) buf[1] = nPalette + c1;
+                if (c2 && 2 + StartX >= 0 && 2 + StartX < config.s16_width) buf[2] = nPalette + c2;
+                if (c3 && 3 + StartX >= 0 && 3 + StartX < config.s16_width) buf[3] = nPalette + c3;
+                if (c4 && 4 + StartX >= 0 && 4 + StartX < config.s16_width) buf[4] = nPalette + c4;
+                if (c5 && 5 + StartX >= 0 && 5 + StartX < config.s16_width) buf[5] = nPalette + c5;
+                if (c6 && 6 + StartX >= 0 && 6 + StartX < config.s16_width) buf[6] = nPalette + c6;
+                if (c7 && 7 + StartX >= 0 && 7 + StartX < config.s16_width) buf[7] = nPalette + c7;
             }
         }
-        buf += S16_WIDTH;
+        buf += config.s16_width;
         pTileData++;
     }
 }

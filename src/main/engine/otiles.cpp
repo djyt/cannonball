@@ -528,6 +528,7 @@ void OTiles::update_fg_page()
 void OTiles::update_bg_page()
 {
     int16_t h = tilemap_h_scr >> 16;
+
     if (oinitengine.rd_split_state == oinitengine.SPLIT_NONE)
         h = -h;
 

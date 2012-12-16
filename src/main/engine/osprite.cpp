@@ -41,7 +41,7 @@ osprite::osprite(void)
     data[3] = 0;
     data[4] = 0;
     data[5] = 0;
-
+    data[6] = 0;
     scratch = 0;
 }
 
@@ -49,19 +49,21 @@ osprite::~osprite(void)
 {
 }
 
-uint16_t osprite::get_x(void)
+// X is now stored separately (not in the original data structure)
+// This is to support wide-screen mode
+uint16_t osprite::get_x()
 {
-    return data[0x2]; // returning x uses whole value
+    return data[0x6];
 }
 
-uint16_t osprite::get_y(void)
+uint16_t osprite::get_y()
 {
     return data[0x0]; // returning y uses whole value
 }
 
 void osprite::set_x(uint16_t x)
 {
-    data[0x2] = x; // setting x wipes entire value
+    data[0x6] = x;
 }
 
 void osprite::set_pitch(uint8_t p)
@@ -71,7 +73,7 @@ void osprite::set_pitch(uint8_t p)
 
 void osprite::inc_x(uint16_t v)
 {
-    data[0x2] = (data[0x2] & 0xFE00) | (((data[0x2] & 0x1FF) + v) & 0x1FF);
+    data[0x6] += v;
 }
 
 void osprite::set_y(uint16_t y)

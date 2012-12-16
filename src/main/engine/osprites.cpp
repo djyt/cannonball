@@ -547,9 +547,10 @@ void OSprites::blit_sprites()
         video.write_sprite16(&dst_addr, data[3]);
         video.write_sprite16(&dst_addr, data[4]);
         video.write_sprite16(&dst_addr, data[5]);
+        video.write_sprite16(&dst_addr, data[6]);
 
         // Allign on correct boundary
-        dst_addr += 4;
+        dst_addr += 2;
     }
 }
 
@@ -648,13 +649,17 @@ void OSprites::do_sprite(oentry* input)
     set_sprite_xy(input, output, width, height);
     
     // Here we need the entire value set by above routine, not just top 0x1FF mask!
-    int16_t sprite_x = output->get_x();
-    int16_t sprite_y = output->get_y();
-    int16_t sprite_y2 = sprite_y + height;
+    int16_t sprite_x1 = output->get_x();
+    int16_t sprite_x2 = sprite_x1 + width;
+    int16_t sprite_y1 = output->get_y();
+    int16_t sprite_y2 = sprite_y1 + height;
+
+    const uint16_t x1_bounds = 512 + config.s16_x_off;
+    const uint16_t x2_bounds = 192 - config.s16_x_off;
 
     // Hide Sprite if off screen (note bug fix to solve shadow wrapping issue on original game)
-    if (sprite_y2 < 256 || sprite_y > 479 ||
-        sprite_x + width < 192 || (FIX_BUGS ? sprite_x >= 512 : sprite_x > 512))
+    if (sprite_y2 < 256 || sprite_y1 > 479 ||
+        sprite_x2 < x2_bounds || (FIX_BUGS ? sprite_x1 >= x1_bounds : sprite_x1 > x1_bounds))
     {
         hide_hwsprite(input, output);
         return;
@@ -670,9 +675,9 @@ void OSprites::do_sprite(oentry* input)
     // -------------------------------------------------------------------------
     // Set Sprite Height
     // -------------------------------------------------------------------------
-    if (sprite_y < 256)
+    if (sprite_y1 < 256)
     {
-        int16_t y_adj = -(sprite_y - 256);
+        int16_t y_adj = -(sprite_y1 - 256);
         y_adj *= roms.rom0.read16(src_offsets + 2); // Width of line data (Unsigned multiply)
         y_adj /= height; // Unsigned divide
         y_adj *= roms.rom0.read16(src_offsets + 4); // Length of line data (Unsigned multiply)
@@ -736,7 +741,7 @@ void OSprites::do_sprite(oentry* input)
         {
             // 9630:
             int16_t road_elevation = -oroad.road_y[road_y_index + 1] + 0x1DF;
-            if (sprite_y > road_elevation)
+            if (sprite_y1 > road_elevation)
             {
                 hide_hwsprite(input, output);
                 return;

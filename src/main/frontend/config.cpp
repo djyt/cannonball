@@ -4,6 +4,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 
 #include "config.hpp"
+#include "globals.hpp"
 
 Config config;
 
@@ -44,20 +45,33 @@ void Config::load(const std::string &filename)
     // Video Settings
     // ------------------------------------------------------------------------
 
-    // Video Mode: Default is Windowed
-    video.mode    = pt.get("video.mode", 0);
-    // Video Scale: Default is 1x
-    video.scale   = pt.get("video.window.scale", 1);
-    // Stretch in full-screen mode
-    video.stretch = pt.get("video.fullscreen.stretch", 0);
     // Default is 60 fps
-    video.fps     = pt.get("video.fps", 2);
-           
+    video.fps        = pt.get("video.fps", 2);
+    // Enable Widescreen Mode
+    video.widescreen = pt.get("video.widescreen", 0);
+    // Video Mode: Default is Windowed
+    video.mode       = pt.get("video.mode", 0);
+    // Video Scale: Default is 1x
+    video.scale      = pt.get("video.window.scale", 1);
+    // Stretch in full-screen mode
+    video.stretch    = pt.get("video.fullscreen.stretch", 0);
+          
     // Set core FPS to 30fps or 60fps
     fps       = video.fps == 0 ? 30 : 60;
     
     // Original game ticks sprites at 30fps but background scroll at 60fps
     tick_fps = video.fps < 2 ? 30 : 60;
+
+    if (video.widescreen)
+    {
+        s16_width = S16_WIDTH_WIDE;
+        s16_x_off = (S16_WIDTH_WIDE - S16_WIDTH) / 2;
+    }
+    else
+    {
+        s16_width = S16_WIDTH;
+        s16_x_off = 0;
+    }
 
     // ------------------------------------------------------------------------
     // Engine Settings

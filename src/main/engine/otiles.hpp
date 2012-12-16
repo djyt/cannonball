@@ -21,7 +21,6 @@ class video;
 class OTiles
 {
 public:
-
 	// + 0x21: Tilemap Control
 	// 0 = Clear Tile Table 1 & Init Default Tilemap (Stage 1)
 	// 1 = Scroll Tilemap

@@ -5,8 +5,6 @@ Video video;
 
 Video::Video(void)
 {
-    // Internal pixel array. The size of this is always a constant
-    pixels = new uint32_t[S16_WIDTH * S16_HEIGHT];
     sprite_layer = new hwsprites();
     tile_layer = new hwtiles();
 }
@@ -22,6 +20,9 @@ int Video::init(Roms* roms, video_settings_t* settings)
 {
     if (!set_video_mode(settings))
         return 0;
+
+    // Internal pixel array. The size of this is always a constant
+    pixels = new uint32_t[config.s16_width * S16_HEIGHT];
 
     // Convert S16 tiles to a more useable format
     tile_layer->init(roms->tiles.rom);
@@ -81,10 +82,10 @@ int Video::set_video_mode(video_settings_t* settings)
         else
         {
             // Calculate how much to scale screen from its original resolution
-            uint32_t w = (screen_width << 16)  / S16_WIDTH;
+            uint32_t w = (screen_width << 16)  / config.s16_width;
             uint32_t h = (screen_height << 16) / S16_HEIGHT;
             
-            scaled_width  = (S16_WIDTH  * std::min(w, h)) >> 16;
+            scaled_width  = (config.s16_width  * std::min(w, h)) >> 16;
             scaled_height = (S16_HEIGHT * std::min(w, h)) >> 16;
         }
         flags |= SDL_FULLSCREEN; // Set SDL flag
@@ -102,7 +103,7 @@ int Video::set_video_mode(video_settings_t* settings)
 
         scale_factor  = settings->scale;
 
-        screen_width  = S16_WIDTH  * scale_factor;
+        screen_width  = config.s16_width  * scale_factor;
         screen_height = S16_HEIGHT * scale_factor;
 
         // As we're windowed this is just the same
@@ -221,12 +222,12 @@ void Video::draw_frame(void)
 
     hwroad.render_background(pixels);
     sprite_layer->render(1);
-    tile_layer->render_tile_layer(pixels, 1, 0);
+    tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
     sprite_layer->render(2);
-    tile_layer->render_tile_layer(pixels, 1, 1);
-    tile_layer->render_tile_layer(pixels, 0, 0);
+    tile_layer->render_tile_layer(pixels, 1, 1);      // background layer
+    tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
     sprite_layer->render(4);
-    tile_layer->render_tile_layer(pixels, 0, 1);
+    tile_layer->render_tile_layer(pixels, 0, 1);      // foreground layer
     hwroad.render_foreground(pixels);
     tile_layer->render_text_layer(pixels, 0);
     sprite_layer->render(8);
@@ -238,11 +239,11 @@ void Video::draw_frame(void)
         uint32_t* pix = pixels;
     
         // Lookup real RGB value from rgb array for backbuffer
-        for (int i = 0; i < (S16_WIDTH * S16_HEIGHT); i++)    
+        for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)    
             *(pix++) = rgb[*pix & ((S16_PALETTE_ENTRIES * 3) - 1)];
 
         // Rescale appropriately
-        scale(pixels, S16_WIDTH, S16_HEIGHT, 
+        scale(pixels, config.s16_width, S16_HEIGHT, 
               screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
     }
     // No Scaling
@@ -252,7 +253,7 @@ void Video::draw_frame(void)
         uint32_t* spix = screen_pixels;
     
         // Lookup real RGB value from rgb array for backbuffer
-        for (int i = 0; i < (S16_WIDTH * S16_HEIGHT); i++)
+        for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)
             *(spix++) = rgb[*(pix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
     }
 

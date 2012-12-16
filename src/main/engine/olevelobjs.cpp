@@ -465,11 +465,6 @@ void OLevelObjs::sprite_lights_countdown(oentry *sprite)
         sprite->pal_src = countdown_pal;
         osprites.map_palette(sprite);
     }
-
-    /*if ((sprite->control & OSprites::WIDE_ROAD) == 0)
-    {
-        std::cout << "Made assumption that sprite_lights_countdown always deals with wide road sprites. Looks like I was wrong if this is printed" << std::endl;
-    }*/
     
     set_spr_zoom_priority(sprite, 1); // WIDE_ROAD must be set for this to work.
 }

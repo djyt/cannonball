@@ -7,6 +7,7 @@
 ***************************************************************************/
 
 #include "engine/outils.hpp"
+#include "outrun.hpp"
 #include "engine/ohiscore.hpp"
 
 OHiScore ohiscore;
@@ -234,6 +235,10 @@ void OHiScore::check_name_entry()
         ohud.draw_timer2(ostats.time_counter, 0x1101EC, BIG_RED_FONT);
         // Input from controls
         do_input(score_adr);
+        
+        // Save new score info
+        if (state == STATE_DONE)
+            config.save_scores("hiscores.xml");
     }
 }
 

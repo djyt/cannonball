@@ -8,21 +8,19 @@
 
 #pragma once
 
-#include "outrun.hpp"
+struct score_entry
+{
+    uint32_t score;
+    uint8_t initial1;
+    uint8_t initial2;
+    uint8_t initial3;
+    uint32_t maptiles;
+    uint16_t time;
+};
 
 class OHiScore
 {
 public:
-    struct score_entry
-    {
-        uint32_t score;
-        uint8_t initial1;
-        uint8_t initial2;
-        uint8_t initial3;
-        uint32_t maptiles;
-        uint16_t time;
-    };
-
     // Number of score entries in table
     const static uint8_t NO_SCORES = 20;
     

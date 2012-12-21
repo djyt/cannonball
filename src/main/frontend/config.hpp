@@ -55,8 +55,16 @@ public:
     void init();
     void load(const std::string &filename);
     void save(const std::string &filename);
-
+    void load_scores(const std::string &filename);
+    void save_scores(const std::string &filename);
+   
 private:
+
+    // Conversions
+    template<class T> std::string to_string(T i);
+    template<class T> std::string to_hex_string(T i);
+    uint32_t from_hex_string(std::string s);
+
 };
 
 extern Config config;

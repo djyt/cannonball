@@ -44,6 +44,7 @@ void Outrun::init()
     tick_frame = true;
     tick_counter = 0;
     ohiscore.init_def_scores();         // Initialize default hi-score entries
+    config.load_scores("hiscores.xml"); // Load saved hi-score entries
     oinitengine.init();
     osoundint.init();
     init_jump_table();

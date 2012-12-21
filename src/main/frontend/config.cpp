@@ -6,6 +6,8 @@
 #include "config.hpp"
 #include "globals.hpp"
 
+#include "engine/ohiscore.hpp"
+
 Config config;
 
 Config::Config(void)
@@ -116,22 +118,97 @@ void Config::save(const std::string &filename)
     
     // Write property tree to XML file
     write_xml(filename, pt);*/
-
 }
 
-/*int main()
+void Config::load_scores(const std::string &filename)
 {
+    // Create empty property tree object
+    using boost::property_tree::ptree;
+    ptree pt;
+
     try
     {
-        debug_settings ds;
-        ds.load("debug_settings.xml");
-        ds.save("debug_settings_out.xml");
-        std::cout << "Success\n";
+        read_xml(filename, pt, boost::property_tree::xml_parser::trim_whitespace);
     }
     catch (std::exception &e)
     {
-        std::cout << "Error: " << e.what() << "\n";
+        return;
     }
-    return 0;
-}*/
+    
+    for (int i = 0; i < ohiscore.NO_SCORES; i++)
+    {
+        score_entry* e = &ohiscore.scores[i];
+        
+        std::string xmltag = "score";
+        xmltag += to_string(i);  
+    
+        e->score    = from_hex_string(pt.get<std::string>(xmltag + ".score",    "0"));
+        e->initial1 = pt.get(xmltag + ".initial1", " ")[0];
+        e->initial2 = pt.get(xmltag + ".initial2", " ")[0];
+        e->initial3 = pt.get(xmltag + ".initial3", " ")[0];
+        e->maptiles = from_hex_string(pt.get<std::string>(xmltag + ".maptiles", "20202020"));
+        e->time     = from_hex_string(pt.get<std::string>(xmltag + ".time"    , "0")); 
+    }
+}
 
+void Config::save_scores(const std::string &filename)
+{
+    // Create empty property tree object
+    using boost::property_tree::ptree;
+    ptree pt;
+        
+    for (int i = 0; i < ohiscore.NO_SCORES; i++)
+    {
+        score_entry* e = &ohiscore.scores[i];
+    
+        std::string xmltag = "score";
+        xmltag += to_string(i);    
+        
+        pt.put(xmltag + ".score",    to_hex_string(e->score));
+        pt.put(xmltag + ".initial1", to_string(e->initial1));
+        pt.put(xmltag + ".initial2", to_string(e->initial2));
+        pt.put(xmltag + ".initial3", to_string(e->initial3));
+        pt.put(xmltag + ".maptiles", to_hex_string(e->maptiles));
+        pt.put(xmltag + ".time",     to_hex_string(e->time));
+    }
+    
+    boost::property_tree::xml_writer_settings<char> settings('\t', 1);
+    
+    try
+    {
+        write_xml(filename, pt, std::locale(), settings);
+    }
+    catch (std::exception &e)
+    {
+        std::cout << "Error saving hiscores: " << e.what() << "\n";
+    }
+}
+
+// Convert value to string
+template<class T>
+std::string Config::to_string(T i)
+{
+    std::stringstream ss;
+    ss << i;
+    return ss.str();
+}
+
+// Convert value to string
+template<class T>
+std::string Config::to_hex_string(T i)
+{
+    std::stringstream ss;
+    ss << std::hex << i;
+    return ss.str();
+}
+
+// Convert hex string to unsigned int
+uint32_t Config::from_hex_string(std::string s)
+{
+    unsigned int x;   
+    std::stringstream ss;
+    ss << std::hex << s;
+    ss >> x;
+    // output it as a signed type
+    return static_cast<unsigned int>(x);
+}

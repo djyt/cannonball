@@ -377,6 +377,8 @@ void OSound::process_channels()
 // Source: 0xCD
 void OSound::process_channel(uint16_t chan_id)
 {
+    chanid_prev = chan_id;
+
     // Get correct offset in RAM
     uint8_t* chan = &chan_ram[chan_id];
 
@@ -1169,9 +1171,7 @@ void OSound::ym_finalize(uint8_t* chan)
     chan[ch::FLAGS] = 0;
 
     // Check whether YM channel is also playing music
-    int32_t subadr = 0xFADF - 0xFBC0;
-
-    if (chan_ram[subadr & 0x7FF] >= 0)
+    if (chanid_prev < channel::MAP1)
     {
         // pop and return
         return;

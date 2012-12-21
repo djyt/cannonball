@@ -318,6 +318,9 @@ private:
     // Store last command to assist program flow
     uint8_t cmd_prev;
 
+    // Store last chan ID
+    uint16_t chanid_prev;
+
     // PCM Channel Commands in RAM to send
     const static uint16_t CH09_CMDS1 = 0x570; // 0xFD70;
     const static uint16_t CH09_CMDS2 = 0x578;

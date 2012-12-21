@@ -1,3 +1,13 @@
+/***************************************************************************
+    XML Configuration File Handling.
+
+    Load Settings.
+    Load & Save Hi-Scores.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 // see: http://www.boost.org/doc/libs/1_52_0/doc/html/boost_propertytree/tutorial.html
 
 #include <boost/property_tree/ptree.hpp>
@@ -132,6 +142,7 @@ void Config::load_scores(const std::string &filename)
     }
     catch (std::exception &e)
     {
+        e.what();
         return;
     }
     
@@ -143,11 +154,15 @@ void Config::load_scores(const std::string &filename)
         xmltag += to_string(i);  
     
         e->score    = from_hex_string(pt.get<std::string>(xmltag + ".score",    "0"));
-        e->initial1 = pt.get(xmltag + ".initial1", " ")[0];
-        e->initial2 = pt.get(xmltag + ".initial2", " ")[0];
-        e->initial3 = pt.get(xmltag + ".initial3", " ")[0];
+        e->initial1 = pt.get(xmltag + ".initial1", ".")[0];
+        e->initial2 = pt.get(xmltag + ".initial2", ".")[0];
+        e->initial3 = pt.get(xmltag + ".initial3", ".")[0];
         e->maptiles = from_hex_string(pt.get<std::string>(xmltag + ".maptiles", "20202020"));
         e->time     = from_hex_string(pt.get<std::string>(xmltag + ".time"    , "0")); 
+
+        if (e->initial1 == '.') e->initial1 = 0x20;
+        if (e->initial2 == '.') e->initial2 = 0x20;
+        if (e->initial3 == '.') e->initial3 = 0x20;
     }
 }
 
@@ -165,9 +180,9 @@ void Config::save_scores(const std::string &filename)
         xmltag += to_string(i);    
         
         pt.put(xmltag + ".score",    to_hex_string(e->score));
-        pt.put(xmltag + ".initial1", to_string(e->initial1));
-        pt.put(xmltag + ".initial2", to_string(e->initial2));
-        pt.put(xmltag + ".initial3", to_string(e->initial3));
+        pt.put(xmltag + ".initial1", e->initial1 == 0x20 ? "." : to_string(e->initial1)); // use . to represent space
+        pt.put(xmltag + ".initial2", e->initial2 == 0x20 ? "." : to_string(e->initial2));
+        pt.put(xmltag + ".initial3", e->initial3 == 0x20 ? "." : to_string(e->initial3));
         pt.put(xmltag + ".maptiles", to_hex_string(e->maptiles));
         pt.put(xmltag + ".time",     to_hex_string(e->time));
     }

@@ -1,3 +1,13 @@
+/***************************************************************************
+    XML Configuration File Handling.
+
+    Load Settings.
+    Load & Save Hi-Scores.
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include <set>
@@ -28,7 +38,7 @@ struct engine_settings_t
     int gear;
     bool freeze_timer;
     bool disable_traffic;
-    bool level_objects;
+    int level_objects;
 };
 
 class Config

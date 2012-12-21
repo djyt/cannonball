@@ -1171,7 +1171,7 @@ void OSound::ym_finalize(uint8_t* chan)
     // Check whether YM channel is also playing music
     int32_t subadr = 0xFADF - 0xFBC0;
 
-    if (subadr >= 0)
+    if (chan_ram[subadr & 0x7FF] >= 0)
     {
         // pop and return
         return;

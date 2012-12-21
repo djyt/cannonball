@@ -28,6 +28,7 @@ struct engine_settings_t
     int gear;
     bool freeze_timer;
     bool disable_traffic;
+    bool level_objects;
 };
 
 class Config

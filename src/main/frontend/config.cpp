@@ -86,6 +86,9 @@ void Config::load(const std::string &filename)
     engine.disable_traffic = engine.dip_traffic == 4;
     engine.dip_time    &= 3;
     engine.dip_traffic &= 3;
+    
+    // Additional Level Objects
+    engine.level_objects = pt.get("engine.levelobjects", 1);
 }
 
 void Config::save(const std::string &filename)

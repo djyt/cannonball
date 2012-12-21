@@ -32,11 +32,15 @@ public:
 	};
 
     // Note, the original game has 0x4F entries.
-    // But we can set it to a higher value, to fix the broken arches on Gateway
+    // But we can set it to a higher value, to fix the broken arches on Gateway.
     // this is a limitation in the original game.
-	
+    // We just leave the larger array in place when changing the settings. 
+    
     // Total sprite entries in Jump Table (start at offset #3)
-	const static uint8_t SPRITE_ENTRIES = FIX_BUGS ? 0x62 : 0x4F;
+	const static uint8_t SPRITE_ENTRIES = 0x62;
+    
+    // This is initalized based on the config
+    uint8_t no_sprites;
 
     const static uint8_t SPRITE_FERRARI = SPRITE_ENTRIES + 1;
     const static uint8_t SPRITE_PASS1   = SPRITE_ENTRIES + 2;   // Passengers

@@ -27,6 +27,9 @@ OSprites::~OSprites(void)
 
 void OSprites::init()
 {
+    // Set activated number of sprites based on config
+    no_sprites = config.engine.level_objects ? SPRITE_ENTRIES : 0x4F;
+
     // Also handled by clear_palette_data() now
     for (uint16_t i = 0; i < 0x100; i++)
         pal_lookup[i] = 0;

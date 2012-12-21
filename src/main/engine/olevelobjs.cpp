@@ -115,7 +115,7 @@ void OLevelObjs::init_entries(uint32_t a4, uint8_t no_entries)
 void OLevelObjs::setup_sprites(uint32_t z)
 {
     // Setup entries that have not yet been enabled
-    for (uint8_t i = 0; i < OSprites::SPRITE_ENTRIES; i++)
+    for (uint8_t i = 0; i < osprites.no_sprites; i++)
     {
         if ((osprites.jump_table[i].control & OSprites::ENABLE) == 0)
         {
@@ -270,7 +270,7 @@ void OLevelObjs::setup_sprite_routine(oentry* sprite)
 
 void OLevelObjs::do_sprite_routine()
 {
-    for (uint8_t i = 0; i < OSprites::SPRITE_ENTRIES; i++)
+    for (uint8_t i = 0; i < osprites.no_sprites; i++)
     {
         oentry* sprite = &osprites.jump_table[i];
 

@@ -12,7 +12,7 @@
     <fps>2</fps>
     
     <!-- Enhanced Widescreen Mode -->
-    <widescreen>0</widescreen>
+    <widescreen>1</widescreen>
 
     <!-- Set Screen Mode: 0 is windowed, 1 is full-screen -->
     <mode>0</mode>
@@ -64,6 +64,11 @@
         0 = Manual   (Click to shift, for normal play)
         1 = Manual   (Hold to shift, for cabinet play)
         2 = Automatic 
-      -->
+    -->
     <gear>0</gear>
+    
+    <!-- Increase the number of allowed level objects. 
+         This fixes the broken arches in Gateway for example.
+    --->
+    <levelobjects>1</levelobjects>
 </engine>

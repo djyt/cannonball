@@ -77,7 +77,6 @@ void OSoundInt::tick()
     {
         play_queued_sound(); // Process audio commands from main program code
         osound.tick();
-        play_queued_sound();
         osound.tick();
     }
 }

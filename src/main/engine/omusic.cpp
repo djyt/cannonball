@@ -227,6 +227,7 @@ void OMusic::tick()
 
         music_selected = sound::MUSIC_SPLASH;
     }
+
     osprites.do_spr_order_shadows(e);
     osprites.do_spr_order_shadows(e2);
     osprites.do_spr_order_shadows(hand);

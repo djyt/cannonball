@@ -35,19 +35,17 @@ bool Input::is_pressed(presses p)
 // Denote that a frame has been done by copying key presses into previous array
 void Input::frame_done()
 {
-    memcpy(keys_old, keys, sizeof(keys));
+    memcpy(&keys_old, &keys, sizeof(keys));
 }
 
 void Input::handle_key_down(SDL_keysym* keysym)
 {
     handle_key(keysym, true);
-    return;
 }
 
 void Input::handle_key_up(SDL_keysym* keysym)
 {
     handle_key(keysym, false);
-    return;
 }
 
 void Input::handle_key(SDL_keysym* keysym, bool is_pressed)

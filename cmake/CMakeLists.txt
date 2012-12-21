@@ -161,7 +161,7 @@ SOURCE_GROUP(src\\sdl FILES ${src_sdl})
 SOURCE_GROUP(src\\engine FILES ${src_engine})
 SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
 
-add_executable(cannonball
+set(SRCS
     ${src_main}
     ${src_frontend}
     ${src_hwvideo}
@@ -170,6 +170,13 @@ add_executable(cannonball
     ${src_engine}
     ${src_engine_audio}
 )
+
+# Add Icon For Windows Builds
+if(WIN32)
+  set(SRCS ${SRCS} ../res/cannonball.rc)
+endif(WIN32)
+
+add_executable(cannonball ${SRCS})
 
 # Copy Configuration file to current build
 configure_file(../res/config.xml ./config.xml

@@ -238,7 +238,7 @@ void OHiScore::check_name_entry()
         
         // Save new score info
         if (state == STATE_DONE)
-            config.save_scores("hiscores.xml");
+            config.save_scores();
     }
 }
 

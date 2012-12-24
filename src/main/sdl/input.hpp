@@ -28,11 +28,10 @@ public:
         START = 7,
         COIN  = 8,
         
-        // Debug 
         PAUSE = 9,
         STEP  = 10,
         TIMER = 11,
-        END_SEQ = 12,
+        MENU = 12,
     };
 
     bool keys[13];

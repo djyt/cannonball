@@ -11,7 +11,6 @@
 #pragma once
 
 #include <set>
-#include <iostream>
 
 #include "stdint.hpp"
 
@@ -27,6 +26,12 @@ struct video_settings_t
     int fps;
 };
 
+struct sound_settings_t
+{
+    int enabled;
+    int advertise;
+};
+
 struct engine_settings_t
 {
     const static int GEAR_PRESS = 1; // For cabinets
@@ -34,7 +39,6 @@ struct engine_settings_t
 
     int dip_time;
     int dip_traffic;
-    int dip_advertise;
     int gear;
     bool freeze_timer;
     bool disable_traffic;
@@ -45,6 +49,7 @@ class Config
 {
 public:
     video_settings_t video;
+    sound_settings_t sound;
     engine_settings_t engine;
 
     // Internal screen width
@@ -52,6 +57,9 @@ public:
 
     // Internal screen x offset
     uint16_t s16_x_off;
+
+    // Use internal menu system?
+    int use_menu;
 
     // 30 or 60 fps
     int fps;
@@ -65,16 +73,16 @@ public:
     void init();
     void load(const std::string &filename);
     void save(const std::string &filename);
-    void load_scores(const std::string &filename);
-    void save_scores(const std::string &filename);
+    void load_scores();
+    void save_scores();
+    void clear_scores();
+    void set_fps(int fps);
    
 private:
-
     // Conversions
     template<class T> std::string to_string(T i);
     template<class T> std::string to_hex_string(T i);
     uint32_t from_hex_string(std::string s);
-
 };
 
 extern Config config;

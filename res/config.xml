@@ -1,6 +1,12 @@
 <?xml version="1.0"?>
 
 <!-- 
+    Use the inbuilt menu system. 
+    You can disable it and edit this config file if it makes more sense for your system.
+ -->
+<menu>1</menu>
+
+<!-- 
     Video Settings
 -->
 <video>
@@ -9,10 +15,10 @@
          1 = 30/60 FPS. Original Game Mode.  (The original experience)
          2 = 60    FPS. Smooth Mode.         (Full 60fps)
     -->
-    <fps>2</fps>
+    <fps>1</fps>
     
     <!-- Enhanced Widescreen Mode -->
-    <widescreen>1</widescreen>
+    <widescreen>0</widescreen>
 
     <!-- Set Screen Mode: 0 is windowed, 1 is full-screen -->
     <mode>0</mode>
@@ -35,9 +41,19 @@
 </video>
 
 <!-- 
+    Sound Settings
+-->
+<sound>
+    <!-- Toggle Sound -->
+    <enable>1</enable>
+    
+    <!-- Advertise Sound In Attract Mode -->
+    <advertise>1</advertise>
+</sound>
+
+<!-- 
     Game Engine Settings
 -->
-
 <engine>
     <!-- Game Time: 
          0 = Easy      (80 seconds)
@@ -56,10 +72,7 @@
          4 = No Traffic
     -->
     <traffic>1</traffic>
-    
-    <!-- Advertise Sound In Attract Mode -->
-    <advertise>1</advertise>
-    
+        
     <!-- Gears: 
         0 = Manual   (Click to shift, for normal play)
         1 = Manual   (Hold to shift, for cabinet play)

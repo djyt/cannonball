@@ -41,7 +41,7 @@ void OTiles::write_tilemap_hw()
     video.write_text16(HW_BG_PSEL, bg_psel);
 }
 
-// Draw Copyright Text to text ram
+// Setup Default Palette Settings
 // 
 // Source Address: 0x85EA
 // Input:          None
@@ -190,7 +190,7 @@ void OTiles::init_default_tilemap()
 
     fg_v_scroll   = v_off;
     bg_v_scroll   = v_off;
-    video.write_text16(HW_FG_VSCROLL, v_off);            // Also write values to hardware
+    video.write_text16(HW_FG_VSCROLL, v_off);           // Also write values to hardware
     video.write_text16(HW_BG_VSCROLL, v_off);
     copy_fg_tiles(0x100F80);                            // Copy Foreground tiles to Tile RAM
     copy_bg_tiles(0x108F80);                            // Copy Background tiles to Tile RAM

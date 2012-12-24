@@ -17,7 +17,9 @@ Outrun outrun;
     Known Core Engine Issues:
 
     - Road split. Minor bug on positioning traffic on correct side of screen for one frame or so at the point of split.
-      This appears to only be present in 60fps mode, indicating it's a bug with my handling of the traffic at 60fps.
+      Most noticeable in 60fps mode. 
+      The Dreamcast version exhibits a bug where the road renders on the wrong side of the screen for one frame at this point.
+      The original version (and Cannonball) has a problem where the cars face the wrong direction for one frame. 
 
     Bugs Present In Original 1986 Release:
 
@@ -40,15 +42,20 @@ Outrun::~Outrun()
 
 void Outrun::init()
 {
+    game_state = GS_INIT;
+
+    video.clear_text_ram();
+
     frame = 0;
     tick_frame = true;
     tick_counter = 0;
-    ohiscore.init_def_scores();         // Initialize default hi-score entries
-    config.load_scores("hiscores.xml"); // Load saved hi-score entries
+    ohiscore.init_def_scores();  // Initialize default hi-score entries
+    config.load_scores();        // Load saved hi-score entries
+    ostats.init();
     oinitengine.init();
     osoundint.init();
     init_jump_table();
-    game_state = GS_INIT;
+    outils::reset_random_seed(); // Ensure we match the genuine boot up of the original game each time
 
     if (LOAD_LEVEL)
         oinitengine.debug_load_level(LOAD_LEVEL);

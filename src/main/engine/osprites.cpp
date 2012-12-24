@@ -303,7 +303,7 @@ void OSprites::clear_palette_data()
 // Output:         None
 //
 
-void OSprites::copy_palette_data(void)
+void OSprites::copy_palette_data()
 {
     // Return if no palette entries to copy
     if (pal_copy_count <= 0) return;

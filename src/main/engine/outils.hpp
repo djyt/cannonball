@@ -20,6 +20,7 @@ public:
 	outils();
 	~outils();
 
+    static void reset_random_seed();
 	static uint32_t random();
 	static int32_t isqrt(int32_t);
     static uint16_t convert_speed(uint16_t);

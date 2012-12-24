@@ -31,6 +31,7 @@ public:
 
     void init();
     void tick();
+    void start_audio();
     void stop_audio();
     double adjust_speed();
 

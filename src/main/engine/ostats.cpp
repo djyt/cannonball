@@ -22,6 +22,11 @@ OStats::~OStats(void)
 {
 }
 
+void OStats::init()
+{
+    credits = 0;
+}
+
 void OStats::clear_stage_times()
 {
     stage_counters[0] = stage_counters[1] = stage_counters[2] = stage_counters[3] = stage_counters[4] = 0;
@@ -161,7 +166,7 @@ void OStats::init_next_level()
         oinitengine.checkpoint_marker = 0;
 
         uint16_t time_lookup = (config.engine.dip_time * 40) + oroad.stage_lookup_off;
-        time_counter = outils::bcd_add(time_counter, TIME[time_lookup]);
+        if (!config.engine.freeze_timer) time_counter = outils::bcd_add(time_counter, TIME[time_lookup]);
         otraffic.set_max_traffic();
         osoundint.queue_sound(sound::YM_CHECKPOINT);
         osoundint.queue_sound(sound::VOICE_CHECKPOINT);

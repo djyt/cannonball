@@ -155,8 +155,8 @@ public:
 	// Initalize to default values
 	void init(uint8_t i)
 	{
+        control = 0;
         jump_index = i;
-		control = 0;
 		function_holder = -1;
 		id = 0;
 		shadow = 3;
@@ -173,7 +173,16 @@ public:
 		road_priority = 0;
 		reload = 0;
 		counter = 0;
-		type = 0;
+        xw1 = 0;
+        z = 0;
+        traffic_speed = 0;
+        type = 0;
+        xw2 = 0;
+        traffic_proximity = 0;
+        traffic_fx = 0;
+        traffic_orig_speed = 0;
+        traffic_near_speed = 0;
+        yw = 0;
         pass_props = 0;
 	}
 };

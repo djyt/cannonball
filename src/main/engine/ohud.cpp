@@ -523,6 +523,10 @@ void OHud::blit_text2(uint32_t src_addr)
     }
 }
 
+// ------------------------------------------------------------------------------------------------
+// Enhanced Cannonball Routines Below
+// ------------------------------------------------------------------------------------------------
+
 // Custom Routine To Blit Text Easily
 //
 // The name table is 64x28, but only 40x28 is shown. The viewable portion of
@@ -530,21 +534,13 @@ void OHud::blit_text2(uint32_t src_addr)
 // screen columns 0 through 39.
 //
 // Normal font: 41 onwards
-void OHud::blit_text_new(uint16_t x, uint16_t y, const char* text)
+void OHud::blit_text_new(uint16_t x, uint16_t y, const char* text, uint16_t pal)
 {
-    // Base 0, 0 Position
-    uint32_t dst_addr = 0x110030;
+    uint32_t dst_addr = translate(x, y);
     uint16_t length = strlen(text);
-    const uint16_t PAL = (0x85 << 8); // Grey
     
     const char LOWERCASE_A = 'a';
     const char LOWERCASE_Z = 'z';
-    
-    if (x > 63) x = 63;
-    if (y > 27) y = 27;
-
-    // Calculate destination address based on x, y position
-    dst_addr += (x + (y * 64)) << 1;
 
     for (uint16_t i = 0; i < length; i++)
     {
@@ -553,9 +549,26 @@ void OHud::blit_text_new(uint16_t x, uint16_t y, const char* text)
         // Convert lowercase characters to uppercase
         if (c >= LOWERCASE_A && c <= LOWERCASE_Z)
             c -= 0x20;
+        else if (c == '©')
+            c = 0x10;
+        else if (c == '.')
+            c = 0x5b;
 
-        video.write_text16(&dst_addr, PAL | c);
+        video.write_text16(&dst_addr, (pal << 8) | c);
     }
+}
+
+// Translate x, y column position to tilemap address
+uint32_t OHud::translate(uint16_t x, uint16_t y)
+{
+    // Base 0, 0 Position
+    const uint32_t BASE_POS = 0x110030;
+
+    if (x > 63) x = 63;
+    if (y > 27) y = 27;
+
+    // Calculate destination address based on x, y position
+    return BASE_POS + ((x + (y * 64)) << 1);
 }
 
 // Custom Routine To Blit Debug Information to HUD

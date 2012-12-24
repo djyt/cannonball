@@ -101,7 +101,7 @@ void Input::handle_key(SDL_keysym* keysym, bool is_pressed)
             break;
 
         case SDLK_F5:
-            keys[END_SEQ] = is_pressed;
+            keys[MENU] = is_pressed;
             break;
         
         default:

@@ -1,5 +1,5 @@
 /***************************************************************************
-    Cannonball Game Engine Code Entry Point.
+    Cannonball Main Entry Point.
     
     Copyright Chris White.
     See license.txt for more details.
@@ -17,17 +17,26 @@
 // SDL Code
 #include "sdl/timer.hpp"
 #include "sdl/input.hpp"
-#include "sdl/audio.hpp"
 #include "sdl/video.hpp"
 
 #include "romloader.hpp"
 #include "stdint.hpp"
+#include "main.hpp"
 #include "engine/outrun.hpp"
 #include "frontend/config.hpp"
+#include "frontend/menu.hpp"
+
+// Initialize Shared Variables
+using namespace cannonball;
+
+int cannonball::state    = STATE_BOOT;
+int cannonball::frame_ms = 0;
 
 #ifdef COMPILE_SOUND_CODE
-Audio audio;
+Audio cannonball::audio;
 #endif
+
+Menu menu;
 
 static void quit_func(int code)
 {
@@ -61,7 +70,7 @@ static void process_events(void)
 
             case SDL_QUIT:
                 // Handle quit requests (like Ctrl-c).
-                quit_func(0);
+                state = STATE_QUIT;
                 break;
         }
     }
@@ -74,34 +83,61 @@ static void tick()
 {
     process_events();
 
-    if (input.has_pressed(Input::TIMER))
-        config.engine.freeze_timer = !config.engine.freeze_timer;
-
-    if (input.has_pressed(Input::PAUSE))
-        pause_engine = !pause_engine;
-
-    if (!pause_engine || input.has_pressed(Input::STEP))
+    switch(state)
     {
-         // Tick Main Program Code
-        outrun.tick();
+        case STATE_GAME:
+        {
+            if (input.has_pressed(Input::TIMER))
+                config.engine.freeze_timer = !config.engine.freeze_timer;
 
-        // Denote keys read
-        input.frame_done();
+            if (input.has_pressed(Input::PAUSE))
+                pause_engine = !pause_engine;
 
-#ifdef COMPILE_SOUND_CODE
-        // Tick audio program code
-        osoundint.tick();
+            if (input.has_pressed(Input::MENU))
+                state = STATE_INIT_MENU;
 
-        // Tick SDL Audio
-        audio.tick();
-#endif
+            if (!pause_engine || input.has_pressed(Input::STEP))
+            {
+                outrun.tick();          
+                input.frame_done(); // Denote keys read
+
+                #ifdef COMPILE_SOUND_CODE
+                // Tick audio program code
+                osoundint.tick();
+                // Tick SDL Audio
+                audio.tick();
+                #endif
+            }
+            else
+            {                
+                input.frame_done(); // Denote keys read
+            }
+        }
+        break;
+
+        case STATE_INIT_GAME:
+            outrun.init();
+            state = STATE_GAME;
+            break;
+
+        case STATE_MENU:
+        {
+            menu.tick();
+            input.frame_done();
+            #ifdef COMPILE_SOUND_CODE
+            // Tick audio program code
+            osoundint.tick();
+            // Tick SDL Audio
+            audio.tick();
+            #endif
+        }
+        break;
+
+        case STATE_INIT_MENU:
+            menu.init();
+            state = STATE_MENU;
+            break;
     }
-    else
-    {
-        // Denote keys read
-        input.frame_done();
-    }
-
     // Draw SDL Video
     video.draw_frame();  
 }
@@ -112,18 +148,17 @@ static void main_loop()
 
     int t;
     int deltatime = 0;
-    const int FRAME_MS = 1000 / config.fps;
 
-    while (true)
+    while (state != STATE_QUIT)
     {
         // Start the frame timer
         fps.start();
         tick();
-#ifdef COMPILE_SOUND_CODE
-        deltatime = (int) (FRAME_MS * audio.adjust_speed());
-#else
-        deltatime = FRAME_MS;
-#endif
+        #ifdef COMPILE_SOUND_CODE
+        deltatime = (int) (frame_ms * audio.adjust_speed());
+        #else
+        deltatime = frame_ms;
+        #endif
         t = fps.get_ticks();
 
         // Cap Frame Rate
@@ -133,6 +168,8 @@ static void main_loop()
             SDL_Delay( deltatime - t );
         }
     }
+
+    quit_func(0);
 }
 
 int main(int argc, char* argv[])
@@ -162,8 +199,7 @@ int main(int argc, char* argv[])
 #ifdef COMPILE_SOUND_CODE
         audio.init();
 #endif
-        outrun.init();
-        //menu.init();
+        state = config.use_menu ? STATE_INIT_MENU : STATE_INIT_GAME;
 
         main_loop();
     }

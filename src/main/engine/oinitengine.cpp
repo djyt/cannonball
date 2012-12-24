@@ -621,7 +621,6 @@ void OInitEngine::init_split7()
     road_width_orig = oroad.road_pos >> 16;
     road_width_merge = oroad.road_width >> 19; // (>> 16 and then >> 3)
     road_remove_split &= ~BIT_0; // Denote we're back to normal road handling for enemy traffic logic
-    
 }
 
 // ------------------------------------------------------------------------------------------------

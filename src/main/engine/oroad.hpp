@@ -111,6 +111,9 @@ public:
     // Note: This is adjusted mid-stage for Stage 2, but remains constant for Stage 1.
 	int32_t horizon_base;
 
+	// 0x736: 0 = Base Horizon Value Not Set. 1 = Value Set.
+	uint8_t horizon_set;
+
     const static uint16_t ARRAY_LENGTH = 0x200;
 
 	// 60800 - 60BFF: Road X-Positions [Before H-Scroll Is Applied] - Same Data For Both Roads
@@ -246,9 +249,6 @@ private:
 
 	// 0x72E: Down Multiplier
 	int8_t down_mult;
-
-	// 0x736: 0 = Base Horizon Value Not Set. 1 = Value Set.
-	uint8_t horizon_set;
 
 	// 0x73A: 0 = Base Horizon Value Not Set. 1 = Value Set.
 	uint32_t horizon_mod;

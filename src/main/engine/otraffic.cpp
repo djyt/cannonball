@@ -26,11 +26,11 @@ OTraffic::~OTraffic(void)
 
 void OTraffic::init()
 {
-    ai_traffic = 0;
-    bonus_lhs = 0;
-    traffic_split = 0;
+    ai_traffic        = 0;
+    bonus_lhs         = 0;
+    traffic_split     = 0;
     collision_traffic = 0;
-    collision_mask = 0;
+    collision_mask    = 0;
 
     traffic_speed_total = 0;
     traffic_speed_avg = 0;
@@ -311,7 +311,6 @@ void OTraffic::move_spawned_sprite(oentry* sprite)
             sprite->traffic_speed += speed;
         }
 
-
         // try_lane_change:
         int16_t x_diff = sprite->xw2 - sprite->xw1;
 
@@ -328,7 +327,6 @@ void OTraffic::move_spawned_sprite(oentry* sprite)
                     sprite->xw1 -= 4;
             }
         }
-
     }
     // skip_lane_change:
     update_props(sprite);
@@ -714,7 +712,7 @@ void OTraffic::traffic_sound()
         return;
 
     // Return if we have chosen not to play sound in attract mode
-    if (outrun.game_state == GS_ATTRACT && !config.engine.dip_advertise)
+    if (outrun.game_state == GS_ATTRACT && !config.sound.advertise)
         return;
 
     // Return if we haven't spawned any traffic

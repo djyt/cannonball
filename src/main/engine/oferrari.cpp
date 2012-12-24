@@ -43,15 +43,31 @@ void OFerrari::init(oentry *f, oentry *p1, oentry *p2, oentry *s)
     spr_pass2->control   |= OSprites::ENABLE;
     spr_shadow->control  |= OSprites::ENABLE;
 
-    steering_old = 0;
-    road_width_old = 0;
-    car_state = CAR_NORMAL;
-    gear_smoke = 0;
-    gfx_smoke = 0;
-    cornering = 0;
-    cornering_old = 0;
-    sprite_slip_copy = 0;
-    car_ctrl_active = true;
+    state             = 0;
+    counter           = 0;
+    steering_old      = 0;
+    road_width_old    = 0;
+    car_state         = CAR_NORMAL;
+    gear_smoke        = 0;
+    gfx_smoke         = 0;
+    brake_subtract    = 0;
+    gear_counter      = 0;
+    rev_adjust        = 0;
+    cornering         = 0;
+    cornering_old     = 0;
+    car_ctrl_active   = true;
+
+    sprite_ai_counter = 0;
+    sprite_ai_curve   = 0;
+    sprite_ai_x       = 0;
+    sprite_ai_steer   = 0;
+    sprite_car_x_bak  = 0;
+    sprite_wheel_state= 0;
+    sprite_slip_copy  = 0;
+    wheel_pal         = 0;
+    sprite_pass_y     = 0;
+    wheel_frame_reset = 0;
+    wheel_counter     = 0;
 }
 
 // Reset all values relating to car speed, revs etc.

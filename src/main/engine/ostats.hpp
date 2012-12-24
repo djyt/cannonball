@@ -91,6 +91,8 @@ public:
     OStats(void);
     ~OStats(void);
 
+    void init();
+
     void clear_stage_times();
     void clear_route_info();
 

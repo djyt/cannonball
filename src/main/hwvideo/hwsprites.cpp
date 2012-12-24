@@ -56,12 +56,7 @@ hwsprites::~hwsprites()
 
 void hwsprites::init(const uint8_t* src_sprites)
 {
-    // Clear Sprite RAM buffers
-    for (uint16_t i = 0; i < SPRITE_RAM_SIZE; i++)
-    {
-        ram[i] = 0;
-        ramBuff[i] = 0;
-    }
+    reset();
 
     // Convert S16 tiles to a more useable format
     const uint8_t *spr = src_sprites;
@@ -75,6 +70,17 @@ void hwsprites::init(const uint8_t* src_sprites)
 
         sprites[i] = (d0 << 24) | (d1 << 16) | (d2 << 8) | d3;
     }
+}
+
+void hwsprites::reset()
+{
+    // Clear Sprite RAM buffers
+    for (uint16_t i = 0; i < SPRITE_RAM_SIZE; i++)
+    {
+        ram[i] = 0;
+        ramBuff[i] = 0;
+    }
+
 }
 
 // Clip areas of the screen in wide-screen mode

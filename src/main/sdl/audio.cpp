@@ -51,62 +51,86 @@ Audio::~Audio()
 
 void Audio::init()
 {
-    if(SDL_Init(SDL_INIT_AUDIO) == -1) 
+    if (config.sound.enabled)
+        start_audio();
+}
+
+void Audio::start_audio()
+{
+    if (!sound_enabled)
     {
-        std::cout << "Error initalizing audio: " << SDL_GetError() << std::endl;
-        return;
+        if(SDL_Init(SDL_INIT_AUDIO) == -1) 
+        {
+            std::cout << "Error initalizing audio: " << SDL_GetError() << std::endl;
+            return;
+        }
+
+        // SDL Audio Properties
+        SDL_AudioSpec desired, obtained;
+
+        desired.freq     = FREQ;
+        desired.format   = AUDIO_S16;
+        desired.channels = CHANNELS;
+        desired.samples  = SAMPLES;
+        desired.callback = fill_audio;
+        desired.userdata = NULL;
+
+        if (SDL_OpenAudio(&desired, &obtained) == -1)
+        {
+            std::cout << "Error initalizing audio: " << SDL_GetError() << std::endl;
+            return;
+        }
+
+        if (desired.samples != obtained.samples)
+        {
+            std::cout << "Error initalizing audio: sample rate not supported." << std::endl;
+            return;
+        }
+
+        bytes_per_sample = CHANNELS * (BITS / 8);
+
+        // Start Audio
+        sound_enabled = true;
+
+        // how many fragments in the dsp buffer
+        const int DSP_BUFFER_FRAGS = 5;
+        int specified_delay_samps = (FREQ * SND_DELAY) / 1000;
+        int dsp_buffer_samps = SAMPLES * DSP_BUFFER_FRAGS + specified_delay_samps;
+
+        dsp_buffer_bytes = CHANNELS * dsp_buffer_samps * (BITS / 8);
+        dsp_read_pos  = 0;
+        dsp_write_pos = (specified_delay_samps+SAMPLES) * bytes_per_sample;
+        avg_gap = 0.0;
+        gap_est = 0;
+
+        dsp_buffer = new uint8_t[dsp_buffer_bytes];
+        for (int i = 0; i < dsp_buffer_bytes; i++)
+            dsp_buffer[i] = 0;
+
+        // Create Buffer For Mixing
+        uint16_t buffer_size = (FREQ / config.fps) * CHANNELS;
+        mix_buffer = new uint16_t[buffer_size];
+        for (int i = 0; i < buffer_size; i++)
+            mix_buffer[i] = 0;
+
+        callbacktick = 0;
+
+        SDL_PauseAudio(0);
     }
+}
 
-    // SDL Audio Properties
-    SDL_AudioSpec desired, obtained;
-
-    desired.freq     = FREQ;
-    desired.format   = AUDIO_S16;
-    desired.channels = CHANNELS;
-    desired.samples  = SAMPLES;
-    desired.callback = fill_audio;
-    desired.userdata = NULL;
-
-    if (SDL_OpenAudio(&desired, &obtained) == -1)
+void Audio::stop_audio()
+{
+    if (sound_enabled)
     {
-        std::cout << "Error initalizing audio: " << SDL_GetError() << std::endl;
-        return;
+        sound_enabled = false;
+
+        SDL_PauseAudio(1);
+        SDL_CloseAudio();
+
+        delete[] dsp_buffer;
+        delete[] mix_buffer;
     }
-
-    if (desired.samples != obtained.samples)
-    {
-        std::cout << "Error initalizing audio: sample rate not supported." << std::endl;
-        return;
-    }
-
-    bytes_per_sample = CHANNELS * (BITS / 8);
-
-    // how many fragments in the dsp buffer
-    const int DSP_BUFFER_FRAGS = 5;
-    int specified_delay_samps = (FREQ * SND_DELAY) / 1000;
-    int dsp_buffer_samps = SAMPLES * DSP_BUFFER_FRAGS + specified_delay_samps;
-
-    dsp_buffer_bytes = desired.channels * dsp_buffer_samps * (BITS / 8);
-    dsp_read_pos  = 0;
-    dsp_write_pos = (specified_delay_samps+SAMPLES) * bytes_per_sample;
-    avg_gap = 0.0;
-    gap_est = 0;
-
-    dsp_buffer = new uint8_t[dsp_buffer_bytes];
-    for (int i = 0; i < dsp_buffer_bytes; i++)
-        dsp_buffer[i] = 0;
-
-    // Create Buffer For Mixing
-    uint16_t buffer_size = (FREQ / config.fps) * CHANNELS;
-    mix_buffer = new uint16_t[buffer_size];
-    for (int i = 0; i < buffer_size; i++)
-        mix_buffer[i] = 0;
-
-    callbacktick = 0;
-
-    // Start Audio
-    sound_enabled = true;
-    SDL_PauseAudio(0);
 }
 
 // Called every frame to update the audio
@@ -189,20 +213,6 @@ void Audio::tick()
         dsp_read_pos -= dsp_buffer_bytes;
     }
     SDL_UnlockAudio();
-}
-
-void Audio::stop_audio()
-{
-    if (sound_enabled)
-    {
-        sound_enabled = false;
-
-        SDL_PauseAudio(1);
-        SDL_CloseAudio();
-
-        delete[] dsp_buffer;
-        delete[] mix_buffer;
-    }
 }
 
 // Adjust the speed of the emulator, based on audio streaming performance.

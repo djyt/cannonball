@@ -11,6 +11,7 @@ public:
     hwsprites();
     ~hwsprites();
     void init(const uint8_t*);
+    void reset();
     void set_x_clip(bool);
     void swap();
     uint8_t read(const uint16_t adr);

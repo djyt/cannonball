@@ -27,6 +27,11 @@ outils::~outils(void)
 // Seed for random number generator
 static uint32_t rnd_seed = 0;
 
+void outils::reset_random_seed()
+{
+    rnd_seed = 0;
+}
+
 uint32_t outils::random()
 {
 	// New seed value

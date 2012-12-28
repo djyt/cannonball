@@ -91,12 +91,18 @@ void Config::load(const std::string &filename)
     sound.advertise = pt_config.get("sound.advertise", 1);
 
     // ------------------------------------------------------------------------
+    // Controls
+    // ------------------------------------------------------------------------
+    controls.gear          = pt_config.get("controls.gear", 0);
+    controls.steer_speed   = pt_config.get("controls.steerspeed", 3);
+    controls.pedal_speed   = pt_config.get("controls.pedalspeed", 4);
+
+    // ------------------------------------------------------------------------
     // Engine Settings
     // ------------------------------------------------------------------------
 
     engine.dip_time      = pt_config.get("engine.time", 0);
     engine.dip_traffic   = pt_config.get("engine.traffic", 1);
-    engine.gear          = pt_config.get("engine.gear", 0);  
     
     engine.freeze_timer    = engine.dip_time == 4;
     engine.disable_traffic = engine.dip_traffic == 4;
@@ -119,10 +125,12 @@ void Config::save(const std::string &filename)
     pt_config.put("sound.enable", sound.enabled);
     pt_config.put("sound.advertise", sound.advertise);
 
+    pt_config.put("controls.gear", controls.gear);
+    pt_config.put("controls.steerspeed", controls.steer_speed);
+    pt_config.put("controls.pedalspeed", controls.pedal_speed);
+
     pt_config.put("engine.time", engine.freeze_timer ? 4 : engine.dip_time);
     pt_config.put("engine.traffic", engine.disable_traffic ? 4 : engine.dip_traffic);
-    pt_config.put("engine.gear", engine.gear); 
-
     pt_config.put("engine.levelobjects", engine.level_objects);
 
     // Tab space 1

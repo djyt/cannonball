@@ -52,14 +52,14 @@ private:
     // Variables for port
     // ------------------------------------------------------------------------
 
-    // Amount to adjust steering per tick.
-    const static uint8_t STEERING_ADJUST = 0x3;
+    // Amount to adjust steering per tick. (0x3 is a good test value)
+    uint8_t steering_inc;
 
-    // Amount to adjust acceleration per tick.
-    const static uint8_t ACC_ADJUST = 0x10;
+    // Amount to adjust acceleration per tick. (0x10 is a good test value)
+    uint8_t acc_inc;
 
-    // Amount to adjust brake per tick.
-    const static uint8_t BRAKE_ADJUST = 0x10;
+    // Amount to adjust brake per tick. (0x10 is a good test value)
+    uint8_t brake_inc;
 
     // ------------------------------------------------------------------------
     // Variables from original code

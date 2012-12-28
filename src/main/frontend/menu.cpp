@@ -57,6 +57,8 @@ const static char* ENTRY_ADVERTISE  = "ADVERTISE SOUND ";
 
 // Controls Menu
 const static char* ENTRY_GEAR       = "GEAR ";
+const static char* ENTRY_DSTEER     = "DIGITAL STEER SPEED ";
+const static char* ENTRY_DPEDAL     = "DIGITAL PEDAL SPEED ";
 
 // Game Engine Menu
 const static char* ENTRY_TIME       = "TIME ";
@@ -88,6 +90,8 @@ Menu::Menu(void)
     menu_sound.push_back(ENTRY_BACK);
 
     menu_controls.push_back(ENTRY_GEAR);
+    menu_controls.push_back(ENTRY_DSTEER);
+    menu_controls.push_back(ENTRY_DPEDAL);
     menu_controls.push_back(ENTRY_BACK);
 
     menu_engine.push_back(ENTRY_TIME);
@@ -304,8 +308,18 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_GEAR))
             {
-                if (++config.engine.gear > 2)
-                    config.engine.gear = 0;
+                if (++config.controls.gear > 2)
+                    config.controls.gear = 0;
+            }
+            else if (SELECTED(ENTRY_DSTEER))
+            {
+                if (++config.controls.steer_speed > 9)
+                    config.controls.steer_speed = 1;
+            }
+            else if (SELECTED(ENTRY_DPEDAL))
+            {
+                if (++config.controls.pedal_speed > 9)
+                    config.controls.pedal_speed = 1;
             }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
@@ -396,11 +410,15 @@ void Menu::refresh_menu()
         {
             if (SELECTED(ENTRY_GEAR))
             {
-                if (config.engine.gear == 0)      s = "MANUAL NORMAL";
-                else if (config.engine.gear == 1) s = "MANUAL CABINET";
-                else if (config.engine.gear == 2) s = "AUTOMATIC";
+                if (config.controls.gear == 0)      s = "MANUAL NORMAL";
+                else if (config.controls.gear == 1) s = "MANUAL CABINET";
+                else if (config.controls.gear == 2) s = "AUTOMATIC";
                 set_menu_text(ENTRY_GEAR, s);
             }
+            else if (SELECTED(ENTRY_DSTEER))
+                set_menu_text(ENTRY_DSTEER, config.to_string(config.controls.steer_speed));
+            else if (SELECTED(ENTRY_DPEDAL))
+                set_menu_text(ENTRY_DPEDAL, config.to_string(config.controls.pedal_speed));
         }
         else if (menu_selected == &menu_engine)
         {

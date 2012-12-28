@@ -32,6 +32,13 @@ struct sound_settings_t
     int advertise;
 };
 
+struct controls_settings_t
+{
+    int gear;
+    int steer_speed; // Steering Digital Speed
+    int pedal_speed; // Pedal Digital Speed
+};
+
 struct engine_settings_t
 {
     const static int GEAR_PRESS = 1; // For cabinets
@@ -39,7 +46,6 @@ struct engine_settings_t
 
     int dip_time;
     int dip_traffic;
-    int gear;
     bool freeze_timer;
     bool disable_traffic;
     int level_objects;
@@ -50,6 +56,7 @@ class Config
 public:
     video_settings_t video;
     sound_settings_t sound;
+    controls_settings_t controls;
     engine_settings_t engine;
 
     // Internal screen width
@@ -77,10 +84,11 @@ public:
     void save_scores();
     void clear_scores();
     void set_fps(int fps);
+
+    template<class T> std::string to_string(T i);
    
 private:
     // Conversions
-    template<class T> std::string to_string(T i);
     template<class T> std::string to_hex_string(T i);
     uint32_t from_hex_string(std::string s);
 };

@@ -22,9 +22,17 @@ OInputs::~OInputs(void)
 
 void OInputs::init()
 {
-    input_steering = STEERING_CENTRE;
-    steering_old = STEERING_CENTRE;
+    input_steering  = STEERING_CENTRE;
+    steering_old    = STEERING_CENTRE;
+    steering_adjust = 0;
+    acc_adjust      = 0;
+    brake_adjust    = 0;
     steering_change = 0;
+
+    steering_inc = config.controls.steer_speed;
+    acc_inc      = config.controls.pedal_speed * 4;
+    brake_inc    = config.controls.pedal_speed * 4;
+
     input_acc = 0;
     input_brake = 0;
     gear = false;
@@ -42,7 +50,7 @@ void OInputs::simulate_analog()
         // Recentre wheel immediately if facing other way
         if (input_steering > STEERING_CENTRE) input_steering = STEERING_CENTRE;
 
-        input_steering -= STEERING_ADJUST;
+        input_steering -= steering_inc;
         if (input_steering < STEERING_MIN) input_steering = STEERING_MIN;
     }
     else if (input.is_pressed(Input::RIGHT))
@@ -50,7 +58,7 @@ void OInputs::simulate_analog()
         // Recentre wheel immediately if facing other way
         if (input_steering < STEERING_CENTRE) input_steering = STEERING_CENTRE;
 
-        input_steering += STEERING_ADJUST;
+        input_steering += steering_inc;
         if (input_steering > STEERING_MAX) input_steering = STEERING_MAX;
     }
     // Return steering to centre if nothing pressed
@@ -58,13 +66,13 @@ void OInputs::simulate_analog()
     {
         if (input_steering < STEERING_CENTRE)
         {
-            input_steering += STEERING_ADJUST;
+            input_steering += steering_inc;
             if (input_steering > STEERING_CENTRE)
                 input_steering = STEERING_CENTRE;
         }
         else if (input_steering > STEERING_CENTRE)
         {
-            input_steering -= STEERING_ADJUST;
+            input_steering -= steering_inc;
             if (input_steering < STEERING_CENTRE)
                 input_steering = STEERING_CENTRE;
         }
@@ -76,12 +84,12 @@ void OInputs::simulate_analog()
 
     if (input.is_pressed(Input::BUTTON1))
     {
-        input_acc += ACC_ADJUST;
+        input_acc += acc_inc;
         if (input_acc > 0xFF) input_acc = 0xFF;
     }
     else
     {
-        input_acc -= ACC_ADJUST;
+        input_acc -= acc_inc;
         if (input_acc < 0) input_acc = 0;
     }
 
@@ -91,12 +99,12 @@ void OInputs::simulate_analog()
 
     if (input.is_pressed(Input::BUTTON2))
     {
-        input_brake += BRAKE_ADJUST;
+        input_brake += brake_inc;
         if (input_brake > 0xFF) input_brake = 0xFF;
     }
     else
     {
-        input_brake -= BRAKE_ADJUST;
+        input_brake -= brake_inc;
         if (input_brake < 0) input_brake = 0;
     }
 }
@@ -108,11 +116,11 @@ void OInputs::do_gear()
     // ------------------------------------------------------------------------
 
     // Automatic Gears: Don't do anything
-    if (config.engine.gear == config.engine.GEAR_AUTO)
+    if (config.controls.gear == config.engine.GEAR_AUTO)
         return;
 
     // Manual: Cabinet Shifter
-    if (config.engine.gear == config.engine.GEAR_PRESS)
+    if (config.controls.gear == config.engine.GEAR_PRESS)
         gear = input.is_pressed(Input::BUTTON3);
 
     // Manual: Keyboard/Digital Button

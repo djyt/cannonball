@@ -18,6 +18,7 @@ public:
 
 	osprite(void);
 	~osprite(void);
+    void init();
 
 	uint16_t get_x();
 	uint16_t get_y();

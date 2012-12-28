@@ -42,6 +42,9 @@ public:
     // This is initalized based on the config
     uint8_t no_sprites;
 
+    // Total number of object entries, including SPRITE_ENTRIES, FERRARI, PASSENGERS, TRAFFIC etc.
+    const static uint8_t JUMP_ENTRIES_TOTAL = SPRITE_ENTRIES + 24;
+
     const static uint8_t SPRITE_FERRARI = SPRITE_ENTRIES + 1;
     const static uint8_t SPRITE_PASS1   = SPRITE_ENTRIES + 2;   // Passengers
     const static uint8_t SPRITE_PASS2   = SPRITE_ENTRIES + 3;
@@ -67,10 +70,10 @@ public:
     const static uint8_t SPRITE_FLAG  = SPRITE_ENTRIES + 21;    // Flag Man
 
 	// Jump Table Sprite Entries
-	oentry jump_table[SPRITE_ENTRIES + 24]; // added 24 here for ferrari code and other bits
+	oentry jump_table[JUMP_ENTRIES_TOTAL]; 
 
 	// Converted sprite entries in RAM for hardware.
-	osprite sprite_entries[SPRITE_ENTRIES + 24];
+	osprite sprite_entries[JUMP_ENTRIES_TOTAL];
 
 	// -------------------------------------------------------------------------
 	// Function Holders

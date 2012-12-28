@@ -35,6 +35,15 @@
 
 osprite::osprite(void)
 {
+
+}
+
+osprite::~osprite(void)
+{
+}
+
+void osprite::init()
+{
     data[0] = 0;
     data[1] = 0;
     data[2] = 0;
@@ -43,10 +52,6 @@ osprite::osprite(void)
     data[5] = 0;
     data[6] = 0;
     scratch = 0;
-}
-
-osprite::~osprite(void)
-{
 }
 
 // X is now stored separately (not in the original data structure)

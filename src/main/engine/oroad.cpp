@@ -56,21 +56,21 @@ int16_t ORoad::get_road_y(uint16_t index)
 void ORoad::init()
 {
     // Extra initalization code here
-    road_pos = 0;
+    road_pos         = 0;
     tilemap_h_target = 0;
     stage_lookup_off = 0;
-    road_width_bak = 0;
-    car_x_bak = 0;
-    height_lookup = 0;
-    road_pos_change = 0;
-    road_load_bonus = 0;
-    road_ctrl = ROAD_OFF;
-    road_load_split = 0;
-    
-    horizon_y2 = 0;
-    horizon_y_bak = 0;
-    pos_fine = 0;
-    horizon_base = 0;
+    road_width_bak   = 0;
+    car_x_bak        = 0;
+    height_lookup    = 0;
+    road_pos_change  = 0;
+    road_load_bonus  = 0;
+    road_ctrl        = ROAD_OFF;
+    road_load_split  = 0;
+    road_width       = 0;  
+    horizon_y2       = 0;
+    horizon_y_bak    = 0;
+    pos_fine         = 0;
+    horizon_base     = 0;
 
     for (int i = 0; i < ARRAY_LENGTH; i++)
     {

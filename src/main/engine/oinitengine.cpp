@@ -29,26 +29,35 @@ OInitEngine::~OInitEngine()
 // Source: 0x8360
 void OInitEngine::init()
 {
-    ostats.game_completed = 0;
+    ostats.game_completed    = 0;
 
+    ingame_engine          = false;
+    ingame_counter         = 0;
     // Clear shared ram area (0x260000 - 0x267FFF). Unfinished.
-    ingame_counter = 0;
-    ostats.cur_stage = 0;
+    ingame_counter         = 0;
+    ostats.cur_stage       = 0;
     oroad.stage_lookup_off = 0;
-    rd_split_state = SPLIT_NONE;
-    car_x_pos = 0;
-    car_x_old = 0;
-    road_curve = 0;
-    road_curve_next = 0;
-    road_remove_split = 0;
-    road_width_next = 0;
-    road_width_adj = 0;
-    change_width = 0;
-    granular_rem = 0;
-    pos_fine_old = 0;
-    road_width_orig = 0;
-    road_width_merge = 0;
-    route_updated = 0;
+    rd_split_state         = SPLIT_NONE;
+    road_type              = ROAD_NOCHANGE;
+    road_type_next         = ROAD_NOCHANGE;
+    end_stage_props        = 0;
+    car_increment          = 0;
+    car_x_pos              = 0;
+    car_x_old              = 0;
+    checkpoint_marker      = 0;
+    road_curve             = 0;
+    road_curve_next        = 0;
+    road_remove_split      = 0;
+    route_selected         = 0;
+    
+    road_width_next        = 0;
+    road_width_adj         = 0;
+    change_width           = 0;
+    granular_rem           = 0;
+    pos_fine_old           = 0;
+    road_width_orig        = 0;
+    road_width_merge       = 0;
+    route_updated          = 0;
 
     // todo: Note we need to include code to skip SetSoundReset when initgameengine2 is called
 	init_road_seg_master();

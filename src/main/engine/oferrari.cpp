@@ -32,11 +32,11 @@ OFerrari::~OFerrari(void)
 
 void OFerrari::init(oentry *f, oentry *p1, oentry *p2, oentry *s)
 {
-    state = FERRARI_SEQ1;
+    state       = FERRARI_SEQ1;
     spr_ferrari = f;
-    spr_pass1 = p1;
-    spr_pass2 = p2;
-    spr_shadow = s;
+    spr_pass1   = p1;
+    spr_pass2   = p2;
+    spr_shadow  = s;
 
     spr_ferrari->control |= OSprites::ENABLE;
     spr_pass1->control   |= OSprites::ENABLE;
@@ -48,15 +48,22 @@ void OFerrari::init(oentry *f, oentry *p1, oentry *p2, oentry *s)
     steering_old      = 0;
     road_width_old    = 0;
     car_state         = CAR_NORMAL;
-    gear_smoke        = 0;
-    gfx_smoke         = 0;
-    brake_subtract    = 0;
-    gear_counter      = 0;
-    rev_adjust        = 0;
-    cornering         = 0;
-    cornering_old     = 0;
-    car_ctrl_active   = true;
-
+    auto_brake        = false;
+    torque_index      = 0;
+    torque            = 0;
+    revs              = 0;
+    rev_shift         = 0;
+    wheel_state       = WHEELS_ON;
+    wheel_traction    = TRACTION_ON;
+    is_slipping       = 0;
+    slip_sound        = 0;
+    car_inc_old       = 0;
+    car_x_diff        = 0;
+    rev_stop_flag     = 0;
+    revs_post_stop    = 0;
+    acc_post_stop     = 0;
+    rev_pitch1        = 0;
+    rev_pitch2        = 0;
     sprite_ai_counter = 0;
     sprite_ai_curve   = 0;
     sprite_ai_x       = 0;
@@ -68,31 +75,46 @@ void OFerrari::init(oentry *f, oentry *p1, oentry *p2, oentry *s)
     sprite_pass_y     = 0;
     wheel_frame_reset = 0;
     wheel_counter     = 0;
+    
+    road_width_old    = 0;
+    accel_value       = 0;
+    accel_value_bak   = 0;
+    brake_value       = 0;
+    gear_value        = false;
+    gear_bak          = false;
+    brake_subtract    = 0;
+    gear_counter      = 0;
+    rev_adjust        = 0;
+    gear_smoke        = 0;
+    gfx_smoke         = 0;
+    cornering         = 0;
+    cornering_old     = 0;
+    car_ctrl_active   = true;
 }
 
 // Reset all values relating to car speed, revs etc.
 // Source: 0x61F2
 void OFerrari::reset_car()
 {
-    rev_shift = 1;  // Set normal rev shift value
+    rev_shift            = 1;  // Set normal rev shift value
     ocrash.spin_control2 = 0;
-    revs = 0;
+    revs                 = 0;
     oinitengine.car_increment = 0;
-    gear_value = 0;
-    gear_bak = 0;
-    rev_adjust = 0;
-    car_inc_old = 0;
-    torque = 0x1000;
-    torque_index = 0x1F;
-    rev_stop_flag = 0;
+    gear_value           = 0;
+    gear_bak             = 0;
+    rev_adjust           = 0;
+    car_inc_old          = 0;
+    torque               = 0x1000;
+    torque_index         = 0x1F;
+    rev_stop_flag        = 0;
     oinitengine.ingame_engine = false;
     oinitengine.ingame_counter = 0x1E; // Set ingame counter (time until we hand control to user)
-    slip_sound = sound::STOP_SLIP;
+    slip_sound           = sound::STOP_SLIP;
     acc_adjust1 = acc_adjust2 = acc_adjust3 = 0;
     brake_adjust1 = brake_adjust2 = brake_adjust3 = 0;
-    auto_brake = false;
-    counter = 0;
-    is_slipping = 0;    // Denote not slipping/skidding
+    auto_brake           = false;
+    counter              = 0;
+    is_slipping          = 0;    // Denote not slipping/skidding
 }
 
 void OFerrari::tick()
@@ -941,7 +963,7 @@ void OFerrari::move()
 
         // Set Gear For Demo Mode
         if (outrun.game_state == GS_ATTRACT || outrun.game_state == GS_BONUS || 
-            config.engine.gear == config.engine.GEAR_AUTO)
+            config.controls.gear == config.engine.GEAR_AUTO)
         {
             // demo_mode_gear
             oinputs.gear = (oinitengine.car_increment >> 16 > 0xA0);

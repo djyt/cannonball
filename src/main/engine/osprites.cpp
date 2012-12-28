@@ -40,6 +40,10 @@ void OSprites::init()
         sprite_order2[i] = 0;
     }
 
+    // Reset hardware entries
+    for (uint16_t i = 0; i < JUMP_ENTRIES_TOTAL; i++)
+        sprite_entries[i].init();
+
     for (uint8_t i = 0; i < SPRITE_ENTRIES; i++)
         jump_table[i].init(i);
 
@@ -141,22 +145,22 @@ void OSprites::init()
     jump_table[SPRITE_FLAG].init(SPRITE_FLAG);
     oanimseq.init(jump_table);
     
-    seg_pos = 0;
-    seg_total_sprites = 0;
-    seg_sprite_freq = 0;
-    seg_spr_offset2 = 0;
-    seg_spr_offset1 = 0;
-    seg_spr_addr = 0;
+    seg_pos             = 0;
+    seg_total_sprites   = 0;
+    seg_sprite_freq     = 0;
+    seg_spr_offset2     = 0;
+    seg_spr_offset1     = 0;
+    seg_spr_addr        = 0;
 
-    do_sprite_swap = false;
+    do_sprite_swap      = false;
     sprite_scroll_speed = 0;
-    shadow_offset = 0;
-    sprite_count = 0;
-    spr_cnt_main = 0;
-    spr_cnt_shadow = 0;
+    shadow_offset       = 0;
+    sprite_count        = 0;
+    spr_cnt_main        = 0;
+    spr_cnt_shadow      = 0;
 
-    spr_col_pal = 0;
-    pal_copy_count = 0;    
+    spr_col_pal         = 0;
+    pal_copy_count      = 0;    
 }
 
 // Disable All Sprite Entries

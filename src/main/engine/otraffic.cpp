@@ -33,11 +33,11 @@ void OTraffic::init()
     collision_mask    = 0;
 
     traffic_speed_total = 0;
-    traffic_speed_avg = 0;
-    traffic_pal_cycle = 0;
-    traffic_count = 0;
-    spawn_counter = 0;
-    spawn_location = 0;
+    traffic_speed_avg   = 0;
+    traffic_pal_cycle   = 0;
+    traffic_count       = 0;
+    spawn_counter       = 0;
+    spawn_location      = 0;
     // Set wheel animation reset value across all traffic (moved from spawn traffic routine)
     wheel_counter = wheel_reset = 12;
 }
@@ -734,6 +734,5 @@ void OTraffic::traffic_sound()
         // Position into screen is used to set volume
         uint8_t vol = (t->road_priority & 0x1F0) >> 1;
         osoundint.engine_data[sound::TRAFFIC1 + i] = pan | vol;
-        //std::cout << (sound::TRAFFIC1 + i) << std::hex << " pan: " << pan << " vol: " << vol << std::endl;
     }
 }

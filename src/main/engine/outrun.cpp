@@ -52,9 +52,9 @@ void Outrun::init()
     ohiscore.init_def_scores();  // Initialize default hi-score entries
     config.load_scores();        // Load saved hi-score entries
     ostats.init();
+    init_jump_table();
     oinitengine.init();
     osoundint.init();
-    init_jump_table();
     outils::reset_random_seed(); // Ensure we match the genuine boot up of the original game each time
 
     if (LOAD_LEVEL)
@@ -353,8 +353,8 @@ void Outrun::main_switch()
             //ROM:0000B3F6                 move.w  #-1,(ingame_active2).l
             video.clear_text_ram();
             oferrari.car_ctrl_active = true;
-            oinitengine.init();
             init_jump_table();
+            oinitengine.init();
             // Timing Hack to ensure horizon is correct
             // Note that the original code disables the screen, and waits for the second CPU's interrupt instead
             oroad.tick();
@@ -502,8 +502,8 @@ void Outrun::main_switch()
             {
                 //ROM:0000B700                 bclr    #5,(ppi1_value).l                   ; Turn screen off (not activated until PPI written to)
                 oferrari.car_ctrl_active = true; // 0 : Allow road updates
-                oinitengine.init();
                 init_jump_table();
+                oinitengine.init();
                 //ROM:0000B716                 bclr    #0,(byte_260550).l
                 game_state = GS_REINIT;          // Reinit game to attract mode
             }

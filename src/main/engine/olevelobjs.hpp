@@ -21,7 +21,7 @@
 class OLevelObjs
 {
     public:
-        // Spray Counter (Going Through Water). Might need to be signed?
+        // Spray Counter (Going Through Water).
         uint16_t spray_counter;
 
         // Wheel Spray Type

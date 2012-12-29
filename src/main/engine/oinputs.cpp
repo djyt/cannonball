@@ -82,7 +82,7 @@ void OInputs::simulate_analog()
     // ACCELERATION
     // ------------------------------------------------------------------------
 
-    if (input.is_pressed(Input::BUTTON1))
+    if (input.is_pressed(Input::ACCEL))
     {
         input_acc += acc_inc;
         if (input_acc > 0xFF) input_acc = 0xFF;
@@ -97,7 +97,7 @@ void OInputs::simulate_analog()
     // BRAKE
     // ------------------------------------------------------------------------
 
-    if (input.is_pressed(Input::BUTTON2))
+    if (input.is_pressed(Input::BRAKE))
     {
         input_brake += brake_inc;
         if (input_brake > 0xFF) input_brake = 0xFF;
@@ -121,12 +121,12 @@ void OInputs::do_gear()
 
     // Manual: Cabinet Shifter
     if (config.controls.gear == config.engine.GEAR_PRESS)
-        gear = input.is_pressed(Input::BUTTON3);
+        gear = input.is_pressed(Input::GEAR);
 
     // Manual: Keyboard/Digital Button
     else
     {
-        if (input.has_pressed(Input::BUTTON3))
+        if (input.has_pressed(Input::GEAR))
             gear = !gear;
     }
 }

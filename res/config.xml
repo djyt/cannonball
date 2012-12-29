@@ -2,9 +2,12 @@
 
 <!-- 
     Use the inbuilt menu system. 
-    You can disable it and edit this config file if it makes more sense for your system.
+    You can disable it and edit this config file instead if it makes more sense for your system.
  -->
-<menu>1</menu>
+<menu>
+    <enabled>1</enabled>
+    <roadspeed>50</roadspeed>
+</menu>
 
 <!-- 
     Video Settings
@@ -62,6 +65,30 @@
     -->
     <gear>0</gear>
     
+    <!-- Keyboard Button Configuration. Easiest to configure with inbuilt menu. -->
+    <keyconfig>
+        <up>273</up>
+        <down>274</down>
+        <left>276</left>
+        <right>275</right>
+        <acc>122</acc>
+        <brake>120</brake>
+        <gear>32</gear>
+        <start>49</start>
+        <coin>53</coin>
+        <menu>286</menu>    
+    </keyconfig>
+    
+    <!-- Gamepad / Joystick Button Configuration. Easiest to configure with inbuilt menu. -->
+    <padconfig>
+        <acc>0</acc>
+        <brake>1</brake>
+        <gear>2</gear>
+        <start>3</start>
+        <coin>4</coin>
+        <menu>5</menu>    
+    </padconfig>
+    
     <!-- Digital Controls: Steering Adjust Speed (1 to 9) -->
     <steerspeed>3</steerspeed>
     
@@ -95,4 +122,10 @@
          This fixes the broken arches in Gateway for example.
     --->
     <levelobjects>1</levelobjects>
+    
+    <!-- Use the original random number generator seed to match the setup of
+         the original game. Disable to use a truly random setup.
+         This will affect initial traffic patterns in attract mode for example.
+    -->
+    <randomgen>1</randomgen>
 </engine>

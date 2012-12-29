@@ -43,6 +43,7 @@ static void quit_func(int code)
 #ifdef COMPILE_SOUND_CODE
     audio.stop_audio();
 #endif
+    input.stop();
     SDL_Quit();
     exit(code);
 }
@@ -66,6 +67,18 @@ static void process_events(void)
 
             case SDL_KEYUP:
                 input.handle_key_up(&event.key.keysym);
+                break;
+
+            case SDL_JOYAXISMOTION:
+                input.handle_joy_axis(&event.jaxis);
+                break;
+
+            case SDL_JOYBUTTONDOWN:
+                input.handle_joy_down(&event.jbutton);
+                break;
+
+            case SDL_JOYBUTTONUP:
+                input.handle_joy_up(&event.jbutton);
                 break;
 
             case SDL_QUIT:
@@ -175,7 +188,7 @@ static void main_loop()
 int main(int argc, char* argv[])
 {
     // Initialize timer and video systems
-    if( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO ) == -1 ) 
+    if( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1 ) 
     { 
         std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
         return 1; 
@@ -199,9 +212,13 @@ int main(int argc, char* argv[])
 #ifdef COMPILE_SOUND_CODE
         audio.init();
 #endif
-        state = config.use_menu ? STATE_INIT_MENU : STATE_INIT_GAME;
+        state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
 
-        main_loop();
+        // Initalize controls
+        input.init(config.controls.keyconfig, config.controls.padconfig);
+        // Populate menus
+        menu.populate();
+        main_loop();  // Loop until we quit the app
     }
     else
     {

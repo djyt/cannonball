@@ -45,9 +45,11 @@ const static char* ENTRY_SOUND      = "SOUND";
 const static char* ENTRY_CONTROLS   = "CONTROLS";
 const static char* ENTRY_ENGINE     = "GAME ENGINE";
 const static char* ENTRY_SCORES     = "CLEAR HISCORES";
+const static char* ENTRY_SAVE       = "SAVE AND RETURN";
 
 // Video Menu
 const static char* ENTRY_FPS        = "FRAME RATE ";
+const static char* ENTRY_WIDESCREEN = "WIDESCREEN ";
 
 // Sound Menu
 const static char* ENTRY_MUTE       = "SOUND ";
@@ -57,6 +59,8 @@ const static char* ENTRY_ADVERTISE  = "ADVERTISE SOUND ";
 
 // Controls Menu
 const static char* ENTRY_GEAR       = "GEAR ";
+const static char* ENTRY_REDEFJOY   = "REDEFINE GAMEPAD";
+const static char* ENTRY_REDEFKEY   = "REDEFINE KEYS";
 const static char* ENTRY_DSTEER     = "DIGITAL STEER SPEED ";
 const static char* ENTRY_DPEDAL     = "DIGITAL PEDAL SPEED ";
 
@@ -67,6 +71,16 @@ const static char* ENTRY_OBJECTS    = "OBJECTS ";
 
 Menu::Menu(void)
 {
+
+}
+
+
+Menu::~Menu(void)
+{
+}
+
+void Menu::populate()
+{
     // Create Menus
     menu_main.push_back(ENTRY_PLAYGAME);
     menu_main.push_back(ENTRY_SETTINGS);
@@ -74,13 +88,16 @@ Menu::Menu(void)
     menu_main.push_back(ENTRY_EXIT);
 
     menu_settings.push_back(ENTRY_VIDEO);
+    #ifdef COMPILE_SOUND_CODE
     menu_settings.push_back(ENTRY_SOUND);
+    #endif
     menu_settings.push_back(ENTRY_CONTROLS);
     menu_settings.push_back(ENTRY_ENGINE);
     menu_settings.push_back(ENTRY_SCORES);
-    menu_settings.push_back(ENTRY_BACK);
+    menu_settings.push_back(ENTRY_SAVE);
 
     menu_video.push_back(ENTRY_FPS);
+    menu_video.push_back(ENTRY_WIDESCREEN);
     menu_video.push_back(ENTRY_BACK);
 
     menu_sound.push_back(ENTRY_MUTE);
@@ -90,6 +107,8 @@ Menu::Menu(void)
     menu_sound.push_back(ENTRY_BACK);
 
     menu_controls.push_back(ENTRY_GEAR);
+    menu_controls.push_back(ENTRY_REDEFKEY);
+    if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
     menu_controls.push_back(ENTRY_DSTEER);
     menu_controls.push_back(ENTRY_DPEDAL);
     menu_controls.push_back(ENTRY_BACK);
@@ -104,13 +123,17 @@ Menu::Menu(void)
     menu_about.push_back(" ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");
 
-    menu_clearscores.push_back("SAVED SCORES CLEARED!");
-
-}
-
-
-Menu::~Menu(void)
-{
+    // Redefine menu text
+    text_redefine.push_back("PRESS UP");
+    text_redefine.push_back("PRESS DOWN");
+    text_redefine.push_back("PRESS LEFT");
+    text_redefine.push_back("PRESS RIGHT");
+    text_redefine.push_back("PRESS ACCELERATE");
+    text_redefine.push_back("PRESS BRAKE");
+    text_redefine.push_back("PRESS GEAR");
+    text_redefine.push_back("PRESS START");
+    text_redefine.push_back("PRESS COIN IN");
+    text_redefine.push_back("PRESS MENU");
 }
 
 void Menu::init()
@@ -121,7 +144,9 @@ void Menu::init()
     ologo.enable(LOGO_Y);
 
     // Setup palette, road and colours for background
-    oinitengine.road_seg_master = roms.rom0.read32(ROAD_SEG_TABLE + (0x3b << 2));
+    oroad.stage_lookup_off = 9;
+    oinitengine.init_road_seg_master();
+    //oinitengine.road_seg_master = roms.rom0.read32(ROAD_SEG_TABLE + (0x3b << 2));
     opalette.setup_sky_palette();
     opalette.setup_ground_color();
 	opalette.setup_road_centre();
@@ -131,9 +156,10 @@ void Menu::init()
     otiles.setup_palette_default();
 
     oroad.init();
-    oroad.road_ctrl = ORoad::ROAD_BOTH_P0;
+    //oroad.road_ctrl = ORoad::ROAD_BOTH_P0;
     oroad.horizon_set = 1;
-    oroad.horizon_base = HORIZON_DEST + 0x100;;
+    oroad.horizon_base = HORIZON_DEST + 0x100;
+    oinitengine.car_increment = 0;
 
     set_menu(&menu_main);
     refresh_menu();
@@ -142,8 +168,10 @@ void Menu::init()
     osoundint.has_booted = true;
     osoundint.init();
 
-    save_settings = false;
     frame = 0;
+    message_counter = 0;
+
+    state = STATE_MENU;
 }
 
 void Menu::tick()
@@ -151,20 +179,54 @@ void Menu::tick()
     // Skip odd frames at 60fps
     frame++;
 
-    tick_menu();
-
-    // Do Text
     video.clear_text_ram();
-    draw_menu_options();
-    
-    // Do Animations at 30 fps
-    if (config.fps == 60 && (frame & 1) == 0)
+
+    if (state == STATE_MENU)
     {
+        tick_menu();
+        draw_menu_options();
+    }
+    else if (state == STATE_REDEFINE_KEYS)
+    {
+        redefine_keyboard();
+    }
+    else if (state == STATE_REDEFINE_JOY)
+    {
+        redefine_joystick();
+    }
+
+    // Show messages
+    if (message_counter > 0)
+    {
+        message_counter--;
+        ohud.blit_text_new(0, 1, msg.c_str(), ohud.GREY);
+    }
+        
+    // Do Animations at 30 fps
+    if (config.fps != 60 || (frame & 1) == 0)
+    {
+        // Shift horizon
         if (oroad.horizon_base > HORIZON_DEST)
         {
             oroad.horizon_base -= 2;
             if (oroad.horizon_base < HORIZON_DEST)
                 oroad.horizon_base = HORIZON_DEST;
+        }
+        // Advance road
+        else
+        {
+            if (oinitengine.car_increment < (uint32_t) config.menu.road_scroll_speed << 16)
+                oinitengine.car_increment += (1 << 16);
+            uint32_t result = 0x12F * (oinitengine.car_increment >> 16);
+            oroad.road_pos_change = result;
+            oroad.road_pos += result;
+            if (oroad.road_pos >> 16 > 0x79C) // loop to beginning of track data
+                oroad.road_pos = 0;
+            oinitengine.update_road();
+            oinitengine.set_granular_position();
+            oroad.road_width_bak = oroad.road_width >> 16; 
+            oroad.car_x_bak = -oroad.road_width_bak; 
+            oinitengine.car_x_pos = oroad.car_x_bak;
         }
 
         ologo.tick();
@@ -209,6 +271,18 @@ void Menu::draw_menu_options()
     }
 }
 
+// Draw a single line of text
+void Menu::draw_text(std::string s)
+{
+    // Centre text
+    int8_t x = 20 - (s.length() >> 1);
+
+    // Find central column in screen. 
+    int8_t y = 13 + ((ROWS - 13) >> 1) - 1;
+
+    ohud.blit_text_new(x, y, s.c_str(), ohud.GREEN);
+}
+
 #define SELECTED(string) boost::starts_with(OPTION, string)
 
 void Menu::tick_menu()
@@ -228,7 +302,7 @@ void Menu::tick_menu()
         if (--cursor < 0)
             cursor = menu_selected->size() - 1;
     }
-    else if (input.has_pressed(Input::BUTTON1))
+    else if (input.has_pressed(Input::ACCEL) || input.has_pressed(Input::START))
     {
         osoundint.queue_sound(sound::BEEP1);
 
@@ -239,7 +313,6 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_PLAYGAME))
             {
-                if (save_settings) config.save("config.xml"); // Save settings
                 cannonball::state = cannonball::STATE_INIT_GAME;
                 osoundint.queue_clear();
             }
@@ -252,24 +325,33 @@ void Menu::tick_menu()
         }
         else if (menu_selected == &menu_settings)
         {
-            // We've entered the settings menu, so let's save settings to be safe.
-            save_settings = true;
-
             if (SELECTED(ENTRY_VIDEO))
                 set_menu(&menu_video);
             else if (SELECTED(ENTRY_SOUND))
                 set_menu(&menu_sound);
             else if (SELECTED(ENTRY_CONTROLS))
+            {
+                if (input.gamepad)
+                    display_message("GAMEPAD FOUND");
                 set_menu(&menu_controls);
+            }
             else if (SELECTED(ENTRY_ENGINE))
                 set_menu(&menu_engine);
             else if (SELECTED(ENTRY_SCORES))
             {
-                config.clear_scores();
-                set_menu(&menu_clearscores);
+                if (config.clear_scores())
+                    display_message("SCORES CLEARED");
+                else
+                    display_message("NO SAVED SCORES FOUND!");
             }
-            else if (SELECTED(ENTRY_BACK))
+            else if (SELECTED(ENTRY_SAVE))
+            {
+                if (config.save("config.xml"))
+                    display_message("SETTINGS SAVED");
+                else
+                    display_message("ERROR SAVING SETTINGS!");
                 set_menu(&menu_main);
+            }
         }
         else if (menu_selected == &menu_about)
         {
@@ -277,7 +359,12 @@ void Menu::tick_menu()
         }
         else if (menu_selected == &menu_video)
         {
-            if (SELECTED(ENTRY_FPS))
+            if (SELECTED(ENTRY_WIDESCREEN))
+            {
+                config.video.widescreen = !config.video.widescreen;
+                display_message("REQUIRES RESTART");
+            }
+            else if (SELECTED(ENTRY_FPS))
             {
                 if (++config.video.fps > 2)
                     config.video.fps = 0;
@@ -310,6 +397,18 @@ void Menu::tick_menu()
             {
                 if (++config.controls.gear > 2)
                     config.controls.gear = 0;
+            }
+            else if (SELECTED(ENTRY_REDEFKEY))
+            {
+                state = STATE_REDEFINE_KEYS;
+                redef_state = 0;
+                input.key_press = -1;
+            }
+            else if (SELECTED(ENTRY_REDEFJOY))
+            {
+                state = STATE_REDEFINE_JOY;
+                redef_state = 0;
+                input.joy_button = -1;
             }
             else if (SELECTED(ENTRY_DSTEER))
             {
@@ -375,7 +474,7 @@ void Menu::set_menu(std::vector<std::string> *menu)
     menu_selected = menu;
     cursor = 0;
 
-    is_text_menu =  (menu == &menu_about || menu == &menu_clearscores);
+    is_text_menu = (menu == &menu_about);
 }
 
 // Refresh menu options with latest config data
@@ -391,7 +490,9 @@ void Menu::refresh_menu()
 
         if (menu_selected == &menu_video)
         {
-            if (SELECTED(ENTRY_FPS))
+            if (SELECTED(ENTRY_WIDESCREEN))
+                set_menu_text(ENTRY_WIDESCREEN, config.video.widescreen ? "ON" : "OFF");
+            else if (SELECTED(ENTRY_FPS))
             {               
                 if (config.video.fps == 0)      s = "30 FPS";
                 else if (config.video.fps == 1) s = "ORIGINAL";
@@ -410,7 +511,7 @@ void Menu::refresh_menu()
         {
             if (SELECTED(ENTRY_GEAR))
             {
-                if (config.controls.gear == 0)      s = "MANUAL NORMAL";
+                if (config.controls.gear == 0)      s = "MANUAL";
                 else if (config.controls.gear == 1) s = "MANUAL CABINET";
                 else if (config.controls.gear == 2) s = "AUTOMATIC";
                 set_menu_text(ENTRY_GEAR, s);
@@ -454,4 +555,65 @@ void Menu::set_menu_text(std::string s1, std::string s2)
     s1.append(s2);
     menu_selected->erase(menu_selected->begin() + cursor);
     menu_selected->insert(menu_selected->begin() + cursor, s1);
+}
+
+void Menu::redefine_keyboard()
+{
+    switch (redef_state)
+    {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+            draw_text(text_redefine.at(redef_state));
+            if (input.key_press != -1)
+            {
+                config.controls.keyconfig[redef_state] = input.key_press;
+                redef_state++;
+                input.key_press = -1;
+            }
+            break;
+
+        case 10:
+            state = STATE_MENU;
+            break;
+    }
+}
+
+void Menu::redefine_joystick()
+{
+    switch (redef_state)
+    {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            draw_text(text_redefine.at(redef_state + 4));
+            if (input.joy_button != -1)
+            {
+                config.controls.padconfig[redef_state] = input.joy_button;
+                redef_state++;
+                input.joy_button = -1;
+            }
+            break;
+
+        case 6:
+            state = STATE_MENU;
+            break;
+    }
+}
+
+// Display a contextual message in the top left of the screen
+void Menu::display_message(std::string s)
+{
+    msg = s;
+    message_counter = MESSAGE_TIME * config.fps;
 }

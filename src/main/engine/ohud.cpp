@@ -551,6 +551,8 @@ void OHud::blit_text_new(uint16_t x, uint16_t y, const char* text, uint16_t pal)
             c -= 0x20;
         else if (c == '©')
             c = 0x10;
+        else if (c == '-')
+            c = 0x2d;
         else if (c == '.')
             c = 0x5b;
 

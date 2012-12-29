@@ -21,9 +21,9 @@ public:
         RIGHT = 1,
         UP = 2,
         DOWN = 3,
-        BUTTON1 = 4,
-        BUTTON2 = 5,
-        BUTTON3 = 6,
+        ACCEL = 4,
+        BRAKE = 5,
+        GEAR = 6,
 
         START = 7,
         COIN  = 8,
@@ -37,17 +37,40 @@ public:
     bool keys[13];
     bool keys_old[13];
 
+    // Has gamepad been found?
+    bool gamepad;
+
+    // Latch last key press for redefines
+    int key_press;
+
+    // Latch last joystick button press for redefines
+    int16_t joy_button;
+
     Input(void);
     ~Input(void);
 
+    void init(int*, int*);
+    void stop();
+
     void handle_key_up(SDL_keysym*);
     void handle_key_down(SDL_keysym*);
+    void handle_joy_axis(SDL_JoyAxisEvent*);
+    void handle_joy_down(SDL_JoyButtonEvent*);
+    void handle_joy_up(SDL_JoyButtonEvent*);
     void frame_done();
     bool is_pressed(presses p);
     bool has_pressed(presses p);
 
 private:
-    void handle_key(SDL_keysym*, bool);
+    // SDL Joystick / Keypad
+    SDL_Joystick *stick;
+
+    // Configurations for keyboard and joypad
+    int* pad_config;
+    int* key_config;
+
+    void handle_key(const int, const bool);
+    void handle_joy(const uint8_t, const bool);
 };
 
 extern Input input;

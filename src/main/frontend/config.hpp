@@ -14,6 +14,12 @@
 
 #include "stdint.hpp"
 
+struct menu_settings_t
+{
+    int enabled;
+    int road_scroll_speed;
+};
+
 struct video_settings_t
 {
     const static int MODE_WINDOW = 0;
@@ -35,8 +41,10 @@ struct sound_settings_t
 struct controls_settings_t
 {
     int gear;
-    int steer_speed; // Steering Digital Speed
-    int pedal_speed; // Pedal Digital Speed
+    int steer_speed;   // Steering Digital Speed
+    int pedal_speed;   // Pedal Digital Speed
+    int padconfig[6];  // Joypad Button Config
+    int keyconfig[10]; // Keyboard Button Config
 };
 
 struct engine_settings_t
@@ -48,12 +56,14 @@ struct engine_settings_t
     int dip_traffic;
     bool freeze_timer;
     bool disable_traffic;
+    int randomgen;
     int level_objects;
 };
 
 class Config
 {
 public:
+    menu_settings_t menu;
     video_settings_t video;
     sound_settings_t sound;
     controls_settings_t controls;
@@ -64,9 +74,6 @@ public:
 
     // Internal screen x offset
     uint16_t s16_x_off;
-
-    // Use internal menu system?
-    int use_menu;
 
     // 30 or 60 fps
     int fps;
@@ -79,10 +86,10 @@ public:
 
     void init();
     void load(const std::string &filename);
-    void save(const std::string &filename);
+    bool save(const std::string &filename);
     void load_scores();
     void save_scores();
-    void clear_scores();
+    bool clear_scores();
     void set_fps(int fps);
 
     template<class T> std::string to_string(T i);

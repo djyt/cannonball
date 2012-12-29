@@ -38,7 +38,7 @@ uint32_t outils::random()
 	uint32_t seed = rnd_seed;
 
 	if (seed == 0)
-		seed = 0x2A6D365A;
+        seed = config.engine.randomgen ? 0x2A6D365A : std::rand();
 
 	// Random Value To Return
 	uint32_t rnd = seed;

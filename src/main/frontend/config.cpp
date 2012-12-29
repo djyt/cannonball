@@ -54,22 +54,22 @@ void Config::load(const std::string &filename)
         std::cout << "Error: " << e.what() << "\n";
     }
 
-    use_menu = pt_config.get("menu", 1);
+    // ------------------------------------------------------------------------
+    // Menu Settings
+    // ------------------------------------------------------------------------
+
+    menu.enabled           = pt_config.get("menu.enabled",   1);
+    menu.road_scroll_speed = pt_config.get("menu.roadspeed", 50);
 
     // ------------------------------------------------------------------------
     // Video Settings
     // ------------------------------------------------------------------------
-
-    // Default is 60 fps
-    video.fps        = pt_config.get("video.fps", 2);
-    // Enable Widescreen Mode
-    video.widescreen = pt_config.get("video.widescreen", 0);
-    // Video Mode: Default is Windowed
-    video.mode       = pt_config.get("video.mode", 0);
-    // Video Scale: Default is 1x
-    video.scale      = pt_config.get("video.window.scale", 1);
-    // Stretch in full-screen mode
-    video.stretch    = pt_config.get("video.fullscreen.stretch", 0);
+   
+    video.fps        = pt_config.get("video.fps",                2); // Default is 60 fps   
+    video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode   
+    video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed   
+    video.scale      = pt_config.get("video.window.scale",       1); // Video Scale: Default is 1x    
+    video.stretch    = pt_config.get("video.fullscreen.stretch", 0); // Stretch in full-screen mode
           
     set_fps(video.fps);
 
@@ -87,7 +87,7 @@ void Config::load(const std::string &filename)
     // ------------------------------------------------------------------------
     // Sound Settings
     // ------------------------------------------------------------------------
-    sound.enabled = pt_config.get("sound.enable", 1);
+    sound.enabled   = pt_config.get("sound.enable",    1);
     sound.advertise = pt_config.get("sound.advertise", 1);
 
     // ------------------------------------------------------------------------
@@ -96,12 +96,28 @@ void Config::load(const std::string &filename)
     controls.gear          = pt_config.get("controls.gear", 0);
     controls.steer_speed   = pt_config.get("controls.steerspeed", 3);
     controls.pedal_speed   = pt_config.get("controls.pedalspeed", 4);
+    controls.keyconfig[0]  = pt_config.get("controls.keyconfig.up",    273);
+    controls.keyconfig[1]  = pt_config.get("controls.keyconfig.down",  274);
+    controls.keyconfig[2]  = pt_config.get("controls.keyconfig.left",  276);
+    controls.keyconfig[3]  = pt_config.get("controls.keyconfig.right", 275);
+    controls.keyconfig[4]  = pt_config.get("controls.keyconfig.acc",   122);
+    controls.keyconfig[5]  = pt_config.get("controls.keyconfig.brake", 120);
+    controls.keyconfig[6]  = pt_config.get("controls.keyconfig.gear",  32);
+    controls.keyconfig[7]  = pt_config.get("controls.keyconfig.start", 49);
+    controls.keyconfig[8]  = pt_config.get("controls.keyconfig.coin",  53);
+    controls.keyconfig[9]  = pt_config.get("controls.keyconfig.menu",  286);
+    controls.padconfig[0]  = pt_config.get("controls.padconfig.acc", 0);
+    controls.padconfig[1]  = pt_config.get("controls.padconfig.brake", 1);
+    controls.padconfig[2]  = pt_config.get("controls.padconfig.gear", 2);
+    controls.padconfig[3]  = pt_config.get("controls.padconfig.start", 3);
+    controls.padconfig[4]  = pt_config.get("controls.padconfig.coin", 4);
+    controls.padconfig[5]  = pt_config.get("controls.padconfig.menu", 5);
 
     // ------------------------------------------------------------------------
     // Engine Settings
     // ------------------------------------------------------------------------
 
-    engine.dip_time      = pt_config.get("engine.time", 0);
+    engine.dip_time      = pt_config.get("engine.time",    0);
     engine.dip_traffic   = pt_config.get("engine.traffic", 1);
     
     engine.freeze_timer    = engine.dip_time == 4;
@@ -111,23 +127,40 @@ void Config::load(const std::string &filename)
     
     // Additional Level Objects
     engine.level_objects = pt_config.get("engine.levelobjects", 1);
+    engine.randomgen     = pt_config.get("engine.randomgen",    1);
 }
 
-void Config::save(const std::string &filename)
+bool Config::save(const std::string &filename)
 {
     // Save stuff
-    pt_config.put("video.fps", video.fps);
-    pt_config.put("video.widescreen", video.widescreen);
-    pt_config.put("video.mode", video.mode);
-    pt_config.put("video.window.scale", video.scale);
+    pt_config.put("video.fps",                video.fps);
+    pt_config.put("video.widescreen",         video.widescreen);
+    pt_config.put("video.mode",               video.mode);
+    pt_config.put("video.window.scale",       video.scale);
     pt_config.put("video.fullscreen.stretch", video.stretch);
 
-    pt_config.put("sound.enable", sound.enabled);
+    pt_config.put("sound.enable",    sound.enabled);
     pt_config.put("sound.advertise", sound.advertise);
 
-    pt_config.put("controls.gear", controls.gear);
-    pt_config.put("controls.steerspeed", controls.steer_speed);
-    pt_config.put("controls.pedalspeed", controls.pedal_speed);
+    pt_config.put("controls.gear",            controls.gear);
+    pt_config.put("controls.steerspeed",      controls.steer_speed);
+    pt_config.put("controls.pedalspeed",      controls.pedal_speed);
+    pt_config.put("controls.keyconfig.up",    controls.keyconfig[0]);
+    pt_config.put("controls.keyconfig.down",  controls.keyconfig[1]);
+    pt_config.put("controls.keyconfig.left",  controls.keyconfig[2]);
+    pt_config.put("controls.keyconfig.right", controls.keyconfig[3]);
+    pt_config.put("controls.keyconfig.acc",   controls.keyconfig[4]);
+    pt_config.put("controls.keyconfig.brake", controls.keyconfig[5]);
+    pt_config.put("controls.keyconfig.gear",  controls.keyconfig[6]);
+    pt_config.put("controls.keyconfig.start", controls.keyconfig[7]);
+    pt_config.put("controls.keyconfig.coin",  controls.keyconfig[8]);
+    pt_config.put("controls.keyconfig.menu",  controls.keyconfig[9]);
+    pt_config.put("controls.padconfig.acc",   controls.padconfig[0]);
+    pt_config.put("controls.padconfig.brake", controls.padconfig[1]);
+    pt_config.put("controls.padconfig.gear",  controls.padconfig[2]);
+    pt_config.put("controls.padconfig.start", controls.padconfig[3]);
+    pt_config.put("controls.padconfig.coin",  controls.padconfig[4]);
+    pt_config.put("controls.padconfig.menu",  controls.padconfig[5]);
 
     pt_config.put("engine.time", engine.freeze_timer ? 4 : engine.dip_time);
     pt_config.put("engine.traffic", engine.disable_traffic ? 4 : engine.dip_traffic);
@@ -143,7 +176,9 @@ void Config::save(const std::string &filename)
     catch (std::exception &e)
     {
         std::cout << "Error saving config: " << e.what() << "\n";
+        return false;
     }
+    return true;
 }
 
 std::string filename_scores = "hiscores.xml";
@@ -216,10 +251,10 @@ void Config::save_scores()
     }
 }
 
-void Config::clear_scores()
+bool Config::clear_scores()
 {
     ohiscore.init_def_scores();      // Init Default Hiscores
-    remove(filename_scores.c_str()); // Remove hiscore xml file if it exists
+    return remove(filename_scores.c_str()) == 0; // Remove hiscore xml file if it exists
 }
 
 void Config::set_fps(int fps)

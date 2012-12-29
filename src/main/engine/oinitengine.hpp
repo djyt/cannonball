@@ -130,8 +130,10 @@ public:
 	void init();
     void debug_load_level(uint8_t);
 
+    void init_road_seg_master();
     void init_crash_bonus();
-    void check_road_width();
+    void update_road();
+    void update_engine();
     void set_granular_position();
 
     void init_bonus(); // moved here for debugging purposes
@@ -173,7 +175,6 @@ private:
     int8_t route_updated;
     
     void setup_stage1();
-	void init_road_seg_master();
     void check_road_split();
     void check_stage();
     void init_split1();

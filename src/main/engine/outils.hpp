@@ -11,6 +11,7 @@
 #pragma once
 
 #include "stdint.hpp"
+#include "frontend/config.hpp"
 
 class outils
 {

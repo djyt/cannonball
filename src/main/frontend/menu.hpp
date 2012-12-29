@@ -17,21 +17,40 @@ public:
     Menu(void);
     ~Menu(void);
 
+    void populate();
     void init();
     void tick();
-    void draw_menu_options();
 
 private:
+    // Menu state
+    uint8_t state;
+
+    enum
+    {
+        STATE_MENU,
+        STATE_REDEFINE_KEYS,
+        STATE_REDEFINE_JOY,
+    };
+
+    // Redefine keys/joystick substate
+    uint8_t redef_state;
+
     uint32_t frame;
+
+    // Counter for showing messages
+    int32_t message_counter;
+
+    // Number of seconds to show message for
+    const static int32_t MESSAGE_TIME = 5;
+
+    // Message text
+    std::string msg;
 
     // Cursor
     int16_t cursor;
 
     // Stores whether this is a textual menu (i.e. no options that can be chosen)
     bool is_text_menu;
-
-    // Determine whether we should save the settings file
-    bool save_settings;
 
     // Used to control the horizon pan effect
     uint16_t horizon_pos;
@@ -44,11 +63,16 @@ private:
     std::vector<std::string> menu_sound;
     std::vector<std::string> menu_controls;
     std::vector<std::string> menu_engine;
-    std::vector<std::string> menu_clearscores;
-    
 
+    std::vector<std::string> text_redefine;
+    
+    void draw_menu_options();
+    void draw_text(std::string);
     void tick_menu();
     void set_menu(std::vector<std::string>*);
     void refresh_menu();
     void set_menu_text(std::string s1, std::string s2);
+    void redefine_keyboard();
+    void redefine_joystick();
+    void display_message(std::string);
 };

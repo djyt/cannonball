@@ -518,7 +518,8 @@ void Outrun::main_switch()
             break;
     }
 
-    oinitengine.check_road_width();
+    oinitengine.update_road();
+    oinitengine.update_engine();
 
     // --------------------------------------------------------------------------------------------
     // Debugging Only
@@ -607,7 +608,7 @@ void Outrun::controls()
              oinitengine.camera_x_off -= 5;
 
         // Start/Stop 
-        if (input.has_pressed(Input::BUTTON3))
+        if (input.has_pressed(Input::GEAR))
         {
             if (oinitengine.car_increment != 0xd0 << 16)
                 oinitengine.car_increment = 0xd0 << 16;
@@ -620,14 +621,14 @@ void Outrun::controls()
         else if (oinitengine.car_increment != 0xd0 << 16)
             oinitengine.car_increment = 0;
 
-        if (input.is_pressed(Input::BUTTON1))
+        if (input.is_pressed(Input::ACCEL))
         {
             oroad.horizon_base += -20;
             if (oroad.horizon_base < 0x100)
                 oroad.horizon_base = 0x100;
         }
 
-        if (input.is_pressed(Input::BUTTON2))
+        if (input.is_pressed(Input::BRAKE))
         {
             oroad.horizon_base += 20;
             if (oroad.horizon_base > 0x6A0)

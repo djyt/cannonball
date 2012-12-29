@@ -162,7 +162,7 @@ void OInitEngine::init_road_seg_master()
 // Word 3 [+4]: Segment Road Width / Segment Road Height Index
 // Word 4 [+6]: Segment Width Adjustment SIGNED (Speed at which width is adjusted)
 
-void OInitEngine::check_road_width()
+void OInitEngine::update_road()
 {
     check_road_split(); // Check/Process road split if necessary
     uint32_t addr = road_seg_addr2;
@@ -258,7 +258,11 @@ void OInitEngine::check_road_width()
             road_curve_next = 0;
         }
     }
-    
+}
+
+// Carries on from the above in the original code
+void OInitEngine::update_engine()
+{   
     // ------------------------------------------------------------------------
     // TILE MAP OFFSETS
     // ROM:0000B986 setup_shadow_offset:
@@ -304,7 +308,7 @@ void OInitEngine::check_road_width()
     // ------------------------------------------------------------------------
     set_granular_position();
 
-    d0 = oroad.pos_fine - pos_fine_old;
+    uint16_t d0 = oroad.pos_fine - pos_fine_old;
     if (d0 > 0xF)
         d0 = 0xF;
 

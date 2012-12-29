@@ -1475,10 +1475,10 @@ void OFerrari::convert_revs_speed(int32_t new_torque, int32_t &d2)
     d2 = ((d2 >> 16) * 0x1A90) >> 8;
     d2 = (d2 << 16) >> 4;
     
-    if (!new_torque)
+    /*if (!new_torque)
     {
         std::cout << "convert_revs_speed error!" << std::endl;
-    }
+    }*/
 
     d2 = (d2 / new_torque) * 0x480;
     

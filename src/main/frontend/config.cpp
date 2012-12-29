@@ -19,6 +19,7 @@
 #include "globals.hpp"
 
 #include "engine/ohiscore.hpp"
+#include "engine/audio/osoundint.hpp"
 
 Config config;
 
@@ -89,6 +90,17 @@ void Config::load(const std::string &filename)
     // ------------------------------------------------------------------------
     sound.enabled   = pt_config.get("sound.enable",    1);
     sound.advertise = pt_config.get("sound.advertise", 1);
+
+    // Custom Music
+    for (int i = 0; i < 4; i++)
+    {
+        std::string xmltag = "sound.custom_music.track";
+        xmltag += to_string(i+1);  
+
+        sound.custom_music[i].enabled = pt_config.get(xmltag + ".<xmlattr>.enabled", 0);
+        sound.custom_music[i].title   = pt_config.get(xmltag + ".title", "TRACK " +to_string(i+1));
+        sound.custom_music[i].filename= pt_config.get(xmltag + ".filename", "track"+to_string(i+1)+".wav");
+    }
 
     // ------------------------------------------------------------------------
     // Controls
@@ -267,6 +279,12 @@ void Config::set_fps(int fps)
     tick_fps  = video.fps < 2 ? 30 : 60;
 
     cannonball::frame_ms = (1000 / this->fps);
+
+    #ifdef COMPILE_SOUND_CODE
+    cannonball::audio.stop_audio();
+    osoundint.init();
+    cannonball::audio.start_audio();
+    #endif
 }
 
 // Convert value to string

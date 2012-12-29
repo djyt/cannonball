@@ -516,16 +516,70 @@ void OHud::blit_text2(uint32_t src_addr)
             // Convert character to real index (D0-0x41) so A is 0x01
             data -= 0x41;
             data = (data * 2) + pal;
-            video.write_text16(&dst_addr, data); // Write first column to text ram
+            video.write_text16(&dst_addr, data); // Write first row to text ram
             data++;
         }
-        video.write_text16(0x7E + dst_addr, data); // Write second column to text ram
+        video.write_text16(0x7E + dst_addr, data); // Write second row to text ram
     }
 }
 
 // ------------------------------------------------------------------------------------------------
 // Enhanced Cannonball Routines Below
 // ------------------------------------------------------------------------------------------------
+
+// Custom Music Text Routine
+void OHud::blit_text_custom_music(const char* text)
+{
+    // Note tiles to append to left side of text
+    const uint32_t NOTE_TILES1 = 0x8A7A8A7B;
+    const uint32_t NOTE_TILES2 = 0x8A7C8A7D;
+
+    uint16_t length = strlen(text);
+
+    const uint16_t X = 20 - (length >> 1);
+    const uint16_t Y = 11;
+
+    // Clear complete row in text ram before blitting
+    for (uint8_t x = 0; x < 40; x++)
+    {
+        video.write_text16(translate(x, Y) + 0x110000, 0); // Write blank space to text ram
+        video.write_text16(translate(x, Y) + 0x11007E, 0); // Write blank space to text ram
+    }
+
+    // Draw Notes
+    video.write_text32(translate(X - 2, Y) + 0x110000, NOTE_TILES1);
+    video.write_text32(translate(X - 2, Y) + 0x110080, NOTE_TILES2);
+
+    uint32_t dst_addr = translate(X, Y) + 0x110000;
+
+    // Blit each tile
+    for (uint16_t i = 0; i < length; i++)
+    {
+        char c = *text++;
+        // Convert lowercase characters to uppercase
+        if (c >= 'a' && c <= 'z')
+            c -= 0x20;
+        // Blank space
+        else if (c == ' ')
+        {
+            c = 0;
+            video.write_text16(&dst_addr, c); // Write blank space to text ram
+            video.write_text16(0x7E + dst_addr, c); // Write blank space to text ram
+        }
+        // Normal character
+        if ((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))
+        {
+            // Use different palette for numbers so they display more nicely
+            const uint16_t pal = (c >= 'A' && c <= 'Z') ? 0x8AA0 : 0x8CA0;
+
+            // Convert character to real index (D0-0x41) so A is 0x01
+            c -= 0x41;
+            c = (c * 2);
+            video.write_text16(&dst_addr,       c + pal);     // Write first row to text ram
+            video.write_text16(0x7E + dst_addr, c + pal + 1); // Write second row to text ram
+        }       
+    }
+}
 
 // Custom Routine To Blit Text Easily
 //
@@ -536,18 +590,15 @@ void OHud::blit_text2(uint32_t src_addr)
 // Normal font: 41 onwards
 void OHud::blit_text_new(uint16_t x, uint16_t y, const char* text, uint16_t pal)
 {
-    uint32_t dst_addr = translate(x, y);
+    uint32_t dst_addr = translate(x, y); 
     uint16_t length = strlen(text);
-    
-    const char LOWERCASE_A = 'a';
-    const char LOWERCASE_Z = 'z';
 
     for (uint16_t i = 0; i < length; i++)
     {
         char c = *text++;
 
         // Convert lowercase characters to uppercase
-        if (c >= LOWERCASE_A && c <= LOWERCASE_Z)
+        if (c >= 'a' && c <= 'z')
             c -= 0x20;
         else if (c == '©')
             c = 0x10;
@@ -561,11 +612,9 @@ void OHud::blit_text_new(uint16_t x, uint16_t y, const char* text, uint16_t pal)
 }
 
 // Translate x, y column position to tilemap address
-uint32_t OHud::translate(uint16_t x, uint16_t y)
+// Base Position defaults to 0,0
+uint32_t OHud::translate(uint16_t x, uint16_t y, const uint32_t BASE_POS)
 {
-    // Base 0, 0 Position
-    const uint32_t BASE_POS = 0x110030;
-
     if (x > 63) x = 63;
     if (y > 27) y = 27;
 

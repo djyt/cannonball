@@ -69,6 +69,7 @@ void OMusic::disable()
     }
 
     video.tile_layer->set_x_clamp(video.tile_layer->RIGHT);
+    video.enabled = false; // Turn screen off
 }
 
 // Music Selection Screen: Setup Radio Sprite
@@ -184,48 +185,69 @@ void OMusic::tick()
 
     // Steer Left
     if (oinputs.steering_adjust + 0x80 <= 0x55)
-    {
-        ohud.blit_text2(TEXT2_MAGICAL);
-        video.write_text32(0x1105C0, NOTE_TILES1);
-        video.write_text32(0x110640, NOTE_TILES2);
-        
+    {                
         hand->x = 17;
 
         e->addr    = SPRITE_FM_LEFT;
         e2->addr   = SPRITE_DIAL_LEFT;
         hand->addr = SPRITE_HAND_LEFT;
 
-        music_selected = sound::MUSIC_MAGICAL;
+        if (config.sound.custom_music[0].enabled)
+        {
+            ohud.blit_text_custom_music(config.sound.custom_music[0].title.c_str());
+            music_selected = 0;
+        }
+        else
+        {
+            ohud.blit_text2(TEXT2_MAGICAL);
+            video.write_text32(0x1105C0, NOTE_TILES1);
+            video.write_text32(0x110640, NOTE_TILES2);
+            music_selected = sound::MUSIC_MAGICAL;
+        }
     }
     // Centre
     else if (oinputs.steering_adjust + 0x80 <= 0xAA)
     {
-        ohud.blit_text2(TEXT2_BREEZE);
-        video.write_text32(0x1105C6, NOTE_TILES1);
-        video.write_text32(0x110646, NOTE_TILES2);
-
         hand->x = 21;
 
         e->addr    = SPRITE_FM_CENTRE;
         e2->addr   = SPRITE_DIAL_CENTRE;
         hand->addr = SPRITE_HAND_CENTRE;
 
-        music_selected = sound::MUSIC_BREEZE;
+        if (config.sound.custom_music[1].enabled)
+        {
+            ohud.blit_text_custom_music(config.sound.custom_music[1].title.c_str());
+            music_selected = 1;
+        }
+        else
+        {
+            ohud.blit_text2(TEXT2_BREEZE);
+            video.write_text32(0x1105C6, NOTE_TILES1);
+            video.write_text32(0x110646, NOTE_TILES2);
+            music_selected = sound::MUSIC_BREEZE;
+        }
     }
     // Steer Right
     else
     {
-        ohud.blit_text2(TEXT2_SPLASH);
-        video.write_text32(0x1105C8, NOTE_TILES1);
-        video.write_text32(0x110648, NOTE_TILES2);
-
         hand->x = 21;
 
         e->addr    = SPRITE_FM_RIGHT;
         e2->addr   = SPRITE_DIAL_RIGHT;
         hand->addr = SPRITE_HAND_RIGHT;
 
-        music_selected = sound::MUSIC_SPLASH;
+        if (config.sound.custom_music[2].enabled)
+        {
+            ohud.blit_text_custom_music(config.sound.custom_music[2].title.c_str());
+            music_selected = 2;
+        }
+        else
+        {
+            ohud.blit_text2(TEXT2_SPLASH);
+            video.write_text32(0x1105C8, NOTE_TILES1);
+            video.write_text32(0x110648, NOTE_TILES2);
+            music_selected = sound::MUSIC_SPLASH;
+        }
     }
 
     osprites.do_spr_order_shadows(e);

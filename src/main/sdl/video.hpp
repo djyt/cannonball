@@ -24,13 +24,13 @@ public:
 	uint32_t *pixels;
     uint32_t *screen_pixels;
 
+    bool enabled;
+
 	Video();
     ~Video();
     
 	int init(Roms* roms, video_settings_t* settings);
-
     int set_video_mode(video_settings_t* settings);
-
     void draw_frame();
 
     void clear_text_ram();

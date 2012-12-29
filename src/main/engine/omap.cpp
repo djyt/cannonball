@@ -268,6 +268,7 @@ void OMap::map_display()
         otiles.fill_tilemap_color(0); // Fill Tilemap Black
         map_state = MAP_CLEAR;
         outrun.game_state = GS_INIT_BEST2;
+        video.enabled = false;
     }
 }
 

@@ -13,7 +13,7 @@
 
 SoundChip::SoundChip()
 {
-
+    initalized = false;
 }
 
 SoundChip::~SoundChip()
@@ -30,7 +30,12 @@ void SoundChip::init(uint8_t channels, int32_t sample_freq, int32_t fps)
     frame_size =  sample_freq / fps;
     buffer_size = frame_size * channels;
 
+    if (initalized)
+        delete[] buffer;
+    
     buffer = new int16_t[buffer_size];
+
+    initalized = true;
 }
 
 void SoundChip::clear_buffer()

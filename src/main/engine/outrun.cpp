@@ -7,6 +7,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "main.hpp"
 #include "engine/outrun.hpp"
 #include "engine/opalette.hpp"
 #include "engine/outils.hpp"
@@ -45,6 +46,7 @@ void Outrun::init()
     game_state = GS_INIT;
 
     video.clear_text_ram();
+    video.enabled = false;
 
     frame = 0;
     tick_frame = true;
@@ -252,7 +254,7 @@ void Outrun::main_switch()
             oferrari.car_ctrl_active = true;
             ostats.time_counter = 0x15;
             ostats.frame_counter = ostats.frame_reset;
-            // todo: turn screen on
+            video.enabled = true;
             game_state = GS_ATTRACT;
             // fall through
             
@@ -284,6 +286,9 @@ void Outrun::main_switch()
             ostats.frame_counter = ostats.frame_reset;
             ohiscore.init();
             osoundint.queue_sound(sound::FM_RESET);
+            #ifdef COMPILE_SOUND_CODE
+            cannonball::audio.clear_wav();
+            #endif
             game_state = GS_BEST1;
 
         case GS_BEST1:
@@ -347,7 +352,6 @@ void Outrun::main_switch()
         // ----------------------------------------------------------------------------------------
 
         case GS_INIT_GAME:
-            //ROM:0000B3E0                 bclr    #5,(ppi1_value).l                   ; Turn screen off (not activated until PPI written to)
             //ROM:0000B3E8                 move.w  #-1,(ingame_active1).l              ; Denote in-game engine is active
             //ROM:0000B3F0                 clr.l   (prev_game_time).l                  ; Reset overall game time
             //ROM:0000B3F6                 move.w  #-1,(ingame_active2).l
@@ -362,7 +366,13 @@ void Outrun::main_switch()
             oroad.tick();
             osoundint.queue_sound(sound::STOP_CHEERS);
             osoundint.queue_sound(sound::VOICE_GETREADY);
-            osoundint.queue_sound(omusic.music_selected);
+            
+            #ifdef COMPILE_SOUND_CODE
+            if (omusic.music_selected >= 0 && omusic.music_selected <= 2)
+                cannonball::audio.load_wav(config.sound.custom_music[omusic.music_selected].filename.c_str());
+            else
+            #endif
+                osoundint.queue_sound(omusic.music_selected);
             ostats.time_counter = ostats.TIME[config.engine.dip_time * 40]; // Set time to begin level with
             ostats.frame_counter = ostats.frame_reset + 50;                 // set this to 49 for testing purposes
             ohud.draw_main_hud();
@@ -371,6 +381,7 @@ void Outrun::main_switch()
             ohud.blit_text1(TEXT1_CLEAR_CREDITS);
             oroad.road_width = 0x1C2 << 16;
             osoundint.queue_sound(sound::INIT_CHEERS);
+            video.enabled = true;
             game_state = GS_START1;
             // fall through
 
@@ -483,6 +494,10 @@ void Outrun::main_switch()
             ostats.frame_counter = ostats.frame_reset;
             ohiscore.init();
             osoundint.queue_sound(sound::NEW_COMMAND);
+            osoundint.queue_sound(sound::RESET);
+            #ifdef COMPILE_SOUND_CODE
+            cannonball::audio.clear_wav();
+            #endif
             game_state = GS_BEST2;
             // fall through
 

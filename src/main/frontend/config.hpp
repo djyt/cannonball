@@ -14,6 +14,13 @@
 
 #include "stdint.hpp"
 
+struct custom_music_t
+{
+    int enabled;
+    std::string title;
+    std::string filename;
+};
+
 struct menu_settings_t
 {
     int enabled;
@@ -36,6 +43,7 @@ struct sound_settings_t
 {
     int enabled;
     int advertise;
+    custom_music_t custom_music[4];
 };
 
 struct controls_settings_t

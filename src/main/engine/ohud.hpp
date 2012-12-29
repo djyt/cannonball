@@ -42,14 +42,15 @@ public:
     void draw_rev_counter();
 	void blit_text1(uint32_t);
 	void blit_text2(uint32_t);
-    void blit_text_new(uint16_t, uint16_t, const char* string, uint16_t col = GREY);
+    void blit_text_custom_music(const char* text);
+    void blit_text_new(uint16_t, uint16_t, const char* text, uint16_t col = GREY);
     void blit_speed(uint32_t, uint16_t);
     void blit_large_digit(uint32_t*, uint8_t);
 	void draw_copyright_text();
     void draw_insert_coin();
     void draw_credits();
     uint32_t setup_mini_map();
-    uint32_t translate(uint16_t x, uint16_t y);
+    uint32_t translate(const uint16_t x, const uint16_t y, const uint32_t BASE_POS = 0x110030);
     void blit_debug();
 
 private:

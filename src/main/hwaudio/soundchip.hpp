@@ -13,6 +13,8 @@
 class SoundChip
 {
 public:
+    bool initalized;
+
     // Sample Frequency in use
     uint32_t sample_freq;
 

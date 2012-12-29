@@ -20,6 +20,13 @@
 
 #ifdef COMPILE_SOUND_CODE
 
+struct wav_t {
+    uint8_t loaded;
+    int16_t *data;
+    uint32_t pos;
+    uint32_t length;
+};
+
 class Audio
 {
 public:
@@ -34,6 +41,8 @@ public:
     void start_audio();
     void stop_audio();
     double adjust_speed();
+    void load_wav(const char* filename);
+    void clear_wav();
 
 private:
     // Sample Rate. Can't be changed easily for now, due to lack of SDL resampling.
@@ -58,10 +67,16 @@ private:
     // Buffer used to mix PCM and YM channels together
     uint16_t* mix_buffer;
 
+    wav_t wavfile;
+
     // Estimated gap
     int gap_est;
 
     // Cumulative audio difference
     double avg_gap;
+
+    void clear_buffers();
+    void pause_audio();
+    void resume_audio();
 };
 #endif

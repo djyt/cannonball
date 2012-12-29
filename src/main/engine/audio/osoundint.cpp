@@ -30,22 +30,22 @@ OSoundInt::~OSoundInt()
 void OSoundInt::init()
 {
     if (pcm == NULL)
-    {
-        pcm = new SegaPCM(SOUND_CLOCK, &roms.pcm, pcm_ram, SegaPCM::BANK_512);
-        pcm->init(config.fps);
-    }
+        pcm = new SegaPCM(SOUND_CLOCK, &roms.pcm, pcm_ram, SegaPCM::BANK_512);       
 
     if (ym == NULL)
-    {
         ym = new YM2151(0.5f, (uint32_t) (SOUND_CLOCK * 1.024));
-        ym->init(44100, config.fps);
-    }
+
+    pcm->init(config.fps);
+    ym->init(44100, config.fps);
 
     reset();
 
     // Clear PCM Chip RAM
     for (uint16_t i = 0; i < PCM_RAM_SIZE; i++)
         pcm_ram[i] = 0;
+
+    for (uint8_t i = 0; i < 8; i++)
+        engine_data[i] = 0;
 
     osound.init(ym, pcm_ram);
 }

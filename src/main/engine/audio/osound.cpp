@@ -1,7 +1,3 @@
-#include <iostream> // needed for debugging only. Can be removed.
-#include <cstring> // For memset on GCC
-#include "engine/audio/osound.hpp"
-
 /***************************************************************************
     Ported Z80 Sound Playing Code.
     Controls Sega PCM and YM2151 Chips.
@@ -20,11 +16,15 @@ X More cars seem to be high pitched than on MAME. (Fixed - engine channel setup)
 
 */
 
+//#include <iostream> // needed for debugging only. Can be removed.
+#include <cstring> // For memset on GCC
+#include "engine/audio/osound.hpp"
+
 // Use YM2151 Timing
 #define TIMER_CODE 1
 
 // Enable Unused code block warnings
-#define UNUSED_WARNINGS 1
+//#define UNUSED_WARNINGS 1
 
 using namespace z80_adr;
 
@@ -389,8 +389,6 @@ void OSound::process_channel(uint16_t chan_id)
     // Sequence end marker
     uint16_t seq_end = r16(&chan[ch::SEQ_END]);
 
-    //std::cout << std::hex << "seq pos: " << seq_pos << " seq end: " << seq_end << std::endl;
-
     if (pos == seq_end)
     {
         pos = r16(&chan[ch::SEQ_CMD]);
@@ -650,7 +648,7 @@ void OSound::setvol(uint8_t* chan)
 {  
     uint8_t vol_l = roms.z80.read8(pos);
 
-    // PCM
+    // PCM Percussion Sample
     if (chan[ch::FM_FLAGS] & BIT_6)
     {
         const uint8_t VOL_MAX = 0x40;
@@ -797,6 +795,8 @@ void OSound::play_pcm_index(uint8_t* chan, uint8_t cmd)
 // Source: 0x9E8
 void OSound::init_sound(uint8_t cmd, uint16_t src, uint16_t dst)
 {
+    uint16_t dst_backup = dst;
+
     command_index = cmd - 0x81;
     
     // Get offset to channel setup

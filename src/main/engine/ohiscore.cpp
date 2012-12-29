@@ -6,6 +6,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "main.hpp"
 #include "engine/outils.hpp"
 #include "outrun.hpp"
 #include "engine/ohiscore.hpp"
@@ -103,6 +104,11 @@ void OHiScore::tick()
             if (score_pos != -1)
             {
                 osoundint.queue_sound(sound::PCM_WAVE);
+                #ifdef COMPILE_SOUND_CODE
+                if (config.sound.custom_music[3].enabled)
+                    cannonball::audio.load_wav(config.sound.custom_music[3].filename.c_str());
+                else
+                #endif
                 osoundint.queue_sound(sound::MUSIC_LASTWAVE);
                 insert_score();               
             }
@@ -114,6 +120,7 @@ void OHiScore::tick()
             set_display_pos();
             acc_prev = -1;
             state = STATE_DISPLAY;
+            video.enabled = true;
             break;
 
         // Display Basic High Score Table

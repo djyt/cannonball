@@ -138,6 +138,7 @@ void Menu::populate()
 
 void Menu::init()
 {   
+    video.enabled = true;
     video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
     video.sprite_layer->reset();
     video.clear_text_ram();
@@ -156,9 +157,10 @@ void Menu::init()
     otiles.setup_palette_default();
 
     oroad.init();
-    //oroad.road_ctrl = ORoad::ROAD_BOTH_P0;
+    oroad.road_ctrl = ORoad::ROAD_R0;
     oroad.horizon_set = 1;
     oroad.horizon_base = HORIZON_DEST + 0x100;
+    oinitengine.rd_split_state = OInitEngine::SPLIT_NONE;
     oinitengine.car_increment = 0;
 
     set_menu(&menu_main);
@@ -167,6 +169,7 @@ void Menu::init()
     // Reset audio, so we can play tones
     osoundint.has_booted = true;
     osoundint.init();
+    cannonball::audio.clear_wav();
 
     frame = 0;
     message_counter = 0;
@@ -201,34 +204,36 @@ void Menu::tick()
         message_counter--;
         ohud.blit_text_new(0, 1, msg.c_str(), ohud.GREY);
     }
-        
+     
+    // Shift horizon
+    if (oroad.horizon_base > HORIZON_DEST)
+    {
+        oroad.horizon_base -= 60 / config.fps;
+        if (oroad.horizon_base < HORIZON_DEST)
+            oroad.horizon_base = HORIZON_DEST;
+    }
+    // Advance road
+    else
+    {
+        uint32_t scroll_speed = (config.fps == 60) ? config.menu.road_scroll_speed : config.menu.road_scroll_speed << 1;
+
+        if (oinitengine.car_increment < scroll_speed << 16)
+            oinitengine.car_increment += (1 << 14);
+        uint32_t result = 0x12F * (oinitengine.car_increment >> 16);
+        oroad.road_pos_change = result;
+        oroad.road_pos += result;
+        if (oroad.road_pos >> 16 > 0x79C) // loop to beginning of track data
+            oroad.road_pos = 0;
+        oinitengine.update_road();
+        oinitengine.set_granular_position();
+        oroad.road_width_bak = oroad.road_width >> 16; 
+        oroad.car_x_bak = -oroad.road_width_bak; 
+        oinitengine.car_x_pos = oroad.car_x_bak;
+    }
+
     // Do Animations at 30 fps
     if (config.fps != 60 || (frame & 1) == 0)
     {
-        // Shift horizon
-        if (oroad.horizon_base > HORIZON_DEST)
-        {
-            oroad.horizon_base -= 2;
-            if (oroad.horizon_base < HORIZON_DEST)
-                oroad.horizon_base = HORIZON_DEST;
-        }
-        // Advance road
-        else
-        {
-            if (oinitengine.car_increment < (uint32_t) config.menu.road_scroll_speed << 16)
-                oinitengine.car_increment += (1 << 16);
-            uint32_t result = 0x12F * (oinitengine.car_increment >> 16);
-            oroad.road_pos_change = result;
-            oroad.road_pos += result;
-            if (oroad.road_pos >> 16 > 0x79C) // loop to beginning of track data
-                oroad.road_pos = 0;
-            oinitengine.update_road();
-            oinitengine.set_granular_position();
-            oroad.road_width_bak = oroad.road_width >> 16; 
-            oroad.car_x_bak = -oroad.road_width_bak; 
-            oinitengine.car_x_pos = oroad.car_x_bak;
-        }
-
         ologo.tick();
         osprites.sprite_copy();
 
@@ -350,6 +355,7 @@ void Menu::tick_menu()
                     display_message("SETTINGS SAVED");
                 else
                     display_message("ERROR SAVING SETTINGS!");
+                config.set_fps(config.video.fps);
                 set_menu(&menu_main);
             }
         }
@@ -368,8 +374,6 @@ void Menu::tick_menu()
             {
                 if (++config.video.fps > 2)
                     config.video.fps = 0;
-
-                config.set_fps(config.video.fps);
             }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);

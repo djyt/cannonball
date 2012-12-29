@@ -38,6 +38,8 @@ int Video::init(Roms* roms, video_settings_t* settings)
     hwroad.init((uint8_t*) roms->road.rom);
     delete[] roms->road.rom;
 
+    enabled = true;
+
     return 1;
 }
 
@@ -214,53 +216,59 @@ void Video::draw_frame(void)
     if (SDL_MUSTLOCK(surface) && SDL_LockSurface(surface) < 0) 
         return;
 
-    // ------------------------------------------------------------------------
-    // Draw
-    // ------------------------------------------------------------------------
-
-    tile_layer->update_tile_values();
-
-    hwroad.render_background(pixels);
-    sprite_layer->render(1);
-    tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
-    sprite_layer->render(2);
-    tile_layer->render_tile_layer(pixels, 1, 1);      // background layer
-    tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
-    sprite_layer->render(4);
-    tile_layer->render_tile_layer(pixels, 0, 1);      // foreground layer
-    hwroad.render_foreground(pixels);
-    tile_layer->render_text_layer(pixels, 0);
-    sprite_layer->render(8);
-    tile_layer->render_text_layer(pixels, 1);
- 
-    // Do Scaling
-    if (scale_factor != 1)
+    if (!enabled)
     {
-        uint32_t* pix = pixels;
-    
-        // Lookup real RGB value from rgb array for backbuffer
-        for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)    
-            *(pix++) = rgb[*pix & ((S16_PALETTE_ENTRIES * 3) - 1)];
-
-        // Rescale appropriately
-        scale(pixels, config.s16_width, S16_HEIGHT, 
-              screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
+        SDL_FillRect(surface, NULL, 0);
     }
-    // No Scaling
     else
     {
-        uint32_t* pix  = pixels;
-        uint32_t* spix = screen_pixels;
+        // ------------------------------------------------------------------------
+        // Draw
+        // ------------------------------------------------------------------------
+
+        tile_layer->update_tile_values();
+
+        hwroad.render_background(pixels);
+        sprite_layer->render(1);
+        tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
+        sprite_layer->render(2);
+        tile_layer->render_tile_layer(pixels, 1, 1);      // background layer
+        tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
+        sprite_layer->render(4);
+        tile_layer->render_tile_layer(pixels, 0, 1);      // foreground layer
+        hwroad.render_foreground(pixels);
+        tile_layer->render_text_layer(pixels, 0);
+        sprite_layer->render(8);
+        tile_layer->render_text_layer(pixels, 1);
+ 
+        // Do Scaling
+        if (scale_factor != 1)
+        {
+            uint32_t* pix = pixels;
     
-        // Lookup real RGB value from rgb array for backbuffer
-        for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)
-            *(spix++) = rgb[*(pix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+            // Lookup real RGB value from rgb array for backbuffer
+            for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)    
+                *(pix++) = rgb[*pix & ((S16_PALETTE_ENTRIES * 3) - 1)];
+
+            // Rescale appropriately
+            scale(pixels, config.s16_width, S16_HEIGHT, 
+                  screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
+        }
+        // No Scaling
+        else
+        {
+            uint32_t* pix  = pixels;
+            uint32_t* spix = screen_pixels;
+    
+            // Lookup real RGB value from rgb array for backbuffer
+            for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)
+                *(spix++) = rgb[*(pix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+        }
+
+        // Example: Set the pixel at 10,10 to red
+        //pixels[( 10 * surface->w ) + 10] = 0xFF0000;
+        // ------------------------------------------------------------------------
     }
-
-    // Example: Set the pixel at 10,10 to red
-    //pixels[( 10 * surface->w ) + 10] = 0xFF0000;
-    // ------------------------------------------------------------------------
-
     if (SDL_MUSTLOCK(surface))
         SDL_UnlockSurface(surface);
 

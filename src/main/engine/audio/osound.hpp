@@ -101,7 +101,7 @@ namespace channel
 //              6 = ???
 //              e = channel enable (1 = active, 0 = disabled). 
 //+0x01: [Byte] Flags -m---ccc
-//	    c = YM Channel Number
+//	            c = YM Channel Number
 //              m = possibly a channel mute? 
 //                  Counters and positions still tick.  (1 = active, 0 = disabled).
 //+0x02: [Byte] Used as end marker when bit 1 of 0x0D is set

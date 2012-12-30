@@ -7,7 +7,7 @@
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
-
+#include <cstdlib> 
 #include "engine/outils.hpp"
 
 outils::outils(void)
@@ -38,7 +38,7 @@ uint32_t outils::random()
 	uint32_t seed = rnd_seed;
 
 	if (seed == 0)
-        seed = config.engine.randomgen ? 0x2A6D365A : std::rand();
+        seed = config.engine.randomgen ? 0x2A6D365A : rand();
 
 	// Random Value To Return
 	uint32_t rnd = seed;

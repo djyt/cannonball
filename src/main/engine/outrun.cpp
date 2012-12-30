@@ -373,7 +373,12 @@ void Outrun::main_switch()
             else
             #endif
                 osoundint.queue_sound(omusic.music_selected);
-            ostats.time_counter = ostats.TIME[config.engine.dip_time * 40]; // Set time to begin level with
+            
+            if (!config.engine.freeze_timer)
+                ostats.time_counter = ostats.TIME[config.engine.dip_time * 40]; // Set time to begin level with
+            else
+                ostats.time_counter = 0x30;
+
             ostats.frame_counter = ostats.frame_reset + 50;                 // set this to 49 for testing purposes
             ohud.draw_main_hud();
             ostats.credits--;                                   // Update Credits
@@ -671,7 +676,7 @@ void Outrun::controls()
 bool Outrun::decrement_timers()
 {
     // Cheat
-    if (config.engine.freeze_timer)
+    if (config.engine.freeze_timer && game_state == GS_INGAME)
         return false;
 
     if (--ostats.frame_counter >= 0)

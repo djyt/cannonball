@@ -11,7 +11,7 @@
 #pragma once
 
 #include <set>
-
+#include <string>
 #include "stdint.hpp"
 
 struct custom_music_t

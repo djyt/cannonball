@@ -61,7 +61,7 @@
             <filename>track1.wav</filename>
         </track1>
         <!-- Passing Breeze Replacement -->
-        <track2 enabled = "1">
+        <track2 enabled = "0">
             <title>PASSING BREEZE REMIX</title>
             <filename>track2.wav</filename>
         </track2>
@@ -70,7 +70,7 @@
             <title>SPLASH WAVE REMIX</title>
             <filename>track3.wav</filename>
         </track3>
-        <track4 enabled = "1">
+        <track4 enabled = "0">
             <title>LAST WAVE REMIX</title>
             <filename>track4.wav</filename>
         </track4>

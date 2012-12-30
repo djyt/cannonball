@@ -162,6 +162,9 @@ void Menu::init()
     oroad.horizon_base = HORIZON_DEST + 0x100;
     oinitengine.rd_split_state = OInitEngine::SPLIT_NONE;
     oinitengine.car_increment = 0;
+    oinitengine.change_width = 0;
+
+    outrun.game_state = GS_INIT;
 
     set_menu(&menu_main);
     refresh_menu();
@@ -309,8 +312,6 @@ void Menu::tick_menu()
     }
     else if (input.has_pressed(Input::ACCEL) || input.has_pressed(Input::START))
     {
-        osoundint.queue_sound(sound::BEEP1);
-
         // Get option that was selected
         const char* OPTION = menu_selected->at(cursor).c_str();
 
@@ -468,6 +469,7 @@ void Menu::tick_menu()
         else
             set_menu(&menu_main);
 
+        osoundint.queue_sound(sound::BEEP1);
         refresh_menu();
     }
 }

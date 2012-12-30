@@ -125,6 +125,11 @@ public:
     // But confusingly, these values get swapped by a not instruction
     int8_t route_selected;
 
+    // Road Width Change 
+    // 0 = No
+    // -1 = In Progress
+    int16_t change_width;
+
 	OInitEngine();
 	~OInitEngine();
 	void init();
@@ -149,11 +154,6 @@ private:
 
     // Speed at which adjustment to road section occurs
     int16_t road_width_adj;
-
-    // Road Width Change 
-    // 0 = No
-    // -1 = In Progress
-    int16_t change_width;
 
     int16_t granular_rem;
 

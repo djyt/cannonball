@@ -31,7 +31,7 @@
         Scale: Scale or zoom factor for window mode. 1 is original size. 
     -->
     <window>
-        <scale>2</scale>
+        <scale>3</scale>
     </window>
     
     <!-- 

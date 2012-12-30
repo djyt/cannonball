@@ -28,6 +28,14 @@ bool Roms::init()
     status += rom0.load("epr-10380b.133", 0x00000, 0x10000, 0x1f6cadad, RomLoader::INTERLEAVE2);
     status += rom0.load("epr-10382b.118", 0x00001, 0x10000, 0xc4c3fa1a, RomLoader::INTERLEAVE2);
     status += rom0.load("epr-10381a.132", 0x20000, 0x10000, 0xbe8c412b, RomLoader::INTERLEAVE2);
+    
+    // Try alternate filename for this rom
+    if (status)
+    {
+        rom0.load("epr-10381b.132", 0x20000, 0x10000, 0xbe8c412b, RomLoader::INTERLEAVE2);
+        status--;
+    }
+    
     status += rom0.load("epr-10383b.117", 0x20001, 0x10000, 0x10a2014a, RomLoader::INTERLEAVE2);
 
     // Load Slave CPU ROMs

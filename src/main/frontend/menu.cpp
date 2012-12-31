@@ -150,10 +150,10 @@ void Menu::init()
     //oinitengine.road_seg_master = roms.rom0.read32(ROAD_SEG_TABLE + (0x3b << 2));
     opalette.setup_sky_palette();
     opalette.setup_ground_color();
-	opalette.setup_road_centre();
-	opalette.setup_road_stripes();
-	opalette.setup_road_side();
-	opalette.setup_road_colour();
+    opalette.setup_road_centre();
+    opalette.setup_road_stripes();
+    opalette.setup_road_side();
+    opalette.setup_road_colour();
     otiles.setup_palette_default();
 
     oroad.init();
@@ -242,9 +242,9 @@ void Menu::tick()
 
 	    if (osprites.do_sprite_swap)
 	    {
-		    osprites.do_sprite_swap = false;
-		    video.sprite_layer->swap();
-		    osprites.copy_palette_data();
+            osprites.do_sprite_swap = false;
+            video.sprite_layer->swap();
+            osprites.copy_palette_data();
 	    }
     }
 

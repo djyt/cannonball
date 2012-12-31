@@ -21,7 +21,7 @@ public:
 
 private:
 	// Palm Tree Frame Addresses
-	static const uint32_t palm_frames[];
+    uint32_t palm_frames[8];
 
 	// Background Palette Entries
 	static const uint8_t bg_pal[];

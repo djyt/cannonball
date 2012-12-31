@@ -38,13 +38,13 @@ void OLevelObjs::default_entries()
 {
     // Return if Music Selection Screen
     if (outrun.game_state == GS_MUSIC) return; 
-    init_entries(SPRITE_DEF_PROPS1, DEF_SPRITE_ENTRIES);
+    init_entries(outrun.adr.sprite_def_props1, DEF_SPRITE_ENTRIES);
 }
 
 // Setup hi-score screen sprite entries
 void OLevelObjs::hiscore_entries()
 {
-    init_entries(SPRITE_DEF_PROPS2, HISCORE_SPRITE_ENTRIES);
+    init_entries(outrun.adr.sprite_def_props2, HISCORE_SPRITE_ENTRIES);
 }
 
 void OLevelObjs::init_entries(uint32_t a4, uint8_t no_entries)
@@ -54,16 +54,17 @@ void OLevelObjs::init_entries(uint32_t a4, uint8_t no_entries)
     {
         oentry *sprite = &osprites.jump_table[i];
 
-        sprite->control = roms.rom0.read8(&a4);
-        sprite->draw_props = roms.rom0.read8(&a4);
-        sprite->shadow = roms.rom0.read8(&a4);
-        sprite->pal_src = roms.rom0.read8(&a4);
-        sprite->type = roms.rom0.read16(&a4);
-        sprite->addr = roms.rom0.read32(SPRITE_TYPE_TABLE + sprite->type);
-        sprite->xw1 = sprite->xw2 = roms.rom0.read16(&a4);
-        sprite->yw = roms.rom0.read16(&a4);
+        sprite->control    = roms.rom0p->read8(&a4);
+        sprite->draw_props = roms.rom0p->read8(&a4);
+        sprite->shadow     = roms.rom0p->read8(&a4);
+        sprite->pal_src    = roms.rom0p->read8(&a4);
+        sprite->type       = roms.rom0p->read16(&a4);
+        sprite->addr       = roms.rom0p->read32(outrun.adr.sprite_type_table + sprite->type);
+        sprite->xw1        = 
+        sprite->xw2        = roms.rom0p->read16(&a4);
+        sprite->yw         = roms.rom0p->read16(&a4);
 
-        uint16_t z_orig = roms.rom0.read16(&a4);
+        uint16_t z_orig    = roms.rom0p->read16(&a4);
 
         uint32_t z = z_orig;
         outils::swap32(z);
@@ -81,7 +82,7 @@ void OLevelObjs::init_entries(uint32_t a4, uint8_t no_entries)
         int16_t multiply = (xw1 * z_orig) >> 9; // only used as a 16 bit value so truncate here
         sprite->x = road_x + multiply;
 
-        roms.rom0.read32(&a4); // Throw away
+        a4 += 4; // Throw away
 
         // Hack to choose correct routine, and not use lookup table from ROM
         if (i >= 0 && i <= 27)
@@ -146,11 +147,12 @@ void OLevelObjs::setup_sprite(oentry* sprite, uint32_t z)
     uint32_t addr = osprites.seg_spr_addr + osprites.seg_spr_offset1;
 
     // Set sprite x,y (world coordinates)
-    sprite->xw1  = sprite->xw2 = ((int8_t) roms.rom0.read8(addr + 1)) << 4;
-    sprite->yw   = roms.rom0.read16(addr + 2) << 7;
-    sprite->type = roms.rom0.read8(addr + 5) << 2;
-    sprite->addr = roms.rom0.read32(SPRITE_TYPE_TABLE + sprite->type);
-    sprite->pal_src = roms.rom0.read8(addr + 7);
+    sprite->xw1     = 
+    sprite->xw2     = ((int8_t) roms.rom0p->read8(addr + 1)) << 4;
+    sprite->yw      = roms.rom0p->read16(addr + 2) << 7;
+    sprite->type    = roms.rom0p->read8(addr + 5) << 2;
+    sprite->addr    = roms.rom0p->read32(outrun.adr.sprite_type_table + sprite->type);
+    sprite->pal_src = roms.rom0p->read8(addr + 7);
     
     osprites.map_palette(sprite);
 
@@ -158,12 +160,12 @@ void OLevelObjs::setup_sprite(oentry* sprite, uint32_t z)
     sprite->reload = 0;
     sprite->z = z; // Set default zoom
     
-    if (roms.rom0.read8(addr + 0) & 1)
+    if (roms.rom0p->read8(addr + 0) & 1)
         sprite->control |= OSprites::HFLIP;
     else
         sprite->control &=~ OSprites::HFLIP;
 
-    if (roms.rom0.read8(addr + 0) & 2)
+    if (roms.rom0p->read8(addr + 0) & 2)
         sprite->control |= OSprites::SHADOW;
     else
         sprite->control &=~ OSprites::SHADOW;
@@ -173,7 +175,7 @@ void OLevelObjs::setup_sprite(oentry* sprite, uint32_t z)
     else
         sprite->control &=~ OSprites::WIDE_ROAD;
 
-    sprite->draw_props = roms.rom0.read8(addr + 0) & 0xF0;
+    sprite->draw_props = roms.rom0p->read8(addr + 0) & 0xF0;
     sprite->function_holder = sprite->draw_props >> 4; // set sprite type
 
     setup_sprite_routine(sprite);
@@ -336,12 +338,12 @@ void OLevelObjs::do_sprite_routine()
 
                 // Sand Strips
                 case 10:
-                    do_thickness_sprite(sprite, SPRITE_SAND_FRAMES);
+                    do_thickness_sprite(sprite, outrun.adr.sprite_sand);
                     break;
 
                 // Stone Strips
                 case 11:
-                    do_thickness_sprite(sprite, SPRITE_STONE_FRAMES);
+                    do_thickness_sprite(sprite, outrun.adr.sprite_stone);
                     break;
 
                 // Mini-Tree (Stage 5, Level ID: 0x24)
@@ -356,7 +358,7 @@ void OLevelObjs::do_sprite_routine()
 
                 // Sand (Again) - Used in end sequence #2
                 case 14:
-                    do_thickness_sprite(sprite, SPRITE_SAND_FRAMES);
+                    do_thickness_sprite(sprite, outrun.adr.sprite_sand);
                     break;
 
                 default:
@@ -650,7 +652,7 @@ void OLevelObjs::sprite_water(oentry* sprite)
             spray_type = 0;
         }
     }
-    do_thickness_sprite(sprite, SPRITE_WATER_FRAMES);
+    do_thickness_sprite(sprite, outrun.adr.sprite_water);
 }
 
 // Grass Sprites
@@ -675,7 +677,7 @@ void OLevelObjs::sprite_grass(oentry* sprite)
                 spray_type = 8; // Set Spray Type = Green
         }
     }
-    do_thickness_sprite(sprite, SPRITE_GRASS_FRAMES);
+    do_thickness_sprite(sprite, outrun.adr.sprite_grass);
 }
 
 // Sprite: MiniTrees 
@@ -727,7 +729,7 @@ void OLevelObjs::sprite_minitree(oentry* sprite)
     {
         // don't choose a custom frame
         sprite->zoom = (uint8_t) z; // Set Entry Number For Zoom Lookup Table
-        sprite->addr = roms.rom0.read32(SPRITE_MINITREE_FRAMES); // Set to first frame in table
+        sprite->addr = roms.rom0p->read32(outrun.adr.sprite_minitree); // Set to first frame in table
     }
     // Use Table to alter sprite based on its y position.
     //
@@ -741,7 +743,7 @@ void OLevelObjs::sprite_minitree(oentry* sprite)
         z <<= 1; // Note we can't use original z16, so don't try to optimize this
         uint8_t offset = roms.rom0.read8(MAP_Y_TO_FRAME + z);
         sprite->zoom = roms.rom0.read8(MAP_Y_TO_FRAME + z + 1);
-        sprite->addr = roms.rom0.read32(SPRITE_MINITREE_FRAMES + offset);
+        sprite->addr = roms.rom0p->read32(outrun.adr.sprite_minitree + offset);
     }
     // order_sprites
     osprites.do_spr_order_shadows(sprite);
@@ -860,14 +862,14 @@ void OLevelObjs::sprite_clouds(oentry* sprite)
     {
         // 421c
         sprite->zoom = (uint8_t) z; // Set Entry Number For Zoom Lookup Table
-        sprite->addr = roms.rom0.read32(SPRITE_CLOUD_FRAMES);
+        sprite->addr = roms.rom0p->read32(outrun.adr.sprite_cloud);
     }
     else
     {
         // 41f8
         z <<= 1;
         uint8_t lookup_z = roms.rom0.read8(MOVEMENT_LOOKUP_Z + z);
-        sprite->addr = roms.rom0.read32(SPRITE_CLOUD_FRAMES + lookup_z);
+        sprite->addr = roms.rom0p->read32(outrun.adr.sprite_cloud + lookup_z);
         sprite->zoom = roms.rom0.read8(MOVEMENT_LOOKUP_Z + z + 1);
     }
     // end
@@ -917,14 +919,14 @@ void OLevelObjs::do_thickness_sprite(oentry* sprite, const uint32_t sprite_table
     {
         //use_large_frame (don't choose a custom frame)
         sprite->zoom = (uint8_t) z; // Set Entry Number For Zoom Lookup Table
-        sprite->addr = roms.rom0.read32(0x3C + sprite_table_address); // Set default frame for larger sprite
+        sprite->addr = roms.rom0p->read32(0x3C + sprite_table_address); // Set default frame for larger sprite
     }
     else
     {
         // use custom frame for sprite
         sprite->zoom = 0x80; // cap sprite_z minimum to 0x80
         z = (z >> 1) & 0x3C; // Mask over lower 2 bits, so the frame aligns to a word
-        sprite->addr = roms.rom0.read32(z + sprite_table_address); // Set Frame Data Based On Zoom Value
+        sprite->addr = roms.rom0p->read32(z + sprite_table_address); // Set Frame Data Based On Zoom Value
     }
     // order_sprites
     osprites.do_spr_order_shadows(sprite);

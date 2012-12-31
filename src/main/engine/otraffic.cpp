@@ -439,10 +439,10 @@ void OTraffic::update_props(oentry* sprite)
     // 3/ Position of Car in relation to player on x axis
     // ------------------------------------------------------------------------
     
-    sprite->pal_src = roms.rom0.read8(TRAFFIC_PROPS + sprite->type + 4) + traffic_pal_cycle;
+    sprite->pal_src = roms.rom0p->read8(outrun.adr.traffic_props + sprite->type + 4) + traffic_pal_cycle;
 
-    int16_t traffic_type = (roms.rom0.read8(TRAFFIC_PROPS + sprite->type + 7) << 5) + (traffic_frame << 2) + incline;
-    sprite->addr = roms.rom0.read32(TRAFFIC_DATA + traffic_type);
+    int16_t traffic_type = (roms.rom0p->read8(outrun.adr.traffic_props + sprite->type + 7) << 5) + (traffic_frame << 2) + incline;
+    sprite->addr = roms.rom0p->read32(outrun.adr.traffic_data + traffic_type);
 
     osprites.map_palette(sprite);
     traffic_speed_total += sprite->traffic_speed;
@@ -463,7 +463,7 @@ void OTraffic::set_zoom_lookup(oentry* sprite)
     // +6 [Byte] Zoom Lookup Value for Width/Height
     // +7 [Byte] Traffic Type
 
-    uint8_t zoom_lookup = roms.rom0.read8(TRAFFIC_PROPS + sprite->type + 6);
+    uint8_t zoom_lookup = roms.rom0p->read8(outrun.adr.traffic_props + sprite->type + 6);
 
     switch (zoom_lookup)
     {
@@ -664,7 +664,7 @@ void OTraffic::check_collision(oentry* sprite)
         if (x1 < 0 && x2 > 0)
         {
             // Set collision settings from property table
-            collision_mask = roms.rom0.read8(TRAFFIC_PROPS + sprite->type + 5);
+            collision_mask = roms.rom0p->read8(outrun.adr.traffic_props + sprite->type + 5);
             d0 = (sprite->x < 0) ? -OCrash::SKID_RESET : OCrash::SKID_RESET;
             d0 += ocrash.skid_counter;
 

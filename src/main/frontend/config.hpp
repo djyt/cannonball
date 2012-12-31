@@ -88,6 +88,9 @@ public:
 
     // Original game ticks sprites at 30fps but background scroll at 60fps
     int tick_fps;
+    
+    // Japanese Roms
+    int jap;
 
     Config(void);
     ~Config(void);

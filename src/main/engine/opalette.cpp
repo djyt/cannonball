@@ -35,10 +35,10 @@ void OPalette::init()
 void OPalette::setup_sky_palette()
 {
     // Table of long palette addresses and other stage specific info
-    uint32_t stage_addr_table = roms.rom0.read32(0x00 + oinitengine.road_seg_master);
+    uint32_t stage_addr_table = roms.rom0p->read32(0x00 + oinitengine.road_seg_master);
 
     // Address of sky palette information
-    uint16_t pal_addr = roms.rom0.read16(stage_addr_table) << 2;
+    uint16_t pal_addr = roms.rom0p->read16(stage_addr_table) << 2;
 
     uint32_t src = roms.rom0.read32(PAL_TABLE + pal_addr);
     uint32_t dst = 0x120F00; // palette ram
@@ -69,9 +69,9 @@ void OPalette::setup_sky_change()
     oinitengine.end_stage_props &= ~BIT_2; // Denote setup_sky_change done
 
     // Address Of Sky Palette Entries for next stage
-    uint32_t src_pal_addr = ROAD_SEG_TABLE + (oinitengine.stage_data[stage_offset] << 2);
+    uint32_t src_pal_addr = outrun.adr.road_seg_table + (oinitengine.stage_data[stage_offset] << 2);
     // Get index into palette table
-    uint16_t pal_index = roms.rom0.read16(roms.rom0.read32(roms.rom0.read32(src_pal_addr))) << 2;
+    uint16_t pal_index = roms.rom0p->read16(roms.rom0p->read32(roms.rom0p->read32(src_pal_addr))) << 2;
 
     uint32_t src_addr = roms.rom0.read32(PAL_TABLE + pal_index);
 
@@ -401,37 +401,37 @@ void OPalette::write_next_pal_to_ram()
     oinitengine.end_stage_props &= ~BIT_1; 
 
     // Lookup palette entry from the road seg table based on route chosen
-    uint32_t src_pal_addr = ROAD_SEG_TABLE + (oinitengine.stage_data[stage_offset] << 2);
-    uint32_t road_seg_addr = roms.rom0.read32(src_pal_addr);
+    uint32_t src_pal_addr = outrun.adr.road_seg_table + (oinitengine.stage_data[stage_offset] << 2);
+    uint32_t road_seg_addr = roms.rom0p->read32(src_pal_addr);
 
     // road palette
-    uint32_t pal_entries = roms.rom0.read32(road_seg_addr + 0x10);
-    pal_fade[dst] = roms.rom0.read16(pal_entries);
+    uint32_t pal_entries = roms.rom0p->read32(road_seg_addr + 0x10);
+    pal_fade[dst] = roms.rom0p->read16(pal_entries);
     dst += 9;
     // sky palette
-    pal_fade[dst] = roms.rom0.read16(pal_entries + 2);
+    pal_fade[dst] = roms.rom0p->read16(pal_entries + 2);
     dst += 9;
     // Road Stripe Palette Entries
-    pal_entries = roms.rom0.read32(road_seg_addr + 0x8);
-    pal_fade[dst] = roms.rom0.read16(pal_entries); // first word
+    pal_entries = roms.rom0p->read32(road_seg_addr + 0x8);
+    pal_fade[dst] = roms.rom0p->read16(pal_entries); // first word
     dst += 9;
-    pal_fade[dst] = roms.rom0.read16(pal_entries + 2); // second word
+    pal_fade[dst] = roms.rom0p->read16(pal_entries + 2); // second word
     dst += 9;
     // Road Side Palette Entries
-    pal_entries = roms.rom0.read32(road_seg_addr + 0xC);
-    pal_fade[dst] = roms.rom0.read16(pal_entries); // first word
+    pal_entries = roms.rom0p->read32(road_seg_addr + 0xC);
+    pal_fade[dst] = roms.rom0p->read16(pal_entries); // first word
     dst += 9;
-    pal_fade[dst] = roms.rom0.read16(pal_entries + 2); // second word
+    pal_fade[dst] = roms.rom0p->read16(pal_entries + 2); // second word
     dst += 9;
     // Road Stripe Centre Palette Entries
-    pal_entries = roms.rom0.read32(road_seg_addr + 0x4);
-    pal_fade[dst] = roms.rom0.read16(pal_entries); // first word
+    pal_entries = roms.rom0p->read32(road_seg_addr + 0x4);
+    pal_fade[dst] = roms.rom0p->read16(pal_entries); // first word
     dst += 9;
-    pal_fade[dst] = roms.rom0.read16(pal_entries + 2); // second word
+    pal_fade[dst] = roms.rom0p->read16(pal_entries + 2); // second word
     dst += 9;
     // Ground Palette Entries (Index to table below)
-    pal_entries = roms.rom0.read32(road_seg_addr + 0x14);
-    uint16_t d0 = roms.rom0.read16(pal_entries) << 2;
+    pal_entries = roms.rom0p->read32(road_seg_addr + 0x14);
+    uint16_t d0 = roms.rom0p->read16(pal_entries) << 2;
     uint32_t ground_pal_addr = roms.rom0.read32(PAL_GROUND_TABLE + d0);
 
     for (int16_t i = 0; i <= 15; i++)
@@ -520,10 +520,10 @@ void OPalette::write_fade_to_palram()
 void OPalette::setup_ground_color()
 {
     // Table of long palette addresses and other stage specific info
-    uint32_t stage_addr_table = roms.rom0.read32(0x14 + oinitengine.road_seg_master);
+    uint32_t stage_addr_table = roms.rom0p->read32(0x14 + oinitengine.road_seg_master);
 
     // Address of ground palette information
-    uint16_t pal_addr = roms.rom0.read16(stage_addr_table) << 2;
+    uint16_t pal_addr = roms.rom0p->read16(stage_addr_table) << 2;
 
     uint32_t src = roms.rom0.read32(PAL_GROUND_TABLE + pal_addr);
     uint32_t dst_pal_ground1 = 0x120840; // palette ram: ground 1
@@ -539,28 +539,28 @@ void OPalette::setup_ground_color()
 
 void OPalette::setup_road_centre()
 {
-    uint32_t stage_addr_table = roms.rom0.read32(0x4 + oinitengine.road_seg_master);
-    video.write_pal32(0x12080C, roms.rom0.read32(&stage_addr_table));
-    video.write_pal32(0x12081C, roms.rom0.read32(&stage_addr_table));
+    uint32_t stage_addr_table = roms.rom0p->read32(0x4 + oinitengine.road_seg_master);
+    video.write_pal32(0x12080C, roms.rom0p->read32(&stage_addr_table));
+    video.write_pal32(0x12081C, roms.rom0p->read32(&stage_addr_table));
 }
 
 void OPalette::setup_road_stripes()
 {
-    uint32_t stage_addr_table = roms.rom0.read32(0x8 + oinitengine.road_seg_master);
-    video.write_pal32(0x120804, roms.rom0.read32(&stage_addr_table));
-    video.write_pal32(0x120814, roms.rom0.read32(&stage_addr_table));
+    uint32_t stage_addr_table = roms.rom0p->read32(0x8 + oinitengine.road_seg_master);
+    video.write_pal32(0x120804, roms.rom0p->read32(&stage_addr_table));
+    video.write_pal32(0x120814, roms.rom0p->read32(&stage_addr_table));
 }
 
 void OPalette::setup_road_side()
 {
-    uint32_t stage_addr_table = roms.rom0.read32(0xC + oinitengine.road_seg_master);
-    video.write_pal32(0x120808, roms.rom0.read32(&stage_addr_table));
-    video.write_pal32(0x120818, roms.rom0.read32(&stage_addr_table));
+    uint32_t stage_addr_table = roms.rom0p->read32(0xC + oinitengine.road_seg_master);
+    video.write_pal32(0x120808, roms.rom0p->read32(&stage_addr_table));
+    video.write_pal32(0x120818, roms.rom0p->read32(&stage_addr_table));
 }
 
 void OPalette::setup_road_colour()
 {
-    uint32_t stage_addr_table = roms.rom0.read32(0x10 + oinitengine.road_seg_master);
-    video.write_pal32(0x120800, roms.rom0.read32(&stage_addr_table));
-    video.write_pal32(0x120810, roms.rom0.read32(&stage_addr_table));
+    uint32_t stage_addr_table = roms.rom0p->read32(0x10 + oinitengine.road_seg_master);
+    video.write_pal32(0x120800, roms.rom0p->read32(&stage_addr_table));
+    video.write_pal32(0x120810, roms.rom0p->read32(&stage_addr_table));
 }

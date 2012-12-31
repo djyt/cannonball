@@ -130,6 +130,11 @@ public:
     // -1 = In Progress
     int16_t change_width;
 
+    // Stage Order Tables
+    static const uint8_t STAGE_DATA_USA[];
+    static const uint8_t STAGE_DATA_JAP[];
+    const uint8_t* stage_data;
+
 	OInitEngine();
 	~OInitEngine();
 	void init();
@@ -142,8 +147,6 @@ public:
     void set_granular_position();
 
     void init_bonus(); // moved here for debugging purposes
-
-    static const uint8_t stage_data[];
 
 private:
     // Road width at merge point

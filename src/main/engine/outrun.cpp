@@ -44,9 +44,9 @@ Outrun::~Outrun()
 void Outrun::init()
 {
     game_state = GS_INIT;
-
-    video.clear_text_ram();
     video.enabled = false;
+    select_course();
+    video.clear_text_ram();
 
     frame = 0;
     tick_frame = true;
@@ -66,7 +66,7 @@ void Outrun::init()
 
 void Outrun::tick()
 {
-    /*if (input.has_pressed(Input::END_SEQ))
+    /*if (input.has_pressed(Input::LEFT))
     {
         game_state = GS_INIT_BONUS;
         oroad.road_width = 0x90;
@@ -687,4 +687,205 @@ bool Outrun::decrement_timers()
     ostats.time_counter = outils::bcd_sub(1, ostats.time_counter);
     
     return (ostats.time_counter < 0);
+}
+
+void Outrun::select_course()
+{
+    if (config.jap)
+    {
+        oinitengine.stage_data = oinitengine.STAGE_DATA_JAP;
+
+        // Main CPU
+        adr.tiles_def_lookup      = TILES_DEF_LOOKUP_J;
+        adr.tiles_table           = TILES_TABLE_J;
+        adr.sprite_master_table   = SPRITE_MASTER_TABLE_J;
+        adr.sprite_type_table     = SPRITE_TYPE_TABLE_J;
+        adr.sprite_def_props1     = SPRITE_DEF_PROPS1_J;
+        adr.sprite_def_props2     = SPRITE_DEF_PROPS2_J;
+        adr.sprite_cloud          = SPRITE_CLOUD_FRAMES_J;
+        adr.sprite_minitree       = SPRITE_MINITREE_FRAMES_J;
+        adr.sprite_grass          = SPRITE_GRASS_FRAMES_J;
+        adr.sprite_sand           = SPRITE_SAND_FRAMES_J;
+        adr.sprite_stone          = SPRITE_STONE_FRAMES_J;
+        adr.sprite_water          = SPRITE_WATER_FRAMES_J;
+        adr.sprite_ferrari_frames = SPRITE_FERRARI_FRAMES_J;
+        adr.sprite_skid_frames    = SPRITE_SKID_FRAMES_J;
+        adr.sprite_pass_frames    = SPRITE_PASS_FRAMES_J;
+        adr.sprite_pass1_skidl    = SPRITE_PASS1_SKIDL_J;
+        adr.sprite_pass1_skidr    = SPRITE_PASS1_SKIDR_J;
+        adr.sprite_pass2_skidl    = SPRITE_PASS2_SKIDL_J;
+        adr.sprite_pass2_skidr    = SPRITE_PASS2_SKIDR_J;
+        adr.sprite_crash_spin1    = SPRITE_CRASH_SPIN1_J;
+        adr.sprite_crash_spin2    = SPRITE_CRASH_SPIN2_J;
+        adr.sprite_bump_data1     = SPRITE_BUMP_DATA1_J;
+        adr.sprite_bump_data2     = SPRITE_BUMP_DATA2_J;
+        adr.sprite_crash_man1     = SPRITE_CRASH_MAN1_J;
+        adr.sprite_crash_girl1    = SPRITE_CRASH_GIRL1_J;
+        adr.sprite_crash_flip     = SPRITE_CRASH_FLIP_J;
+        adr.sprite_crash_flip_m1  = SPRITE_CRASH_FLIP_MAN1_J;
+        adr.sprite_crash_flip_g1  = SPRITE_CRASH_FLIP_GIRL1_J;
+        adr.sprite_crash_flip_m2  = SPRITE_CRASH_FLIP_MAN2_J;
+        adr.sprite_crash_flip_g2  = SPRITE_CRASH_FLIP_GIRL2_J;
+        adr.sprite_crash_man2     = SPRITE_CRASH_MAN2_J;
+        adr.sprite_crash_girl2    = SPRITE_CRASH_GIRL2_J;
+        adr.smoke_data            = SMOKE_DATA_J;
+        adr.spray_data            = SPRAY_DATA_J;
+        adr.anim_endseq_obj1      = ANIM_ENDSEQ_OBJ1_J;
+        adr.anim_endseq_obj2      = ANIM_ENDSEQ_OBJ2_J;
+        adr.anim_endseq_obj3      = ANIM_ENDSEQ_OBJ3_J;
+        adr.anim_endseq_obj4      = ANIM_ENDSEQ_OBJ4_J;
+        adr.anim_endseq_obj5      = ANIM_ENDSEQ_OBJ5_J;
+        adr.anim_endseq_obj6      = ANIM_ENDSEQ_OBJ6_J;
+        adr.anim_endseq_obj7      = ANIM_ENDSEQ_OBJ7_J;
+        adr.anim_endseq_obj8      = ANIM_ENDSEQ_OBJ8_J;
+        adr.anim_endseq_objA      = ANIM_ENDSEQ_OBJA_J;
+        adr.anim_endseq_objB      = ANIM_ENDSEQ_OBJB_J;
+        adr.anim_end_table        = ANIM_END_TABLE_J;
+        adr.shadow_data           = SPRITE_SHADOW_DATA_J;
+        adr.shadow_frames         = SPRITE_SHDW_FRAMES_J;
+        adr.sprite_shadow_small   = SPRITE_SHDW_SMALL_J;
+        adr.sprite_logo_bg        = SPRITE_LOGO_BG_J;
+        adr.sprite_logo_car       = SPRITE_LOGO_CAR_J;
+        adr.sprite_logo_bird1     = SPRITE_LOGO_BIRD1_J;
+        adr.sprite_logo_bird2     = SPRITE_LOGO_BIRD2_J;
+        adr.sprite_logo_base      = SPRITE_LOGO_BASE_J;
+        adr.sprite_logo_text      = SPRITE_LOGO_TEXT_J;
+        adr.sprite_logo_palm1     = SPRITE_LOGO_PALM1_J;
+        adr.sprite_logo_palm2     = SPRITE_LOGO_PALM2_J;
+        adr.sprite_logo_palm3     = SPRITE_LOGO_PALM3_J;
+        adr.sprite_fm_left        = SPRITE_FM_LEFT_J;
+        adr.sprite_fm_centre      = SPRITE_FM_CENTRE_J;
+        adr.sprite_fm_right       = SPRITE_FM_RIGHT_J;
+        adr.sprite_dial_left      = SPRITE_DIAL_LEFT_J;
+        adr.sprite_dial_centre    = SPRITE_DIAL_CENTRE_J;
+        adr.sprite_dial_right     = SPRITE_DIAL_RIGHT_J;
+        adr.sprite_eq             = SPRITE_EQ_J; // eq sprite, part of radio
+        adr.sprite_radio          = SPRITE_RADIO_J;
+        adr.sprite_hand_left      = SPRITE_HAND_LEFT_J;
+        adr.sprite_hand_centre    = SPRITE_HAND_CENTRE_J;
+        adr.sprite_hand_right     = SPRITE_HAND_RIGHT_J;
+        adr.sprite_coursemap_top  = SPRITE_COURSEMAP_TOP_J;
+        adr.sprite_coursemap_bot  = SPRITE_COURSEMAP_BOT_J;
+        adr.sprite_coursemap_end  = SPRITE_COURSEMAP_END_J;
+        adr.sprite_minicar_right  = SPRITE_MINICAR_RIGHT_J;
+        adr.sprite_minicar_up     = SPRITE_MINICAR_UP_J;
+        adr.sprite_minicar_down   = SPRITE_MINICAR_DOWN_J;
+        adr.anim_seq_flag         = ANIM_SEQ_FLAG_J;
+        adr.anim_ferrari_curr     = ANIM_FERRARI_CURR_J;
+        adr.anim_ferrari_next     = ANIM_FERRARI_NEXT_J;
+        adr.anim_pass1_curr       = ANIM_PASS1_CURR_J;
+        adr.anim_pass1_next       = ANIM_PASS1_NEXT_J;
+        adr.anim_pass2_curr       = ANIM_PASS2_CURR_J;
+        adr.anim_pass2_next       = ANIM_PASS2_NEXT_J;
+        adr.traffic_props         = TRAFFIC_PROPS_J;
+        adr.traffic_data          = TRAFFIC_DATA_J;
+        adr.sprite_porsche        = SPRITE_PORSCHE_J;
+        adr.sprite_coursemap      = SPRITE_COURSEMAP_J;
+        adr.road_seg_table        = ROAD_SEG_TABLE_J;
+        adr.road_seg_end          = ROAD_SEG_TABLE_END_J;
+        adr.road_seg_split        = ROAD_SEG_TABLE_SPLIT_J;
+
+        // Sub CPU
+        adr.road_height_lookup    = ROAD_HEIGHT_LOOKUP_J;
+    }
+    else
+    {
+        oinitengine.stage_data = oinitengine.STAGE_DATA_USA;
+
+        // Main CPU
+        adr.tiles_def_lookup      = TILES_DEF_LOOKUP;
+        adr.tiles_table           = TILES_TABLE;
+        adr.sprite_master_table   = SPRITE_MASTER_TABLE;
+        adr.sprite_type_table     = SPRITE_TYPE_TABLE;
+        adr.sprite_def_props1     = SPRITE_DEF_PROPS1;
+        adr.sprite_def_props2     = SPRITE_DEF_PROPS2;
+        adr.sprite_cloud          = SPRITE_CLOUD_FRAMES;
+        adr.sprite_minitree       = SPRITE_MINITREE_FRAMES;
+        adr.sprite_grass          = SPRITE_GRASS_FRAMES;
+        adr.sprite_sand           = SPRITE_SAND_FRAMES;
+        adr.sprite_stone          = SPRITE_STONE_FRAMES;
+        adr.sprite_water          = SPRITE_WATER_FRAMES;
+        adr.sprite_ferrari_frames = SPRITE_FERRARI_FRAMES;
+        adr.sprite_skid_frames    = SPRITE_SKID_FRAMES;
+        adr.sprite_pass_frames    = SPRITE_PASS_FRAMES;
+        adr.sprite_pass1_skidl    = SPRITE_PASS1_SKIDL;
+        adr.sprite_pass1_skidr    = SPRITE_PASS1_SKIDR;
+        adr.sprite_pass2_skidl    = SPRITE_PASS2_SKIDL;
+        adr.sprite_pass2_skidr    = SPRITE_PASS2_SKIDR;
+        adr.sprite_crash_spin1    = SPRITE_CRASH_SPIN1;
+        adr.sprite_crash_spin2    = SPRITE_CRASH_SPIN2;
+        adr.sprite_bump_data1     = SPRITE_BUMP_DATA1;
+        adr.sprite_bump_data2     = SPRITE_BUMP_DATA2;
+        adr.sprite_crash_man1     = SPRITE_CRASH_MAN1;
+        adr.sprite_crash_girl1    = SPRITE_CRASH_GIRL1;
+        adr.sprite_crash_flip     = SPRITE_CRASH_FLIP;
+        adr.sprite_crash_flip_m1  = SPRITE_CRASH_FLIP_MAN1;
+        adr.sprite_crash_flip_g1  = SPRITE_CRASH_FLIP_GIRL1;
+        adr.sprite_crash_flip_m2  = SPRITE_CRASH_FLIP_MAN2;
+        adr.sprite_crash_flip_g2  = SPRITE_CRASH_FLIP_GIRL2;
+        adr.sprite_crash_man2     = SPRITE_CRASH_MAN2;
+        adr.sprite_crash_girl2    = SPRITE_CRASH_GIRL2;
+        adr.smoke_data            = SMOKE_DATA;
+        adr.spray_data            = SPRAY_DATA;
+        adr.shadow_data           = SPRITE_SHADOW_DATA;
+        adr.shadow_frames         = SPRITE_SHDW_FRAMES;
+        adr.sprite_shadow_small   = SPRITE_SHDW_SMALL;
+        adr.sprite_logo_bg        = SPRITE_LOGO_BG;
+        adr.sprite_logo_car       = SPRITE_LOGO_CAR;
+        adr.sprite_logo_bird1     = SPRITE_LOGO_BIRD1;
+        adr.sprite_logo_bird2     = SPRITE_LOGO_BIRD2;
+        adr.sprite_logo_base      = SPRITE_LOGO_BASE;
+        adr.sprite_logo_text      = SPRITE_LOGO_TEXT;
+        adr.sprite_logo_palm1     = SPRITE_LOGO_PALM1;
+        adr.sprite_logo_palm2     = SPRITE_LOGO_PALM2;
+        adr.sprite_logo_palm3     = SPRITE_LOGO_PALM3;
+        adr.sprite_fm_left        = SPRITE_FM_LEFT;
+        adr.sprite_fm_centre      = SPRITE_FM_CENTRE;
+        adr.sprite_fm_right       = SPRITE_FM_RIGHT;
+        adr.sprite_dial_left      = SPRITE_DIAL_LEFT;
+        adr.sprite_dial_centre    = SPRITE_DIAL_CENTRE;
+        adr.sprite_dial_right     = SPRITE_DIAL_RIGHT;
+        adr.sprite_eq             = SPRITE_EQ; // eq sprite, part of radio
+        adr.sprite_radio          = SPRITE_RADIO;
+        adr.sprite_hand_left      = SPRITE_HAND_LEFT;
+        adr.sprite_hand_centre    = SPRITE_HAND_CENTRE;
+        adr.sprite_hand_right     = SPRITE_HAND_RIGHT;
+        adr.sprite_coursemap_top  = SPRITE_COURSEMAP_TOP;
+        adr.sprite_coursemap_bot  = SPRITE_COURSEMAP_BOT;
+        adr.sprite_coursemap_end  = SPRITE_COURSEMAP_END;
+        adr.sprite_minicar_right  = SPRITE_MINICAR_RIGHT;
+        adr.sprite_minicar_up     = SPRITE_MINICAR_UP;
+        adr.sprite_minicar_down   = SPRITE_MINICAR_DOWN;
+        adr.anim_seq_flag         = ANIM_SEQ_FLAG;
+        adr.anim_ferrari_curr     = ANIM_FERRARI_CURR;
+        adr.anim_ferrari_next     = ANIM_FERRARI_NEXT;
+        adr.anim_pass1_curr       = ANIM_PASS1_CURR;
+        adr.anim_pass1_next       = ANIM_PASS1_NEXT;
+        adr.anim_pass2_curr       = ANIM_PASS2_CURR;
+        adr.anim_pass2_next       = ANIM_PASS2_NEXT;
+        adr.anim_endseq_obj1      = ANIM_ENDSEQ_OBJ1;
+        adr.anim_endseq_obj2      = ANIM_ENDSEQ_OBJ2;
+        adr.anim_endseq_obj3      = ANIM_ENDSEQ_OBJ3;
+        adr.anim_endseq_obj4      = ANIM_ENDSEQ_OBJ4;
+        adr.anim_endseq_obj5      = ANIM_ENDSEQ_OBJ5;
+        adr.anim_endseq_obj6      = ANIM_ENDSEQ_OBJ6;
+        adr.anim_endseq_obj7      = ANIM_ENDSEQ_OBJ7;
+        adr.anim_endseq_obj8      = ANIM_ENDSEQ_OBJ8;
+        adr.anim_endseq_objA      = ANIM_ENDSEQ_OBJA;
+        adr.anim_endseq_objB      = ANIM_ENDSEQ_OBJB;
+        adr.anim_end_table        = ANIM_END_TABLE;
+        adr.shadow_data           = SPRITE_SHADOW_DATA;
+        adr.shadow_frames         = SPRITE_SHDW_FRAMES;
+        adr.sprite_shadow_small   = SPRITE_SHDW_SMALL;
+        adr.traffic_props         = TRAFFIC_PROPS;
+        adr.traffic_data          = TRAFFIC_DATA;
+        adr.sprite_porsche        = SPRITE_PORSCHE;
+        adr.sprite_coursemap      = SPRITE_COURSEMAP;
+        adr.road_seg_table        = ROAD_SEG_TABLE;
+        adr.road_seg_end          = ROAD_SEG_TABLE_END;
+        adr.road_seg_split        = ROAD_SEG_TABLE_SPLIT;
+
+        // Sub CPU
+        adr.road_height_lookup    = ROAD_HEIGHT_LOOKUP;
+    }
 }

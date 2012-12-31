@@ -25,6 +25,7 @@ Config config;
 
 Config::Config(void)
 {
+    jap = true;
 }
 
 
@@ -281,9 +282,11 @@ void Config::set_fps(int fps)
     cannonball::frame_ms = (1000 / this->fps);
 
     #ifdef COMPILE_SOUND_CODE
-    cannonball::audio.stop_audio();
+    if (sound.enabled)
+        cannonball::audio.stop_audio();
     osoundint.init();
-    cannonball::audio.start_audio();
+    if (sound.enabled)
+        cannonball::audio.start_audio();
     #endif
 }
 

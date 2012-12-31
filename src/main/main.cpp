@@ -196,6 +196,7 @@ int main(int argc, char* argv[])
 
     // Load Roms
     bool roms_loaded = roms.init();
+    roms.load_japanese_roms(); // temp location for this
 
     if (roms_loaded)
     {

@@ -200,6 +200,7 @@ public:
 	void init();
 	void tick();
 	void vint();
+    void select_course(bool jap);
 
 private:    
     // Set to debug a particular level
@@ -215,7 +216,6 @@ private:
 	void main_switch();
     void controls();
     bool decrement_timers();
-    void select_course();
 };
 
 extern Outrun outrun;

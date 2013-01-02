@@ -12,7 +12,6 @@
 class Roms
 {
 public:
-
     // Western ROMs
     RomLoader rom0;
     RomLoader rom1;
@@ -32,8 +31,11 @@ public:
 
     Roms();
     ~Roms();
-    bool init();
+    bool load_revb_roms();
     bool load_japanese_roms();
+
+private:
+    int jap_rom_status;
 };
 
 extern Roms roms;

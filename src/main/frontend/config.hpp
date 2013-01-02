@@ -64,6 +64,7 @@ struct engine_settings_t
     int dip_traffic;
     bool freeze_timer;
     bool disable_traffic;
+    int jap;
     int randomgen;
     int level_objects;
 };
@@ -89,9 +90,6 @@ public:
     // Original game ticks sprites at 30fps but background scroll at 60fps
     int tick_fps;
     
-    // Japanese Roms
-    int jap;
-
     Config(void);
     ~Config(void);
 

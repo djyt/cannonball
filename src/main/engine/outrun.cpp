@@ -45,7 +45,7 @@ void Outrun::init()
 {
     game_state = GS_INIT;
     video.enabled = false;
-    select_course();
+    select_course(config.engine.jap != 0);
     video.clear_text_ram();
 
     frame = 0;
@@ -689,11 +689,14 @@ bool Outrun::decrement_timers()
     return (ostats.time_counter < 0);
 }
 
-void Outrun::select_course()
+void Outrun::select_course(bool jap)
 {
-    if (config.jap)
+    if (jap)
     {
-        oinitengine.stage_data = oinitengine.STAGE_DATA_JAP;
+        roms.rom0p = &roms.j_rom0;
+        roms.rom1p = &roms.j_rom1;
+
+        oinitengine.stage_data    = oinitengine.STAGE_DATA_JAP;
 
         // Main CPU
         adr.tiles_def_lookup      = TILES_DEF_LOOKUP_J;
@@ -759,7 +762,7 @@ void Outrun::select_course()
         adr.sprite_dial_left      = SPRITE_DIAL_LEFT_J;
         adr.sprite_dial_centre    = SPRITE_DIAL_CENTRE_J;
         adr.sprite_dial_right     = SPRITE_DIAL_RIGHT_J;
-        adr.sprite_eq             = SPRITE_EQ_J; // eq sprite, part of radio
+        adr.sprite_eq             = SPRITE_EQ_J;
         adr.sprite_radio          = SPRITE_RADIO_J;
         adr.sprite_hand_left      = SPRITE_HAND_LEFT_J;
         adr.sprite_hand_centre    = SPRITE_HAND_CENTRE_J;
@@ -790,7 +793,10 @@ void Outrun::select_course()
     }
     else
     {
-        oinitengine.stage_data = oinitengine.STAGE_DATA_USA;
+        roms.rom0p = &roms.rom0;
+        roms.rom1p = &roms.rom1;
+
+        oinitengine.stage_data    = oinitengine.STAGE_DATA_USA;
 
         // Main CPU
         adr.tiles_def_lookup      = TILES_DEF_LOOKUP;
@@ -845,7 +851,7 @@ void Outrun::select_course()
         adr.sprite_dial_left      = SPRITE_DIAL_LEFT;
         adr.sprite_dial_centre    = SPRITE_DIAL_CENTRE;
         adr.sprite_dial_right     = SPRITE_DIAL_RIGHT;
-        adr.sprite_eq             = SPRITE_EQ; // eq sprite, part of radio
+        adr.sprite_eq             = SPRITE_EQ;
         adr.sprite_radio          = SPRITE_RADIO;
         adr.sprite_hand_left      = SPRITE_HAND_LEFT;
         adr.sprite_hand_centre    = SPRITE_HAND_CENTRE;

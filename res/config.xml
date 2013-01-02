@@ -141,6 +141,15 @@
     -->
     <traffic>1</traffic>
     
+    <!-- The original Japanese release of OutRun featured slightly different
+         tracks and course ordering. 
+         
+         Requires additional ROM files:
+         epr-10380.133, epr-10382.118, epr-10381.132, epr-10383.117
+         epr-10327.76,  epr-10329.58,  epr-10328.75,  epr-10330.57
+    --->
+    <japanese_tracks>1</japanese_tracks>
+    
     <!-- Increase the number of allowed level objects. 
          This fixes the broken arches in Gateway for example.
     --->

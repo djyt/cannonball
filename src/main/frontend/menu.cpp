@@ -65,6 +65,7 @@ const static char* ENTRY_DSTEER     = "DIGITAL STEER SPEED ";
 const static char* ENTRY_DPEDAL     = "DIGITAL PEDAL SPEED ";
 
 // Game Engine Menu
+const static char* ENTRY_TRACKS     = "TRACKS ";
 const static char* ENTRY_TIME       = "TIME ";
 const static char* ENTRY_TRAFFIC    = "TRAFFIC ";
 const static char* ENTRY_OBJECTS    = "OBJECTS ";
@@ -113,6 +114,7 @@ void Menu::populate()
     menu_controls.push_back(ENTRY_DPEDAL);
     menu_controls.push_back(ENTRY_BACK);
 
+    menu_engine.push_back(ENTRY_TRACKS);
     menu_engine.push_back(ENTRY_TIME);
     menu_engine.push_back(ENTRY_TRAFFIC);
     menu_engine.push_back(ENTRY_OBJECTS);
@@ -138,6 +140,7 @@ void Menu::populate()
 
 void Menu::init()
 {   
+    outrun.select_course(false);
     video.enabled = true;
     video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
     video.sprite_layer->reset();
@@ -147,7 +150,6 @@ void Menu::init()
     // Setup palette, road and colours for background
     oroad.stage_lookup_off = 9;
     oinitengine.init_road_seg_master();
-    //oinitengine.road_seg_master = roms.rom0.read32(ROAD_SEG_TABLE + (0x3b << 2));
     opalette.setup_sky_palette();
     opalette.setup_ground_color();
     opalette.setup_road_centre();
@@ -319,8 +321,15 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_PLAYGAME))
             {
-                cannonball::state = cannonball::STATE_INIT_GAME;
-                osoundint.queue_clear();
+                if (config.engine.jap && !roms.load_japanese_roms())
+                {
+                    display_message("JAPANESE ROMSET NOT FOUND");
+                }
+                else
+                {
+                    cannonball::state = cannonball::STATE_INIT_GAME;
+                    osoundint.queue_clear();
+                }
             }
             else if (SELECTED(ENTRY_SETTINGS))
                 set_menu(&menu_settings);
@@ -430,7 +439,11 @@ void Menu::tick_menu()
         }
         else if (menu_selected == &menu_engine)
         {
-            if (SELECTED(ENTRY_TIME))
+            if (SELECTED(ENTRY_TRACKS))
+            {
+                config.engine.jap = !config.engine.jap;
+            }
+            else if (SELECTED(ENTRY_TIME))
             {
                 if (config.engine.dip_time == 3)
                 {
@@ -529,7 +542,9 @@ void Menu::refresh_menu()
         }
         else if (menu_selected == &menu_engine)
         {
-            if (SELECTED(ENTRY_TIME))
+            if (SELECTED(ENTRY_TRACKS))
+                set_menu_text(ENTRY_TRACKS, config.engine.jap ? "JAPAN" : "WORLD");
+            else if (SELECTED(ENTRY_TIME))
             {
                 if (config.engine.freeze_timer)       s = "INFINITE";
                 else if (config.engine.dip_time == 0) s = "EASY";

@@ -76,6 +76,9 @@ private:
         MODE_WINDOW       = 2, // Windowed  : No Scale
     };
 
+    // Scanline pixels
+    uint32_t* scan_pixels;
+
     // Screen Width/Height
     uint16_t screen_width, screen_height;
 
@@ -91,6 +94,9 @@ private:
 	void refresh_palette(uint32_t);
     void scale( uint32_t* src, int srcwid, int srchgt, 
                 uint32_t* dest, int dstwid, int dsthgt);
+    void scanlines_32(uint32_t* pBuffer, int width, int height, int pitch, int scanLinesPct);
+
+    void scale2x( uint32_t* src, const int srcwid, const int srchgt, uint32_t* dest);
 };
 
 extern Video video;

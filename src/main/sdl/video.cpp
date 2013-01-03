@@ -3,6 +3,8 @@
     
 Video video;
 
+bool scanlines = true;
+
 Video::Video(void)
 {
     sprite_layer = new hwsprites();
@@ -14,6 +16,7 @@ Video::~Video(void)
     delete sprite_layer;
     delete tile_layer;
     delete[] pixels;
+    if (scanlines) delete[] scan_pixels;
 }
 
 int Video::init(Roms* roms, video_settings_t* settings)
@@ -21,8 +24,12 @@ int Video::init(Roms* roms, video_settings_t* settings)
     if (!set_video_mode(settings))
         return 0;
 
-    // Internal pixel array. The size of this is always a constant
+    // Internal pixel array. The size of this is always constant
     pixels = new uint32_t[config.s16_width * S16_HEIGHT];
+
+    // When using scanlines, scale up to double height
+    if (scanlines)
+        scan_pixels = new uint32_t[(config.s16_width * 2) * (S16_HEIGHT * 2)];
 
     // Convert S16 tiles to a more useable format
     tile_layer->init(roms->tiles.rom);
@@ -50,7 +57,7 @@ int Video::init(Roms* roms, video_settings_t* settings)
 int Video::set_video_mode(video_settings_t* settings)
 {
     //int bpp = info->vfmt->BitsPerPixel;
-    int bpp = 32;
+    const int bpp = 32;
     int flags = SDL_DOUBLEBUF | SDL_SWSURFACE;
 
     // --------------------------------------------------------------------------------------------
@@ -83,12 +90,21 @@ int Video::set_video_mode(video_settings_t* settings)
         }
         else
         {
-            // Calculate how much to scale screen from its original resolution
-            uint32_t w = (screen_width << 16)  / config.s16_width;
-            uint32_t h = (screen_height << 16) / S16_HEIGHT;
-            
-            scaled_width  = (config.s16_width  * std::min(w, h)) >> 16;
-            scaled_height = (S16_HEIGHT * std::min(w, h)) >> 16;
+            // With scanlines, only allow a proportional scale
+            if (scanlines)
+            {
+                scale_factor  = std::min(screen_width / config.s16_width, screen_height / S16_HEIGHT);
+                scaled_width  = config.s16_width * scale_factor;
+                scaled_height = S16_HEIGHT * scale_factor;
+            }
+            else
+            {
+                // Calculate how much to scale screen from its original resolution
+                uint32_t w = (screen_width << 16)  / config.s16_width;
+                uint32_t h = (screen_height << 16) / S16_HEIGHT;
+                scaled_width  = (config.s16_width  * std::min(w, h)) >> 16;
+                scaled_height = (S16_HEIGHT * std::min(w, h)) >> 16;
+            }
         }
         flags |= SDL_FULLSCREEN; // Set SDL flag
         SDL_ShowCursor(false);   // Don't show mouse cursor in full-screen mode
@@ -155,6 +171,203 @@ int Video::set_video_mode(video_settings_t* settings)
     return 1;
 }
 
+// Note the license of the scanline code below.
+
+/*****************************************************************************
+ ** Original Source: /cvsroot/bluemsx/blueMSX/Src/VideoRender/VideoRender.c,v 
+ **
+ ** Original Revision: 1.25 
+ **
+ ** Original Date: 2006/01/17 08:49:34 
+ **
+ ** More info: http://www.bluemsx.com
+ **
+ ** Copyright (C) 2003-2004 Daniel Vik
+ **
+ **  This software is provided 'as-is', without any express or implied
+ **  warranty.  In no event will the authors be held liable for any damages
+ **  arising from the use of this software.
+ **
+ **  Permission is granted to anyone to use this software for any purpose,
+ **  including commercial applications, and to alter it and redistribute it
+ **  freely, subject to the following restrictions:
+ **
+ **  1. The origin of this software must not be misrepresented; you must not
+ **     claim that you wrote the original software. If you use this software
+ **     in a product, an acknowledgment in the product documentation would be
+ **     appreciated but is not required.
+ **  2. Altered source versions must be plainly marked as such, and must not be
+ **     misrepresented as being the original software.
+ **  3. This notice may not be removed or altered from any source distribution.
+ **
+ ******************************************************************************
+  */
+
+static const bool interpolate_scanlines = true;
+
+void Video::scanlines_32(uint32_t* pBuffer, int width, int height, int pitch, int scanLinesPct)
+{
+    uint32_t* pBuf = (uint32_t*)(pBuffer)+pitch/sizeof(uint32_t);
+    uint32_t* sBuf = (uint32_t*)(pBuffer);
+    uint32_t* tBuf = (uint32_t*)(pBuffer)+pitch*2/sizeof(uint32_t);
+
+    int w, h;
+    static int prev_scanLinesPct;
+
+    pitch = pitch * 2 / (int)sizeof(uint32_t);
+    height /= 2;
+
+    if (scanLinesPct < 0) scanLinesPct = 0;
+    if (scanLinesPct > 100) scanLinesPct = 100;
+
+    if (scanLinesPct == 100) {
+        if (prev_scanLinesPct != 100) {
+            // clean dirty blank scanlines
+            prev_scanLinesPct = 100;
+            for (h = 0; h < height; h++) {
+                memset(pBuf, 0, width * sizeof(uint32_t));
+                pBuf += pitch;
+            }
+        }
+        return;
+    }
+    prev_scanLinesPct = scanLinesPct;
+
+    if (scanLinesPct == 0) {
+    // fill in blank scanlines
+        for (h = 0; h < height; h++) {
+            memcpy(pBuf, sBuf, width * sizeof(uint32_t));
+            sBuf += pitch;
+            pBuf += pitch;
+        }
+        return;
+    }
+
+    if (interpolate_scanlines) {
+        scanLinesPct = (100-scanLinesPct) * 256 / 200;
+        for (h = 0; h < height-1; h++) {
+            for (w = 0; w < width; w++) {
+                uint32_t pixel = sBuf[w];
+                uint32_t pixel2 = tBuf[w];
+                uint32_t a = ((((pixel & 0x00ff00ff)+(pixel2 & 0x00ff00ff)) * scanLinesPct) & 0xff00ff00) >> 8;
+                uint32_t b = ((((pixel & 0x0000ff00)+(pixel2 & 0x0000ff00)) >> 8) * scanLinesPct) & 0x0000ff00;
+                pBuf[w] = a | b;
+            }
+            sBuf += pitch;
+            tBuf += pitch;
+            pBuf += pitch;
+        }
+    } else {
+        scanLinesPct = (100-scanLinesPct) * 256 / 100;
+        for (h = 0; h < height; h++) {
+            for (w = 0; w < width; w++) {
+                Uint32 pixel = sBuf[w];
+                Uint32 a = (((pixel & 0x00ff00ff) * scanLinesPct) & 0xff00ff00) >> 8;
+                Uint32 b = (((pixel & 0x0000ff00) >> 8) * scanLinesPct) & 0x0000ff00;
+                pBuf[w] = a | b;
+            }
+            sBuf += pitch;
+            pBuf += pitch;
+        }
+    }
+}
+
+void Video::draw_frame(void)
+{
+    if (SDL_MUSTLOCK(surface) && SDL_LockSurface(surface) < 0) 
+        return;
+
+    if (!enabled)
+    {
+        SDL_FillRect(surface, NULL, 0);
+    }
+    else
+    {
+        // ------------------------------------------------------------------------
+        // Draw
+        // ------------------------------------------------------------------------
+
+        tile_layer->update_tile_values();
+
+        hwroad.render_background(pixels);
+        sprite_layer->render(1);
+        tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
+        sprite_layer->render(2);
+        tile_layer->render_tile_layer(pixels, 1, 1);      // background layer
+        tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
+        sprite_layer->render(4);
+        tile_layer->render_tile_layer(pixels, 0, 1);      // foreground layer
+        hwroad.render_foreground(pixels);
+        tile_layer->render_text_layer(pixels, 0);
+        sprite_layer->render(8);
+        tile_layer->render_text_layer(pixels, 1);
+ 
+        // Do Scaling
+        if (scale_factor != 1)
+        {
+            uint32_t* pix = pixels;
+    
+            // Lookup real RGB value from rgb array for backbuffer
+            for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)    
+                *(pix++) = rgb[*pix & ((S16_PALETTE_ENTRIES * 3) - 1)];
+
+            if (scanlines)
+            {
+                // Scale by 2 
+                scale2x(pixels, config.s16_width, S16_HEIGHT, scan_pixels);
+
+                // Add the scanlines
+                scanlines_32(scan_pixels, config.s16_width * 2, S16_HEIGHT * 2, (config.s16_width * 2) * sizeof(uint32_t), 35);
+
+                // Now scale up again
+                scale(scan_pixels, config.s16_width * 2, S16_HEIGHT * 2, 
+                      screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
+            }
+            else
+            {
+                // Now scale up again
+                scale(pixels, config.s16_width, S16_HEIGHT, 
+                      screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
+            }
+        }
+        // No Scaling
+        else
+        {
+            uint32_t* pix  = pixels;
+            uint32_t* spix = screen_pixels;
+    
+            // Lookup real RGB value from rgb array for backbuffer
+            for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)
+                *(spix++) = rgb[*(pix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+        }
+
+        // Example: Set the pixel at 10,10 to red
+        //pixels[( 10 * surface->w ) + 10] = 0xFF0000;
+        // ------------------------------------------------------------------------
+    }
+    if (SDL_MUSTLOCK(surface))
+        SDL_UnlockSurface(surface);
+
+    SDL_Flip(surface);
+}
+
+void Video::scale2x(uint32_t* src, const int srcwid, const int srchgt, uint32_t* dest)
+{
+    for (int y = 0; y < srchgt; y++)
+    {
+        // First Row
+        for (int x = 0; x < srcwid; x++)
+        {
+            *dest++ = *src;
+            *dest++ = *src++;
+        }
+
+        // Second Row (Just a copy of the first row)
+        memcpy(dest, dest - (srcwid * 2), srcwid * 2 * sizeof(uint32_t));
+        dest += srcwid * 2;
+    }
+}
+
 /**
 * 
 * Fixed point image scaling code (16.16)
@@ -207,72 +420,6 @@ void Video::scale( uint32_t* src, int srcwid, int srchgt,
         src += ((srcy >> 16) * srcwid); // and possibly to the next row.
         srcy &= 0xffff;                 // set up the y-coordinate between 0 and 1
     }
-}
-
-
-
-void Video::draw_frame(void)
-{
-    if (SDL_MUSTLOCK(surface) && SDL_LockSurface(surface) < 0) 
-        return;
-
-    if (!enabled)
-    {
-        SDL_FillRect(surface, NULL, 0);
-    }
-    else
-    {
-        // ------------------------------------------------------------------------
-        // Draw
-        // ------------------------------------------------------------------------
-
-        tile_layer->update_tile_values();
-
-        hwroad.render_background(pixels);
-        sprite_layer->render(1);
-        tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
-        sprite_layer->render(2);
-        tile_layer->render_tile_layer(pixels, 1, 1);      // background layer
-        tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
-        sprite_layer->render(4);
-        tile_layer->render_tile_layer(pixels, 0, 1);      // foreground layer
-        hwroad.render_foreground(pixels);
-        tile_layer->render_text_layer(pixels, 0);
-        sprite_layer->render(8);
-        tile_layer->render_text_layer(pixels, 1);
- 
-        // Do Scaling
-        if (scale_factor != 1)
-        {
-            uint32_t* pix = pixels;
-    
-            // Lookup real RGB value from rgb array for backbuffer
-            for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)    
-                *(pix++) = rgb[*pix & ((S16_PALETTE_ENTRIES * 3) - 1)];
-
-            // Rescale appropriately
-            scale(pixels, config.s16_width, S16_HEIGHT, 
-                  screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
-        }
-        // No Scaling
-        else
-        {
-            uint32_t* pix  = pixels;
-            uint32_t* spix = screen_pixels;
-    
-            // Lookup real RGB value from rgb array for backbuffer
-            for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)
-                *(spix++) = rgb[*(pix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
-        }
-
-        // Example: Set the pixel at 10,10 to red
-        //pixels[( 10 * surface->w ) + 10] = 0xFF0000;
-        // ------------------------------------------------------------------------
-    }
-    if (SDL_MUSTLOCK(surface))
-        SDL_UnlockSurface(surface);
-
-    SDL_Flip(surface);
 }
 
 // ---------------------------------------------------------------------------

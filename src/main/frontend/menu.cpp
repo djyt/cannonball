@@ -120,7 +120,7 @@ void Menu::populate()
     menu_engine.push_back(ENTRY_OBJECTS);
     menu_engine.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL © CHRIS WHITE 2012");
+    menu_about.push_back("CANNONBALL © CHRIS WHITE 2013");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back(" ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");

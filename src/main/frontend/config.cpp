@@ -67,11 +67,12 @@ void Config::load(const std::string &filename)
     // Video Settings
     // ------------------------------------------------------------------------
    
+    video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed 
+    video.scale      = pt_config.get("video.window.scale",       2); // Video Scale: Default is 2x    
+    video.stretch    = pt_config.get("video.fullscreen.stretch", 0); // Stretch in full-screen mode
+    video.scanlines  = pt_config.get("video.scanlines",          0); // Scanlines
     video.fps        = pt_config.get("video.fps",                2); // Default is 60 fps   
     video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode   
-    video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed   
-    video.scale      = pt_config.get("video.window.scale",       1); // Video Scale: Default is 1x    
-    video.stretch    = pt_config.get("video.fullscreen.stretch", 0); // Stretch in full-screen mode
           
     set_fps(video.fps);
 

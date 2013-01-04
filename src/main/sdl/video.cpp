@@ -3,8 +3,6 @@
     
 Video video;
 
-bool scanlines = true;
-
 Video::Video(void)
 {
     sprite_layer = new hwsprites();
@@ -27,7 +25,7 @@ int Video::init(Roms* roms, video_settings_t* settings)
     // Internal pixel array. The size of this is always constant
     pixels = new uint32_t[config.s16_width * S16_HEIGHT];
 
-    // When using scanlines, scale up to double height
+    // Doubled intermediate pixel array for scanlines
     if (scanlines)
         scan_pixels = new uint32_t[(config.s16_width * 2) * (S16_HEIGHT * 2)];
 
@@ -59,6 +57,10 @@ int Video::set_video_mode(video_settings_t* settings)
     //int bpp = info->vfmt->BitsPerPixel;
     const int bpp = 32;
     int flags = SDL_DOUBLEBUF | SDL_SWSURFACE;
+    
+    scanlines = config.video.scanlines;
+    if (scanlines < 0) scanlines = 0;
+    else if (scanlines > 100) scanlines = 100;
 
     // --------------------------------------------------------------------------------------------
     // Full Screen Mode
@@ -87,6 +89,7 @@ int Video::set_video_mode(video_settings_t* settings)
         {
             scaled_width  = screen_width;
             scaled_height = screen_height;
+            scanlines = 0; // Disable scanlines in stretch mode
         }
         else
         {
@@ -121,7 +124,7 @@ int Video::set_video_mode(video_settings_t* settings)
 
         scale_factor  = settings->scale;
 
-        screen_width  = config.s16_width  * scale_factor;
+        screen_width  = config.s16_width * scale_factor;
         screen_height = S16_HEIGHT * scale_factor;
 
         // As we're windowed this is just the same
@@ -167,109 +170,16 @@ int Video::set_video_mode(video_settings_t* settings)
     // Convert the SDL pixel surface to 32 bit.
     // This is potentially a larger surface area than the internal pixel array.
     screen_pixels = (uint32_t*)surface->pixels;
+    
+    // SDL Pixel Format Information
+    Rshift = surface->format->Rshift;
+    Gshift = surface->format->Gshift;
+    Bshift = surface->format->Bshift;
+    Rmask  = surface->format->Rmask;
+    Gmask  = surface->format->Gmask;
+    Bmask  = surface->format->Bmask;
 
     return 1;
-}
-
-// Note the license of the scanline code below.
-
-/*****************************************************************************
- ** Original Source: /cvsroot/bluemsx/blueMSX/Src/VideoRender/VideoRender.c,v 
- **
- ** Original Revision: 1.25 
- **
- ** Original Date: 2006/01/17 08:49:34 
- **
- ** More info: http://www.bluemsx.com
- **
- ** Copyright (C) 2003-2004 Daniel Vik
- **
- **  This software is provided 'as-is', without any express or implied
- **  warranty.  In no event will the authors be held liable for any damages
- **  arising from the use of this software.
- **
- **  Permission is granted to anyone to use this software for any purpose,
- **  including commercial applications, and to alter it and redistribute it
- **  freely, subject to the following restrictions:
- **
- **  1. The origin of this software must not be misrepresented; you must not
- **     claim that you wrote the original software. If you use this software
- **     in a product, an acknowledgment in the product documentation would be
- **     appreciated but is not required.
- **  2. Altered source versions must be plainly marked as such, and must not be
- **     misrepresented as being the original software.
- **  3. This notice may not be removed or altered from any source distribution.
- **
- ******************************************************************************
-  */
-
-static const bool interpolate_scanlines = true;
-
-void Video::scanlines_32(uint32_t* pBuffer, int width, int height, int pitch, int scanLinesPct)
-{
-    uint32_t* pBuf = (uint32_t*)(pBuffer)+pitch/sizeof(uint32_t);
-    uint32_t* sBuf = (uint32_t*)(pBuffer);
-    uint32_t* tBuf = (uint32_t*)(pBuffer)+pitch*2/sizeof(uint32_t);
-
-    int w, h;
-    static int prev_scanLinesPct;
-
-    pitch = pitch * 2 / (int)sizeof(uint32_t);
-    height /= 2;
-
-    if (scanLinesPct < 0) scanLinesPct = 0;
-    if (scanLinesPct > 100) scanLinesPct = 100;
-
-    if (scanLinesPct == 100) {
-        if (prev_scanLinesPct != 100) {
-            // clean dirty blank scanlines
-            prev_scanLinesPct = 100;
-            for (h = 0; h < height; h++) {
-                memset(pBuf, 0, width * sizeof(uint32_t));
-                pBuf += pitch;
-            }
-        }
-        return;
-    }
-    prev_scanLinesPct = scanLinesPct;
-
-    if (scanLinesPct == 0) {
-    // fill in blank scanlines
-        for (h = 0; h < height; h++) {
-            memcpy(pBuf, sBuf, width * sizeof(uint32_t));
-            sBuf += pitch;
-            pBuf += pitch;
-        }
-        return;
-    }
-
-    if (interpolate_scanlines) {
-        scanLinesPct = (100-scanLinesPct) * 256 / 200;
-        for (h = 0; h < height-1; h++) {
-            for (w = 0; w < width; w++) {
-                uint32_t pixel = sBuf[w];
-                uint32_t pixel2 = tBuf[w];
-                uint32_t a = ((((pixel & 0x00ff00ff)+(pixel2 & 0x00ff00ff)) * scanLinesPct) & 0xff00ff00) >> 8;
-                uint32_t b = ((((pixel & 0x0000ff00)+(pixel2 & 0x0000ff00)) >> 8) * scanLinesPct) & 0x0000ff00;
-                pBuf[w] = a | b;
-            }
-            sBuf += pitch;
-            tBuf += pitch;
-            pBuf += pitch;
-        }
-    } else {
-        scanLinesPct = (100-scanLinesPct) * 256 / 100;
-        for (h = 0; h < height; h++) {
-            for (w = 0; w < width; w++) {
-                Uint32 pixel = sBuf[w];
-                Uint32 a = (((pixel & 0x00ff00ff) * scanLinesPct) & 0xff00ff00) >> 8;
-                Uint32 b = (((pixel & 0x0000ff00) >> 8) * scanLinesPct) & 0x0000ff00;
-                pBuf[w] = a | b;
-            }
-            sBuf += pitch;
-            pBuf += pitch;
-        }
-    }
 }
 
 void Video::draw_frame(void)
@@ -311,21 +221,25 @@ void Video::draw_frame(void)
             for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)    
                 *(pix++) = rgb[*pix & ((S16_PALETTE_ENTRIES * 3) - 1)];
 
+            // Scanlines: (Full Screen or Windowed). Potentially slow. 
             if (scanlines)
             {
-                // Scale by 2 
-                scale2x(pixels, config.s16_width, S16_HEIGHT, scan_pixels);
-
-                // Add the scanlines
-                scanlines_32(scan_pixels, config.s16_width * 2, S16_HEIGHT * 2, (config.s16_width * 2) * sizeof(uint32_t), 35);
+                // Add the scanlines. Double image in the process to create space for the scanlines.
+                scanlines_32bpp(pixels, config.s16_width, S16_HEIGHT, scan_pixels, 40);
 
                 // Now scale up again
                 scale(scan_pixels, config.s16_width * 2, S16_HEIGHT * 2, 
                       screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
             }
+            // Windowed: Use Faster Scaling algorithm
+            else if (video_mode == MODE_WINDOW)
+            {
+                scalex(pixels, config.s16_width, S16_HEIGHT, screen_pixels, scale_factor); 
+            }
+            // Full Screen: Stretch screen. May not be an integer multiple of original size.
+            //                              Therefore, scaling is slower.
             else
             {
-                // Now scale up again
                 scale(pixels, config.s16_width, S16_HEIGHT, 
                       screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
             }
@@ -351,20 +265,31 @@ void Video::draw_frame(void)
     SDL_Flip(surface);
 }
 
-void Video::scale2x(uint32_t* src, const int srcwid, const int srchgt, uint32_t* dest)
+// Fastest scaling algorithm. Scales proportionally.
+void Video::scalex(uint32_t* src, const int srcwid, const int srchgt, uint32_t* dest, const int scale)
 {
+    const int destwid = srcwid * scale;
+
     for (int y = 0; y < srchgt; y++)
     {
+        int src_inc = 0;
+    
         // First Row
-        for (int x = 0; x < srcwid; x++)
+        for (int x = 0; x < destwid; x++)
         {
             *dest++ = *src;
-            *dest++ = *src++;
+            if (++src_inc == scale)
+            {
+                src_inc = 0;
+                src++;
+            }
         }
-
-        // Second Row (Just a copy of the first row)
-        memcpy(dest, dest - (srcwid * 2), srcwid * 2 * sizeof(uint32_t));
-        dest += srcwid * 2;
+        // Make additional copies of this row
+        for (int i = 0; i < scale-1; i++)
+        {
+            memcpy(dest, dest - destwid, destwid * sizeof(uint32_t)); 
+            dest += destwid;
+        }
     }
 }
 
@@ -380,9 +305,6 @@ void Video::scale2x(uint32_t* src, const int srcwid, const int srchgt, uint32_t*
 * dest         pointer to the bitmap we want to scale into (destination)
 * dstwid       how wide do we want the source image to be?
 * dsthgt       how tall do we want the source image to be?
-*            
-* Note that both srcwid&srchgt and dstwid&dsthgt refer to the source image's dimensions. 
-* The destination page size is specified in pagewid&pagehgt.
 * 
 * @author Chris White
 * 
@@ -392,7 +314,7 @@ void Video::scale( uint32_t* src, int srcwid, int srchgt,
 {
     int xstep = (srcwid << 16) / dstwid; // calculate distance (in source) between
     int ystep = (srchgt << 16) / dsthgt; // pixels (in dest)
-    int srcy = 0; // y-cordinate in source image
+    int srcy  = 0; // y-cordinate in source image
         
     for (int y = 0; y < dsthgt; y++)
     {
@@ -419,6 +341,115 @@ void Video::scale( uint32_t* src, int srcwid, int srchgt,
         srcy += ystep;                  // move through the source image...
         src += ((srcy >> 16) * srcwid); // and possibly to the next row.
         srcy &= 0xffff;                 // set up the y-coordinate between 0 and 1
+    }
+}
+
+/*****************************************************************************
+ ** Original Source: /cvsroot/bluemsx/blueMSX/Src/VideoRender/VideoRender.c,v 
+ **
+ ** Original Revision: 1.25 
+ **
+ ** Original Date: 2006/01/17 08:49:34 
+ **
+ ** More info: http://www.bluemsx.com
+ **
+ ** Copyright (C) 2003-2004 Daniel Vik
+ **
+ **  This software is provided 'as-is', without any express or implied
+ **  warranty.  In no event will the authors be held liable for any damages
+ **  arising from the use of this software.
+ **
+ **  Permission is granted to anyone to use this software for any purpose,
+ **  including commercial applications, and to alter it and redistribute it
+ **  freely, subject to the following restrictions:
+ **
+ **  1. The origin of this software must not be misrepresented; you must not
+ **     claim that you wrote the original software. If you use this software
+ **     in a product, an acknowledgment in the product documentation would be
+ **     appreciated but is not required.
+ **  2. Altered source versions must be plainly marked as such, and must not be
+ **     misrepresented as being the original software.
+ **  3. This notice may not be removed or altered from any source distribution.
+ **
+ ******************************************************************************
+  */
+
+// Modified version of the original to handle different 32bpp formats.
+
+// Note that this takes an unscaled source pixel array as input, and then 
+// doubles it up, in order to insert the scanlines.
+
+void Video::scanlines_32bpp(uint32_t* src, const int width, const int height, 
+                            uint32_t* dst, int percent, bool interpolate)
+{
+    const int dst_width1 = width << 1;
+    const int dst_width2 = width << 2;
+    
+    uint32_t* sBuf = dst;              // Normal Scanline
+    uint32_t* pBuf = dst + dst_width1; // Darkened Scanline
+    
+    for (int y = 0; y < height; y++)
+    {
+        // Double the pixels for this row
+        for (int x = 0; x < width; x++)
+        {
+            *dst++ = *src;
+            *dst++ = *src++;
+        }
+
+        // Omit one row.
+        // We will fill the omitted row with a scanline later
+        dst += dst_width1;
+    }
+        
+    // Optimization for black scanlines
+    if (percent == 100)
+    {
+        for (int h = 0; h < height; h++) 
+        {
+            memset(pBuf, 0, dst_width1 * sizeof(uint32_t));
+            pBuf += dst_width2; // Advance two lines
+        }
+        return;
+    }
+
+    if (interpolate) 
+    {
+        uint32_t* tBuf = sBuf + dst_width2;    // Next Scanline (For Interpolation)
+    
+        percent = ((100-percent) << 8) / 200;
+        for (int h = 0; h < height-1; h++) 
+        {
+            for (int w = 0; w < dst_width1; w++) 
+            {
+                uint32_t pixel1 = sBuf[w]; // Normal Pixel
+                uint32_t pixel2 = tBuf[w]; // Pixel to interpolate
+                uint32_t r = (( ((pixel1 & Rmask)+(pixel2 & Rmask)) * percent) >> 8) & Rmask;
+                uint32_t g = (( ((pixel1 & Gmask)+(pixel2 & Gmask)) * percent) >> 8) & Gmask;
+                uint32_t b = (( ((pixel1 & Bmask)+(pixel2 & Bmask)) * percent) >> 8) & Bmask;
+                pBuf[w] = r | g | b;
+            }
+            sBuf += dst_width2; // Advance two lines
+            tBuf += dst_width2;
+            pBuf += dst_width2;
+        }
+    } 
+    else 
+    {
+        percent = ((100-percent) << 8) / 100;
+        for (int h = 0; h < height; h++) 
+        {
+            for (int w = 0; w < dst_width1; w++) 
+            {
+                Uint32 pixel = sBuf[w];
+                uint32_t r = (( (pixel & Rmask) * percent) >> 8) & Rmask;
+                uint32_t g = (( (pixel & Gmask) * percent) >> 8) & Gmask;
+                uint32_t b = (( (pixel & Bmask) * percent) >> 8) & Bmask;
+                pBuf[w] = r | g | b;
+            }
+            sBuf += dst_width2; // Advance two lines
+            pBuf += dst_width2;
+        }
     }
 }
 
@@ -610,7 +641,7 @@ uint32_t Video::read_pal32(uint32_t* palAddr)
 }
 
 // See: SDL_PixelFormat
-#define CURRENT_RGB() (r << surface->format->Rshift) | (g << surface->format->Gshift) | (b << surface->format->Bshift);
+#define CURRENT_RGB() (r << Rshift) | (g << Gshift) | (b << Bshift);
 
 void Video::refresh_palette(uint32_t palAddr)
 {
@@ -639,6 +670,6 @@ void Video::refresh_palette(uint32_t palAddr)
     g = g * 202 / 256;
     b = b * 202 / 256;
         
-    rgb[rgbAddr + Video::S16_PALETTE_ENTRIES] = CURRENT_RGB();
+    rgb[rgbAddr + Video::S16_PALETTE_ENTRIES] =
     rgb[rgbAddr + (Video::S16_PALETTE_ENTRIES * 2)] = CURRENT_RGB();
 }

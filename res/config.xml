@@ -13,16 +13,6 @@
     Video Settings
 -->
 <video>
-    <!-- FPS 
-         0 = 30    FPS. Optimized Mode       (Slow computers)
-         1 = 30/60 FPS. Original Game Mode.  (The original experience)
-         2 = 60    FPS. Smooth Mode.         (Full 60fps)
-    -->
-    <fps>2</fps>
-    
-    <!-- Enhanced Widescreen Mode -->
-    <widescreen>1</widescreen>
-
     <!-- Set Screen Mode: 0 is windowed, 1 is full-screen -->
     <mode>0</mode>
 
@@ -41,6 +31,27 @@
     <fullscreen>
         <stretch>0</stretch>
     </fullscreen>
+    
+    <!-- 
+        Scanline intensity.
+        0   = No scanlines
+        100 = Solid black
+        
+        Note that scanlines require a scale factor of 2 or more. 
+        Scanlines do not work in stretch mode.
+        Scanlines may result in some borders around the screen in full-screen mode.
+    -->
+    <scanlines>35</scanlines>
+
+    <!-- FPS 
+         0 = 30    FPS. Optimized Mode       (Slow computers)
+         1 = 30/60 FPS. Original Game Mode.  (The original experience)
+         2 = 60    FPS. Smooth Mode.         (Full 60fps)
+    -->
+    <fps>2</fps>
+    
+    <!-- Enhanced Widescreen Mode -->
+    <widescreen>1</widescreen>
 </video>
 
 <!-- 

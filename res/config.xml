@@ -1,15 +1,6 @@
 <?xml version="1.0"?>
 
 <!-- 
-    Use the inbuilt menu system. 
-    You can disable it and edit this config file instead if it makes more sense for your system.
- -->
-<menu>
-    <enabled>1</enabled>
-    <roadspeed>25</roadspeed>
-</menu>
-
-<!-- 
     Video Settings
 -->
 <video>
@@ -175,3 +166,12 @@
     -->
     <randomgen>1</randomgen>
 </engine>
+
+<!-- 
+    Use the inbuilt menu system. 
+    You can disable it and edit this config file instead if it makes more sense for your system.
+ -->
+<menu>
+    <enabled>1</enabled>
+    <roadspeed>25</roadspeed>
+</menu>

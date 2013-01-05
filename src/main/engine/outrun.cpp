@@ -29,7 +29,7 @@ Outrun outrun;
     - Shadow popping into position randomly. Try setting car x position to 0x1E2. (0x260050) [fixed]
     - Stage 2a: Incomplete arches due to lack of sprite slots [fixed]
     - Best OutRunners screen looks odd after Stage 2 Gateway
-    - Stage 3c: Clouds overlapping trees
+    - Stage 3c: Clouds overlapping trees [unable to fix easily]
 
 */
 
@@ -691,6 +691,10 @@ bool Outrun::decrement_timers()
     
     return (ostats.time_counter < 0);
 }
+
+// -------------------------------------------------------------------------------
+// Remap ROM addresses and select course.
+// -------------------------------------------------------------------------------
 
 void Outrun::select_course(bool jap)
 {

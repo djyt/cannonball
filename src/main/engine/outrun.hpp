@@ -69,6 +69,7 @@ enum
 	GS_REINIT = 21,				//15 = Reinitalize Game (after outrunners screen)
 };
 
+// Addresses (Used to swap between original and Japanese roms)
 struct adr_t
 {
     // CPU 0

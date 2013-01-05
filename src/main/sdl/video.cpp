@@ -225,7 +225,7 @@ void Video::draw_frame(void)
             if (scanlines)
             {
                 // Add the scanlines. Double image in the process to create space for the scanlines.
-                scanlines_32bpp(pixels, config.s16_width, S16_HEIGHT, scan_pixels, 40);
+                scanlines_32bpp(pixels, config.s16_width, S16_HEIGHT, scan_pixels, scanlines);
 
                 // Now scale up again
                 scale(scan_pixels, config.s16_width * 2, S16_HEIGHT * 2, 
@@ -416,7 +416,8 @@ void Video::scanlines_32bpp(uint32_t* src, const int width, const int height,
     if (interpolate) 
     {
         uint32_t* tBuf = sBuf + dst_width2;    // Next Scanline (For Interpolation)
-    
+        int percent_orig = percent;            // Backup for final scanline
+
         percent = ((100-percent) << 8) / 200;
         for (int h = 0; h < height-1; h++) 
         {
@@ -432,6 +433,17 @@ void Video::scanlines_32bpp(uint32_t* src, const int width, const int height,
             sBuf += dst_width2; // Advance two lines
             tBuf += dst_width2;
             pBuf += dst_width2;
+        }
+
+        // Do final scanline (no interpolation with next line)
+        percent = ((100-percent_orig) << 8) / 100;
+        for (int w = 0; w < dst_width1; w++) 
+        {
+            Uint32 pixel = sBuf[w];
+            uint32_t r = (( (pixel & Rmask) * percent) >> 8) & Rmask;
+            uint32_t g = (( (pixel & Gmask) * percent) >> 8) & Gmask;
+            uint32_t b = (( (pixel & Bmask) * percent) >> 8) & Bmask;
+            pBuf[w] = r | g | b;
         }
     } 
     else 

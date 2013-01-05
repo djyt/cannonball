@@ -83,7 +83,7 @@ void OMusic::setup_sprite1()
     e->priority = 0x1FE;
     e->zoom = 0x7F;
     e->pal_src = 0xB0;
-    e->addr = SPRITE_RADIO;
+    e->addr = outrun.adr.sprite_radio;
     osprites.map_palette(e);
 }
 
@@ -98,7 +98,7 @@ void OMusic::setup_sprite2()
     e->priority = 0x1FE;
     e->zoom = 0x7F;
     e->pal_src = 0xA7;
-    e->addr = SPRITE_EQ;
+    e->addr = outrun.adr.sprite_eq;
     osprites.map_palette(e);
 }
 
@@ -113,7 +113,7 @@ void OMusic::setup_sprite3()
     e->priority = 0x1FE;
     e->zoom = 0x7F;
     e->pal_src = 0x87;
-    e->addr = SPRITE_FM_LEFT;
+    e->addr = outrun.adr.sprite_fm_left;
     osprites.map_palette(e);
 }
 
@@ -128,7 +128,7 @@ void OMusic::setup_sprite4()
     e->priority = 0x1FE;
     e->zoom = 0x7F;
     e->pal_src = 0x89;
-    e->addr = SPRITE_DIAL_LEFT;
+    e->addr = outrun.adr.sprite_dial_left;
     osprites.map_palette(e);
 }
 
@@ -143,7 +143,7 @@ void OMusic::setup_sprite5()
     e->priority = 0x1FE;
     e->zoom = 0x7F;
     e->pal_src = 0xAF;
-    e->addr = SPRITE_HAND_LEFT;
+    e->addr = outrun.adr.sprite_hand_left;
     osprites.map_palette(e);
 }
 
@@ -188,9 +188,9 @@ void OMusic::tick()
     {                
         hand->x = 17;
 
-        e->addr    = SPRITE_FM_LEFT;
-        e2->addr   = SPRITE_DIAL_LEFT;
-        hand->addr = SPRITE_HAND_LEFT;
+        e->addr    = outrun.adr.sprite_fm_left;
+        e2->addr   = outrun.adr.sprite_dial_left;
+        hand->addr = outrun.adr.sprite_hand_left;
 
         if (config.sound.custom_music[0].enabled)
         {
@@ -210,9 +210,9 @@ void OMusic::tick()
     {
         hand->x = 21;
 
-        e->addr    = SPRITE_FM_CENTRE;
-        e2->addr   = SPRITE_DIAL_CENTRE;
-        hand->addr = SPRITE_HAND_CENTRE;
+        e->addr    = outrun.adr.sprite_fm_centre;
+        e2->addr   = outrun.adr.sprite_dial_centre;
+        hand->addr = outrun.adr.sprite_hand_centre;
 
         if (config.sound.custom_music[1].enabled)
         {
@@ -232,9 +232,9 @@ void OMusic::tick()
     {
         hand->x = 21;
 
-        e->addr    = SPRITE_FM_RIGHT;
-        e2->addr   = SPRITE_DIAL_RIGHT;
-        hand->addr = SPRITE_HAND_RIGHT;
+        e->addr    = outrun.adr.sprite_fm_right;
+        e2->addr   = outrun.adr.sprite_dial_right;
+        hand->addr = outrun.adr.sprite_hand_right;
 
         if (config.sound.custom_music[2].enabled)
         {

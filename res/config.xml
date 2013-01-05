@@ -1,28 +1,9 @@
 <?xml version="1.0"?>
 
 <!-- 
-    Use the inbuilt menu system. 
-    You can disable it and edit this config file instead if it makes more sense for your system.
- -->
-<menu>
-    <enabled>1</enabled>
-    <roadspeed>25</roadspeed>
-</menu>
-
-<!-- 
     Video Settings
 -->
 <video>
-    <!-- FPS 
-         0 = 30    FPS. Optimized Mode       (Slow computers)
-         1 = 30/60 FPS. Original Game Mode.  (The original experience)
-         2 = 60    FPS. Smooth Mode.         (Full 60fps)
-    -->
-    <fps>2</fps>
-    
-    <!-- Enhanced Widescreen Mode -->
-    <widescreen>1</widescreen>
-
     <!-- Set Screen Mode: 0 is windowed, 1 is full-screen -->
     <mode>0</mode>
 
@@ -37,10 +18,34 @@
     <!-- 
         Fullscreen Mode Settings 
         Stretch: Set to 1 to stretch the screen and remove borders.
+        Aspect ratio will be lost. Scanlines will be disabled.
     -->
     <fullscreen>
         <stretch>0</stretch>
     </fullscreen>
+    
+    <!-- 
+        Scanline intensity.
+        0   = No scanlines
+        100 = Solid black
+        
+        A value of 35 looks good on my LCD monitor.
+        
+        Note that scanlines require a scale factor of 2 or more. 
+        Scanlines do not work in full-screen stretch mode.
+        Scanlines may result in some borders around the screen in full-screen mode.
+    -->
+    <scanlines>0</scanlines>
+
+    <!-- FPS 
+         0 = 30    FPS. Optimized Mode       (Slow computers)
+         1 = 30/60 FPS. Original Game Mode.  (The original experience)
+         2 = 60    FPS. Smooth Mode.         (Full 60fps)
+    -->
+    <fps>2</fps>
+    
+    <!-- Enhanced Widescreen Mode -->
+    <widescreen>1</widescreen>
 </video>
 
 <!-- 
@@ -141,6 +146,15 @@
     -->
     <traffic>1</traffic>
     
+    <!-- The original Japanese release of OutRun featured slightly different
+         tracks and course ordering. 
+         
+         Requires additional ROM files:
+         epr-10380.133, epr-10382.118, epr-10381.132, epr-10383.117
+         epr-10327.76,  epr-10329.58,  epr-10328.75,  epr-10330.57
+    --->
+    <japanese_tracks>0</japanese_tracks>
+    
     <!-- Increase the number of allowed level objects. 
          This fixes the broken arches in Gateway for example.
     --->
@@ -152,3 +166,12 @@
     -->
     <randomgen>1</randomgen>
 </engine>
+
+<!-- 
+    Use the inbuilt menu system. 
+    You can disable it and edit this config file instead if it makes more sense for your system.
+ -->
+<menu>
+    <enabled>1</enabled>
+    <roadspeed>25</roadspeed>
+</menu>

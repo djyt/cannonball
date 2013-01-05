@@ -60,7 +60,7 @@ void OSmoke::draw_ferrari_smoke(oentry *sprite)
 
     if (olevelobjs.spray_counter)
     {
-        tick_smoke_anim(sprite, 1, roms.rom0.read32(SPRAY_DATA + olevelobjs.spray_type));
+        tick_smoke_anim(sprite, 1, roms.rom0p->read32(outrun.adr.spray_data + olevelobjs.spray_type));
         return;
     }
     
@@ -70,7 +70,7 @@ void OSmoke::draw_ferrari_smoke(oentry *sprite)
 
     if (oferrari.is_slipping && oferrari.wheel_state == OFerrari::WHEELS_ON)
     {
-        tick_smoke_anim(sprite, 0, roms.rom0.read32(SMOKE_DATA + smoke_type_slip));
+        tick_smoke_anim(sprite, 0, roms.rom0p->read32(outrun.adr.smoke_data + smoke_type_slip));
         return;
     }
 
@@ -80,17 +80,19 @@ void OSmoke::draw_ferrari_smoke(oentry *sprite)
 
     if (oferrari.wheel_state != OFerrari::WHEELS_ON)
     {
+        uint32_t smoke_adr = roms.rom0p->read32(outrun.adr.smoke_data + smoke_type_offroad);
+
         // Left Wheel Only
         if (sprite == &osprites.jump_table[OSprites::SPRITE_SMOKE2] && oferrari.wheel_state == OFerrari::WHEELS_LEFT_OFF)
-            tick_smoke_anim(sprite, 1, roms.rom0.read32(SMOKE_DATA + smoke_type_offroad));
+            tick_smoke_anim(sprite, 1, smoke_adr);
 
         // Right Wheel Only
         else if (sprite == &osprites.jump_table[OSprites::SPRITE_SMOKE1] && oferrari.wheel_state == OFerrari::WHEELS_RIGHT_OFF)
-            tick_smoke_anim(sprite, 1, roms.rom0.read32(SMOKE_DATA + smoke_type_offroad));
+            tick_smoke_anim(sprite, 1, smoke_adr);
         
         // Both Wheels
         else if (oferrari.wheel_state == OFerrari::WHEELS_OFF)
-            tick_smoke_anim(sprite, 1, roms.rom0.read32(SMOKE_DATA + smoke_type_offroad));
+            tick_smoke_anim(sprite, 1, smoke_adr);
 
         return;
     }
@@ -105,7 +107,7 @@ void OSmoke::draw_ferrari_smoke(oentry *sprite)
     // Smoke from wheels
     else if (oferrari.car_state == OFerrari::CAR_SMOKE)
     {
-        tick_smoke_anim(sprite, 1, roms.rom0.read32(SMOKE_DATA + smoke_type_onroad));
+        tick_smoke_anim(sprite, 1, roms.rom0p->read32(outrun.adr.smoke_data + smoke_type_onroad));
     }
     // Animation Sequence
     else
@@ -114,7 +116,7 @@ void OSmoke::draw_ferrari_smoke(oentry *sprite)
             sprite->type = sprite->xw1; // Copy frame number to type
         else
         {
-            tick_smoke_anim(sprite, 1, roms.rom0.read32(SMOKE_DATA + smoke_type_onroad));
+            tick_smoke_anim(sprite, 1, roms.rom0p->read32(outrun.adr.smoke_data + smoke_type_onroad));
         }
     }
 }
@@ -279,9 +281,9 @@ void OSmoke::tick_smoke_anim(oentry* sprite, int8_t anim_ctrl, uint32_t addr)
     }
     // setup_smoke:
     uint16_t frame   = (sprite->xw1 & 7) << 3;
-    sprite->addr     = roms.rom0.read32(addr + frame);
-    sprite->pal_src  = roms.rom0.read8(addr + frame + 5);
-    uint16_t smoke_z = roms.rom0.read8(addr + frame + 4) + sprite->z;
+    sprite->addr     = roms.rom0p->read32(addr + frame);
+    sprite->pal_src  = roms.rom0p->read8(addr + frame + 5);
+    uint16_t smoke_z = roms.rom0p->read8(addr + frame + 4) + sprite->z;
     if (smoke_z > 0xFF) smoke_z = 0xFF;
 
     // inc_crash_z:
@@ -293,21 +295,21 @@ void OSmoke::tick_smoke_anim(oentry* sprite, int8_t anim_ctrl, uint32_t addr)
 
     // Set Sprite Zoom
     if (smoke_z <= 0x40) smoke_z = 0x40;
-    uint8_t shift = (roms.rom0.read8(addr + frame + 7) & 2) >> 1;
+    uint8_t shift = (roms.rom0p->read8(addr + frame + 7) & 2) >> 1;
     uint8_t zoom = smoke_z >> shift;
     if (zoom <= 0x40) zoom = 0x40;
     sprite->zoom = zoom;
 
     // Set Sprite Y
-    sprite->y += ((roms.rom0.read8(addr + frame + 6) & 0xF) * zoom) >> 8;
+    sprite->y += ((roms.rom0p->read8(addr + frame + 6) & 0xF) * zoom) >> 8;
 
     // Set Sprite Priority
-    sprite->priority = oferrari.spr_ferrari->priority + ((roms.rom0.read8(addr + frame + 7) >> 4) & 0xF);
+    sprite->priority = oferrari.spr_ferrari->priority + ((roms.rom0p->read8(addr + frame + 7) >> 4) & 0xF);
     sprite->road_priority = sprite->priority;
 
     // Set Sprite X
-    uint8_t hflip = (roms.rom0.read8(addr + frame + 7) & 1);
-    int8_t x = ((roms.rom0.read8(addr + frame + 6) >> 3) & 0x1E);
+    uint8_t hflip = (roms.rom0p->read8(addr + frame + 7) & 1);
+    int8_t x = ((roms.rom0p->read8(addr + frame + 6) >> 3) & 0x1E);
 
     if (sprite == &osprites.jump_table[OSprites::SPRITE_SMOKE1])
     {

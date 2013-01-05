@@ -62,6 +62,10 @@ public:
 
 private:
 	SDL_Surface *surface;
+    
+    // SDL Pixel Format Codes. These differ between platforms.
+    uint8_t  Rshift, Gshift, Bshift;
+    uint32_t Rmask, Gmask, Bmask;
 
 	uint8_t palette[Video::S16_PALETTE_ENTRIES * 2]; // 2 Bytes Per Palette Entry
 	uint32_t rgb[Video::S16_PALETTE_ENTRIES * 3];    // Extended to hold shadow/hilight colours
@@ -75,6 +79,12 @@ private:
         MODE_FULL_STRETCH = 1, // Fullscreen: Stretch
         MODE_WINDOW       = 2, // Windowed  : No Scale
     };
+    
+    // Enable Scanlines
+    int scanlines;
+
+    // Scanline pixels
+    uint32_t* scan_pixels;
 
     // Screen Width/Height
     uint16_t screen_width, screen_height;
@@ -91,6 +101,10 @@ private:
 	void refresh_palette(uint32_t);
     void scale( uint32_t* src, int srcwid, int srchgt, 
                 uint32_t* dest, int dstwid, int dsthgt);
+    void scanlines_32bpp(uint32_t* src, const int width, const int height, 
+                         uint32_t* dst, int percent, const bool interpolate = true);
+
+    void scalex( uint32_t* src, const int srcwid, const int srchgt, uint32_t* dest, const int scale);
 };
 
 extern Video video;

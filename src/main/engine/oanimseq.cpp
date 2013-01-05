@@ -67,21 +67,21 @@ void OAnimSeq::init(oentry* jump_table)
     // --------------------------------------------------------------------------------------------
     oentry* sprite_ferrari = &jump_table[OSprites::SPRITE_FERRARI];
     anim_ferrari.init(sprite_ferrari);
-    anim_ferrari.anim_addr_curr = ANIM_FERRARI_CURR;
-    anim_ferrari.anim_addr_next = ANIM_FERRARI_NEXT;
+    anim_ferrari.anim_addr_curr = outrun.adr.anim_ferrari_curr;
+    anim_ferrari.anim_addr_next = outrun.adr.anim_ferrari_next;
     sprite_ferrari->control |= OSprites::ENABLE;
     sprite_ferrari->draw_props = oentry::BOTTOM;
 
     oentry* sprite_pass1 = &jump_table[OSprites::SPRITE_PASS1];
     anim_pass1.init(sprite_pass1);
-    anim_pass1.anim_addr_curr = ANIM_PASS1_CURR;
-    anim_pass1.anim_addr_next = ANIM_PASS1_NEXT;
+    anim_pass1.anim_addr_curr = outrun.adr.anim_pass1_curr;
+    anim_pass1.anim_addr_next = outrun.adr.anim_pass1_next;
     sprite_pass1->draw_props = oentry::BOTTOM;
 
     oentry* sprite_pass2 = &jump_table[OSprites::SPRITE_PASS2];
     anim_pass2.init(sprite_pass2);
-    anim_pass2.anim_addr_curr = ANIM_PASS2_CURR;
-    anim_pass2.anim_addr_next = ANIM_PASS2_NEXT;
+    anim_pass2.anim_addr_curr = outrun.adr.anim_pass2_curr;
+    anim_pass2.anim_addr_next = outrun.adr.anim_pass2_next;
     sprite_pass2->draw_props = oentry::BOTTOM;
 
     // --------------------------------------------------------------------------------------------
@@ -124,12 +124,12 @@ void OAnimSeq::flag_seq()
             anim_flag.anim_state = outrun.game_state;
 
             // Index of animation sequences
-            uint32_t index = ANIM_SEQ_FLAG + ((outrun.game_state - 9) << 3);
+            uint32_t index = outrun.adr.anim_seq_flag + ((outrun.game_state - 9) << 3);
 
-            anim_flag.anim_addr_curr = roms.rom0.read32(&index);
-            anim_flag.anim_addr_next = roms.rom0.read32(&index);
+            anim_flag.anim_addr_curr = roms.rom0p->read32(&index);
+            anim_flag.anim_addr_next = roms.rom0p->read32(&index);
 
-            anim_flag.frame_delay = roms.rom0.read8(7 + anim_flag.anim_addr_curr) & 0x3F;
+            anim_flag.frame_delay = roms.rom0p->read8(7 + anim_flag.anim_addr_curr) & 0x3F;
             anim_flag.anim_frame  = 0;
         }
 
@@ -138,11 +138,11 @@ void OAnimSeq::flag_seq()
         {
             uint32_t index = anim_flag.anim_addr_curr + (anim_flag.anim_frame << 3);
 
-            anim_flag.sprite->addr    = roms.rom0.read32(index) & 0xFFFFF;
-            anim_flag.sprite->pal_src = roms.rom0.read8(index);
+            anim_flag.sprite->addr    = roms.rom0p->read32(index) & 0xFFFFF;
+            anim_flag.sprite->pal_src = roms.rom0p->read8(index);
 
 	        uint32_t addr = SPRITE_ZOOM_LOOKUP + (((anim_flag.sprite->z >> 16) << 2) | osprites.sprite_scroll_speed);
-	        uint32_t value = roms.rom0.read32(addr);
+	        uint32_t value = roms.rom0p->read32(addr);
 	        anim_flag.sprite->z += value;
             uint16_t z16 = anim_flag.sprite->z >> 16;
 	    
@@ -155,22 +155,22 @@ void OAnimSeq::flag_seq()
 	        anim_flag.sprite->zoom     = z16 >> 2;
 
             // Set X Position
-            int16_t sprite_x = (int8_t) roms.rom0.read8(4 + index);
+            int16_t sprite_x = (int8_t) roms.rom0p->read8(4 + index);
             sprite_x -= oroad.road0_h[z16];
             int32_t final_x = (sprite_x * z16) >> 9;
 
-            if (roms.rom0.read8(1 + index) & BIT_7)
+            if (roms.rom0p->read8(1 + index) & BIT_7)
                 final_x = -final_x;
 
             anim_flag.sprite->x = final_x;
 
             // Set Y Position
-            int16_t sprite_y      = (int8_t) roms.rom0.read8(5 + index);
+            int16_t sprite_y      = (int8_t) roms.rom0p->read8(5 + index);
             int16_t final_y       = (sprite_y * z16) >> 9;
             anim_flag.sprite->y   = oroad.get_road_y(z16) - final_y;
 
             // Set H-Flip
-            if (roms.rom0.read8(7 + index) & BIT_6)
+            if (roms.rom0p->read8(7 + index) & BIT_6)
                 anim_flag.sprite->control |= OSprites::HFLIP;
             else
                 anim_flag.sprite->control &= ~OSprites::HFLIP;
@@ -179,16 +179,16 @@ void OAnimSeq::flag_seq()
             if (--anim_flag.frame_delay == 0)
             {
                 // Load Next Block Of Animation Data
-                if (roms.rom0.read8(7 + index) & BIT_7)
+                if (roms.rom0p->read8(7 + index) & BIT_7)
                 {
                     anim_flag.anim_addr_curr = anim_flag.anim_addr_next;
-                    anim_flag.frame_delay    = roms.rom0.read8(7 + anim_flag.anim_addr_curr) & 0x3F;
+                    anim_flag.frame_delay    = roms.rom0p->read8(7 + anim_flag.anim_addr_curr) & 0x3F;
                     anim_flag.anim_frame     = 0;
                 }
                 // Last Block
                 else
                 {
-                    anim_flag.frame_delay = roms.rom0.read8(0x0F + index) & 0x3F;
+                    anim_flag.frame_delay = roms.rom0p->read8(0x0F + index) & 0x3F;
                     anim_flag.anim_frame++;
                 }
             }
@@ -219,9 +219,9 @@ void OAnimSeq::ferrari_seq()
         return;
     }
 
-    anim_ferrari.frame_delay = roms.rom0.read8(7 + anim_ferrari.anim_addr_curr) & 0x3F;
-    anim_pass1.frame_delay   = roms.rom0.read8(7 + anim_pass1.anim_addr_curr) & 0x3F;
-    anim_pass2.frame_delay   = roms.rom0.read8(7 + anim_pass2.anim_addr_curr) & 0x3F;
+    anim_ferrari.frame_delay = roms.rom0p->read8(7 + anim_ferrari.anim_addr_curr) & 0x3F;
+    anim_pass1.frame_delay   = roms.rom0p->read8(7 + anim_pass1.anim_addr_curr) & 0x3F;
+    anim_pass2.frame_delay   = roms.rom0p->read8(7 + anim_pass2.anim_addr_curr) & 0x3F;
 
     oferrari.car_state = OFerrari::CAR_NORMAL;
     oferrari.state     = OFerrari::FERRARI_SEQ2;
@@ -247,24 +247,24 @@ void OAnimSeq::anim_seq_intro(oanimsprite* anim)
 
         uint32_t index              = anim->anim_addr_curr + (anim->anim_frame << 3);
 
-        anim->sprite->addr          = roms.rom0.read32(index) & 0xFFFFF;
-        anim->sprite->pal_src       = roms.rom0.read8(index);
+        anim->sprite->addr          = roms.rom0p->read32(index) & 0xFFFFF;
+        anim->sprite->pal_src       = roms.rom0p->read8(index);
         anim->sprite->zoom          = 0x7F;
         anim->sprite->road_priority = 0x1FE;
-        anim->sprite->priority      = 0x1FE - ((roms.rom0.read16(index) & 0x70) >> 4);
+        anim->sprite->priority      = 0x1FE - ((roms.rom0p->read16(index) & 0x70) >> 4);
 
         // Set X
-        int16_t sprite_x = (int8_t) roms.rom0.read8(4 + index);
+        int16_t sprite_x = (int8_t) roms.rom0p->read8(4 + index);
         int32_t final_x = (sprite_x * anim->sprite->priority) >> 9;
-        if (roms.rom0.read8(1 + index) & BIT_7)
+        if (roms.rom0p->read8(1 + index) & BIT_7)
             final_x = -final_x;
         anim->sprite->x = final_x;
 
         // Set Y
-        anim->sprite->y = 221 - ((int8_t) roms.rom0.read8(5 + index));
+        anim->sprite->y = 221 - ((int8_t) roms.rom0p->read8(5 + index));
 
         // Set H-Flip
-        if (roms.rom0.read8(7 + index) & BIT_6)
+        if (roms.rom0p->read8(7 + index) & BIT_6)
             anim->sprite->control |= OSprites::HFLIP;
         else
             anim->sprite->control &= ~OSprites::HFLIP;
@@ -273,7 +273,7 @@ void OAnimSeq::anim_seq_intro(oanimsprite* anim)
         if (--anim->frame_delay == 0)
         {
             // Load Next Block Of Animation Data
-            if (roms.rom0.read8(7 + index) & BIT_7)
+            if (roms.rom0p->read8(7 + index) & BIT_7)
             {
                 // Yeah the usual OutRun code hacks to do really odd stuff!
                 // In this case, to exit the routine and setup the Ferrari on the last entry for passenger 2
@@ -286,13 +286,13 @@ void OAnimSeq::anim_seq_intro(oanimsprite* anim)
                 }
 
                 anim->anim_addr_curr = anim->anim_addr_next;
-                anim->frame_delay    = roms.rom0.read8(7 + anim->anim_addr_curr) & 0x3F;
+                anim->frame_delay    = roms.rom0p->read8(7 + anim->anim_addr_curr) & 0x3F;
                 anim->anim_frame     = 0;
             }
             // Last Block
             else
             {
-                anim->frame_delay = roms.rom0.read8(0x0F + index) & 0x3F;
+                anim->frame_delay = roms.rom0p->read8(0x0F + index) & 0x3F;
                 anim->anim_frame++;
             }
         }
@@ -362,9 +362,9 @@ void OAnimSeq::tick_end_seq()
 void OAnimSeq::init_end_sprites()
 {
     // Ferrari Object [0x5B12 entry point]
-    uint32_t addr = ANIM_ENDSEQ_OBJ1 + (end_seq << 3);
-    anim_ferrari.anim_addr_curr = roms.rom0.read32(&addr);
-    anim_ferrari.anim_addr_next = roms.rom0.read32(&addr);
+    uint32_t addr = outrun.adr.anim_endseq_obj1 + (end_seq << 3);
+    anim_ferrari.anim_addr_curr = roms.rom0p->read32(&addr);
+    anim_ferrari.anim_addr_next = roms.rom0p->read32(&addr);
     ferrari_stopped = false;
     
     // 0x58A4: Car Door Opening Animation [seq_sprite_entry]
@@ -375,9 +375,9 @@ void OAnimSeq::init_end_sprites()
     anim_obj1.anim_frame = 0;
     anim_obj1.frame_delay = 0;
     anim_obj1.anim_props = 0;
-    addr = ANIM_ENDSEQ_OBJ2 + (end_seq << 3);
-    anim_obj1.anim_addr_curr = roms.rom0.read32(&addr);
-    anim_obj1.anim_addr_next = roms.rom0.read32(&addr);
+    addr = outrun.adr.anim_endseq_obj2 + (end_seq << 3);
+    anim_obj1.anim_addr_curr = roms.rom0p->read32(&addr);
+    anim_obj1.anim_addr_next = roms.rom0p->read32(&addr);
     
     // 0x58EC: Interior of Ferrari (Note this wobbles a little when passengers exit) [seq_sprite_entry]
     anim_obj2.sprite->control |= OSprites::ENABLE;
@@ -386,9 +386,9 @@ void OAnimSeq::init_end_sprites()
     anim_obj2.anim_frame = 0;
     anim_obj2.frame_delay = 0;
     anim_obj2.anim_props = 0;
-    addr = ANIM_ENDSEQ_OBJ3 + (end_seq << 3);
-    anim_obj2.anim_addr_curr = roms.rom0.read32(&addr);
-    anim_obj2.anim_addr_next = roms.rom0.read32(&addr);
+    addr = outrun.adr.anim_endseq_obj3 + (end_seq << 3);
+    anim_obj2.anim_addr_curr = roms.rom0p->read32(&addr);
+    anim_obj2.anim_addr_next = roms.rom0p->read32(&addr);
 
     // 0x592A: Car Shadow [SeqSpriteShadow]
     anim_obj3.sprite->control |= OSprites::ENABLE;
@@ -397,7 +397,7 @@ void OAnimSeq::init_end_sprites()
     anim_obj3.anim_frame = 0;
     anim_obj3.frame_delay = 0;
     anim_obj3.anim_props = 0;
-    anim_obj3.sprite->addr = SPRITE_SHADOW_DATA;
+    anim_obj3.sprite->addr = outrun.adr.shadow_data;
 
     // 0x5960: Man Sprite [seq_sprite_entry]
     anim_pass1.sprite->control |= OSprites::ENABLE;
@@ -406,9 +406,9 @@ void OAnimSeq::init_end_sprites()
     anim_pass1.anim_frame = 0;
     anim_pass1.frame_delay = 0;
     anim_pass1.anim_props = 0;
-    addr = ANIM_ENDSEQ_OBJ4 + (end_seq << 3);
-    anim_pass1.anim_addr_curr = roms.rom0.read32(&addr);
-    anim_pass1.anim_addr_next = roms.rom0.read32(&addr);
+    addr = outrun.adr.anim_endseq_obj4 + (end_seq << 3);
+    anim_pass1.anim_addr_curr = roms.rom0p->read32(&addr);
+    anim_pass1.anim_addr_next = roms.rom0p->read32(&addr);
 
     // 0x5998: Man Shadow [SeqSpriteShadow]
     anim_obj4.sprite->control = OSprites::ENABLE;
@@ -418,7 +418,7 @@ void OAnimSeq::init_end_sprites()
     anim_obj4.anim_frame = 0;
     anim_obj4.frame_delay = 0;
     anim_obj4.anim_props = 0;
-    anim_obj4.sprite->addr = SPRITE_SHADOW_DATA;
+    anim_obj4.sprite->addr = outrun.adr.shadow_data;
 
     // 0x59BE: Female Sprite [seq_sprite_entry]
     anim_pass2.sprite->control |= OSprites::ENABLE;
@@ -427,9 +427,9 @@ void OAnimSeq::init_end_sprites()
     anim_pass2.anim_frame = 0;
     anim_pass2.frame_delay = 0;
     anim_pass2.anim_props = 0;
-    addr = ANIM_ENDSEQ_OBJ5 + (end_seq << 3);
-    anim_pass2.anim_addr_curr = roms.rom0.read32(&addr);
-    anim_pass2.anim_addr_next = roms.rom0.read32(&addr);
+    addr = outrun.adr.anim_endseq_obj5 + (end_seq << 3);
+    anim_pass2.anim_addr_curr = roms.rom0p->read32(&addr);
+    anim_pass2.anim_addr_next = roms.rom0p->read32(&addr);
 
     // 0x59F6: Female Shadow [SeqSpriteShadow]
     anim_obj5.sprite->control = OSprites::ENABLE;
@@ -439,7 +439,7 @@ void OAnimSeq::init_end_sprites()
     anim_obj5.anim_frame = 0;
     anim_obj5.frame_delay = 0;
     anim_obj5.anim_props = 0;
-    anim_obj5.sprite->addr = SPRITE_SHADOW_DATA;
+    anim_obj5.sprite->addr = outrun.adr.shadow_data;
 
     // 0x5A2C: Person Presenting Trophy [seq_sprite_entry]
     anim_obj6.sprite->control |= OSprites::ENABLE;
@@ -448,9 +448,9 @@ void OAnimSeq::init_end_sprites()
     anim_obj6.anim_frame = 0;
     anim_obj6.frame_delay = 0;
     anim_obj6.anim_props = 0;
-    addr = ANIM_ENDSEQ_OBJ6 + (end_seq << 3);
-    anim_obj6.anim_addr_curr = roms.rom0.read32(&addr);
-    anim_obj6.anim_addr_next = roms.rom0.read32(&addr);
+    addr = outrun.adr.anim_endseq_obj6 + (end_seq << 3);
+    anim_obj6.anim_addr_curr = roms.rom0p->read32(&addr);
+    anim_obj6.anim_addr_next = roms.rom0p->read32(&addr);
 
     // Alternate Use Based On End Sequence
     anim_obj7.sprite->control |= OSprites::ENABLE;
@@ -463,15 +463,15 @@ void OAnimSeq::init_end_sprites()
     // [seq_sprite_entry]
     if (end_seq == 4)
     {
-        addr = ANIM_ENDSEQ_OBJB + (end_seq << 3);
-        anim_obj7.anim_addr_curr = roms.rom0.read32(&addr);
-        anim_obj7.anim_addr_next = roms.rom0.read32(&addr);
+        addr = outrun.adr.anim_endseq_objB + (end_seq << 3);
+        anim_obj7.anim_addr_curr = roms.rom0p->read32(&addr);
+        anim_obj7.anim_addr_next = roms.rom0p->read32(&addr);
     }
     // Trophy Shadow
     else
     {
         anim_obj7.sprite->shadow = 7;
-        anim_obj7.sprite->addr = SPRITE_SHADOW_DATA;
+        anim_obj7.sprite->addr = outrun.adr.shadow_data;
     }
 
     // 0x5AD0: Enable After Effects (e.g. cloud of smoke for genie) [seq_sprite_entry]
@@ -481,9 +481,9 @@ void OAnimSeq::init_end_sprites()
     anim_obj8.anim_frame = 0;
     anim_obj8.frame_delay = 0;
     anim_obj8.anim_props = 0xFF00;
-    addr = ANIM_ENDSEQ_OBJ7 + (end_seq << 3);
-    anim_obj8.anim_addr_curr = roms.rom0.read32(&addr);
-    anim_obj8.anim_addr_next = roms.rom0.read32(&addr);
+    addr = outrun.adr.anim_endseq_obj7 + (end_seq << 3);
+    anim_obj8.anim_addr_curr = roms.rom0p->read32(&addr);
+    anim_obj8.anim_addr_next = roms.rom0p->read32(&addr);
     
     end_seq_state = 1;
 }
@@ -524,25 +524,25 @@ void OAnimSeq::anim_seq_outro(oanimsprite* anim)
         // Process Animation Data
         uint32_t index = anim->anim_addr_curr + (anim->anim_frame << 3);
 
-        anim->sprite->addr          = roms.rom0.read32(index) & 0xFFFFF;
-        anim->sprite->pal_src       = roms.rom0.read8(index);
-        anim->sprite->zoom          = roms.rom0.read8(6 + index) >> 1;
-        anim->sprite->road_priority = roms.rom0.read8(6 + index) << 1;
-        anim->sprite->priority      = anim->sprite->road_priority - ((roms.rom0.read16(index) & 0x70) >> 4); // (bits 4-6)
-        anim->sprite->x             = (roms.rom0.read8(4 + index) * anim->sprite->priority) >> 9;
+        anim->sprite->addr          = roms.rom0p->read32(index) & 0xFFFFF;
+        anim->sprite->pal_src       = roms.rom0p->read8(index);
+        anim->sprite->zoom          = roms.rom0p->read8(6 + index) >> 1;
+        anim->sprite->road_priority = roms.rom0p->read8(6 + index) << 1;
+        anim->sprite->priority      = anim->sprite->road_priority - ((roms.rom0p->read16(index) & 0x70) >> 4); // (bits 4-6)
+        anim->sprite->x             = (roms.rom0p->read8(4 + index) * anim->sprite->priority) >> 9;
     
-        if (roms.rom0.read8(1 + index) & BIT_7)
+        if (roms.rom0p->read8(1 + index) & BIT_7)
             anim->sprite->x = -anim->sprite->x;
 
         // set_sprite_xy: (similar to flag code again)
 
         // Set Y Position
-        int16_t sprite_y = (int8_t) roms.rom0.read8(5 + index);
+        int16_t sprite_y = (int8_t) roms.rom0p->read8(5 + index);
         int16_t final_y  = (sprite_y * anim->sprite->priority) >> 9;
         anim->sprite->y  = oroad.get_road_y(anim->sprite->priority) - final_y;
 
         // Set H-Flip
-        if (roms.rom0.read8(7 + index) & BIT_6)
+        if (roms.rom0p->read8(7 + index) & BIT_6)
             anim->sprite->control |= OSprites::HFLIP;
         else
             anim->sprite->control &= ~OSprites::HFLIP;
@@ -551,17 +551,17 @@ void OAnimSeq::anim_seq_outro(oanimsprite* anim)
         if (--anim->frame_delay == 0)
         {
             // Load Next Block Of Animation Data
-            if (roms.rom0.read8(7 + index) & BIT_7)
+            if (roms.rom0p->read8(7 + index) & BIT_7)
             {
                 anim->anim_props    |= 0xFF;
                 anim->anim_addr_curr = anim->anim_addr_next;
-                anim->frame_delay    = roms.rom0.read8(7 + anim->anim_addr_curr) & 0x3F;
+                anim->frame_delay    = roms.rom0p->read8(7 + anim->anim_addr_curr) & 0x3F;
                 anim->anim_frame     = 0;
             }
             // Last Block
             else
             {
-                anim->frame_delay = roms.rom0.read8(0x0F + index) & 0x3F;
+                anim->frame_delay = roms.rom0p->read8(0x0F + index) & 0x3F;
                 anim->anim_frame++;
             }
         }
@@ -615,11 +615,11 @@ void OAnimSeq::anim_seq_shadow(oanimsprite* parent, oanimsprite* anim)
 // Source: 0x5CC4
 bool OAnimSeq::read_anim_data(oanimsprite* anim)
 {
-    uint32_t addr = ANIM_END_TABLE + (end_seq << 2) + (anim->sprite->id << 2) +  (anim->sprite->id << 4); // a0 + d1
+    uint32_t addr = outrun.adr.anim_end_table + (end_seq << 2) + (anim->sprite->id << 2) +  (anim->sprite->id << 4); // a0 + d1
 
     // Read start & end position in animation timeline for this object
-    int16_t start_pos = roms.rom0.read16(addr);     // d0
-    int16_t end_pos =   roms.rom0.read16(2 + addr); // d3
+    int16_t start_pos = roms.rom0p->read16(addr);     // d0
+    int16_t end_pos =   roms.rom0p->read16(2 + addr); // d3
 
     int16_t pos = seq_pos; // d1
     
@@ -655,7 +655,7 @@ bool OAnimSeq::read_anim_data(oanimsprite* anim)
     {
         // If current animation block is set, extract frame delay
         if (anim->anim_addr_curr)
-            anim->frame_delay = roms.rom0.read8(7 + anim->anim_addr_curr) & 0x3F;
+            anim->frame_delay = roms.rom0p->read8(7 + anim->anim_addr_curr) & 0x3F;
 
         return PROCESS;
     }
@@ -677,8 +677,8 @@ bool OAnimSeq::read_anim_data(oanimsprite* anim)
             if (end_seq >= 2)
                 anim->sprite->shadow = 7;
 
-            anim->anim_addr_curr = roms.rom0.read32(ANIM_ENDSEQ_OBJ8 + (end_seq << 3));
-            anim->anim_addr_next = roms.rom0.read32(ANIM_ENDSEQ_OBJ8 + (end_seq << 3) + 4);
+            anim->anim_addr_curr = roms.rom0p->read32(outrun.adr.anim_endseq_obj8 + (end_seq << 3));
+            anim->anim_addr_next = roms.rom0p->read32(outrun.adr.anim_endseq_obj8 + (end_seq << 3) + 4);
             anim->anim_frame = 0;
             return DO_NOTHING;
         }
@@ -689,8 +689,8 @@ bool OAnimSeq::read_anim_data(oanimsprite* anim)
             if (end_seq >= 2)
                 anim->sprite->shadow = 7;
 
-            anim->anim_addr_curr = roms.rom0.read32(ANIM_ENDSEQ_OBJA + (end_seq << 3));
-            anim->anim_addr_next = roms.rom0.read32(ANIM_ENDSEQ_OBJA + (end_seq << 3) + 4);
+            anim->anim_addr_curr = roms.rom0p->read32(outrun.adr.anim_endseq_objA + (end_seq << 3));
+            anim->anim_addr_next = roms.rom0p->read32(outrun.adr.anim_endseq_objA + (end_seq << 3) + 4);
             anim->anim_frame = 0;
             return DO_NOTHING;
         }

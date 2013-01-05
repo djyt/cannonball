@@ -406,10 +406,10 @@ void OFerrari::setup_ferrari_sprite()
         if (d2 >= 0x1E) turn_frame_offset += 0x18;
 
         // Set Ferrari Sprite Properties
-        uint32_t offset = SPRITE_FERRARI_FRAMES + turn_frame_offset + incline_frame_offset;
-        spr_ferrari->addr = roms.rom0.read32(offset);     // Set Ferrari Frame Address
-        sprite_pass_y = roms.rom0.read16(offset + 4); // Set Passenger Y Offset
-        x_off = roms.rom0.read16(offset + 6); // Set Ferrari Sprite X Offset
+        uint32_t offset = outrun.adr.sprite_ferrari_frames + turn_frame_offset + incline_frame_offset;
+        spr_ferrari->addr = roms.rom0p->read32(offset);     // Set Ferrari Frame Address
+        sprite_pass_y = roms.rom0p->read16(offset + 4); // Set Passenger Y Offset
+        x_off = roms.rom0p->read16(offset + 6); // Set Ferrari Sprite X Offset
 
         if (d4 < 0) x_off = -x_off;
     }
@@ -441,11 +441,11 @@ void OFerrari::setup_ferrari_sprite()
         if (y >= 0x12) incline_frame_offset += 0x20;
         if (y >= 0x13) incline_frame_offset += 0x20;
 
-        uint32_t offset = SPRITE_SKID_FRAMES + frame + incline_frame_offset;
-        spr_ferrari->addr = roms.rom0.read32(offset); // Set Ferrari Frame Address
-        sprite_pass_y = roms.rom0.read16(offset + 4); // Set Passenger Y Offset
-        x_off = roms.rom0.read16(offset + 6);         // Set Ferrari Sprite X Offset
-        wheel_traction = TRACTION_OFF;                // Both wheels have lost traction
+        uint32_t offset = outrun.adr.sprite_skid_frames + frame + incline_frame_offset;
+        spr_ferrari->addr = roms.rom0p->read32(offset); // Set Ferrari Frame Address
+        sprite_pass_y = roms.rom0p->read16(offset + 4); // Set Passenger Y Offset
+        x_off = roms.rom0p->read16(offset + 6);         // Set Ferrari Sprite X Offset
+        wheel_traction = TRACTION_OFF;                  // Both wheels have lost traction
 
         if (ocrash.skid_counter >= 0) x_off = -x_off;
     }
@@ -481,10 +481,10 @@ void OFerrari::setup_ferrari_bonus_sprite()
     if (d2 >= 0x8) turn_frame_offset += 0x18;
 
     // Set Ferrari Sprite Properties
-    uint32_t offset   = SPRITE_FERRARI_FRAMES + turn_frame_offset + 8; // 8 denotes the 'level' frames, no slope.
-    spr_ferrari->addr = roms.rom0.read32(offset);     // Set Ferrari Frame Address
-    sprite_pass_y     = roms.rom0.read16(offset + 4); // Set Passenger Y Offset
-    int16_t x_off     = roms.rom0.read16(offset + 6); // Set Ferrari Sprite X Offset
+    uint32_t offset   = outrun.adr.sprite_ferrari_frames + turn_frame_offset + 8; // 8 denotes the 'level' frames, no slope.
+    spr_ferrari->addr = roms.rom0p->read32(offset);     // Set Ferrari Frame Address
+    sprite_pass_y     = roms.rom0p->read16(offset + 4); // Set Passenger Y Offset
+    int16_t x_off     = roms.rom0p->read16(offset + 6); // Set Ferrari Sprite X Offset
 
     if (oinputs.steering_adjust < 0) x_off = -x_off;
     spr_ferrari->x = x_off;
@@ -825,7 +825,7 @@ void OFerrari::draw_shadow()
             spr_shadow->y = 222;
             spr_shadow->zoom = 0x99;
             spr_shadow->draw_props = 8;
-            spr_shadow->addr = SPRITE_SHADOW_DATA;
+            spr_shadow->addr = outrun.adr.shadow_data;
         }
         osprites.do_spr_order_shadows(spr_shadow);
     }
@@ -904,7 +904,7 @@ void OFerrari::set_passenger_sprite(oentry* sprite)
 
 void OFerrari::set_passenger_frame(oentry* sprite)
 {
-    uint32_t addr = SPRITE_PASS_FRAMES;
+    uint32_t addr = outrun.adr.sprite_pass_frames;
     if (sprite == spr_pass2) addr += 4; // Female frames
     uint16_t inc = oinitengine.car_increment >> 16;
 
@@ -934,16 +934,18 @@ void OFerrari::set_passenger_frame(oentry* sprite)
         // skid left
         if (ocrash.skid_counter > 0)
         {
-            sprite->addr = (sprite == spr_pass1) ? SPRITE_PASS1_SKIDL : SPRITE_PASS2_SKIDL;
+            sprite->addr = (sprite == spr_pass1) ? 
+                outrun.adr.sprite_pass1_skidl : outrun.adr.sprite_pass2_skidl;
         }
         // skid right
         else
         {
-            sprite->addr = (sprite == spr_pass1) ? SPRITE_PASS1_SKIDR : SPRITE_PASS2_SKIDR;
+            sprite->addr = (sprite == spr_pass1) ? 
+                outrun.adr.sprite_pass1_skidr : outrun.adr.sprite_pass2_skidr;
         }
     }
     else
-        sprite->addr = roms.rom0.read32(addr + inc);
+        sprite->addr = roms.rom0p->read32(addr + inc);
 }
 
 // ------------------------------------------------------------------------------------------------

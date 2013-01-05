@@ -1,4 +1,4 @@
-Stick OutRun Revision B ROMs in this directory.
+Place OutRun Revision B ROMs in this directory.
 They must be named as follows:
 
 epr-10187.88
@@ -32,3 +32,18 @@ opr-10232.102
 opr-10266.101
 opr-10267.100
 opr-10268.99
+
+The original Japanese release of OutRun featured slightly different tracks 
+and course ordering.
+
+Optionally, you can include the following files from the Japanese version to
+play these alternate tracks:
+
+epr-10380.133
+epr-10382.118
+epr-10381.132
+epr-10383.117
+epr-10327.76
+epr-10329.58
+epr-10328.75
+epr-10330.57

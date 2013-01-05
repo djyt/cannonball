@@ -66,7 +66,7 @@ void OSprites::init()
     {
         jump_table[i].init(i);      
         jump_table[i].control |= SHADOW;
-        jump_table[i].addr = PORSCHE_SPRITE; // Initial offset of traffic sprites. Will be changed.
+        jump_table[i].addr = outrun.adr.sprite_porsche; // Initial offset of traffic sprites. Will be changed.
     }
 
     jump_table[SPRITE_TRAFF1].function_holder = TRAFFIC_INIT;
@@ -119,15 +119,15 @@ void OSprites::init()
     jump_table[SPRITE_CRASH_PASS2].draw_props = oentry::BOTTOM;
 
     jump_table[SPRITE_CRASH_PASS1_S].shadow     = 7;
-    jump_table[SPRITE_CRASH_PASS1_S].addr       = SPRITE_SHADOW_DATA;
+    jump_table[SPRITE_CRASH_PASS1_S].addr       = outrun.adr.shadow_data;
     jump_table[SPRITE_CRASH_PASS2_S].shadow     = 7;
     jump_table[SPRITE_CRASH_PASS2_S].draw_props = oentry::BOTTOM;
-    jump_table[SPRITE_CRASH_PASS2_S].addr       = SPRITE_SHADOW_DATA;
+    jump_table[SPRITE_CRASH_PASS2_S].addr       = outrun.adr.shadow_data;
     
     jump_table[SPRITE_CRASH_SHADOW].shadow     = 7;
     jump_table[SPRITE_CRASH_SHADOW].zoom       = 0x80;
     jump_table[SPRITE_CRASH_SHADOW].draw_props = oentry::BOTTOM;
-    jump_table[SPRITE_CRASH_SHADOW].addr       = SPRITE_SHADOW_DATA;
+    jump_table[SPRITE_CRASH_SHADOW].addr       = outrun.adr.shadow_data;
 
     ocrash.init(
         &jump_table[SPRITE_CRASH], 
@@ -230,21 +230,22 @@ void OSprites::tick()
 void OSprites::sprite_control()
 {
     uint32_t a0 = oinitengine.road_seg_addr1;
-    uint16_t d0 = roms.rom0.read16(a0); // memory location stored in 60a00 (e.g.0x1de3e)
+    uint16_t d0 = roms.rom0p->read16(a0); // memory location stored in 60a00 (e.g.0x1de3e)
 
     // Populate next road segment
     if (d0 <= oroad.road_pos >> 16)
     {
-        oinitengine.road_seg_addr1 += 4;          // Increment to next long
-        seg_pos = roms.rom0.read16(&a0);          // Position In Level Data [Word]
-        seg_total_sprites = roms.rom0.read8(&a0); // Number Of Sprites In Segment [byte]
-        d0 = roms.rom0.read8(a0) * 4;             // Sprite Data Entry Number From Lookup Table * 4 [Byte]
+        oinitengine.road_seg_addr1 += 4;                              // Increment to next long
+        seg_pos = roms.rom0p->read16(&a0);                            // Position In Level Data [Word]
+        seg_total_sprites = roms.rom0p->read8(&a0);                   // Number Of Sprites In Segment [byte]
+        d0 = roms.rom0p->read8(a0) * 4;                               // Sprite Data Entry Number From Lookup Table * 4 [Byte]
 
-        a0 = roms.rom0.read32(SPRITE_MASTER_TABLE + d0); // Set a0 to new address from master table of addresses
-        seg_sprite_freq = roms.rom0.read16(&a0);         // Set Sprite Frequency Value
-        seg_spr_offset2 = roms.rom0.read16(&a0);         // Set Reload value for sprite info offset
-        seg_spr_addr = a0;                               // Set ROM address for sprite info lookup (x, y, type) NOTE: Sets to value of a0 itself, not memory location
-        seg_spr_offset1 = 0;                             // And Clear the offset into the above table
+        a0 = roms.rom0p->read32(outrun.adr.sprite_master_table + d0); // Set a0 to new address from master table of addresses
+        seg_sprite_freq = roms.rom0p->read16(&a0);                    // Set Sprite Frequency Value
+        seg_spr_offset2 = roms.rom0p->read16(&a0);                    // Set Reload value for sprite info offset
+        seg_spr_addr = a0;                                            // Set ROM address for sprite info lookup (x, y, type)
+                                                                      //  NOTE: Sets to value of a0 itself, not memory location
+        seg_spr_offset1 = 0;                                          // And Clear the offset into the above table
     }
 
     // Process segment
@@ -420,12 +421,12 @@ void OSprites::do_spr_order_shadows(oentry* input)
 
     if (input->control & TRAFFIC_SPRITE)
     {
-        input->addr = SPRITE_SHDW_SMALL;
+        input->addr = outrun.adr.sprite_shadow_small;
         input->x = x;
     }
     else
     {
-        input->addr = roms.rom0.read32(SPRITE_SHDW_FRAMES + 0x3C);
+        input->addr = roms.rom0p->read32(outrun.adr.shadow_frames + 0x3C);
     }
 
     do_sprite(input);           // Create Shadowed Version Of Sprite For Hardware
@@ -625,10 +626,10 @@ void OSprites::do_sprite(oentry* input)
             d0 = lookup_mask;
         }
 
-        d0 = (d0 & 0xFF00) + roms.rom0.read8(src_offsets + 1);
-        width = roms.rom0.read8(WH_TABLE + d0);
-        d0 = (d0 & 0xFF00) + roms.rom0.read8(src_offsets + 3);
-        height = roms.rom0.read8(WH_TABLE + d0);
+        d0 = (d0 & 0xFF00) + roms.rom0p->read8(src_offsets + 1);
+        width = roms.rom0p->read8(WH_TABLE + d0);
+        d0 = (d0 & 0xFF00) + roms.rom0p->read8(src_offsets + 3);
+        height = roms.rom0p->read8(WH_TABLE + d0);
     }
     // loc_9560:
     else
@@ -636,13 +637,13 @@ void OSprites::do_sprite(oentry* input)
         d0 &= 0x7C00;
         uint16_t h = d0;
 
-        d0 = (d0 & 0xFF00) + roms.rom0.read8(src_offsets + 1);
-        width = roms.rom0.read8(WH_TABLE + d0);
+        d0 = (d0 & 0xFF00) + roms.rom0p->read8(src_offsets + 1);
+        width = roms.rom0p->read8(WH_TABLE + d0);
         d0 &= 0xFF;
         width += d0;
         
-        h |= roms.rom0.read8(src_offsets + 3);
-        height = roms.rom0.read8(WH_TABLE + h);
+        h |= roms.rom0p->read8(src_offsets + 3);
+        height = roms.rom0p->read8(WH_TABLE + h);
         h &= 0xFF;
         height += h;
 
@@ -676,8 +677,8 @@ void OSprites::do_sprite(oentry* input)
     // Set Palette & Sprite Bank Information
     // -------------------------------------------------------------------------
     output->set_pal(input->pal_dst); // Set Sprite Colour Palette
-    output->set_offset(roms.rom0.read16(src_offsets + 8)); // Set Offset within selected sprite bank
-    output->set_bank(roms.rom0.read8(src_offsets + 7) << 1); // Set Sprite Bank Value
+    output->set_offset(roms.rom0p->read16(src_offsets + 8)); // Set Offset within selected sprite bank
+    output->set_bank(roms.rom0p->read8(src_offsets + 7) << 1); // Set Sprite Bank Value
 
     // -------------------------------------------------------------------------
     // Set Sprite Height
@@ -685,9 +686,9 @@ void OSprites::do_sprite(oentry* input)
     if (sprite_y1 < 256)
     {
         int16_t y_adj = -(sprite_y1 - 256);
-        y_adj *= roms.rom0.read16(src_offsets + 2); // Width of line data (Unsigned multiply)
+        y_adj *= roms.rom0p->read16(src_offsets + 2); // Width of line data (Unsigned multiply)
         y_adj /= height; // Unsigned divide
-        y_adj *= roms.rom0.read16(src_offsets + 4); // Length of line data (Unsigned multiply)
+        y_adj *= roms.rom0p->read16(src_offsets + 4); // Length of line data (Unsigned multiply)
         output->inc_offset(y_adj);
         output->data[0x0] = (output->data[0x0] & 0xFF00) | 0x100; // Mask on negative y index
         output->set_height((uint8_t) sprite_y2);
@@ -766,12 +767,12 @@ void OSprites::do_sprite(oentry* input)
     }
 
     // cont2:
-    set_hrender(input, output, roms.rom0.read16(src_offsets + 4), width);
+    set_hrender(input, output, roms.rom0p->read16(src_offsets + 4), width);
     
     // -------------------------------------------------------------------------
     // Set Sprite Pitch & Priority
     // -------------------------------------------------------------------------
-    output->set_pitch(roms.rom0.read8(src_offsets + 5) << 1);
+    output->set_pitch(roms.rom0p->read8(src_offsets + 5) << 1);
     output->set_priority(input->shadow << 4); // todo: where does this get set?
 }
 

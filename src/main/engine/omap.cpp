@@ -185,24 +185,25 @@ void OMap::init_course_map()
     oroad.road_pos = 0x192 << 16;*/
     // end hacks
 
-    uint32_t adr = SPRITE_COURSEMAP;
+    uint32_t adr = outrun.adr.sprite_coursemap;
 
     for (uint8_t i = 0; i <= MAP_PIECES; i++)
     {
         oentry* sprite     = &osprites.jump_table[i];
 
         sprite->id         = i+1;
-        sprite->control    = roms.rom0.read8(&adr);
-        sprite->draw_props = roms.rom0.read8(&adr);
-        sprite->shadow     = roms.rom0.read8(&adr);
-        sprite->zoom       = roms.rom0.read8(&adr);
-        sprite->pal_src    = (uint8_t) roms.rom0.read16(&adr);
-        sprite->priority   = sprite->road_priority = roms.rom0.read16(&adr);
-        sprite->x          = roms.rom0.read16(&adr);
-        sprite->y          = roms.rom0.read16(&adr);
-        sprite->addr       = roms.rom0.read32(&adr);
-        sprite->counter    = 0;     
-        roms.rom0.read32(&adr); // throw this address away
+        sprite->control    = roms.rom0p->read8(&adr);
+        sprite->draw_props = roms.rom0p->read8(&adr);
+        sprite->shadow     = roms.rom0p->read8(&adr);
+        sprite->zoom       = roms.rom0p->read8(&adr);
+        sprite->pal_src    = (uint8_t) roms.rom0p->read16(&adr);
+        sprite->priority   = sprite->road_priority = roms.rom0p->read16(&adr);
+        sprite->x          = roms.rom0p->read16(&adr);
+        sprite->y          = roms.rom0p->read16(&adr);
+        sprite->addr       = roms.rom0p->read32(&adr);
+        sprite->counter    = 0;  
+        
+        adr += 4; // throw this address away
 
         osprites.map_palette(sprite);
     }
@@ -280,21 +281,21 @@ void OMap::map_display()
 void OMap::draw_vert_top(oentry* sprite)
 {
     if (sprite->control & OSprites::ENABLE)
-        draw_piece(sprite, SPRITE_COURSEMAP_TOP);
+        draw_piece(sprite, outrun.adr.sprite_coursemap_top);
 }
 
 // Source: 0x3736
 void OMap::draw_vert_bottom(oentry* sprite)
 {
     if (sprite->control & OSprites::ENABLE)
-        draw_piece(sprite, SPRITE_COURSEMAP_BOT);
+        draw_piece(sprite, outrun.adr.sprite_coursemap_bot);
 }
 
 // Source: 0x372C
 void OMap::draw_horiz_end(oentry* sprite)
 {
     if (sprite->control & OSprites::ENABLE)
-        draw_piece(sprite, SPRITE_COURSEMAP_END);
+        draw_piece(sprite, outrun.adr.sprite_coursemap_end);
 }
 
 // Source: 0x3746
@@ -308,8 +309,8 @@ void OMap::draw_piece(oentry* sprite, uint32_t adr)
 
         adr += (map_pos << 3);
 
-        sprite->addr    = roms.rom0.read32(adr);
-        sprite->pal_src = roms.rom0.read8(4 + adr);
+        sprite->addr    = roms.rom0p->read32(adr);
+        sprite->pal_src = roms.rom0p->read8(4 + adr);
         osprites.map_palette(sprite);
     }
 
@@ -334,11 +335,11 @@ void OMap::move_mini_car(oentry* sprite)
         sprite->y -= y_change;
 
         if (y_change == 0)
-            sprite->addr = SPRITE_MINICAR_RIGHT;
+            sprite->addr = outrun.adr.sprite_minicar_right;
         else if (y_change < 0)
-            sprite->addr = SPRITE_MINICAR_DOWN;
+            sprite->addr = outrun.adr.sprite_minicar_down;
         else
-            sprite->addr = SPRITE_MINICAR_UP;
+            sprite->addr = outrun.adr.sprite_minicar_up;
     }
 
     osprites.do_spr_order_shadows(sprite);

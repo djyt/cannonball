@@ -559,6 +559,15 @@ void OHud::blit_text_custom_music(const char* text)
         // Convert lowercase characters to uppercase
         if (c >= 'a' && c <= 'z')
             c -= 0x20;
+        // Numerals: Use different palette for numbers so they display more nicely
+        else if (c >= '0' && c <= '9')
+        {
+            const uint16_t pal = 0x8CA0;
+            c -= 0x40;
+            c = (c * 2);
+            video.write_text16(&dst_addr,       c + pal);     // Write first row to text ram
+            video.write_text16(0x7E + dst_addr, c + pal + 1); // Write second row to text ram
+        }
         // Blank space
         else if (c == ' ')
         {
@@ -567,11 +576,9 @@ void OHud::blit_text_custom_music(const char* text)
             video.write_text16(0x7E + dst_addr, c); // Write blank space to text ram
         }
         // Normal character
-        if ((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))
-        {
-            // Use different palette for numbers so they display more nicely
-            const uint16_t pal = (c >= 'A' && c <= 'Z') ? 0x8AA0 : 0x8CA0;
-
+        if (c >= 'A' && c <= 'Z')
+        {           
+            const uint16_t pal = 0x8AA0;
             // Convert character to real index (D0-0x41) so A is 0x01
             c -= 0x41;
             c = (c * 2);

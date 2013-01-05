@@ -129,8 +129,15 @@ static void tick()
         break;
 
         case STATE_INIT_GAME:
-            outrun.init();
-            state = STATE_GAME;
+            if (config.engine.jap && !roms.load_japanese_roms())
+            {
+                state = STATE_QUIT;
+            }
+            else
+            {
+                outrun.init();
+                state = STATE_GAME;
+            }
             break;
 
         case STATE_MENU:
@@ -195,7 +202,7 @@ int main(int argc, char* argv[])
     } 
 
     // Load Roms
-    bool roms_loaded = roms.init();
+    bool roms_loaded = roms.load_revb_roms();
 
     if (roms_loaded)
     {

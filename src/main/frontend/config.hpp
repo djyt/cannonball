@@ -32,10 +32,11 @@ struct video_settings_t
     const static int MODE_WINDOW = 0;
     const static int FULLSCREEN = 1;
 
-    int widescreen;
     int mode;
     int scale;
     int stretch;
+    int scanlines;
+    int widescreen;
     int fps;
 };
 
@@ -64,6 +65,7 @@ struct engine_settings_t
     int dip_traffic;
     bool freeze_timer;
     bool disable_traffic;
+    int jap;
     int randomgen;
     int level_objects;
 };
@@ -88,7 +90,7 @@ public:
 
     // Original game ticks sprites at 30fps but background scroll at 60fps
     int tick_fps;
-
+    
     Config(void);
     ~Config(void);
 

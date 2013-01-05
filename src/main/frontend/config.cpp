@@ -25,6 +25,7 @@ Config config;
 
 Config::Config(void)
 {
+
 }
 
 
@@ -66,11 +67,12 @@ void Config::load(const std::string &filename)
     // Video Settings
     // ------------------------------------------------------------------------
    
+    video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed 
+    video.scale      = pt_config.get("video.window.scale",       2); // Video Scale: Default is 2x    
+    video.stretch    = pt_config.get("video.fullscreen.stretch", 0); // Stretch in full-screen mode
+    video.scanlines  = pt_config.get("video.scanlines",          0); // Scanlines
     video.fps        = pt_config.get("video.fps",                2); // Default is 60 fps   
     video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode   
-    video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed   
-    video.scale      = pt_config.get("video.window.scale",       1); // Video Scale: Default is 1x    
-    video.stretch    = pt_config.get("video.fullscreen.stretch", 0); // Stretch in full-screen mode
           
     set_fps(video.fps);
 
@@ -136,6 +138,8 @@ void Config::load(const std::string &filename)
     engine.disable_traffic = engine.dip_traffic == 4;
     engine.dip_time    &= 3;
     engine.dip_traffic &= 3;
+
+    engine.jap           = pt_config.get("engine.japanese_tracks", 0);
     
     // Additional Level Objects
     engine.level_objects = pt_config.get("engine.levelobjects", 1);
@@ -176,6 +180,7 @@ bool Config::save(const std::string &filename)
 
     pt_config.put("engine.time", engine.freeze_timer ? 4 : engine.dip_time);
     pt_config.put("engine.traffic", engine.disable_traffic ? 4 : engine.dip_traffic);
+    pt_config.put("engine.japanese_tracks", engine.jap);
     pt_config.put("engine.levelobjects", engine.level_objects);
 
     // Tab space 1
@@ -193,7 +198,8 @@ bool Config::save(const std::string &filename)
     return true;
 }
 
-std::string filename_scores = "hiscores.xml";
+std::string filename_scores     = "hiscores.xml";
+std::string filename_scores_jap = "hiscores_jap.xml";
 
 void Config::load_scores()
 {
@@ -202,7 +208,7 @@ void Config::load_scores()
 
     try
     {
-        read_xml(filename_scores, pt, boost::property_tree::xml_parser::trim_whitespace);
+        read_xml(engine.jap ? filename_scores_jap : filename_scores, pt, boost::property_tree::xml_parser::trim_whitespace);
     }
     catch (std::exception &e)
     {
@@ -255,7 +261,7 @@ void Config::save_scores()
     
     try
     {
-        write_xml(filename_scores, pt, std::locale(), settings);
+        write_xml(engine.jap ? filename_scores_jap : filename_scores, pt, std::locale(), settings);
     }
     catch (std::exception &e)
     {
@@ -265,8 +271,10 @@ void Config::save_scores()
 
 bool Config::clear_scores()
 {
-    ohiscore.init_def_scores();      // Init Default Hiscores
-    return remove(filename_scores.c_str()) == 0; // Remove hiscore xml file if it exists
+    // Init Default Hiscores
+    ohiscore.init_def_scores();
+    // Remove hiscore xml file if it exists
+    return remove(engine.jap ? filename_scores_jap.c_str() : filename_scores.c_str()) == 0; 
 }
 
 void Config::set_fps(int fps)
@@ -281,7 +289,6 @@ void Config::set_fps(int fps)
     cannonball::frame_ms = (1000 / this->fps);
 
     #ifdef COMPILE_SOUND_CODE
-
     if (config.sound.enabled)
         cannonball::audio.stop_audio();
     osoundint.init();

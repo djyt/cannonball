@@ -209,7 +209,7 @@ void ORoad::init_stage1()
     // Sets to 0x3c [Stage 1] - First Entry Of Stage Master Table In RAM
     // Multiply by 4, as table contains longs
     uint16_t stage1 = oinitengine.stage_data[0] << 2; 
-    stage_addr = roms.rom1.read32(ROAD_DATA_LOOKUP + stage1);
+    stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage1);
     
     road_pos = 0;
     road_ctrl = ROAD_BOTH_P0;
@@ -251,7 +251,7 @@ void ORoad::check_load_road()
 
         // Table contains longs, so multiply by 4
         uint16_t stage_index = oinitengine.stage_data[stage_lookup_off] << 2;
-        stage_addr = roms.rom1.read32(ROAD_DATA_LOOKUP + stage_index);
+        stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage_index);
         return;
     }
 
@@ -337,12 +337,12 @@ void ORoad::setup_x_data()
     uint32_t addr = stage_addr + road_data_offset;
 
     // d0 = road_x1 + road_x1_next [x difference]
-    curve_x1_diff = roms.rom1.read16(addr);
-    curve_x1_diff += (int16_t) roms.rom1.read16(addr + 4);
+    curve_x1_diff = roms.rom1p->read16(addr);
+    curve_x1_diff += (int16_t) roms.rom1p->read16(addr + 4);
 
     // d1 = x2 difference
-    curve_x2_diff = roms.rom1.read16(addr + 2);
-    curve_x2_diff += (int16_t) roms.rom1.read16(addr + 6);
+    curve_x2_diff = roms.rom1p->read16(addr + 2);
+    curve_x2_diff += (int16_t) roms.rom1p->read16(addr + 6);
 
     int32_t distance = (curve_x1_diff * curve_x1_diff) + (curve_x2_diff * curve_x2_diff);
 
@@ -383,10 +383,10 @@ void ORoad::setup_x_data()
     // We sample 20 Road Positions to generate the road.
     for (uint8_t i = 0; i <= 0x20; i++)
     {
-        int32_t x1_next = (int16_t) roms.rom1.read16(&addr);
-        int32_t x2_next = (int16_t) roms.rom1.read16(&addr);
-        x1_next += (int16_t) roms.rom1.read16(&addr);
-        x2_next += (int16_t) roms.rom1.read16(&addr);
+        int32_t x1_next = (int16_t) roms.rom1p->read16(&addr);
+        int32_t x2_next = (int16_t) roms.rom1p->read16(&addr);
+        x1_next += (int16_t) roms.rom1p->read16(&addr);
+        x2_next += (int16_t) roms.rom1p->read16(&addr);
         curve_x1_next += x1_next;
         curve_x2_next += x2_next;
 
@@ -426,14 +426,14 @@ void ORoad::set_tilemap_x()
     
     // d0 = Word 0 + Word 2 + Word 4 + Word 6 [Next 4 x1 positions]
     // d1 = Word 1 + Word 3 + Word 5 + Word 7 [Next 4 x2 positions]
-    int16_t x1_diff = roms.rom1.read16(&addr);
-    int16_t x2_diff = roms.rom1.read16(&addr);
-    x1_diff += (int16_t) roms.rom1.read16(&addr);
-    x2_diff += (int16_t) roms.rom1.read16(&addr);
-    x1_diff += (int16_t) roms.rom1.read16(&addr);
-    x2_diff += (int16_t) roms.rom1.read16(&addr);
-    x1_diff += (int16_t) roms.rom1.read16(&addr);
-    x2_diff += (int16_t) roms.rom1.read16(&addr);
+    int16_t x1_diff = roms.rom1p->read16(&addr);
+    int16_t x2_diff = roms.rom1p->read16(&addr);
+    x1_diff += (int16_t) roms.rom1p->read16(&addr);
+    x2_diff += (int16_t) roms.rom1p->read16(&addr);
+    x1_diff += (int16_t) roms.rom1p->read16(&addr);
+    x2_diff += (int16_t) roms.rom1p->read16(&addr);
+    x1_diff += (int16_t) roms.rom1p->read16(&addr);
+    x2_diff += (int16_t) roms.rom1p->read16(&addr);
 
     int16_t x1_abs = x1_diff;
     int16_t x2_abs = x2_diff;
@@ -717,10 +717,10 @@ void ORoad::init_height_seg()
     height_lookup_wrk = height_lookup;
 
     // Get Address of actual road height data
-     uint32_t h_addr = roms.rom1.read32(ROAD_HEIGHT_LOOKUP + (height_lookup_wrk * 4));
+    uint32_t h_addr = roms.rom1p->read32(outrun.adr.road_height_lookup + (height_lookup_wrk * 4));
 
-    height_ctrl2 = roms.rom1.read8(&h_addr);
-    dist_ctrl = roms.rom1.read8(&h_addr);
+    height_ctrl2 = roms.rom1p->read8(&h_addr);
+    dist_ctrl = roms.rom1p->read8(&h_addr);
 
     switch (height_ctrl2)
     {
@@ -746,8 +746,8 @@ void ORoad::init_height_seg()
 // Source Address: 0x1C2C
 void ORoad::init_elevation(uint32_t& addr)
 {
-    up_mult = roms.rom1.read8(&addr);
-    down_mult = roms.rom1.read8(&addr);
+    up_mult = roms.rom1p->read8(&addr);
+    down_mult = roms.rom1p->read8(&addr);
     height_addr = addr;
     height_ctrl = 2; // Use do_elevation_flat function below
     do_elevation();
@@ -792,7 +792,7 @@ void ORoad::do_elevation()
 // Source: 1CE4 (first used at the chicane at stage 1)
 void ORoad::init_elevation_hill(uint32_t& addr)
 {
-    updowncombo = roms.rom1.read16(&addr);
+    updowncombo = roms.rom1p->read16(&addr);
     height_addr = addr;
     do_height_inc = 1;
     height_inc = 0;
@@ -848,7 +848,7 @@ void ORoad::do_elevation_hill()
 // Source: 1DAC
 void ORoad::init_level_4d(uint32_t& addr)
 {
-    updowncombo = roms.rom1.read16(&addr);
+    updowncombo = roms.rom1p->read16(&addr);
     height_addr = addr;
     do_height_inc = 1;
     height_inc = 0;
@@ -920,7 +920,7 @@ void ORoad::init_horizon_adjust(uint32_t& addr)
 {
     height_addr = addr;
     //  Base Horizon Y-Offset - Up/Down Modifier
-    horizon_mod = (int16_t) roms.rom1.read16(addr) - horizon_base;
+    horizon_mod = (int16_t) roms.rom1p->read16(addr) - horizon_base;
     height_ctrl = 5; // Use do_horizon_adjust() function below
     do_horizon_adjust();
 }
@@ -1020,7 +1020,7 @@ void ORoad::set_y_interpolate()
     //uint16_t d4 = 0x200; // 200 (512 pixels)
 
     // height_final = (Next Height Value * (Distance into section - 0x100)) / 16
-    height_final = (((int16_t) roms.rom1.read16(a1_lookup)) * (height_start - 0x100)) >> 4;
+    height_final = (((int16_t) roms.rom1p->read16(a1_lookup)) * (height_start - 0x100)) >> 4;
 
     // 1faa 
     int32_t horizon_copy = horizon_base << 4;
@@ -1078,7 +1078,7 @@ void ORoad::set_y_2044()
     // Writing last part of interpolated data
     road_unk[a3_o] = 0;
 
-    int16_t y = roms.rom1.read16(a1_lookup);
+    int16_t y = roms.rom1p->read16(a1_lookup);
 
     // Return if not end at end of height section data
     if (y != -1) return;
@@ -1126,7 +1126,7 @@ void ORoad::read_next_height()
     // 1ff2: set_elevation_flag
     // Note the way this bug was fixed
     // Needed to read the signed value into an int16_t before assigning to a 32 bit value
-    change_per_entry = ((int16_t) roms.rom1.read16(&a1_lookup)) << 4;
+    change_per_entry = ((int16_t) roms.rom1p->read16(&a1_lookup)) << 4;
     change_per_entry += d5_o;
     if (counter != 1)
     {
@@ -1212,7 +1212,7 @@ void ORoad::set_y_horizon()
     if (height_start != 0x1FF) return;
 
     // Read Up/Down Multiplier Word From Lookup Table and set new horizon base value
-    horizon_base = (int32_t) roms.rom1.read16(height_addr);
+    horizon_base = (int32_t) roms.rom1p->read16(height_addr);
 
     if (height_lookup == height_lookup_wrk)
         height_lookup = 0;
@@ -1581,13 +1581,13 @@ void ORoad::copy_bg_color()
     // Copy 1K
     for (int i = 0; i < 32; i++)
     {
-        hwroad.write32(&dst, roms.rom1.read32(&src));
-        hwroad.write32(&dst, roms.rom1.read32(&src));
-        hwroad.write32(&dst, roms.rom1.read32(&src));
-        hwroad.write32(&dst, roms.rom1.read32(&src));
-        hwroad.write32(&dst, roms.rom1.read32(&src));
-        hwroad.write32(&dst, roms.rom1.read32(&src));
-        hwroad.write32(&dst, roms.rom1.read32(&src));
-        hwroad.write32(&dst, roms.rom1.read32(&src));
+        hwroad.write32(&dst, roms.rom1p->read32(&src));
+        hwroad.write32(&dst, roms.rom1p->read32(&src));
+        hwroad.write32(&dst, roms.rom1p->read32(&src));
+        hwroad.write32(&dst, roms.rom1p->read32(&src));
+        hwroad.write32(&dst, roms.rom1p->read32(&src));
+        hwroad.write32(&dst, roms.rom1p->read32(&src));
+        hwroad.write32(&dst, roms.rom1p->read32(&src));
+        hwroad.write32(&dst, roms.rom1p->read32(&src));
     }
 }

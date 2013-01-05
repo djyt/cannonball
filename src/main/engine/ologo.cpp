@@ -14,12 +14,6 @@
 
 OLogo ologo;
 
-const uint32_t OLogo::palm_frames[] = 
-{ 
-    SPRITE_LOGO_PALM1, SPRITE_LOGO_PALM2, SPRITE_LOGO_PALM3, SPRITE_LOGO_PALM2, 
-    SPRITE_LOGO_PALM1, SPRITE_LOGO_PALM2, SPRITE_LOGO_PALM3, SPRITE_LOGO_PALM2,
-};
-
 const uint8_t OLogo::bg_pal[] = { 0x9A, 0x9B, 0x9C, 0x9D, 0x9E, 0x9A, 0x9B, 0x9C };
 
 OLogo::OLogo()
@@ -41,6 +35,15 @@ void OLogo::enable(int16_t y)
     {
         osprites.jump_table[i].init(i);
     }
+
+    palm_frames[0] = outrun.adr.sprite_logo_palm1;
+    palm_frames[1] = outrun.adr.sprite_logo_palm2;
+    palm_frames[2] = outrun.adr.sprite_logo_palm3;
+    palm_frames[3] = outrun.adr.sprite_logo_palm2;
+    palm_frames[4] = outrun.adr.sprite_logo_palm1;
+    palm_frames[5] = outrun.adr.sprite_logo_palm2;
+    palm_frames[6] = outrun.adr.sprite_logo_palm3;
+    palm_frames[7] = outrun.adr.sprite_logo_palm2;
 
     setup_sprite1(); 
     setup_sprite2();
@@ -81,7 +84,7 @@ void OLogo::setup_sprite1()
     e->priority = 0x1FA;
     e->zoom = 0x7F;
     e->pal_src = 0x99;
-    e->addr = SPRITE_LOGO_BG;
+    e->addr = outrun.adr.sprite_logo_bg;
     osprites.map_palette(e);
 }
 
@@ -95,7 +98,7 @@ void OLogo::setup_sprite2()
     e->priority = 0x1FB;
     e->zoom = 0x7F;
     e->pal_src = 0x6E;
-    e->addr = SPRITE_LOGO_CAR;
+    e->addr = outrun.adr.sprite_logo_car;
     osprites.map_palette(e);
 }
 
@@ -110,7 +113,7 @@ void OLogo::setup_sprite3()
     e->zoom = 0x7F;
     e->counter = 0;
     e->pal_src = 0x8B;
-    e->addr = SPRITE_LOGO_BIRD1;
+    e->addr = outrun.adr.sprite_logo_bird1;
     osprites.map_palette(e);
 }
 
@@ -125,7 +128,7 @@ void OLogo::setup_sprite4()
     e->zoom = 0x7F;
     e->counter = 0x20;
     e->pal_src = 0x8C;
-    e->addr = SPRITE_LOGO_BIRD2;
+    e->addr = outrun.adr.sprite_logo_bird2;
     osprites.map_palette(e);
 }
 
@@ -139,7 +142,7 @@ void OLogo::setup_sprite5()
     e->priority = 0x1FC;
     e->zoom = 0x7F;
     e->pal_src = 0x6E;
-    e->addr = SPRITE_LOGO_BASE;
+    e->addr = outrun.adr.sprite_logo_base;
     osprites.map_palette(e);
 }
 
@@ -153,7 +156,7 @@ void OLogo::setup_sprite6()
     e->priority = 0x1FD;
     e->zoom = 0x7F;
     e->pal_src = 0x65;
-    e->addr = SPRITE_LOGO_PALM1;
+    e->addr = outrun.adr.sprite_logo_palm1;
     osprites.map_palette(e);
 }
 
@@ -168,7 +171,7 @@ void OLogo::setup_sprite7()
     e->zoom = 0x7F;
     e->counter = 0;
     e->pal_src = 0x65;
-    e->addr = SPRITE_LOGO_TEXT;
+    e->addr = outrun.adr.sprite_logo_text;
     osprites.map_palette(e);
 }
 
@@ -223,7 +226,7 @@ void OLogo::sprite_logo_bird1()
     // Set Frame
     e->reload++;
     uint16_t frame = (e->reload & 4) >> 2;
-    e->addr = frame ? SPRITE_LOGO_BIRD2 : SPRITE_LOGO_BIRD1;
+    e->addr = frame ? outrun.adr.sprite_logo_bird2 : outrun.adr.sprite_logo_bird1;
     osprites.do_spr_order_shadows(e);
 }
 
@@ -249,7 +252,7 @@ void OLogo::sprite_logo_bird2()
     // Set Frame
     e->reload++;
     uint16_t frame = (e->reload & 4) >> 2;
-    e->addr = frame ? SPRITE_LOGO_BIRD2 : SPRITE_LOGO_BIRD1;
+    e->addr = frame ? outrun.adr.sprite_logo_bird2 : outrun.adr.sprite_logo_bird1;
     osprites.do_spr_order_shadows(e);
 }
 

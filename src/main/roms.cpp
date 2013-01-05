@@ -12,21 +12,20 @@ Roms roms;
 
 Roms::Roms()
 {
+    jap_rom_status = -1;
 }
 
 Roms::~Roms(void)
 {
 }
 
-bool Roms::init()
+bool Roms::load_revb_roms()
 {
     // If incremented, a rom has failed to load.
     int status = 0;
 
     // Load Master CPU ROMs
     rom0.init(0x40000);
-    status += rom0.load("epr-10380b.133", 0x00000, 0x10000, 0x1f6cadad, RomLoader::INTERLEAVE2);
-    status += rom0.load("epr-10382b.118", 0x00001, 0x10000, 0xc4c3fa1a, RomLoader::INTERLEAVE2);
     status += rom0.load("epr-10381a.132", 0x20000, 0x10000, 0xbe8c412b, RomLoader::INTERLEAVE2);
     
     // Try alternate filename for this rom
@@ -37,6 +36,8 @@ bool Roms::init()
     }
     
     status += rom0.load("epr-10383b.117", 0x20001, 0x10000, 0x10a2014a, RomLoader::INTERLEAVE2);
+    status += rom0.load("epr-10380b.133", 0x00000, 0x10000, 0x1f6cadad, RomLoader::INTERLEAVE2);
+    status += rom0.load("epr-10382b.118", 0x00001, 0x10000, 0xc4c3fa1a, RomLoader::INTERLEAVE2);
 
     // Load Slave CPU ROMs
     rom1.init(0x40000);
@@ -87,5 +88,29 @@ bool Roms::init()
     return status == 0;
 }
 
+bool Roms::load_japanese_roms()
+{
+    // Only attempt to initalize the arrays once.
+    if (jap_rom_status == -1)
+    {
+        j_rom0.init(0x40000);
+        j_rom1.init(0x40000);
+    }
 
+    // If incremented, a rom has failed to load.
+    jap_rom_status = 0;
 
+    // Load Master CPU ROMs     
+    jap_rom_status += j_rom0.load("epr-10380.133", 0x00000, 0x10000, 0xe339e87a, RomLoader::INTERLEAVE2);
+    jap_rom_status += j_rom0.load("epr-10382.118", 0x00001, 0x10000, 0x65248dd5, RomLoader::INTERLEAVE2);
+    jap_rom_status += j_rom0.load("epr-10381.132", 0x20000, 0x10000, 0xbe8c412b, RomLoader::INTERLEAVE2);
+    jap_rom_status += j_rom0.load("epr-10383.117", 0x20001, 0x10000, 0xdcc586e7, RomLoader::INTERLEAVE2);
+
+    // Load Slave CPU ROMs        
+    jap_rom_status += j_rom1.load("epr-10327.76", 0x00000, 0x10000, 0xda99d855, RomLoader::INTERLEAVE2);
+    jap_rom_status += j_rom1.load("epr-10329.58", 0x00001, 0x10000, 0xfe0fa5e2, RomLoader::INTERLEAVE2);
+    jap_rom_status += j_rom1.load("epr-10328.75", 0x20000, 0x10000, 0x3c0e9a7f, RomLoader::INTERLEAVE2);
+    jap_rom_status += j_rom1.load("epr-10330.57", 0x20001, 0x10000, 0x59786e99, RomLoader::INTERLEAVE2);
+    // If status has been incremented, a rom has failed to load.
+    return jap_rom_status == 0;
+}

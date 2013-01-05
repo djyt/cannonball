@@ -211,6 +211,11 @@ void OSound::process_command()
                 pcm_w(0xF0DE, 1);
                 break;
 
+            case sound::REVS:
+                fm_reset();
+                sound_props |= BIT_0; // Trigger rev effect
+                break;
+
             case sound::BEEP1:
                 init_sound(cmd, DATA_BEEP1, channel::YM_FX1);
                 break;

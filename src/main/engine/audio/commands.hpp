@@ -35,6 +35,7 @@ namespace sound
         SIGNAL2 = 0x95,
         INIT_WEIRD = 0x96,
         STOP_WEIRD = 0x97,
+        REVS = 0x98,             // New: Added to support revs during WAV playback
         BEEP1 = 0x99,            // YM Beep
         UFO = 0x9A,              // Unused sound. Note that the z80 code to play this is not implemented in this conversion.
         BEEP2 = 0x9B,            // YM Double Beep

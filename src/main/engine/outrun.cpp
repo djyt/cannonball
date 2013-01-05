@@ -369,7 +369,10 @@ void Outrun::main_switch()
             
             #ifdef COMPILE_SOUND_CODE
             if (omusic.music_selected >= 0 && omusic.music_selected <= 2)
+            {
                 cannonball::audio.load_wav(config.sound.custom_music[omusic.music_selected].filename.c_str());
+                osoundint.queue_sound(sound::REVS); // queue revs sound manually
+            }
             else
             #endif
                 osoundint.queue_sound(omusic.music_selected);
@@ -379,7 +382,7 @@ void Outrun::main_switch()
             else
                 ostats.time_counter = 0x30;
 
-            ostats.frame_counter = ostats.frame_reset + 50;                 // set this to 49 for testing purposes
+            ostats.frame_counter = ostats.frame_reset + 50;     // set this to 49 for testing purposes
             ohud.draw_main_hud();
             ostats.credits--;                                   // Update Credits
             ohud.blit_text1(TEXT1_CLEAR_START);

@@ -27,6 +27,7 @@
     <!-- 
         Fullscreen Mode Settings 
         Stretch: Set to 1 to stretch the screen and remove borders.
+        Aspect ratio will be lost. Scanlines will be disabled.
     -->
     <fullscreen>
         <stretch>0</stretch>
@@ -37,11 +38,13 @@
         0   = No scanlines
         100 = Solid black
         
+        A value of 35 looks good on my LCD monitor.
+        
         Note that scanlines require a scale factor of 2 or more. 
-        Scanlines do not work in stretch mode.
+        Scanlines do not work in full-screen stretch mode.
         Scanlines may result in some borders around the screen in full-screen mode.
     -->
-    <scanlines>35</scanlines>
+    <scanlines>0</scanlines>
 
     <!-- FPS 
          0 = 30    FPS. Optimized Mode       (Slow computers)
@@ -159,7 +162,7 @@
          epr-10380.133, epr-10382.118, epr-10381.132, epr-10383.117
          epr-10327.76,  epr-10329.58,  epr-10328.75,  epr-10330.57
     --->
-    <japanese_tracks>1</japanese_tracks>
+    <japanese_tracks>0</japanese_tracks>
     
     <!-- Increase the number of allowed level objects. 
          This fixes the broken arches in Gateway for example.

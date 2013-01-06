@@ -27,16 +27,14 @@ OInitEngine::~OInitEngine()
 }
 
 // Source: 0x8360
-void OInitEngine::init()
+void OInitEngine::init(int8_t level)
 {
-    ostats.game_completed    = 0;
+    ostats.game_completed  = 0;
 
     ingame_engine          = false;
     ingame_counter         = 0;
-    // Clear shared ram area (0x260000 - 0x267FFF). Unfinished.
-    ingame_counter         = 0;
     ostats.cur_stage       = 0;
-    oroad.stage_lookup_off = 0;
+    oroad.stage_lookup_off = level ? level : 0;
     rd_split_state         = SPLIT_NONE;
     road_type              = ROAD_NOCHANGE;
     road_type_next         = ROAD_NOCHANGE;
@@ -61,59 +59,33 @@ void OInitEngine::init()
 
     // todo: Note we need to include code to skip SetSoundReset when initgameengine2 is called
 	init_road_seg_master();
+
+    // Road Renderer: Setup correct stage address 
+    if (level)
+	    oroad.stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + (stage_data[oroad.stage_lookup_off] << 2));
+
 	opalette.setup_sky_palette();
 	opalette.setup_ground_color();
 	opalette.setup_road_centre();
 	opalette.setup_road_stripes();
 	opalette.setup_road_side();
 	opalette.setup_road_colour();   
-    otiles.setup_palette_default();                 // Init Default Palette
+    otiles.setup_palette_hud();                     // Init Default Palette for HUD
     osprites.copy_palette_data();                   // Copy Palette Data to RAM
     otiles.setup_palette_tilemap();                 // Setup Palette For Tilemap
     setup_stage1();                                 // Setup Misc stuff relating to Stage 1
     otiles.reset_tiles_pal();                       // Reset Tiles, Palette And Road Split Data
-
     ocrash.clear_crash_state();
-    ocrash.skid_counter = 0;
+
+    // The following is set up specifically for time trial mode
+    if (level)
+    {  
+        otiles.init_tilemap_palette(level);
+        oroad.road_ctrl  = ORoad::ROAD_BOTH_P0;
+        oroad.road_width = RD_WIDTH_MERGE;        // Setup a default road width
+    }
 
     osoundint.reset();
-}
-
-void OInitEngine::debug_load_level(uint8_t level)
-{
-    ostats.cur_stage = level / 8;
-    oroad.stage_lookup_off = level;
-    setup_stage1();
-    init_road_seg_master();
-
-    // Road Renderer: Setup correct stage address 
-	oroad.stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + (stage_data[oroad.stage_lookup_off] << 2));
-
-    opalette.setup_sky_palette();
-    opalette.setup_ground_color();
-	opalette.setup_road_centre();
-	opalette.setup_road_stripes();
-	opalette.setup_road_side();
-	opalette.setup_road_colour();
-    otiles.setup_palette_default();                 // Init Default Palette
-    osprites.copy_palette_data();                   // Copy Palette Data to RAM
-    otiles.setup_palette_tilemap();                 // Setup Palette For Tilemap
-    otiles.reset_tiles_pal();    
-    ocrash.clear_crash_state();
-    
-    // Reset Tiles, Palette And Road Split Data
-    otiles.init_tilemap_props(level);
-    otiles.copy_fg_tiles(ostats.cur_stage & 1 ? 0x104F80 : 0x100F80);
-    otiles.copy_bg_tiles(ostats.cur_stage & 1 ? 0x10BF80 : 0x108F80);
-    otiles.tilemap_ctrl = OTiles::TILEMAP_SCROLL;    
-    otiles.init_tilemap_palette(level);
-
-    oroad.road_width = RD_WIDTH_MERGE << 16;        // Setup a default road width
-
-    // Hacks
-    outrun.game_state = 0xC;
-    oferrari.reset_car();
-    car_x_pos = 0;
 }
 
 // Source: 0x8402
@@ -354,9 +326,9 @@ void OInitEngine::check_road_split()
 
     switch (rd_split_state)
     {
-        // State 0: No road split. Check current road position with 0x79C.
+        // State 0: No road split. Check current road position with ROAD_END.
         case SPLIT_NONE:
-            if (oroad.road_pos >> 16 <= 0x79C) return; 
+            if (oroad.road_pos >> 16 <= ROAD_END) return; 
             check_stage(); // Do Split - Split behaviour depends on stage
             break;
 
@@ -461,8 +433,53 @@ void OInitEngine::check_road_split()
 // ------------------------------------------------------------------------------------------------
 void OInitEngine::check_stage()
 {
+    // Time Trial Mode
+    if (outrun.ttrial.enabled)
+    {
+        // Store laptime and reset
+        uint8_t* laptimes = outrun.ttrial.laptimes[outrun.ttrial.current_lap];
+
+        laptimes[0] = ostats.stage_times[0][0];
+        laptimes[1] = ostats.stage_times[0][1];
+        laptimes[2] = ostats.stage_times[0][2];
+        ostats.stage_times[0][0] = 
+        ostats.stage_times[0][1] = 
+        ostats.stage_times[0][2] = 0;
+
+        // Check for new best laptime
+        int16_t counter = ostats.stage_counters[outrun.ttrial.current_lap];
+        if (counter < outrun.ttrial.best_lap_counter)
+        {
+            outrun.ttrial.best_lap_counter = counter;
+            outrun.ttrial.best_lap[0] = laptimes[0];
+            outrun.ttrial.best_lap[1] = laptimes[1];
+            outrun.ttrial.best_lap[2] = laptimes[2];
+
+            // Draw best laptime
+            ostats.extend_play_timer = 0x80;
+            ohud.blit_text1(TEXT1_LAPTIME1);
+            ohud.blit_text1(TEXT1_LAPTIME2);
+            ohud.draw_lap_timer(0x110554, laptimes, OStats::LAP_MS[laptimes[2]]);
+        }
+
+        // More laps to go, loop the course
+        if (++outrun.ttrial.current_lap < outrun.ttrial.laps)
+        {
+            // Update lap number
+            //ohud.draw_digits(ohud.translate(35, 26), outrun.ttrial.current_lap + 1);
+            oroad.road_pos = 0;
+            oroad.tilemap_h_target = 0;
+            init_road_seg_master();
+        }
+        else
+        {
+            oroad.stage_lookup_off = 0x20;
+            ostats.time_counter = 1;
+            init_bonus();
+        }
+    }
     // Stages 0-4, do road split
-    if (ostats.cur_stage <= 3)
+    else if (ostats.cur_stage <= 3)
     {
         rd_split_state = SPLIT_INIT;
         init_split1();
@@ -891,7 +908,12 @@ void OInitEngine::test_bonus_mode(bool do_bonus_check)
 
         // End Seq Animation Stage #0
         if (obonus.bonus_control == OBonus::BONUS_SEQ0)
-            oanimseq.init_end_seq();
+        {
+            if (outrun.ttrial.enabled)
+                outrun.game_state = GS_INIT_GAMEOVER;
+            else
+                oanimseq.init_end_seq();
+        }
     }
 
    // finalise_skid:

@@ -76,16 +76,6 @@ public:
 	osprite sprite_entries[JUMP_ENTRIES_TOTAL];
 
 	// -------------------------------------------------------------------------
-	// Function Holders
-	// -------------------------------------------------------------------------
-    enum
-    {
-        TRAFFIC_INIT = 0x10,       // Initalize Traffic Object
-        TRAFFIC_ENTRY = 0x11,      // First 0x80 Positions Of Road
-        TRAFFIC_TICK = 0x12        // Tick Normally
-    };
-
-	// -------------------------------------------------------------------------
 	// Jump Table 2 Entries For Sprite Control
 	// -------------------------------------------------------------------------
 

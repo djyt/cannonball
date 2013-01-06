@@ -63,6 +63,7 @@ private:
     std::vector<std::string> menu_sound;
     std::vector<std::string> menu_controls;
     std::vector<std::string> menu_engine;
+    std::vector<std::string> menu_musictest;
 
     std::vector<std::string> text_redefine;
     

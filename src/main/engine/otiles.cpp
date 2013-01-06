@@ -47,7 +47,7 @@ void OTiles::write_tilemap_hw()
 // Input:          None
 // Output:         None
 
-void OTiles::setup_palette_default()
+void OTiles::setup_palette_hud()
 {
     uint32_t src_addr = 0x16ED8;
     uint32_t pal_addr = 0x120000;
@@ -166,7 +166,7 @@ void OTiles::clear_tile_info()
     video.write_text16(HW_FG_PSEL, fg_psel);    // Also write values to hardware
     video.write_text16(HW_BG_PSEL, bg_psel);
 
-    init_default_tilemap();
+    init_tilemap(oroad.stage_lookup_off); // Initialize Default Tilemap
 }
 
 // Initalize Default Tilemap (Stage 1)
@@ -178,13 +178,16 @@ void OTiles::clear_tile_info()
 // +A [word] - V-Scroll Offset
 //
 // Source: 0xD8B2
-void OTiles::init_default_tilemap()
+void OTiles::init_tilemap(int16_t stage_id)
 {
-    fg_v_tiles    = roms.rom0p->read8(outrun.adr.tiles_table);       // Write Default FG Tilemap Height
-    bg_v_tiles    = roms.rom0p->read8(outrun.adr.tiles_table + 1);   // Write Default BG Tilemap Height
-    fg_addr       = roms.rom0p->read32(outrun.adr.tiles_table + 2);  // Write Default FG Tilemap Address
-    bg_addr       = roms.rom0p->read32(outrun.adr.tiles_table + 6);  // Write Default BG Tilemap Address
-    tilemap_v_off = roms.rom0p->read16(outrun.adr.tiles_table + 0xA);
+    uint8_t offset = (roms.rom0p->read8(outrun.adr.tiles_def_lookup + stage_id) << 2) * 3;
+    uint32_t addr = outrun.adr.tiles_table + offset;
+
+    fg_v_tiles    = roms.rom0p->read8(&addr);   // Write Default FG Tilemap Height
+    bg_v_tiles    = roms.rom0p->read8(&addr);   // Write Default BG Tilemap Height
+    fg_addr       = roms.rom0p->read32(&addr);  // Write Default FG Tilemap Address
+    bg_addr       = roms.rom0p->read32(&addr);  // Write Default BG Tilemap Address
+    tilemap_v_off = roms.rom0p->read16(&addr);
     int16_t v_off = 0x68 - tilemap_v_off;
     oroad.horizon_y_bak = oroad.horizon_y2;
 
@@ -195,6 +198,24 @@ void OTiles::init_default_tilemap()
     copy_fg_tiles(0x100F80);                            // Copy Foreground tiles to Tile RAM
     copy_bg_tiles(0x108F80);                            // Copy Background tiles to Tile RAM
     tilemap_ctrl = TILEMAP_SCROLL;
+}
+
+// Initialize Tilemap properties for Stage (FG & BG)
+//
+// - Width & Height of Tilemap
+// - ROM Address of Tiles
+// - V-Scroll Offset
+// Source: DC02
+void OTiles::init_tilemap_props(uint16_t stage_id)
+{
+    uint8_t offset = (roms.rom0p->read8(outrun.adr.tiles_def_lookup + stage_id) << 2) * 3;
+    uint32_t addr = outrun.adr.tiles_table + offset;
+
+    fg_v_tiles    = roms.rom0p->read8(&addr);   // Write Default FG Tilemap Height
+    bg_v_tiles    = roms.rom0p->read8(&addr);   // Write Default BG Tilemap Height
+    fg_addr       = roms.rom0p->read32(&addr);  // Write Default FG Tilemap Address
+    bg_addr       = roms.rom0p->read32(&addr);  // Write Default BG Tilemap Address
+    tilemap_v_off = roms.rom0p->read16(&addr);  // Set Tilemap v-scroll offset   
 }
 
 
@@ -366,7 +387,6 @@ void OTiles::scroll_tilemaps()
     update_fg_page();           // Update FG Pages, based on new H-Scroll
     update_bg_page();           // Update BG Pages, based on new H-Scroll
     v_scroll_tilemaps();        // Set V-Scroll values for Tilemaps
-
 }
 
 // Note this is called in attract mode, when we need to loop back to Stage 1, from the final stage.
@@ -374,7 +394,7 @@ void OTiles::scroll_tilemaps()
 void OTiles::loop_to_stage1()
 {
     opalette.pal_manip_ctrl = 1;    // Enable palette fade routines to transition between levels
-    init_default_tilemap();         // Initalize Default Tilemap (Stage 1)
+    init_tilemap();                 // Initalize Default Tilemap (Stage 1)
     opalette.setup_sky_change();    // Setup data in RAM necessary for sky palette fade.
 }
 
@@ -581,25 +601,6 @@ void OTiles::init_next_tilemap()
     }
 }
 
-// Initialize Tilemap properties for Stage (FG & BG)
-//
-// - Width & Height of Tilemap
-// - ROM Address of Tiles
-// - V-Scroll Offset
-// Source: DC02
-void OTiles::init_tilemap_props(uint16_t stage_id)
-{
-    uint8_t offset = (roms.rom0p->read8(outrun.adr.tiles_def_lookup + stage_id) << 2) * 3;
-    uint32_t addr = outrun.adr.tiles_table + offset;
-
-    fg_v_tiles    = roms.rom0p->read8(&addr);   // Write Default FG Tilemap Height
-    bg_v_tiles    = roms.rom0p->read8(&addr);   // Write Default BG Tilemap Height
-    fg_addr       = roms.rom0p->read32(&addr);  // Write Default FG Tilemap Address
-    bg_addr       = roms.rom0p->read32(&addr);  // Write Default BG Tilemap Address
-    tilemap_v_off = roms.rom0p->read16(&addr);  // Set Tilemap v-scroll offset
-    
-}
-
 // Copy relevant palette to Palette RAM, for new FG and BG layers.
 //
 // I've reworked this routine to function with both Jap and USA courses.
@@ -682,156 +683,6 @@ void OTiles::init_tilemap_palette(uint16_t stage_id)
             copy_to_palram(0, TILEMAP_PALS + 0xB0, 0x1207B0);
             break;
     }
-
-    /*
-    // Map stage ID to level 0-14
-    uint8_t level = roms.rom0.read8(MAP_STAGE_ID + stage_id);
-
-    if (config.jap)
-    {
-        switch (level)
-        {
-            case 0:
-                return;
-
-            // Stage 2
-            case 1:
-                return;
-
-            case 2:
-                copy_to_palram(3, TILEMAP_PALS, 0x1203C0);
-                copy_to_palram(7, TILEMAP_PALS + 0x10, 0x1200C0);
-                break;
-
-            // Stage 3
-            case 3:
-                return;
-
-            case 4:
-                copy_to_palram(3, TILEMAP_PALS + 0xE0, 0x120600);
-                break;
-
-            case 5:
-                return;
-
-            // Stage 4
-            case 6:
-                return;
-
-            case 7:
-                copy_to_palram(3, TILEMAP_PALS, 0x1203C0);
-                copy_to_palram(7, TILEMAP_PALS + 0x10, 0x1200C0);
-                break;
-
-            case 8:
-                return;
-
-            case 9:
-                copy_to_palram(3, TILEMAP_PALS + 0x120, 0x120600);
-                copy_to_palram(1, TILEMAP_PALS + 0x130, 0x1206C0);
-                break;
-
-            // Stage 5:
-            case 10:
-                copy_to_palram(1, TILEMAP_PALS + 0xF0, 0x1202A0);
-                copy_to_palram(2, TILEMAP_PALS + 0x40, 0x120780);
-                break;
-
-            case 11:
-                copy_to_palram(1, TILEMAP_PALS + 0x80, 0x1202A0);
-                break;
-
-            case 12:
-                copy_to_palram(1, TILEMAP_PALS + 0x110, 0x1206C0);
-                copy_to_palram(1, TILEMAP_PALS + 0x30, 0x120780);
-                break;
-
-            case 13:
-                copy_to_palram(3, TILEMAP_PALS + 0x50, 0x120600);
-                copy_to_palram(7, TILEMAP_PALS + 0x90, 0x1200C0);
-                break;
-
-            case 14:
-                copy_to_palram(1, TILEMAP_PALS + 0xD0, 0x1202A0);
-                copy_to_palram(1, TILEMAP_PALS + 0xB0, 0x120720);
-                copy_to_palram(0, TILEMAP_PALS + 0xB0, 0x1207B0);
-                break;
-        }
-    }
-    else
-    {
-        switch (level)
-        {
-            case 0:
-                return;
-
-            // Stage 2
-            case 1:
-                copy_to_palram(2, TILEMAP_PALS + 0xC0, 0x120780);
-                copy_to_palram(0, TILEMAP_PALS + 0x100, 0x1205F0);
-                break;
-
-            case 2:
-                copy_to_palram(0, TILEMAP_PALS + 0x60, 0x1205F0);
-                copy_to_palram(1, TILEMAP_PALS + 0x20, 0x1205A0);
-                break;
-
-            // Stage 3
-            case 3:
-                return;
-
-            case 4:
-                copy_to_palram(3, TILEMAP_PALS + 0xE0, 0x120600);
-                break;
-
-            case 5:
-                return;
-
-            // Stage 4
-            case 6:
-                return;
-
-            case 7:
-                copy_to_palram(3, TILEMAP_PALS, 0x1203C0);
-                copy_to_palram(7, TILEMAP_PALS + 0x10, 0x1200C0);
-                break;
-
-            case 8:
-                return;
-
-            case 9:
-                copy_to_palram(3, TILEMAP_PALS + 0x120, 0x120600);
-                copy_to_palram(1, TILEMAP_PALS + 0x130, 0x1206C0);
-                break;
-
-            // Stage 5:
-            case 10:
-                copy_to_palram(1, TILEMAP_PALS + 0xF0, 0x1202A0);
-                copy_to_palram(2, TILEMAP_PALS + 0x40, 0x120780);
-                break;
-
-            case 11:
-                copy_to_palram(1, TILEMAP_PALS + 0x80, 0x1202A0);
-                break;
-
-            case 12:
-                copy_to_palram(1, TILEMAP_PALS + 0x110, 0x1206C0);
-                copy_to_palram(1, TILEMAP_PALS + 0x30, 0x120780);
-                break;
-
-            case 13:
-                copy_to_palram(3, TILEMAP_PALS + 0x50, 0x120600);
-                copy_to_palram(7, TILEMAP_PALS + 0x90, 0x1200C0);
-                break;
-
-            case 14:
-                copy_to_palram(1, TILEMAP_PALS + 0xD0, 0x1202A0);
-                copy_to_palram(1, TILEMAP_PALS + 0xB0, 0x120720);
-                copy_to_palram(0, TILEMAP_PALS + 0xB0, 0x1207B0);
-                break;
-        }
-    }
-    */
 }
 
 void OTiles::copy_to_palram(const uint8_t blocks, uint32_t src, uint32_t dst)

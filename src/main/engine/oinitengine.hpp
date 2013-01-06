@@ -18,6 +18,9 @@
 class OInitEngine
 {
 public:
+    // Hard Coded End Point of every level
+    const static uint16_t ROAD_END = 0x79C;
+
     // Debug: Camera X Offset
     int16_t camera_x_off;
 
@@ -137,8 +140,7 @@ public:
 
 	OInitEngine();
 	~OInitEngine();
-	void init();
-    void debug_load_level(uint8_t);
+	void init(int8_t debug_level);
 
     void init_road_seg_master();
     void init_crash_bonus();

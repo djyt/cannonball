@@ -14,6 +14,10 @@
 #include "engine/outils.hpp"
 #include "engine/ohud.hpp"
 
+#include <iostream>
+#include <sstream>
+#include <string>
+
 OHud ohud;
 
 OHud::OHud(void)
@@ -25,21 +29,60 @@ OHud::~OHud(void)
 {
 }
 
+int mask = -1;
+
 // Draw Text Labels For HUD
 // 
 // Source: 0xB462
 void OHud::draw_main_hud()
 {
-    blit_text1(HUD_SCORE1);
-    blit_text1(HUD_SCORE2);
-    blit_text1(HUD_TIME1);
-    blit_text1(HUD_TIME2);
-    blit_text1(HUD_STAGE1);
-    blit_text1(HUD_STAGE2);
-    blit_text1(HUD_ONE);
+    mask += 2;
     blit_text1(HUD_LAP1);
     blit_text1(HUD_LAP2);
-    do_mini_map();
+
+    if (!outrun.ttrial.enabled)
+    {
+        blit_text1(HUD_TIME1);
+        blit_text1(HUD_TIME2);
+        blit_text1(HUD_SCORE1);
+        blit_text1(HUD_SCORE2);
+        blit_text1(HUD_STAGE1);
+        blit_text1(HUD_STAGE2);
+        blit_text1(HUD_ONE);
+        do_mini_map();
+    }
+    else
+    {
+        blit_text1(2, 1, HUD_SCORE1);
+        blit_text1(2, 2, HUD_SCORE2);
+        ohud.draw_score_timetrial(0);
+
+        blit_text_new(15, 5, "TIME TO BEAT", GREEN);
+        draw_lap_timer(translate(17, 7), outrun.ttrial.best_lap, OStats::LAP_MS[outrun.ttrial.best_lap[2]]);
+        //blit_text_new(31, 26, "LAP", GREEN);
+        //draw_digits(ohud.translate(35, 26), 1);
+
+        // TOP HUD Graphic (unused in OutRun)
+        /*uint32_t dst_addr = translate(10, 1);
+        video.write_text16(&dst_addr, (mask << 8) | 0xBF);
+        video.write_text16(&dst_addr, (mask << 8) | 0xCA); 
+        video.write_text16(&dst_addr, (mask << 8) | 0xCB);
+        video.write_text16(&dst_addr, (mask << 8) | 0xCC);
+        std::cout << mask << std::endl;
+        dst_addr = translate(10, 2);
+        video.write_text16(&dst_addr, (mask << 8) | 0xCD);
+        video.write_text16(&dst_addr, (mask << 8) | 0xCE);
+        video.write_text16(&dst_addr, (mask << 8) | 0xCF);
+        video.write_text16(&dst_addr, (mask << 8) | 0xEB);*/
+
+        // Blit Top
+    }
+}
+
+void OHud::clear_timetrial_text()
+{
+    blit_text_new(15, 5, "            ");
+    blit_text_new(17, 7, "            ");
 }
 
 
@@ -171,6 +214,18 @@ void OHud::draw_score_ingame(uint32_t score)
     draw_score(0x110150, score, 2);
 }
 
+void OHud::draw_score_timetrial(uint32_t score)
+{
+    if (outrun.game_state < GS_START1 || outrun.game_state > GS_BONUS)
+        return;
+
+    std::stringstream ss;
+    ss << score;
+
+    blit_text_new(8, 2, ss.str().c_str());
+}
+
+
 // Draw Score
 //
 // + 8530 = Digit 0
@@ -261,10 +316,9 @@ void OHud::draw_score_tile(uint32_t addr, const uint32_t score, uint8_t font)
 // This only draws a single digit, as the original routine is never used in the way intended
 //
 // Source: C3A0
-void OHud::draw_digits(uint32_t addr, uint8_t digit)
+void OHud::draw_digits(uint32_t addr, uint8_t digit, uint16_t col)
 {
-    const uint16_t BASE = 0x8230;
-    video.write_text16(addr, digit + BASE);
+    video.write_text16(addr, digit + (col << 8) + DIGIT_BASE);
 }
 
 // Draw Rev Counter
@@ -464,6 +518,21 @@ void OHud::draw_credits()
 void OHud::blit_text1(uint32_t src_addr)
 {
     uint32_t dst_addr = roms.rom0.read32(&src_addr); // Text RAM destination address
+    uint16_t counter = roms.rom0.read16(&src_addr);  // Number of tiles to blit
+    uint16_t data = roms.rom0.read16(&src_addr);     // Tile data to blit
+
+    // Blit each tile
+    for (uint16_t i = 0; i <= counter; i++)
+    {
+        data = (data & 0xFF00) | roms.rom0.read8(&src_addr);
+        video.write_text16(&dst_addr, data);
+    }
+}
+
+void OHud::blit_text1(uint8_t x, uint8_t y, uint32_t src_addr)
+{
+    uint32_t dst_addr = translate(x, y);
+    src_addr += 4;
     uint16_t counter = roms.rom0.read16(&src_addr);  // Number of tiles to blit
     uint16_t data = roms.rom0.read16(&src_addr);     // Tile data to blit
 

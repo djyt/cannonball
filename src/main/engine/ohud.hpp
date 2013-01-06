@@ -27,20 +27,26 @@ public:
         GREEN = 0x92,
     } colors;
 
+    // Base for digits, for fast digit drawing
+    const static uint16_t DIGIT_BASE = 0x30;
+
     OHud(void);
     ~OHud(void);
 
     void draw_main_hud();
+    void clear_timetrial_text();
     void do_mini_map();
     void draw_timer1(uint16_t);
     void draw_timer2(uint16_t, uint32_t, uint16_t);
     void draw_lap_timer(uint32_t, uint8_t*, uint8_t);
     void draw_score_ingame(uint32_t);
+    void draw_score_timetrial(uint32_t);
     void draw_score(uint32_t, const uint32_t, const uint8_t);
     void draw_score_tile(uint32_t, const uint32_t, const uint8_t);
-    void draw_digits(uint32_t, uint8_t);
+    void draw_digits(uint32_t, uint8_t, uint16_t col = GREEN);
     void draw_rev_counter();
 	void blit_text1(uint32_t);
+    void blit_text1(uint8_t x, uint8_t y, uint32_t src_addr);
 	void blit_text2(uint32_t);
     void blit_text_custom_music(const char* text);
     void blit_text_new(uint16_t, uint16_t, const char* text, uint16_t col = GREY);

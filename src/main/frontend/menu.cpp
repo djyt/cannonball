@@ -35,6 +35,7 @@ const static char* ENTRY_BACK       = "BACK";
 
 // Main Menu
 const static char* ENTRY_PLAYGAME   = "PLAY GAME";
+const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 const static char* ENTRY_SETTINGS   = "SETTINGS";
 const static char* ENTRY_ABOUT      = "ABOUT";
 const static char* ENTRY_EXIT       = "EXIT";
@@ -70,6 +71,12 @@ const static char* ENTRY_TIME       = "TIME ";
 const static char* ENTRY_TRAFFIC    = "TRAFFIC ";
 const static char* ENTRY_OBJECTS    = "OBJECTS ";
 
+// Music Test Menu
+const static char* ENTRY_MUSIC1     = "MAGICAL SOUND SHOWER";
+const static char* ENTRY_MUSIC2     = "PASSING BREEZE";
+const static char* ENTRY_MUSIC3     = "SPLASH WAVE";
+const static char* ENTRY_MUSIC4     = "LAST WAVE";
+
 Menu::Menu(void)
 {
 
@@ -85,6 +92,7 @@ void Menu::populate()
     // Create Menus
     menu_main.push_back(ENTRY_PLAYGAME);
     menu_main.push_back(ENTRY_SETTINGS);
+    menu_main.push_back(ENTRY_MUSICTEST);
     menu_main.push_back(ENTRY_ABOUT);
     menu_main.push_back(ENTRY_EXIT);
 
@@ -119,6 +127,12 @@ void Menu::populate()
     menu_engine.push_back(ENTRY_TRAFFIC);
     menu_engine.push_back(ENTRY_OBJECTS);
     menu_engine.push_back(ENTRY_BACK);
+
+    menu_musictest.push_back(ENTRY_MUSIC1);
+    menu_musictest.push_back(ENTRY_MUSIC2);
+    menu_musictest.push_back(ENTRY_MUSIC3);
+    menu_musictest.push_back(ENTRY_MUSIC4);
+    menu_musictest.push_back(ENTRY_BACK);
 
     menu_about.push_back("CANNONBALL © CHRIS WHITE 2013");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
@@ -156,7 +170,7 @@ void Menu::init()
     opalette.setup_road_stripes();
     opalette.setup_road_side();
     opalette.setup_road_colour();
-    otiles.setup_palette_default();
+    otiles.setup_palette_hud();
 
     oroad.init();
     oroad.road_ctrl = ORoad::ROAD_R0;
@@ -227,7 +241,7 @@ void Menu::tick()
         uint32_t result = 0x12F * (oinitengine.car_increment >> 16);
         oroad.road_pos_change = result;
         oroad.road_pos += result;
-        if (oroad.road_pos >> 16 > 0x79C) // loop to beginning of track data
+        if (oroad.road_pos >> 16 > oinitengine.ROAD_END) // loop to beginning of track data
             oroad.road_pos = 0;
         oinitengine.update_road();
         oinitengine.set_granular_position();
@@ -333,6 +347,8 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_SETTINGS))
                 set_menu(&menu_settings);
+            else if (SELECTED(ENTRY_MUSICTEST))
+                set_menu(&menu_musictest);
             else if (SELECTED(ENTRY_ABOUT))
                 set_menu(&menu_about);
             else if (SELECTED(ENTRY_EXIT))
@@ -478,6 +494,23 @@ void Menu::tick_menu()
 
             if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
+        }
+        else if (menu_selected == &menu_musictest)
+        {
+            if (SELECTED(ENTRY_MUSIC1))
+                osoundint.queue_sound(sound::MUSIC_MAGICAL);
+            else if (SELECTED(ENTRY_MUSIC2))
+                osoundint.queue_sound(sound::MUSIC_BREEZE);
+            else if (SELECTED(ENTRY_MUSIC3))
+                osoundint.queue_sound(sound::MUSIC_SPLASH);
+            else if (SELECTED(ENTRY_MUSIC4))
+                osoundint.queue_sound(sound::MUSIC_LASTWAVE);
+
+            else if (SELECTED(ENTRY_BACK))
+            {
+                osoundint.queue_sound(sound::FM_RESET);
+                set_menu(&menu_main);
+            }
         }
         else
             set_menu(&menu_main);

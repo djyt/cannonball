@@ -88,7 +88,8 @@ void OCrash::clear_crash_state()
     spin_pass_frame = 0;
     crash_spin_count = 0;
     crash_delay = 0;
-    crash_type = 0;
+    crash_type  = 0;
+    skid_counter = 0;
 }
 
 void OCrash::tick()

@@ -68,7 +68,7 @@ void OSprites::init()
         jump_table[i].control |= SHADOW;
         jump_table[i].addr = outrun.adr.sprite_porsche; // Initial offset of traffic sprites. Will be changed.
     }
-
+    /*
     jump_table[SPRITE_TRAFF1].function_holder = TRAFFIC_INIT;
     jump_table[SPRITE_TRAFF1].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
     jump_table[SPRITE_TRAFF1].draw_props |= oentry::BOTTOM;
@@ -105,7 +105,7 @@ void OSprites::init()
     jump_table[SPRITE_TRAFF5].z = 0x1D004E0;
     jump_table[SPRITE_TRAFF5].type = 0x30; 
     jump_table[SPRITE_TRAFF5].xw2 = -0x70;
-
+    */
     // ------------------------------------------------------------------------
     // Crash Sprites
     // ------------------------------------------------------------------------

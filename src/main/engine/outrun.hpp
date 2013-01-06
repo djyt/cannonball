@@ -69,6 +69,18 @@ enum
 	GS_REINIT = 21,				//15 = Reinitalize Game (after outrunners screen)
 };
 
+struct time_trial_t
+{
+    bool enabled;             // Time Trial Mode Enabled
+    uint8_t  level;           // Time Trial Level
+    uint8_t  laps;            // Total laps (maximum of 5 laps total allowed)
+    uint8_t  current_lap;     // Which lap are we currently on
+    uint16_t overtakes;       // Number of overtakes
+    uint8_t  laptimes[5][3];  // Stored lap times
+    int16_t  best_lap_counter;// Counter representing best laptime
+    uint8_t  best_lap[3];     // Stored best lap time
+};
+
 // Addresses (Used to swap between original and Japanese roms)
 struct adr_t
 {
@@ -178,6 +190,9 @@ struct adr_t
 class Outrun
 {
 public:
+    // Time trial data
+    time_trial_t ttrial;
+
     // Service Mode Toggle: Not implemented yet.
     bool service_mode;
 
@@ -204,8 +219,7 @@ public:
     void select_course(bool jap);
 
 private:    
-    // Set to debug a particular level
-    static const uint8_t LOAD_LEVEL = 0;
+    bool freeze_timer;
 
     // Car Increment Backup for attract mode
     uint32_t car_inc_bak;

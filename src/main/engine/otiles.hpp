@@ -33,9 +33,10 @@ public:
 	~OTiles();
 
 	void setup_palette_tilemap();
-	void setup_palette_default();
+	void setup_palette_hud();
     void reset_tiles_pal();
     void update_tilemaps();
+    void init_tilemap(int16_t stage_id = 0);
     void init_tilemap_props(uint16_t);
     void init_tilemap_palette(uint16_t);
     void copy_fg_tiles(uint32_t);
@@ -89,7 +90,6 @@ private:
     // -----------------------------------------------------------------------
 
     void clear_tile_info();
-    void init_default_tilemap();
     void scroll_tilemaps();
     void init_next_tilemap();
     void copy_to_palram(const uint8_t, uint32_t, uint32_t);

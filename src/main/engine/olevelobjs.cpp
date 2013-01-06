@@ -34,23 +34,29 @@ OLevelObjs::~OLevelObjs(void)
 // Once setup, this routine is replaced with SpriteControl
 //
 // Source: 0x3B48
-void OLevelObjs::default_entries()
+void OLevelObjs::init_startline_sprites()
 {
     // Return if Music Selection Screen
     if (outrun.game_state == GS_MUSIC) return; 
-    init_entries(outrun.adr.sprite_def_props1, DEF_SPRITE_ENTRIES);
+    init_entries(outrun.adr.sprite_def_props1, 0, DEF_SPRITE_ENTRIES);
+}
+
+void OLevelObjs::init_timetrial_sprites()
+{
+    const uint8_t start_index = 18;
+    init_entries(outrun.adr.sprite_def_props1 + (start_index * 0x10), start_index, DEF_SPRITE_ENTRIES);
 }
 
 // Setup hi-score screen sprite entries
-void OLevelObjs::hiscore_entries()
+void OLevelObjs::init_hiscore_sprites()
 {
-    init_entries(outrun.adr.sprite_def_props2, HISCORE_SPRITE_ENTRIES);
+    init_entries(outrun.adr.sprite_def_props2, 0, HISCORE_SPRITE_ENTRIES);
 }
 
-void OLevelObjs::init_entries(uint32_t a4, uint8_t no_entries)
+void OLevelObjs::init_entries(uint32_t a4, const uint8_t start_index, const uint8_t no_entries)
 {
     // next_sprite:
-    for (uint8_t i = 0; i <= no_entries; i++)
+    for (uint8_t i = start_index; i <= no_entries; i++)
     {
         oentry *sprite = &osprites.jump_table[i];
 

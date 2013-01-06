@@ -175,7 +175,7 @@ void OFerrari::tick()
 
         // Ferrari End Sequence Logic
         case FERRARI_END_SEQ:
-            oanimseq.tick_end_seq();
+                oanimseq.tick_end_seq();
             break;
     }
 }

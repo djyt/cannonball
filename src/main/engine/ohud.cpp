@@ -14,10 +14,6 @@
 #include "engine/outils.hpp"
 #include "engine/ohud.hpp"
 
-#include <iostream>
-#include <sstream>
-#include <string>
-
 OHud ohud;
 
 OHud::OHud(void)
@@ -55,34 +51,16 @@ void OHud::draw_main_hud()
     {
         blit_text1(2, 1, HUD_SCORE1);
         blit_text1(2, 2, HUD_SCORE2);
-        ohud.draw_score_timetrial(0);
-
-        blit_text_new(15, 5, "TIME TO BEAT", GREEN);
-        draw_lap_timer(translate(17, 7), outrun.ttrial.best_lap, OStats::LAP_MS[outrun.ttrial.best_lap[2]]);
-        //blit_text_new(31, 26, "LAP", GREEN);
-        //draw_digits(ohud.translate(35, 26), 1);
-
-        // TOP HUD Graphic (unused in OutRun)
-        /*uint32_t dst_addr = translate(10, 1);
-        video.write_text16(&dst_addr, (mask << 8) | 0xBF);
-        video.write_text16(&dst_addr, (mask << 8) | 0xCA); 
-        video.write_text16(&dst_addr, (mask << 8) | 0xCB);
-        video.write_text16(&dst_addr, (mask << 8) | 0xCC);
-        std::cout << mask << std::endl;
-        dst_addr = translate(10, 2);
-        video.write_text16(&dst_addr, (mask << 8) | 0xCD);
-        video.write_text16(&dst_addr, (mask << 8) | 0xCE);
-        video.write_text16(&dst_addr, (mask << 8) | 0xCF);
-        video.write_text16(&dst_addr, (mask << 8) | 0xEB);*/
-
-        // Blit Top
+        ohud.draw_timer1(0);
+        blit_text_big(4, "TIME TO BEAT");
+        draw_lap_timer(translate(16, 7), outrun.ttrial.best_lap, OStats::LAP_MS[outrun.ttrial.best_lap[2]]);
     }
 }
 
 void OHud::clear_timetrial_text()
 {
-    blit_text_new(15, 5, "            ");
-    blit_text_new(17, 7, "            ");
+    blit_text_big(4,     "            ");
+    blit_text_new(16, 7, "            ");
 }
 
 
@@ -213,18 +191,6 @@ void OHud::draw_score_ingame(uint32_t score)
 
     draw_score(0x110150, score, 2);
 }
-
-void OHud::draw_score_timetrial(uint32_t score)
-{
-    if (outrun.game_state < GS_START1 || outrun.game_state > GS_BONUS)
-        return;
-
-    std::stringstream ss;
-    ss << score;
-
-    blit_text_new(8, 2, ss.str().c_str());
-}
-
 
 // Draw Score
 //
@@ -596,17 +562,12 @@ void OHud::blit_text2(uint32_t src_addr)
 // Enhanced Cannonball Routines Below
 // ------------------------------------------------------------------------------------------------
 
-// Custom Music Text Routine
-void OHud::blit_text_custom_music(const char* text)
+// Big Yellow Text. Always Centered. 
+void OHud::blit_text_big(const uint8_t Y, const char* text, bool do_notes)
 {
-    // Note tiles to append to left side of text
-    const uint32_t NOTE_TILES1 = 0x8A7A8A7B;
-    const uint32_t NOTE_TILES2 = 0x8A7C8A7D;
-
     uint16_t length = strlen(text);
 
     const uint16_t X = 20 - (length >> 1);
-    const uint16_t Y = 11;
 
     // Clear complete row in text ram before blitting
     for (uint8_t x = 0; x < 40; x++)
@@ -616,8 +577,15 @@ void OHud::blit_text_custom_music(const char* text)
     }
 
     // Draw Notes
-    video.write_text32(translate(X - 2, Y) + 0x110000, NOTE_TILES1);
-    video.write_text32(translate(X - 2, Y) + 0x110080, NOTE_TILES2);
+    if (do_notes)
+    {
+        // Note tiles to append to left side of text
+        const uint32_t NOTE_TILES1 = 0x8A7A8A7B;
+        const uint32_t NOTE_TILES2 = 0x8A7C8A7D;
+
+        video.write_text32(translate(X - 2, Y) + 0x110000, NOTE_TILES1);
+        video.write_text32(translate(X - 2, Y) + 0x110080, NOTE_TILES2);
+    }
 
     uint32_t dst_addr = translate(X, Y) + 0x110000;
 

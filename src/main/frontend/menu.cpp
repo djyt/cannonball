@@ -255,13 +255,7 @@ void Menu::tick()
     {
         ologo.tick();
         osprites.sprite_copy();
-
-	    if (osprites.do_sprite_swap)
-	    {
-            osprites.do_sprite_swap = false;
-            video.sprite_layer->swap();
-            osprites.copy_palette_data();
-	    }
+        osprites.update_sprites();
     }
 
     oroad.tick();

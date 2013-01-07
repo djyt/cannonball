@@ -163,6 +163,17 @@ void OSprites::init()
     pal_copy_count      = 0;    
 }
 
+// Swap Sprite RAM And Update Palette Data
+void OSprites::update_sprites()
+{
+	if (do_sprite_swap)
+	{
+        do_sprite_swap = false;
+        video.sprite_layer->swap();
+        copy_palette_data();
+	}
+}
+
 // Disable All Sprite Entries
 // Source: 0x4A50
 void OSprites::disable_sprites()

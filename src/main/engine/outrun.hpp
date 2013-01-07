@@ -79,6 +79,7 @@ struct time_trial_t
     uint8_t  laptimes[5][3];  // Stored lap times
     int16_t  best_lap_counter;// Counter representing best laptime
     uint8_t  best_lap[3];     // Stored best lap time
+    bool new_high_score;      // Has player achieved a new high score?
 };
 
 // Addresses (Used to swap between original and Japanese roms)

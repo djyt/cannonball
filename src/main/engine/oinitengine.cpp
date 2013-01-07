@@ -460,6 +460,8 @@ void OInitEngine::check_stage()
             ohud.blit_text1(TEXT1_LAPTIME1);
             ohud.blit_text1(TEXT1_LAPTIME2);
             ohud.draw_lap_timer(0x110554, laptimes, OStats::LAP_MS[laptimes[2]]);
+
+            outrun.ttrial.new_high_score = true;
         }
 
         // More laps to go, loop the course
@@ -903,7 +905,7 @@ void OInitEngine::test_bonus_mode(bool do_bonus_check)
     if (do_bonus_check && obonus.bonus_control)
     {
         // Do Bonus Text Display
-        if (obonus.bonus_state < 3)
+        if (!outrun.ttrial.enabled && obonus.bonus_state < 3)
             obonus.do_bonus_text();
 
         // End Seq Animation Stage #0

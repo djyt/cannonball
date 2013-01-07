@@ -411,7 +411,7 @@ void OTraffic::update_props(oentry* sprite)
             if (!outrun.ttrial.enabled)
                 ostats.update_score(0x20000);
             else
-                ohud.draw_score_timetrial(++outrun.ttrial.overtakes);
+                ohud.draw_timer1(outils::DEC_TO_HEX[++outrun.ttrial.overtakes]);
         }
 
         olevelobjs.hide_sprite(sprite);

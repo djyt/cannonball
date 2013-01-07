@@ -99,9 +99,6 @@ public:
 
 	// -------------------------------------------------------------------------
 
-	// Denote whether to swap sprite ram
-	bool do_sprite_swap;
-
     // Speed at which sprites should scroll. Depends on granular position difference.
 	uint16_t sprite_scroll_speed;
 
@@ -123,6 +120,7 @@ public:
 	void init();
     void disable_sprites();
     void tick();
+    void update_sprites();
 
     void clear_palette_data();
 	void copy_palette_data();
@@ -144,6 +142,9 @@ private:
 
 	// Palette Ram: Sprite Entries Start Here
 	static const uint32_t PAL_SPRITES = 0x121000;
+
+	// Denote whether to swap sprite ram
+	bool do_sprite_swap;
 
 	// Store the next available sprite colour palette (0 - 7F)
 	uint8_t spr_col_pal;

@@ -25,12 +25,10 @@ public:
     OMap(void);
     ~OMap(void);
 
+    void init();
     void tick();
-
-    void draw_horiz_end(oentry*);
-    void draw_vert_bottom(oentry*);
-    void draw_vert_top(oentry*);
-
+    void blit();
+    void load_sprites();
     void draw_course_map();
 
 private:
@@ -81,7 +79,9 @@ private:
     // Minicar Movement Enabled (set = enabled)
     uint8_t minicar_enable;
 
-    void init_course_map();
+    void draw_horiz_end(oentry*);
+    void draw_vert_bottom(oentry*);
+    void draw_vert_top(oentry*);
     void draw_piece(oentry*, uint32_t);
     void do_route_final();
     void end_route();

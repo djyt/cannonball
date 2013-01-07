@@ -11,8 +11,10 @@
 #include "engine/outrun.hpp"
 #include "engine/opalette.hpp"
 #include "engine/outils.hpp"
+#include "engine/ttrial.hpp"
 
 Outrun outrun;
+
 
 /*
     Known Core Engine Issues:
@@ -47,13 +49,14 @@ Outrun::~Outrun()
 void Outrun::init()
 {
     ttrial.enabled          = true;
-    ttrial.level            = 18;
+    ttrial.level            = 0x19;
     ttrial.current_lap      = 0;
     ttrial.laps             = 1;
     ttrial.best_lap_counter = 10000;
-    ttrial.best_lap[0] = 0x01;
-    ttrial.best_lap[1] = 0x15;
-    ttrial.best_lap[2] = 0x00;
+    ttrial.best_lap[0]      = 0x01;
+    ttrial.best_lap[1]      = 0x15;
+    ttrial.best_lap[2]      = 0x00;
+    ttrial.new_high_score   = false;
     
     freeze_timer = ttrial.enabled ? true : config.engine.freeze_timer;
 
@@ -148,16 +151,7 @@ void Outrun::tick()
 void Outrun::vint()
 {
     otiles.write_tilemap_hw();
-
-    if (osprites.do_sprite_swap)
-    {
-        osprites.do_sprite_swap = false;
-
-        video.sprite_layer->swap();
-
-        // Do Sprite RAM Swap and copy new palette data if necessary
-        osprites.copy_palette_data();
-    }
+    osprites.update_sprites();
     otiles.update_tilemaps();
 
     if (config.fps < 120 || (frame & 1))
@@ -469,8 +463,18 @@ void Outrun::main_switch()
             }
             else
             {
-                ohud.blit_text_new(5, 5, "TIME TRIAL OVER");
-                ostats.time_counter = 10;
+                ohud.blit_text_big(6, ttrial.new_high_score ? "NEW RECORD" : "BAD LUCK");
+
+                ohud.blit_text1(TEXT1_LAPTIME1);
+                ohud.blit_text1(TEXT1_LAPTIME2);
+                ohud.draw_lap_timer(0x110554, ttrial.best_lap, OStats::LAP_MS[ttrial.best_lap[2]]);
+
+                ohud.blit_text_new(9,  14, "NUMBER OF OVERTAKES - ");
+                ohud.blit_text_new(31, 14, config.to_string((int) ttrial.overtakes).c_str(), OHud::GREEN);
+                //ohud.blit_text_new(6,  16, "AVERAGE SPEED       - ");
+                //ohud.blit_text_new(28, 16, "128 KPH", OHud::GREEN);
+
+                ostats.time_counter = 8;
                 ostats.frame_counter = ostats.frame_reset;
             }
             osoundint.queue_sound(sound::NEW_COMMAND);
@@ -484,9 +488,6 @@ void Outrun::main_switch()
             }
             else
             {
-                if (oinitengine.car_increment == 0)
-                    ohud.blit_text_new(5, 5, "STOPPED");
-
                 if (decrement_timers())
                     game_state = GS_INIT;
             }
@@ -496,22 +497,10 @@ void Outrun::main_switch()
         // Display Course Map
         // ----------------------------------------------------------------------------------------
         case GS_INIT_MAP:
-            oferrari.car_ctrl_active = false; // -1
-            video.clear_text_ram();
-            osprites.disable_sprites();
-            otraffic.disable_traffic();
-            osprites.clear_palette_data();
-            oinitengine.car_increment = 0;
-            oferrari.car_inc_old = 0;
-            osprites.spr_cnt_main = 0;
-            osprites.spr_cnt_shadow = 0;
-            oroad.road_ctrl = ORoad::ROAD_BOTH_P0;
-            oroad.horizon_base = -0x3FF;
-            otiles.fill_tilemap_color(0xABD); //  Paint pinkish colour on tilemap 16
+            omap.init();
             ohud.blit_text2(TEXT2_COURSEMAP);
             game_state = GS_MAP;
             // fall through
-            omap.init_sprites = true;
 
         case GS_MAP:
             break;

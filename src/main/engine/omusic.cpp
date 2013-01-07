@@ -194,7 +194,7 @@ void OMusic::tick()
 
         if (config.sound.custom_music[0].enabled)
         {
-            ohud.blit_text_custom_music(config.sound.custom_music[0].title.c_str());
+            ohud.blit_text_big(11, config.sound.custom_music[0].title.c_str(), true);
             music_selected = 0;
         }
         else
@@ -216,7 +216,7 @@ void OMusic::tick()
 
         if (config.sound.custom_music[1].enabled)
         {
-            ohud.blit_text_custom_music(config.sound.custom_music[1].title.c_str());
+            ohud.blit_text_big(11, config.sound.custom_music[1].title.c_str(), true);
             music_selected = 1;
         }
         else
@@ -238,7 +238,7 @@ void OMusic::tick()
 
         if (config.sound.custom_music[2].enabled)
         {
-            ohud.blit_text_custom_music(config.sound.custom_music[2].title.c_str());
+            ohud.blit_text_big(11, config.sound.custom_music[2].title.c_str(), true);
             music_selected = 2;
         }
         else

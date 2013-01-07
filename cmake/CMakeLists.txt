@@ -117,6 +117,7 @@ set(src_engine
     "${main_cpp_base}/engine/outils.hpp"
     "${main_cpp_base}/engine/outrun.hpp"
     "${main_cpp_base}/engine/ozoom_lookup.hpp"
+    "${main_cpp_base}/engine/ttrial.hpp"
 
     "${main_cpp_base}/engine/oanimseq.cpp"
     "${main_cpp_base}/engine/oattractai.cpp"
@@ -141,6 +142,7 @@ set(src_engine
     "${main_cpp_base}/engine/otraffic.cpp"
     "${main_cpp_base}/engine/outils.cpp"
     "${main_cpp_base}/engine/outrun.cpp"
+    "${main_cpp_base}/engine/ttrial.cpp"
     )
 
 set(src_engine_audio

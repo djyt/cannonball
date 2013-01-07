@@ -12,7 +12,7 @@ namespace cannonball
     extern Audio audio;
 #endif
 
-    // Millisecond Time Per Fram
+    // Millisecond Time Per Frame
     extern int frame_ms;
 
     // Engine Master State

@@ -23,6 +23,7 @@
 #include "stdint.hpp"
 #include "main.hpp"
 #include "engine/outrun.hpp"
+#include "engine/ttrial.hpp"
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
 
@@ -36,6 +37,7 @@ int cannonball::frame_ms = 0;
 Audio cannonball::audio;
 #endif
 
+TTrial ttrial;
 Menu menu;
 
 static void quit_func(int code)
@@ -111,7 +113,8 @@ static void tick()
 
             if (!pause_engine || input.has_pressed(Input::STEP))
             {
-                outrun.tick();          
+                //outrun.tick();
+                ttrial.tick();
                 input.frame_done(); // Denote keys read
 
                 #ifdef COMPILE_SOUND_CODE
@@ -135,7 +138,8 @@ static void tick()
             }
             else
             {
-                outrun.init();
+                //outrun.init();
+                ttrial.init();
                 state = STATE_GAME;
             }
             break;

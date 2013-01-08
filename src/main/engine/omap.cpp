@@ -16,6 +16,8 @@
 
 OMap omap;
 
+// Position of Ferrari in Jump Table
+const uint8_t SPRITE_FERRARI = 25;
 
 OMap::OMap(void)
 {
@@ -193,6 +195,18 @@ void OMap::draw_course_map()
     }
 }
 
+// Place Ferrari On Particular Road Segment
+void OMap::position_ferrari(uint8_t index)
+{
+    oentry* segment = &osprites.jump_table[index];
+    osprites.jump_table[SPRITE_FERRARI].x = segment->x - 8;
+    osprites.jump_table[SPRITE_FERRARI].y = segment->y;
+    
+    //sprite->addr    = roms.rom0p->read32(adr);
+    //segment->pal_src = index;
+    //osprites.map_palette(segment);
+}
+
 // Initalize Course Map Sprites
 // Source: 0x33F4
 void OMap::load_sprites()
@@ -233,8 +247,8 @@ void OMap::load_sprites()
 
     // Minicar initalization moved here
     minicar_enable = 0;
-    osprites.jump_table[25].x = -0x80;
-    osprites.jump_table[25].y = 0x78;
+    osprites.jump_table[SPRITE_FERRARI].x = -0x80;
+    osprites.jump_table[SPRITE_FERRARI].y = 0x78;
     map_state = MAP_INIT;
 }
 

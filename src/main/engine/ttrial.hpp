@@ -6,6 +6,7 @@ class TTrial
 {
 public:
     uint8_t state;
+    int8_t level_selected;
 
     enum
     {

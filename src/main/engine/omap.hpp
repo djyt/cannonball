@@ -30,6 +30,7 @@ public:
     void blit();
     void load_sprites();
     void draw_course_map();
+    void position_ferrari(uint8_t index);
 
 private:
     // Total sprite pieces that comprise course map. 3c
@@ -87,7 +88,7 @@ private:
     void end_route();
     void init_map_delay();
     void map_display();
-    void move_mini_car(oentry*);
+    void move_mini_car(oentry*);  ;
 };
 
 extern OMap omap;

@@ -475,7 +475,8 @@ void OInitEngine::check_stage()
         }
         else
         {
-            oroad.stage_lookup_off = 0x20;
+            // Set correct finish segment for final 5 stages, otherwise just default to first one.
+            oroad.stage_lookup_off = oroad.stage_lookup_off < 0x20 ? 0x20 : oroad.stage_lookup_off;
             ostats.time_counter = 1;
             init_bonus();
         }

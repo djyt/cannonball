@@ -144,6 +144,13 @@ void Config::load(const std::string &filename)
     // Additional Level Objects
     engine.level_objects = pt_config.get("engine.levelobjects", 1);
     engine.randomgen     = pt_config.get("engine.randomgen",    1);
+
+    // ------------------------------------------------------------------------
+    // Time Trial Mode
+    // ------------------------------------------------------------------------
+
+    ttrial.laps    = pt_config.get("time_trial.laps",    5);
+    ttrial.traffic = pt_config.get("time_trial.traffic", 3);
 }
 
 bool Config::save(const std::string &filename)
@@ -182,6 +189,13 @@ bool Config::save(const std::string &filename)
     pt_config.put("engine.traffic", engine.disable_traffic ? 4 : engine.dip_traffic);
     pt_config.put("engine.japanese_tracks", engine.jap);
     pt_config.put("engine.levelobjects", engine.level_objects);
+
+    pt_config.put("time_trial.laps",    ttrial.laps);
+    pt_config.put("time_trial.traffic", ttrial.traffic);
+
+    ttrial.laps    = pt_config.get("time_trial.laps",    5);
+    ttrial.traffic = pt_config.get("time_trial.traffic", 3);
+
 
     // Tab space 1
     boost::property_tree::xml_writer_settings<char> settings('\t', 1);

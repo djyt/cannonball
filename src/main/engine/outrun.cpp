@@ -11,7 +11,6 @@
 #include "engine/outrun.hpp"
 #include "engine/opalette.hpp"
 #include "engine/outils.hpp"
-#include "engine/ttrial.hpp"
 
 Outrun outrun;
 
@@ -47,17 +46,7 @@ Outrun::~Outrun()
 }
 
 void Outrun::init()
-{
-    ttrial.enabled          = true;
-    ttrial.level            = 0x19;
-    ttrial.current_lap      = 0;
-    ttrial.laps             = 1;
-    ttrial.best_lap_counter = 10000;
-    ttrial.best_lap[0]      = 0x01;
-    ttrial.best_lap[1]      = 0x15;
-    ttrial.best_lap[2]      = 0x00;
-    ttrial.new_high_score   = false;
-    
+{    
     freeze_timer = ttrial.enabled ? true : config.engine.freeze_timer;
 
     game_state = GS_INIT;
@@ -70,7 +59,7 @@ void Outrun::init()
     tick_counter = 0;
     ohiscore.init_def_scores();  // Initialize default hi-score entries
     config.load_scores();        // Load saved hi-score entries
-    ostats.init();
+    ostats.init(ttrial.enabled);
     init_jump_table();
     oinitengine.init(ttrial.enabled ? ttrial.level : 0);
     osoundint.init();
@@ -260,7 +249,7 @@ void Outrun::main_switch()
             ostats.time_counter = 0x15;
             ostats.frame_counter = ostats.frame_reset;
             video.enabled = true;
-            game_state = ttrial.enabled ? GS_INIT_GAME : GS_ATTRACT;
+            game_state = ttrial.enabled ? GS_INIT_MUSIC : GS_ATTRACT;
             // fall through
             
         // ----------------------------------------------------------------------------------------
@@ -463,7 +452,7 @@ void Outrun::main_switch()
             }
             else
             {
-                ohud.blit_text_big(6, ttrial.new_high_score ? "NEW RECORD" : "BAD LUCK");
+                ohud.blit_text_big(7, ttrial.new_high_score ? "NEW RECORD" : "BAD LUCK");
 
                 ohud.blit_text1(TEXT1_LAPTIME1);
                 ohud.blit_text1(TEXT1_LAPTIME2);
@@ -489,7 +478,10 @@ void Outrun::main_switch()
             else
             {
                 if (decrement_timers())
+                {
                     game_state = GS_INIT;
+                    cannonball::state = cannonball::STATE_INIT_MENU;
+                }
             }
             break;
 

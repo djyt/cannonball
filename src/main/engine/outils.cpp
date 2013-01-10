@@ -65,12 +65,12 @@ uint32_t outils::random()
 //
 // To Do: Test this outputs identical results
 
-int32_t outils::next(int32_t n, int32_t i) 
+int32_t outils::next(const int32_t n, const int32_t i) 
 {
     return (n + i/n) >> 1;
 }
 
-int32_t outils::isqrt(int32_t number) 
+int32_t outils::isqrt(const int32_t number) 
 {
     if (number == 0)
         return 0;
@@ -163,17 +163,16 @@ uint32_t outils::bcd_sub(uint32_t src, uint32_t dst)
     return final;
 }
 
-// Convert car increment value to a human readable speed
+// Convert 16 Bit Decimal Value To Hex.
 //
-// Output:
-// Final speed to output. This is a hex number but, can be directly converted to decimal.
-// So, 0x180 actually would be 180 kp/h directly.
+// This is used to convert the speed.
+// So an output of 0x180 would be 180 kp/h directly.
 //
 // Source: 0x7126
-uint16_t outils::convert_speed(uint16_t car_increment)
+uint16_t outils::convert16_dechex(const uint16_t value)
 {
     int16_t top_byte = -1; // [d3]
-    int16_t lookup = car_increment; // [d2]
+    int16_t lookup   = value; // [d2]
 
     do
     {

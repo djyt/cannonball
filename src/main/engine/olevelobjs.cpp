@@ -43,7 +43,7 @@ void OLevelObjs::init_startline_sprites()
 
 void OLevelObjs::init_timetrial_sprites()
 {
-    const uint8_t start_index = 18;
+    const uint8_t start_index = outrun.ttrial.level == 0 ? 0 : 18;
     init_entries(outrun.adr.sprite_def_props1 + (start_index * 0x10), start_index, DEF_SPRITE_ENTRIES);
 }
 

@@ -167,6 +167,15 @@
     <randomgen>1</randomgen>
 </engine>
 
+<!-- Settings for Time Trial Mode -->
+<time_trial>
+    <!-- Default Number of Laps (1 - 5) -->
+    <laps>5</laps>
+    
+    <!-- Default Amount of Traffic (0 - 8), where 0 is off -->
+    <traffic>3</traffic>
+</time_trial>
+
 <!-- 
     Use the inbuilt menu system. 
     You can disable it and edit this config file instead if it makes more sense for your system.

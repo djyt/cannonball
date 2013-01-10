@@ -40,8 +40,6 @@ void OHud::draw_main_hud()
     {
         blit_text1(HUD_TIME1);
         blit_text1(HUD_TIME2);
-        blit_text1(HUD_SCORE1);
-        blit_text1(HUD_SCORE2);
         blit_text1(HUD_STAGE1);
         blit_text1(HUD_STAGE2);
         blit_text1(HUD_ONE);
@@ -49,9 +47,9 @@ void OHud::draw_main_hud()
     }
     else
     {
+        draw_score(translate(3, 2), 0, 2);
         blit_text1(2, 1, HUD_SCORE1);
         blit_text1(2, 2, HUD_SCORE2);
-        ohud.draw_timer1(0);
         blit_text_big(4, "TIME TO BEAT");
         draw_lap_timer(translate(16, 7), outrun.ttrial.best_lap, OStats::LAP_MS[outrun.ttrial.best_lap[2]]);
     }
@@ -352,7 +350,7 @@ void OHud::blit_speed(uint32_t dst_addr, uint16_t speed)
     const uint16_t TILE_BASE = 0x8C60; // Base tile number
 
     // Convert to human readable speed
-    speed = outils::convert_speed(speed);
+    speed = outils::convert16_dechex(speed);
 
     uint16_t digit1 = speed & 0xF;
     uint16_t digit2 = (speed & 0xF0) >> 4;
@@ -486,7 +484,7 @@ void OHud::blit_text1(uint32_t src_addr)
     uint32_t dst_addr = roms.rom0.read32(&src_addr); // Text RAM destination address
     uint16_t counter = roms.rom0.read16(&src_addr);  // Number of tiles to blit
     uint16_t data = roms.rom0.read16(&src_addr);     // Tile data to blit
-
+    
     // Blit each tile
     for (uint16_t i = 0; i <= counter; i++)
     {
@@ -615,7 +613,7 @@ void OHud::blit_text_big(const uint8_t Y, const char* text, bool do_notes)
         // Normal character
         if (c >= 'A' && c <= 'Z')
         {           
-            const uint16_t pal = 0x8AA0;
+            const uint16_t pal = do_notes ? 0x8AA0 : 0x8CA0;
             // Convert character to real index (D0-0x41) so A is 0x01
             c -= 0x41;
             c = (c * 2);

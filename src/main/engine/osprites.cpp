@@ -68,44 +68,7 @@ void OSprites::init()
         jump_table[i].control |= SHADOW;
         jump_table[i].addr = outrun.adr.sprite_porsche; // Initial offset of traffic sprites. Will be changed.
     }
-    /*
-    jump_table[SPRITE_TRAFF1].function_holder = TRAFFIC_INIT;
-    jump_table[SPRITE_TRAFF1].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
-    jump_table[SPRITE_TRAFF1].draw_props |= oentry::BOTTOM;
-    jump_table[SPRITE_TRAFF1].z = 0x140F520;
 
-    jump_table[SPRITE_TRAFF2].function_holder = TRAFFIC_INIT;
-    jump_table[SPRITE_TRAFF2].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
-    jump_table[SPRITE_TRAFF2].draw_props |= oentry::BOTTOM;
-    jump_table[SPRITE_TRAFF2].xw1 = 0x70;
-    jump_table[SPRITE_TRAFF2].z = 0x14004E0;
-    jump_table[SPRITE_TRAFF2].type = 0x18; 
-    jump_table[SPRITE_TRAFF2].xw2 = 0x70;
-
-    jump_table[SPRITE_TRAFF3].function_holder = TRAFFIC_INIT;
-    jump_table[SPRITE_TRAFF3].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
-    jump_table[SPRITE_TRAFF3].draw_props |= oentry::BOTTOM;
-    jump_table[SPRITE_TRAFF3].xw1 = -0x70;
-    jump_table[SPRITE_TRAFF3].z = 0x14004E0;
-    jump_table[SPRITE_TRAFF3].type = 0x20; 
-    jump_table[SPRITE_TRAFF3].xw2 = -0x70;
-
-    jump_table[SPRITE_TRAFF4].function_holder = TRAFFIC_INIT;
-    jump_table[SPRITE_TRAFF4].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
-    jump_table[SPRITE_TRAFF4].draw_props |= oentry::BOTTOM;
-    jump_table[SPRITE_TRAFF4].xw1 = 0x70;
-    jump_table[SPRITE_TRAFF4].z = 0x1D004E0;
-    jump_table[SPRITE_TRAFF4].type = 0x28; 
-    jump_table[SPRITE_TRAFF4].xw2 = 0x70;
-
-    jump_table[SPRITE_TRAFF5].function_holder = TRAFFIC_INIT;
-    jump_table[SPRITE_TRAFF5].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
-    jump_table[SPRITE_TRAFF5].draw_props |= oentry::BOTTOM;
-    jump_table[SPRITE_TRAFF5].xw1 = -0x70;
-    jump_table[SPRITE_TRAFF5].z = 0x1D004E0;
-    jump_table[SPRITE_TRAFF5].type = 0x30; 
-    jump_table[SPRITE_TRAFF5].xw2 = -0x70;
-    */
     // ------------------------------------------------------------------------
     // Crash Sprites
     // ------------------------------------------------------------------------

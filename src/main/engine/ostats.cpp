@@ -22,9 +22,9 @@ OStats::~OStats(void)
 {
 }
 
-void OStats::init()
+void OStats::init(bool ttrial)
 {
-    credits = 0;
+    credits = ttrial ? 1 : 0;
 }
 
 void OStats::clear_stage_times()
@@ -57,6 +57,9 @@ void OStats::do_timers()
         stage_counters[outrun.ttrial.current_lap]++;
         ohud.draw_digits(ohud.translate(30, 2 + outrun.ttrial.current_lap), (outrun.ttrial.current_lap + 1), OHud::GREY);
         ohud.draw_lap_timer(ohud.translate(32, 2 + outrun.ttrial.current_lap), stage_times[cur_stage], ms_value);
+
+        std::cout << std::hex << stage_counters[outrun.ttrial.current_lap] << std::endl;
+        std::cout << std::hex << (int) stage_times[cur_stage][0] << " : " << (int) stage_times[cur_stage][1] << " : " << (int) ms_value <<std::endl;
     }
     else 
     {
@@ -119,7 +122,7 @@ void OStats::convert_speed_score(uint16_t speed)
 // Source: 0x7340
 void OStats::update_score(uint32_t value)
 {
-    if (outrun.ttrial.enabled) 
+    if (outrun.ttrial.enabled)
         return;
 
     score = outils::bcd_add(value, score);

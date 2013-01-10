@@ -73,6 +73,7 @@ struct time_trial_t
 {
     bool enabled;             // Time Trial Mode Enabled
     uint8_t  level;           // Time Trial Level
+    uint8_t  traffic;         // Max Traffic Level
     uint8_t  laps;            // Total laps (maximum of 5 laps total allowed)
     uint8_t  current_lap;     // Which lap are we currently on
     uint16_t overtakes;       // Number of overtakes

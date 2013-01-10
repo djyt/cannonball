@@ -411,7 +411,11 @@ void OTraffic::update_props(oentry* sprite)
             if (!outrun.ttrial.enabled)
                 ostats.update_score(0x20000);
             else
-                ohud.draw_timer1(outils::DEC_TO_HEX[++outrun.ttrial.overtakes]);
+            {
+                ohud.draw_score(ohud.translate(3, 2), outils::convert16_dechex(++outrun.ttrial.overtakes), 2);
+                ohud.blit_text1(2, 1, HUD_SCORE1);
+                ohud.blit_text1(2, 2, HUD_SCORE2);
+            }
         }
 
         olevelobjs.hide_sprite(sprite);
@@ -555,17 +559,24 @@ void OTraffic::set_zoom_lookup(oentry* sprite)
 // Source: 0x846E
 void OTraffic::set_max_traffic()
 {
-    const uint8_t MAX_TRAFFIC[] =
+    if (!outrun.ttrial.enabled)
     {
-    // S1 S2 S3 S4 S5
-        2, 2, 3, 4, 5, // Easy Traffic
-        3, 4, 5, 6, 7, // Normal Traffic
-        4, 5, 6, 7, 8, // Hard Traffic
-        5, 6, 7, 8, 8, // Very Hard Traffic
-    };
+        const static uint8_t MAX_TRAFFIC[] =
+        {
+        // S1 S2 S3 S4 S5
+            2, 2, 3, 4, 5, // Easy Traffic
+            3, 4, 5, 6, 7, // Normal Traffic
+            4, 5, 6, 7, 8, // Hard Traffic
+            5, 6, 7, 8, 8, // Very Hard Traffic
+        };
 
-    uint8_t index = (config.engine.dip_traffic * 5) + (oroad.stage_lookup_off / 8);
-    max_traffic = MAX_TRAFFIC[index];
+        uint8_t index = (config.engine.dip_traffic * 5) + (oroad.stage_lookup_off / 8);
+        max_traffic = MAX_TRAFFIC[index];
+    }
+    else
+    {
+        max_traffic = outrun.ttrial.traffic;
+    }
 }
 
 // -------------

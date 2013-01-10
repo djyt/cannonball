@@ -195,16 +195,12 @@ void OMap::draw_course_map()
     }
 }
 
-// Place Ferrari On Particular Road Segment
+
 void OMap::position_ferrari(uint8_t index)
 {
     oentry* segment = &osprites.jump_table[index];
     osprites.jump_table[SPRITE_FERRARI].x = segment->x - 8;
     osprites.jump_table[SPRITE_FERRARI].y = segment->y;
-    
-    //sprite->addr    = roms.rom0p->read32(adr);
-    //segment->pal_src = index;
-    //osprites.map_palette(segment);
 }
 
 // Initalize Course Map Sprites

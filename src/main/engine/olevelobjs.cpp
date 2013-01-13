@@ -367,9 +367,9 @@ void OLevelObjs::do_sprite_routine()
                     do_thickness_sprite(sprite, outrun.adr.sprite_sand);
                     break;
 
-                default:
+                /*default:
                     std::cout << "do_sprite_routine() " << int16_t(sprite->function_holder) << std::endl;
-                    break;
+                    break;*/
             }
         }
     }

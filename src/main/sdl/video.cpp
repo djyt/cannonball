@@ -1,4 +1,7 @@
+#include <iostream>
+
 #include "sdl/video.hpp"
+#include "globals.hpp"
 #include "frontend/config.hpp"
     
 Video video;

@@ -165,12 +165,16 @@
          This will affect initial traffic patterns in attract mode for example.
     -->
     <randomgen>1</randomgen>
+    
+    <!-- Fix minor bugs present in the original engine. -->
+    <!-- Tile on music select screen, ms value at checkpoint etc. -->
+    <fix_bugs>1</fix_bugs>
 </engine>
 
 <!-- Settings for Time Trial Mode -->
 <time_trial>
     <!-- Default Number of Laps (1 - 5) -->
-    <laps>5</laps>
+    <laps>3</laps>
     
     <!-- Default Amount of Traffic (0 - 8), where 0 is off -->
     <traffic>3</traffic>

@@ -9,6 +9,7 @@
 ***************************************************************************/
 #include <cstdlib> 
 #include "engine/outils.hpp"
+#include "engine/ostats.hpp"
 
 outils::outils(void)
 {
@@ -161,6 +162,47 @@ uint32_t outils::bcd_sub(uint32_t src, uint32_t dst)
     }
 
     return final;
+}
+
+// Convert incremented internal counter to actual laptime
+void outils::convert_counter_to_time(uint16_t counter, uint8_t* converted)
+{
+    const uint16_t MINUTE = 3600;
+
+    int32_t src_time = counter; // laptime copy [d0] 
+    int16_t minutes = -1;     // Store number of minutes
+
+    // Calculate Minutes
+    do
+    {
+        src_time -= MINUTE;
+        minutes++;
+    }
+    while (src_time >= 0);
+    
+    src_time += MINUTE;
+
+    // Store Millisecond Lookup
+    uint8_t ms_lookup = src_time & 0x3F; 
+    
+    // Calculate Seconds
+    uint8_t seconds = src_time >> 6;   // Store Seconds
+
+    uint8_t s1 = seconds & 0xF; // First digit [d1]
+    uint8_t s2 = seconds >> 4;  // Second digit [d2]
+
+    if (s1 > 9)
+        seconds += 6;
+
+    s2 = outils::bcd_add(s2, s2);
+    int16_t d3 = s2;
+    s2 = outils::bcd_add(s2, s2);
+    s2 = outils::bcd_add(s2, d3);
+    seconds = outils::bcd_add(s2, seconds);
+
+    converted[0] = (uint8_t) minutes;
+    converted[1] = seconds;
+    converted[2] = OStats::LAP_MS[ms_lookup];
 }
 
 // Convert 16 Bit Decimal Value To Hex.

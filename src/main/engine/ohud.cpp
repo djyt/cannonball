@@ -51,7 +51,7 @@ void OHud::draw_main_hud()
         blit_text1(2, 1, HUD_SCORE1);
         blit_text1(2, 2, HUD_SCORE2);
         blit_text_big(4, "TIME TO BEAT");
-        draw_lap_timer(translate(16, 7), outrun.ttrial.best_lap, OStats::LAP_MS[outrun.ttrial.best_lap[2]]);
+        draw_lap_timer(translate(16, 7), outrun.ttrial.best_lap, outrun.ttrial.best_lap[2]);
     }
 }
 
@@ -662,24 +662,4 @@ uint32_t OHud::translate(uint16_t x, uint16_t y, const uint32_t BASE_POS)
 
     // Calculate destination address based on x, y position
     return BASE_POS + ((x + (y * 64)) << 1);
-}
-
-// Custom Routine To Blit Debug Information to HUD
-void OHud::blit_debug()
-{
-    // Blit Road Position
-    /*ohud.blit_text_new(1, 0, "POS    ");
-
-    // Convert road position to hexadecimal string
-    char text[4];
-    _itoa_s(oroad.road_pos >> 16, text, 16);
-    blit_text_new(5, 0, text);
-
-    // Blit Steering Position
-    /*ohud.blit_text_new(1, 1, "STEERING                 ");
-    _itoa_s(oinputs.steering_adjust + 0x80, text, 16);
-    ohud.blit_text_new(10, 1, text);
-
-    _itoa_s(oinputs.input_steering, text, 16);
-    ohud.blit_text_new(15, 1, text);*/
 }

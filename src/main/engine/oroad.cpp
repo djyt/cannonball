@@ -1118,9 +1118,9 @@ void ORoad::read_next_height()
             // otherwise set_elevation_flag
             break;
 
-        default:
+        /*default:
             std::cout << "Possible Error in ORoad::read_next_height()" << std::endl;
-            break;
+            break;*/
     }
 
     // 1ff2: set_elevation_flag

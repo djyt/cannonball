@@ -101,7 +101,7 @@ static void tick()
         case STATE_GAME:
         {
             if (input.has_pressed(Input::TIMER))
-                config.engine.freeze_timer = !config.engine.freeze_timer;
+                outrun.freeze_timer = !outrun.freeze_timer;
 
             if (input.has_pressed(Input::PAUSE))
                 pause_engine = !pause_engine;

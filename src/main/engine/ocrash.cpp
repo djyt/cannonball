@@ -73,6 +73,8 @@ void OCrash::enable()
     crash_side = 0;
 
     spr_ferrari->counter = 0;
+
+    outrun.ttrial.crashes++;
 }
 
 // Source: 0x1128

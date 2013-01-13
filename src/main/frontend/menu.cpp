@@ -38,8 +38,8 @@ const static char* ENTRY_BACK       = "BACK";
 // Main Menu
 const static char* ENTRY_PLAYGAME   = "PLAY GAME";
 const static char* ENTRY_TIMETRIAL  = "TIME TRIAL";
-const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 const static char* ENTRY_SETTINGS   = "SETTINGS";
+const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 const static char* ENTRY_ABOUT      = "ABOUT";
 const static char* ENTRY_EXIT       = "EXIT";
 
@@ -84,16 +84,15 @@ const static char* ENTRY_MUSIC2     = "PASSING BREEZE";
 const static char* ENTRY_MUSIC3     = "SPLASH WAVE";
 const static char* ENTRY_MUSIC4     = "LAST WAVE";
 
-TTrial ttrial;
-
 Menu::Menu(void)
 {
-
+    ttrial = new TTrial(config.ttrial.best_times);
 }
 
 
 Menu::~Menu(void)
 {
+    delete ttrial;
 }
 
 void Menu::populate()
@@ -102,7 +101,7 @@ void Menu::populate()
     menu_main.push_back(ENTRY_PLAYGAME);
     menu_main.push_back(ENTRY_TIMETRIAL);
     menu_main.push_back(ENTRY_SETTINGS);
-    //menu_main.push_back(ENTRY_MUSICTEST);
+    menu_main.push_back(ENTRY_MUSICTEST);
     menu_main.push_back(ENTRY_ABOUT);
     menu_main.push_back(ENTRY_EXIT);
 
@@ -169,6 +168,13 @@ void Menu::populate()
 
 void Menu::init()
 {   
+    // If we got a new high score on previous time trial, then save it!
+    if (outrun.ttrial.new_high_score)
+    {
+        outrun.ttrial.new_high_score = false;
+        ttrial->update_best_time();
+    }
+
     outrun.select_course(false);
     video.enabled = true;
     video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
@@ -220,10 +226,18 @@ void Menu::tick()
             break;
 
         case STATE_TTRIAL:
-            if (ttrial.tick())
             {
-                cannonball::state = cannonball::STATE_INIT_GAME;
-                osoundint.queue_clear();
+                int ttrial_state = ttrial->tick();
+
+                if (ttrial_state == TTrial::INIT_GAME)
+                {
+                    cannonball::state = cannonball::STATE_INIT_GAME;
+                    osoundint.queue_clear();
+                }
+                else if (ttrial_state == TTrial::BACK_TO_MENU)
+                {
+                    init();
+                }
             }
             break;
     }
@@ -389,7 +403,7 @@ void Menu::tick_menu()
                 {
                     config.save("config.xml");
                     state = STATE_TTRIAL;
-                    ttrial.init();
+                    ttrial->init();
                 }
             }
             else if (SELECTED(ENTRY_LAPS))

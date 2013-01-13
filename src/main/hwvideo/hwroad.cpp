@@ -1,4 +1,5 @@
 #include "hwvideo/hwroad.hpp"
+#include "globals.hpp"
 #include "frontend/config.hpp"
 
 /***************************************************************************

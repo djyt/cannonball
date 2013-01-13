@@ -1,15 +1,17 @@
+/***************************************************************************
+    Time Trial Mode Front End.
+
+    This file is part of Cannonball. 
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "sdl/input.hpp"
 #include "frontend/ttrial.hpp"
 
+#include "engine/outils.hpp"
 #include "engine/omap.hpp"
 #include "engine/ostats.hpp"
-
-// Notes: Set the car up as follows to snap it to the relevant map piece
-//  osprites.jump_table[25].x = osprites.jump_table[z].x;
-//  osprites.jump_table[25].y = osprites.jump_table[z].y;
-
-// Where z is 1,3,5,7,9,11,13,15 based on a stage in the route map.
-// We could also change the colour of the road here. 
 
 // Track Selection: Ferrari Position Per Track
 // This is a link to a sprite object that represents part of the course map.
@@ -28,15 +30,9 @@ static const uint8_t STAGE_LOOKUP[] =
     0x24, 0x23, 0x22, 0x21, 0x20
 };
 
-TTrial::TTrial(void)
+TTrial::TTrial(uint16_t* best_times)
 {
-    // Reset all times to default
-    for (uint8_t i = 0; i < 15; i++)
-    {
-        best_times[i][0] = 0x01;
-        best_times[i][1] = 0x15;
-        best_times[i][2] = 0x00;
-    }
+    this->best_times = best_times;
 }
 
 TTrial::~TTrial(void)
@@ -49,11 +45,13 @@ void TTrial::init()
     state = INIT_COURSEMAP;
 }
 
-bool TTrial::tick()
+int TTrial::tick()
 {
     switch (state)
     {
         case INIT_COURSEMAP:
+            outrun.select_course(config.engine.jap != 0); // Need to setup correct course map graphics.
+            config.load_scores();
             osprites.init();
             video.enabled = true;
             video.sprite_layer->set_x_clip(true);
@@ -69,42 +67,58 @@ bool TTrial::tick()
             state = TICK_COURSEMAP;
 
         case TICK_COURSEMAP:
-        {
-            if (input.has_pressed(Input::LEFT))
             {
-                if (--level_selected < 0)
-                    level_selected = sizeof(FERRARI_POS) - 1;
-            }
-            else if (input.has_pressed(Input::RIGHT))
-            {
-                if (++level_selected > sizeof(FERRARI_POS) - 1)
-                    level_selected = 0;
-            }
-            else if (input.has_pressed(Input::START) || input.has_pressed(Input::ACCEL))
-            {
-                outrun.ttrial.enabled          = true;
-                outrun.ttrial.level            = STAGE_LOOKUP[level_selected];
-                outrun.ttrial.current_lap      = 0;
-                outrun.ttrial.best_lap_counter = 10000;
-                outrun.ttrial.best_lap[0]      = best_times[level_selected][0];
-                outrun.ttrial.best_lap[1]      = best_times[level_selected][1];
-                outrun.ttrial.best_lap[2]      = best_times[level_selected][2];
-                outrun.ttrial.new_high_score   = false;
-                ostats.credits = 1;
-                return true;
-            }
-            omap.position_ferrari(FERRARI_POS[level_selected]);
-            ohud.draw_lap_timer(ohud.translate(7, 26), best_times[level_selected], OStats::LAP_MS[best_times[level_selected][2]]);
+                if (input.has_pressed(Input::MENU))
+                {
+                    return BACK_TO_MENU;
+                }
+                else if (input.has_pressed(Input::LEFT))
+                {
+                    if (--level_selected < 0)
+                        level_selected = sizeof(FERRARI_POS) - 1;
+                }
+                else if (input.has_pressed(Input::RIGHT))
+                {
+                    if (++level_selected > sizeof(FERRARI_POS) - 1)
+                        level_selected = 0;
+                }
+                else if (input.has_pressed(Input::START) || input.has_pressed(Input::ACCEL))
+                {
+                    outils::convert_counter_to_time(best_times[level_selected], best_converted);
 
-            omap.blit();
-            oroad.tick();
-            osprites.sprite_copy();
-            osprites.update_sprites();
-            otiles.write_tilemap_hw();
-            otiles.update_tilemaps();
-        }
+                    outrun.ttrial.enabled          = true;
+                    outrun.ttrial.level            = STAGE_LOOKUP[level_selected];
+                    outrun.ttrial.current_lap      = 0;
+                    outrun.ttrial.best_lap_counter = 10000;
+                    outrun.ttrial.best_lap[0]      = best_converted[0];
+                    outrun.ttrial.best_lap[1]      = best_converted[1];
+                    outrun.ttrial.best_lap[2]      = best_converted[2];
+                    outrun.ttrial.best_lap_counter = best_times[level_selected];
+                    outrun.ttrial.new_high_score   = false;
+                    outrun.ttrial.overtakes        = 0;
+                    outrun.ttrial.crashes          = 0;
+                    outrun.ttrial.vehicle_cols     = 0;
+                    ostats.credits = 1;
+                    return INIT_GAME;
+                }
+                omap.position_ferrari(FERRARI_POS[level_selected]);
+                outils::convert_counter_to_time(best_times[level_selected], best_converted);
+                ohud.draw_lap_timer(ohud.translate(7, 26), best_converted, best_converted[2]);
+                omap.blit();
+                oroad.tick();
+                osprites.sprite_copy();
+                osprites.update_sprites();
+                otiles.write_tilemap_hw();
+                otiles.update_tilemaps();
+            }
             break;
     }
 
-    return false;
+    return CONTINUE;
+}
+
+void TTrial::update_best_time()
+{
+    best_times[level_selected] = outrun.ttrial.best_lap_counter;
+    config.save_scores();
 }

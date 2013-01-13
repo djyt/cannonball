@@ -25,6 +25,7 @@ struct ttrial_settings_t
 {
     int laps;
     int traffic;
+    uint16_t best_times[15];
 };
 
 struct menu_settings_t
@@ -74,6 +75,7 @@ struct engine_settings_t
     int jap;
     int randomgen;
     int level_objects;
+    bool fix_bugs;
 };
 
 class Config

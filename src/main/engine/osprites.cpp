@@ -640,8 +640,11 @@ void OSprites::do_sprite(oentry* input)
     const uint16_t x2_bounds = 192 - config.s16_x_off;
 
     // Hide Sprite if off screen (note bug fix to solve shadow wrapping issue on original game)
+    // I think this bug might be permanently fixed with the introduction of widescreen mode
+    // as I had to change the storage size of the x-cordinate. 
+    // Unsetting fix_bugs may no longer revert to the original behaviour.
     if (sprite_y2 < 256 || sprite_y1 > 479 ||
-        sprite_x2 < x2_bounds || (FIX_BUGS ? sprite_x1 >= x1_bounds : sprite_x1 > x1_bounds))
+        sprite_x2 < x2_bounds || (config.engine.fix_bugs ? sprite_x1 >= x1_bounds : sprite_x1 > x1_bounds))
     {
         hide_hwsprite(input, output);
         return;

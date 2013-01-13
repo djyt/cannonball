@@ -742,6 +742,7 @@ void OTraffic::check_collision(oentry* sprite)
                 oferrari.car_inc_old = traffic_speed;
                 d0 = sound::REBOUND; // rebound sound effect
                 collision_traffic++; // denote collision with traffic
+                outrun.ttrial.vehicle_cols++;
             }
         }
     }

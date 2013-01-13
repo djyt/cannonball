@@ -77,6 +77,8 @@ struct time_trial_t
     uint8_t  laps;            // Total laps (maximum of 5 laps total allowed)
     uint8_t  current_lap;     // Which lap are we currently on
     uint16_t overtakes;       // Number of overtakes
+    uint16_t vehicle_cols;    // Number of vehicle collisions
+    uint16_t crashes;         // Number of crashes
     uint8_t  laptimes[5][3];  // Stored lap times
     int16_t  best_lap_counter;// Counter representing best laptime
     uint8_t  best_lap[3];     // Stored best lap time
@@ -192,6 +194,8 @@ struct adr_t
 class Outrun
 {
 public:
+    bool freeze_timer;
+
     // Time trial data
     time_trial_t ttrial;
 
@@ -221,8 +225,6 @@ public:
     void select_course(bool jap);
 
 private:    
-    bool freeze_timer;
-
     // Car Increment Backup for attract mode
     uint32_t car_inc_bak;
 

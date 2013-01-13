@@ -14,6 +14,7 @@
 
 Outrun outrun;
 
+
 /*
     Known Core Engine Issues:
 
@@ -42,7 +43,9 @@ Outrun::~Outrun()
 }
 
 void Outrun::init()
-{
+{    
+    freeze_timer = ttrial.enabled ? true : config.engine.freeze_timer;
+
     game_state = GS_INIT;
     video.enabled = false;
     select_course(config.engine.jap != 0);
@@ -53,14 +56,11 @@ void Outrun::init()
     tick_counter = 0;
     ohiscore.init_def_scores();  // Initialize default hi-score entries
     config.load_scores();        // Load saved hi-score entries
-    ostats.init();
+    ostats.init(ttrial.enabled);
     init_jump_table();
-    oinitengine.init();
+    oinitengine.init(ttrial.enabled ? ttrial.level : 0);
     osoundint.init();
     outils::reset_random_seed(); // Ensure we match the genuine boot up of the original game each time
-
-    if (LOAD_LEVEL)
-        oinitengine.debug_load_level(LOAD_LEVEL);
 }
 
 
@@ -137,16 +137,7 @@ void Outrun::tick()
 void Outrun::vint()
 {
     otiles.write_tilemap_hw();
-
-    if (osprites.do_sprite_swap)
-    {
-        osprites.do_sprite_swap = false;
-
-        video.sprite_layer->swap();
-
-        // Do Sprite RAM Swap and copy new palette data if necessary
-        osprites.copy_palette_data();
-    }
+    osprites.update_sprites();
     otiles.update_tilemaps();
 
     if (config.fps < 120 || (frame & 1))
@@ -155,7 +146,7 @@ void Outrun::vint()
         opalette.fade_palette();
         // ... 
         ostats.do_timers();
-        ohud.draw_timer1(ostats.time_counter);
+        if (!outrun.ttrial.enabled) ohud.draw_timer1(ostats.time_counter);
         oinputs.do_credits();
         oinitengine.set_granular_position();
     }
@@ -255,7 +246,7 @@ void Outrun::main_switch()
             ostats.time_counter = 0x15;
             ostats.frame_counter = ostats.frame_reset;
             video.enabled = true;
-            game_state = GS_ATTRACT;
+            game_state = ttrial.enabled ? GS_INIT_MUSIC : GS_ATTRACT;
             // fall through
             
         // ----------------------------------------------------------------------------------------
@@ -358,7 +349,7 @@ void Outrun::main_switch()
             video.clear_text_ram();
             oferrari.car_ctrl_active = true;
             init_jump_table();
-            oinitengine.init();
+            oinitengine.init(ttrial.enabled ? ttrial.level : 0);
             // Timing Hack to ensure horizon is correct
             // Note that the original code disables the screen, and waits for the second CPU's interrupt instead
             oroad.tick();
@@ -377,20 +368,20 @@ void Outrun::main_switch()
             #endif
                 osoundint.queue_sound(omusic.music_selected);
             
-            if (!config.engine.freeze_timer)
+            if (!freeze_timer)
                 ostats.time_counter = ostats.TIME[config.engine.dip_time * 40]; // Set time to begin level with
             else
                 ostats.time_counter = 0x30;
 
-            ostats.frame_counter = ostats.frame_reset + 50;     // set this to 49 for testing purposes
-            ohud.draw_main_hud();
+            ostats.frame_counter = ostats.frame_reset + 50;
             ostats.credits--;                                   // Update Credits
             ohud.blit_text1(TEXT1_CLEAR_START);
             ohud.blit_text1(TEXT1_CLEAR_CREDITS);
-            oroad.road_width = 0x1C2 << 16;
+            //oroad.road_width = LOAD_LEVEL? 0D4 << 16 : 0x1C2 << 16;
             osoundint.queue_sound(sound::INIT_CHEERS);
             video.enabled = true;
             game_state = GS_START1;
+            ohud.draw_main_hud();
             // fall through
 
         //  Start Game - Car Driving In
@@ -407,6 +398,11 @@ void Outrun::main_switch()
         case GS_START3:
             if (--ostats.frame_counter < 0)
             {
+                if (ttrial.enabled)
+                {
+                    ohud.clear_timetrial_text();
+                }
+
                 osoundint.queue_sound(sound::SIGNAL2);
                 osoundint.queue_sound(sound::STOP_CHEERS);
                 ostats.frame_counter = ostats.frame_reset;
@@ -442,40 +438,59 @@ void Outrun::main_switch()
         // Display Game Over Text
         // ----------------------------------------------------------------------------------------
         case GS_INIT_GAMEOVER:
-            oferrari.car_ctrl_active = false; // -1
-            oinitengine.car_increment = 0;
-            oferrari.car_inc_old = 0;
-            ostats.time_counter = 3;
-            ostats.frame_counter = ostats.frame_reset;
-            ohud.blit_text2(TEXT2_GAMEOVER);
+            if (!ttrial.enabled)
+            {
+                oferrari.car_ctrl_active = false; // -1
+                oinitengine.car_increment = 0;
+                oferrari.car_inc_old = 0;
+                ostats.time_counter = 3;
+                ostats.frame_counter = ostats.frame_reset;
+                ohud.blit_text2(TEXT2_GAMEOVER);
+            }
+            else
+            {
+                ohud.blit_text_big(7, ttrial.new_high_score ? "NEW RECORD" : "BAD LUCK");
+
+                ohud.blit_text1(TEXT1_LAPTIME1);
+                ohud.blit_text1(TEXT1_LAPTIME2);
+                ohud.draw_lap_timer(0x110554, ttrial.best_lap, ttrial.best_lap[2]);
+
+                ohud.blit_text_new(9,  14, "OVERTAKES          - ");
+                ohud.blit_text_new(31, 14, config.to_string((int) ttrial.overtakes).c_str(), OHud::GREEN);
+                ohud.blit_text_new(9,  16, "VEHICLE COLLISIONS - ");
+                ohud.blit_text_new(31, 16, config.to_string((int) ttrial.vehicle_cols).c_str(), OHud::GREEN);
+                ohud.blit_text_new(9,  18, "CRASHES            - ");
+                ohud.blit_text_new(31, 18, config.to_string((int) ttrial.crashes).c_str(), OHud::GREEN);
+            }
             osoundint.queue_sound(sound::NEW_COMMAND);
             game_state = GS_GAMEOVER;
 
         case GS_GAMEOVER:
-            if (decrement_timers())
-                game_state = GS_INIT_MAP;
+            if (!ttrial.enabled)
+            {
+                if (decrement_timers())
+                    game_state = GS_INIT_MAP;
+            }
+            else
+            {
+                if (outrun.tick_counter & BIT_4)
+                    ohud.blit_text1(10, 20, TEXT1_PRESS_START);
+                else
+                    ohud.blit_text1(10, 20, TEXT1_CLEAR_START);
+
+                if (input.is_pressed(Input::START))
+                    cannonball::state = cannonball::STATE_INIT_MENU;
+            }
             break;
 
         // ----------------------------------------------------------------------------------------
         // Display Course Map
         // ----------------------------------------------------------------------------------------
         case GS_INIT_MAP:
-            oferrari.car_ctrl_active = false; // -1
-            video.clear_text_ram();
-            osprites.disable_sprites();
-            otraffic.disable_traffic();
-            osprites.clear_palette_data();
-            oinitengine.car_increment = 0;
-            oferrari.car_inc_old = 0;
-            osprites.spr_cnt_main = 0;
-            osprites.spr_cnt_shadow = 0;
-            oroad.road_ctrl = ORoad::ROAD_BOTH_P0;
-            oroad.horizon_base = -0x3FF;
-            otiles.fill_tilemap_color(0xABD); //  Paint pinkish colour on tilemap 16
+            omap.init();
             ohud.blit_text2(TEXT2_COURSEMAP);
             game_state = GS_MAP;
             // fall through
-            omap.init_sprites = true;
 
         case GS_MAP:
             break;
@@ -489,7 +504,7 @@ void Outrun::main_switch()
             otraffic.disable_traffic();
             // bsr.w   EditJumpTable3
             osprites.clear_palette_data();
-            olevelobjs.hiscore_entries(); // Setup default sprites for screen
+            olevelobjs.init_hiscore_sprites();
             ocrash.coll_count1   = 0;
             ocrash.coll_count2   = 0;
             ocrash.crash_counter = 0;
@@ -526,7 +541,7 @@ void Outrun::main_switch()
                 //ROM:0000B700                 bclr    #5,(ppi1_value).l                   ; Turn screen off (not activated until PPI written to)
                 oferrari.car_ctrl_active = true; // 0 : Allow road updates
                 init_jump_table();
-                oinitengine.init();
+                oinitengine.init(ttrial.enabled ? ttrial.level : 0);
                 //ROM:0000B716                 bclr    #0,(byte_260550).l
                 game_state = GS_REINIT;          // Reinit game to attract mode
             }
@@ -606,7 +621,14 @@ void Outrun::init_jump_table()
     car_inc_bak = 0;
 
     osprites.init();
-    if (!LOAD_LEVEL) olevelobjs.default_entries();
+    if (!ttrial.enabled) 
+    {
+        otraffic.init_stage1_traffic();      // Hard coded traffic in right hand lane
+        olevelobjs.init_startline_sprites(); // Hard coded start line sprites (not part of level data)
+    }
+    else
+        olevelobjs.init_timetrial_sprites();
+
     otraffic.init();
     osmoke.init();
     oroad.init();
@@ -679,7 +701,7 @@ void Outrun::controls()
 bool Outrun::decrement_timers()
 {
     // Cheat
-    if (config.engine.freeze_timer && game_state == GS_INGAME)
+    if (freeze_timer && game_state == GS_INGAME)
         return false;
 
     if (--ostats.frame_counter >= 0)
@@ -740,6 +762,7 @@ void Outrun::select_course(bool jap)
         adr.sprite_crash_girl2    = SPRITE_CRASH_GIRL2_J;
         adr.smoke_data            = SMOKE_DATA_J;
         adr.spray_data            = SPRAY_DATA_J;
+        adr.anim_ferrari_frames   = ANIM_FERRARI_FRAMES_J;
         adr.anim_endseq_obj1      = ANIM_ENDSEQ_OBJ1_J;
         adr.anim_endseq_obj2      = ANIM_ENDSEQ_OBJ2_J;
         adr.anim_endseq_obj3      = ANIM_ENDSEQ_OBJ3_J;
@@ -876,6 +899,7 @@ void Outrun::select_course(bool jap)
         adr.anim_pass1_next       = ANIM_PASS1_NEXT;
         adr.anim_pass2_curr       = ANIM_PASS2_CURR;
         adr.anim_pass2_next       = ANIM_PASS2_NEXT;
+        adr.anim_ferrari_frames   = ANIM_FERRARI_FRAMES;
         adr.anim_endseq_obj1      = ANIM_ENDSEQ_OBJ1;
         adr.anim_endseq_obj2      = ANIM_ENDSEQ_OBJ2;
         adr.anim_endseq_obj3      = ANIM_ENDSEQ_OBJ3;

@@ -175,7 +175,7 @@ void OFerrari::tick()
 
         // Ferrari End Sequence Logic
         case FERRARI_END_SEQ:
-            oanimseq.tick_end_seq();
+                oanimseq.tick_end_seq();
             break;
     }
 }
@@ -287,9 +287,9 @@ void OFerrari::logic()
                 do_end_seq();
                 break;
 
-        default:
+        /*default:
             std::cout << "Need to finish OFerrari:logic()" << std::endl;
-            break;
+            break;*/
     }
 }
 
@@ -331,9 +331,9 @@ void OFerrari::ferrari_normal()
         case GS_MUSIC:
             return;
 
-        default:
+        /*default:
             std::cout << "Need to finish OFerrari:ferrari_normal()" << std::endl;
-            break;
+            break;*/
     }
 }
 
@@ -521,13 +521,13 @@ void OFerrari::do_end_seq()
     // +6 [Byte]: Sprite Colour Palette
     // +7 [Byte]: H-Flip
 
-    uint32_t addr = ANIM_FERRARI_FRAMES + ((obonus.bonus_control - 0xC) << 1);
+    uint32_t addr = outrun.adr.anim_ferrari_frames + ((obonus.bonus_control - 0xC) << 1);
 
-    spr_ferrari->addr    = roms.rom0.read32(addr);
-    sprite_pass_y        = roms.rom0.read8(4 + addr);  // Set Passenger Y Offset
-    spr_ferrari->x       = roms.rom0.read8(5 + addr);
-    spr_ferrari->pal_src = roms.rom0.read8(6 + addr);
-    spr_ferrari->control = roms.rom0.read8(7 + addr) | (spr_ferrari->control & 0xFE); // HFlip
+    spr_ferrari->addr    = roms.rom0p->read32(addr);
+    sprite_pass_y        = roms.rom0p->read8(4 + addr);  // Set Passenger Y Offset
+    spr_ferrari->x       = roms.rom0p->read8(5 + addr);
+    spr_ferrari->pal_src = roms.rom0p->read8(6 + addr);
+    spr_ferrari->control = roms.rom0p->read8(7 + addr) | (spr_ferrari->control & 0xFE); // HFlip
 
     osprites.map_palette(spr_ferrari);
     osprites.do_spr_order_shadows(spr_ferrari);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "stdint.hpp"
-#include "sdl/video.hpp"
 
 class video;
 

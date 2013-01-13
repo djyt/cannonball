@@ -127,7 +127,7 @@ void OSmoke::draw_ferrari_smoke(oentry *sprite)
 //   Source: 0xA94C
 void OSmoke::setup_smoke_sprite(bool force_load)
 {
-    uint16_t stage_lookup = 0;
+    uint16_t stage_lookup = outrun.ttrial.enabled ? oroad.stage_lookup_off : 0;
 
     // Check whether we should load new sprite data when transitioning between stages
     if (!force_load)
@@ -139,7 +139,7 @@ void OSmoke::setup_smoke_sprite(bool force_load)
     }
 
     // Set Smoke Colour When On Road
-    const uint8_t ONROAD_SMOKE[] = 
+    const static uint8_t ONROAD_SMOKE[] = 
     { 
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Stage 1
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Stage 2
@@ -152,7 +152,7 @@ void OSmoke::setup_smoke_sprite(bool force_load)
     smoke_type_slip = smoke_type_onroad;
 
     // Set Smoke Colour When Off Road
-    const uint8_t OFFROAD_SMOKE[] = 
+    const static uint8_t OFFROAD_SMOKE[] = 
     { 
         0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Stage 1
         0x09, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Stage 2

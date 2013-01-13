@@ -22,9 +22,9 @@ OStats::~OStats(void)
 {
 }
 
-void OStats::init()
+void OStats::init(bool ttrial)
 {
-    credits = 0;
+    credits = ttrial ? 1 : 0;
 }
 
 void OStats::clear_stage_times()
@@ -50,11 +50,20 @@ void OStats::do_timers()
 {
     if (outrun.game_state != GS_INGAME) return;
 
-    // Each stage has a standard counter that just increments. Do this here.
-    stage_counters[cur_stage]++;
-
     inc_lap_timer();
-    ohud.draw_lap_timer(0x11016C, stage_times[cur_stage], ms_value);
+
+    if (outrun.ttrial.enabled)
+    {
+        stage_counters[outrun.ttrial.current_lap]++;
+        ohud.draw_digits(ohud.translate(30, 2 + outrun.ttrial.current_lap), (outrun.ttrial.current_lap + 1), OHud::GREY);
+        ohud.draw_lap_timer(ohud.translate(32, 2 + outrun.ttrial.current_lap), stage_times[cur_stage], ms_value);
+    }
+    else 
+    {
+        // Each stage has a standard counter that just increments. Do this here.
+        stage_counters[cur_stage]++;
+        ohud.draw_lap_timer(0x11016C, stage_times[cur_stage], ms_value);
+    }
 }
 
 // Increment and store lap timer for each stage.
@@ -94,7 +103,7 @@ const uint8_t OStats::LAP_MS[] =
 void OStats::convert_speed_score(uint16_t speed)
 {
     // 0x960 is the last value in this table to be actively used
-    const uint16_t CONVERT[] = 
+    static const uint16_t CONVERT[] = 
     {
         0x0,   0x10,  0x20,  0x30,  0x40,  0x50,  0x60,  0x80,  0x110, 0x150,
         0x200, 0x260, 0x330, 0x410, 0x500, 0x600, 0x710, 0x830, 0x960, 0x1100,
@@ -110,6 +119,9 @@ void OStats::convert_speed_score(uint16_t speed)
 // Source: 0x7340
 void OStats::update_score(uint32_t value)
 {
+    if (outrun.ttrial.enabled)
+        return;
+
     score = outils::bcd_add(value, score);
 
     if (score > 0x99999999)
@@ -150,8 +162,13 @@ void OStats::init_next_level()
             {
                 if (extend_play_timer & BIT_3)
                 {
-                    ohud.blit_text1(TEXT1_EXTEND1);
-                    ohud.blit_text1(TEXT1_EXTEND2);
+                    if (outrun.ttrial.enabled)
+                        ohud.blit_text_new(15, 8, "BEST LAP!", OHud::PINK);
+                    else
+                    {
+                        ohud.blit_text1(TEXT1_EXTEND1);
+                        ohud.blit_text1(TEXT1_EXTEND2);
+                    }
                 }
                 else
                 {
@@ -176,7 +193,7 @@ void OStats::init_next_level()
 
         // Draw last laptime
         // Note there is a bug in the original code here, where the current ms value is displayed, instead of the ms value from the last lap time
-        ohud.draw_lap_timer(0x110554, stage_times[cur_stage-1], FIX_BUGS ? LAP_MS[stage_times[cur_stage-1][2]] : ms_value);
+        ohud.draw_lap_timer(0x110554, stage_times[cur_stage-1], config.engine.fix_bugs ? LAP_MS[stage_times[cur_stage-1][2]] : ms_value);
 
         // Update Stage Number on HUD
         ohud.draw_digits(0x110d76, cur_stage+1);

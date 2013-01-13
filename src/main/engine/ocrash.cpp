@@ -73,6 +73,8 @@ void OCrash::enable()
     crash_side = 0;
 
     spr_ferrari->counter = 0;
+
+    outrun.ttrial.crashes++;
 }
 
 // Source: 0x1128
@@ -88,7 +90,8 @@ void OCrash::clear_crash_state()
     spin_pass_frame = 0;
     crash_spin_count = 0;
     crash_delay = 0;
-    crash_type = 0;
+    crash_type  = 0;
+    skid_counter = 0;
 }
 
 void OCrash::tick()

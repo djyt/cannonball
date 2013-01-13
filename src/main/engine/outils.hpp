@@ -24,7 +24,7 @@ public:
     static void reset_random_seed();
 	static uint32_t random();
 	static int32_t isqrt(int32_t);
-    static uint16_t convert_speed(uint16_t);
+    static uint16_t convert16_dechex(uint16_t);
     static uint32_t bcd_add(uint32_t, uint32_t);
     static uint32_t bcd_sub(uint32_t, uint32_t);
 
@@ -53,6 +53,8 @@ public:
     {
         v = ((v & 0xFFFF0000) >> 16) + ((v & 0xFFFF) << 16);
     }
+
+    static void convert_counter_to_time(uint16_t counter, uint8_t* converted);
 
 private:
 	static int32_t next(int32_t, int32_t);

@@ -44,8 +44,9 @@ class OLevelObjs
         OLevelObjs(void);
         ~OLevelObjs(void);
 
-        void default_entries();
-        void hiscore_entries();
+        void init_startline_sprites();
+        void init_timetrial_sprites();
+        void init_hiscore_sprites();
         void setup_sprites(uint32_t);
         void do_sprite_routine();
         void hide_sprite(oentry*);
@@ -60,7 +61,7 @@ class OLevelObjs
         const static uint8_t COLLISION_RESET = 4;
         const static uint16_t SPRAY_RESET = 0xC;
 
-        void init_entries(uint32_t, uint8_t);
+        void init_entries(uint32_t, const uint8_t start_index, const uint8_t);
 	    void setup_sprite(oentry*, uint32_t);
 	    void setup_sprite_routine(oentry*);		
         void sprite_collision_z1c(oentry*);

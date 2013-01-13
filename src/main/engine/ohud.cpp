@@ -25,21 +25,40 @@ OHud::~OHud(void)
 {
 }
 
+int mask = -1;
+
 // Draw Text Labels For HUD
 // 
 // Source: 0xB462
 void OHud::draw_main_hud()
 {
-    blit_text1(HUD_SCORE1);
-    blit_text1(HUD_SCORE2);
-    blit_text1(HUD_TIME1);
-    blit_text1(HUD_TIME2);
-    blit_text1(HUD_STAGE1);
-    blit_text1(HUD_STAGE2);
-    blit_text1(HUD_ONE);
+    mask += 2;
     blit_text1(HUD_LAP1);
     blit_text1(HUD_LAP2);
-    do_mini_map();
+
+    if (!outrun.ttrial.enabled)
+    {
+        blit_text1(HUD_TIME1);
+        blit_text1(HUD_TIME2);
+        blit_text1(HUD_STAGE1);
+        blit_text1(HUD_STAGE2);
+        blit_text1(HUD_ONE);
+        do_mini_map();
+    }
+    else
+    {
+        draw_score(translate(3, 2), 0, 2);
+        blit_text1(2, 1, HUD_SCORE1);
+        blit_text1(2, 2, HUD_SCORE2);
+        blit_text_big(4, "TIME TO BEAT");
+        draw_lap_timer(translate(16, 7), outrun.ttrial.best_lap, outrun.ttrial.best_lap[2]);
+    }
+}
+
+void OHud::clear_timetrial_text()
+{
+    blit_text_big(4,     "            ");
+    blit_text_new(16, 7, "            ");
 }
 
 
@@ -261,10 +280,9 @@ void OHud::draw_score_tile(uint32_t addr, const uint32_t score, uint8_t font)
 // This only draws a single digit, as the original routine is never used in the way intended
 //
 // Source: C3A0
-void OHud::draw_digits(uint32_t addr, uint8_t digit)
+void OHud::draw_digits(uint32_t addr, uint8_t digit, uint16_t col)
 {
-    const uint16_t BASE = 0x8230;
-    video.write_text16(addr, digit + BASE);
+    video.write_text16(addr, digit + (col << 8) + DIGIT_BASE);
 }
 
 // Draw Rev Counter
@@ -332,7 +350,7 @@ void OHud::blit_speed(uint32_t dst_addr, uint16_t speed)
     const uint16_t TILE_BASE = 0x8C60; // Base tile number
 
     // Convert to human readable speed
-    speed = outils::convert_speed(speed);
+    speed = outils::convert16_dechex(speed);
 
     uint16_t digit1 = speed & 0xF;
     uint16_t digit2 = (speed & 0xF0) >> 4;
@@ -466,6 +484,21 @@ void OHud::blit_text1(uint32_t src_addr)
     uint32_t dst_addr = roms.rom0.read32(&src_addr); // Text RAM destination address
     uint16_t counter = roms.rom0.read16(&src_addr);  // Number of tiles to blit
     uint16_t data = roms.rom0.read16(&src_addr);     // Tile data to blit
+    
+    // Blit each tile
+    for (uint16_t i = 0; i <= counter; i++)
+    {
+        data = (data & 0xFF00) | roms.rom0.read8(&src_addr);
+        video.write_text16(&dst_addr, data);
+    }
+}
+
+void OHud::blit_text1(uint8_t x, uint8_t y, uint32_t src_addr)
+{
+    uint32_t dst_addr = translate(x, y);
+    src_addr += 4;
+    uint16_t counter = roms.rom0.read16(&src_addr);  // Number of tiles to blit
+    uint16_t data = roms.rom0.read16(&src_addr);     // Tile data to blit
 
     // Blit each tile
     for (uint16_t i = 0; i <= counter; i++)
@@ -527,17 +560,12 @@ void OHud::blit_text2(uint32_t src_addr)
 // Enhanced Cannonball Routines Below
 // ------------------------------------------------------------------------------------------------
 
-// Custom Music Text Routine
-void OHud::blit_text_custom_music(const char* text)
+// Big Yellow Text. Always Centered. 
+void OHud::blit_text_big(const uint8_t Y, const char* text, bool do_notes)
 {
-    // Note tiles to append to left side of text
-    const uint32_t NOTE_TILES1 = 0x8A7A8A7B;
-    const uint32_t NOTE_TILES2 = 0x8A7C8A7D;
-
     uint16_t length = strlen(text);
 
     const uint16_t X = 20 - (length >> 1);
-    const uint16_t Y = 11;
 
     // Clear complete row in text ram before blitting
     for (uint8_t x = 0; x < 40; x++)
@@ -547,8 +575,15 @@ void OHud::blit_text_custom_music(const char* text)
     }
 
     // Draw Notes
-    video.write_text32(translate(X - 2, Y) + 0x110000, NOTE_TILES1);
-    video.write_text32(translate(X - 2, Y) + 0x110080, NOTE_TILES2);
+    if (do_notes)
+    {
+        // Note tiles to append to left side of text
+        const uint32_t NOTE_TILES1 = 0x8A7A8A7B;
+        const uint32_t NOTE_TILES2 = 0x8A7C8A7D;
+
+        video.write_text32(translate(X - 2, Y) + 0x110000, NOTE_TILES1);
+        video.write_text32(translate(X - 2, Y) + 0x110080, NOTE_TILES2);
+    }
 
     uint32_t dst_addr = translate(X, Y) + 0x110000;
 
@@ -578,7 +613,7 @@ void OHud::blit_text_custom_music(const char* text)
         // Normal character
         if (c >= 'A' && c <= 'Z')
         {           
-            const uint16_t pal = 0x8AA0;
+            const uint16_t pal = do_notes ? 0x8AA0 : 0x8CA0;
             // Convert character to real index (D0-0x41) so A is 0x01
             c -= 0x41;
             c = (c * 2);
@@ -627,24 +662,4 @@ uint32_t OHud::translate(uint16_t x, uint16_t y, const uint32_t BASE_POS)
 
     // Calculate destination address based on x, y position
     return BASE_POS + ((x + (y * 64)) << 1);
-}
-
-// Custom Routine To Blit Debug Information to HUD
-void OHud::blit_debug()
-{
-    // Blit Road Position
-    /*ohud.blit_text_new(1, 0, "POS    ");
-
-    // Convert road position to hexadecimal string
-    char text[4];
-    _itoa_s(oroad.road_pos >> 16, text, 16);
-    blit_text_new(5, 0, text);
-
-    // Blit Steering Position
-    /*ohud.blit_text_new(1, 1, "STEERING                 ");
-    _itoa_s(oinputs.steering_adjust + 0x80, text, 16);
-    ohud.blit_text_new(10, 1, text);
-
-    _itoa_s(oinputs.input_steering, text, 16);
-    ohud.blit_text_new(15, 1, text);*/
 }

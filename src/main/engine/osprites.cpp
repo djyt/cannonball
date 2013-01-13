@@ -69,43 +69,6 @@ void OSprites::init()
         jump_table[i].addr = outrun.adr.sprite_porsche; // Initial offset of traffic sprites. Will be changed.
     }
 
-    jump_table[SPRITE_TRAFF1].function_holder = TRAFFIC_INIT;
-    jump_table[SPRITE_TRAFF1].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
-    jump_table[SPRITE_TRAFF1].draw_props |= oentry::BOTTOM;
-    jump_table[SPRITE_TRAFF1].z = 0x140F520;
-
-    jump_table[SPRITE_TRAFF2].function_holder = TRAFFIC_INIT;
-    jump_table[SPRITE_TRAFF2].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
-    jump_table[SPRITE_TRAFF2].draw_props |= oentry::BOTTOM;
-    jump_table[SPRITE_TRAFF2].xw1 = 0x70;
-    jump_table[SPRITE_TRAFF2].z = 0x14004E0;
-    jump_table[SPRITE_TRAFF2].type = 0x18; 
-    jump_table[SPRITE_TRAFF2].xw2 = 0x70;
-
-    jump_table[SPRITE_TRAFF3].function_holder = TRAFFIC_INIT;
-    jump_table[SPRITE_TRAFF3].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
-    jump_table[SPRITE_TRAFF3].draw_props |= oentry::BOTTOM;
-    jump_table[SPRITE_TRAFF3].xw1 = -0x70;
-    jump_table[SPRITE_TRAFF3].z = 0x14004E0;
-    jump_table[SPRITE_TRAFF3].type = 0x20; 
-    jump_table[SPRITE_TRAFF3].xw2 = -0x70;
-
-    jump_table[SPRITE_TRAFF4].function_holder = TRAFFIC_INIT;
-    jump_table[SPRITE_TRAFF4].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
-    jump_table[SPRITE_TRAFF4].draw_props |= oentry::BOTTOM;
-    jump_table[SPRITE_TRAFF4].xw1 = 0x70;
-    jump_table[SPRITE_TRAFF4].z = 0x1D004E0;
-    jump_table[SPRITE_TRAFF4].type = 0x28; 
-    jump_table[SPRITE_TRAFF4].xw2 = 0x70;
-
-    jump_table[SPRITE_TRAFF5].function_holder = TRAFFIC_INIT;
-    jump_table[SPRITE_TRAFF5].control |= TRAFFIC_SPRITE | TRAFFIC_RHS | ENABLE;
-    jump_table[SPRITE_TRAFF5].draw_props |= oentry::BOTTOM;
-    jump_table[SPRITE_TRAFF5].xw1 = -0x70;
-    jump_table[SPRITE_TRAFF5].z = 0x1D004E0;
-    jump_table[SPRITE_TRAFF5].type = 0x30; 
-    jump_table[SPRITE_TRAFF5].xw2 = -0x70;
-
     // ------------------------------------------------------------------------
     // Crash Sprites
     // ------------------------------------------------------------------------
@@ -161,6 +124,17 @@ void OSprites::init()
 
     spr_col_pal         = 0;
     pal_copy_count      = 0;    
+}
+
+// Swap Sprite RAM And Update Palette Data
+void OSprites::update_sprites()
+{
+	if (do_sprite_swap)
+	{
+        do_sprite_swap = false;
+        video.sprite_layer->swap();
+        copy_palette_data();
+	}
 }
 
 // Disable All Sprite Entries
@@ -666,8 +640,11 @@ void OSprites::do_sprite(oentry* input)
     const uint16_t x2_bounds = 192 - config.s16_x_off;
 
     // Hide Sprite if off screen (note bug fix to solve shadow wrapping issue on original game)
+    // I think this bug might be permanently fixed with the introduction of widescreen mode
+    // as I had to change the storage size of the x-cordinate. 
+    // Unsetting fix_bugs may no longer revert to the original behaviour.
     if (sprite_y2 < 256 || sprite_y1 > 479 ||
-        sprite_x2 < x2_bounds || (FIX_BUGS ? sprite_x1 >= x1_bounds : sprite_x1 > x1_bounds))
+        sprite_x2 < x2_bounds || (config.engine.fix_bugs ? sprite_x1 >= x1_bounds : sprite_x1 > x1_bounds))
     {
         hide_hwsprite(input, output);
         return;

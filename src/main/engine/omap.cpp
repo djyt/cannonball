@@ -16,6 +16,8 @@
 
 OMap omap;
 
+// Position of Ferrari in Jump Table
+const uint8_t SPRITE_FERRARI = 25;
 
 OMap::OMap(void)
 {
@@ -26,6 +28,23 @@ OMap::~OMap(void)
 {
 }
 
+void OMap::init()
+{
+    oferrari.car_ctrl_active = false; // -1
+    video.clear_text_ram();
+    osprites.disable_sprites();
+    otraffic.disable_traffic();
+    osprites.clear_palette_data();
+    oinitengine.car_increment = 0;
+    oferrari.car_inc_old      = 0;
+    osprites.spr_cnt_main     = 0;
+    osprites.spr_cnt_shadow   = 0;
+    oroad.road_ctrl           = ORoad::ROAD_BOTH_P0;
+    oroad.horizon_base        = -0x3FF;
+    otiles.fill_tilemap_color(0xABD); //  Paint pinkish colour on tilemap 16
+    init_sprites = true;
+}
+
 // Process route through levels
 // Process end position on final level
 // Source: 0x345E
@@ -34,19 +53,14 @@ void OMap::tick()
     // 60 FPS Code to simply render sprites
     if (!outrun.tick_frame)
     {
-        for (uint8_t i = 0; i <= MAP_PIECES; i++)
-        {
-            oentry* sprite = &osprites.jump_table[i];
-            if (sprite->control & OSprites::ENABLE)
-                osprites.do_spr_order_shadows(sprite);
-        }
+        blit();
         return;
     }
 
     // Initialize Course Map Sprites if necessary
     if (init_sprites)
     {
-        init_course_map();
+        load_sprites();
         init_sprites = false;
         return;
     }
@@ -128,6 +142,17 @@ void OMap::tick()
     draw_course_map();
 }
 
+// Render sprites only. No Logic
+void OMap::blit()
+{
+    for (uint8_t i = 0; i <= MAP_PIECES; i++)
+    {
+        oentry* sprite = &osprites.jump_table[i];
+        if (sprite->control & OSprites::ENABLE)
+            osprites.do_spr_order_shadows(sprite);
+    }
+}
+
 void OMap::draw_course_map()
 {
     oentry* sprite = osprites.jump_table;
@@ -170,9 +195,17 @@ void OMap::draw_course_map()
     }
 }
 
+
+void OMap::position_ferrari(uint8_t index)
+{
+    oentry* segment = &osprites.jump_table[index];
+    osprites.jump_table[SPRITE_FERRARI].x = segment->x - 8;
+    osprites.jump_table[SPRITE_FERRARI].y = segment->y;
+}
+
 // Initalize Course Map Sprites
 // Source: 0x33F4
-void OMap::init_course_map()
+void OMap::load_sprites()
 {
     // hacks
     /*ostats.cur_stage = 4;
@@ -210,9 +243,8 @@ void OMap::init_course_map()
 
     // Minicar initalization moved here
     minicar_enable = 0;
-    osprites.jump_table[25].x = -0x80;
-    osprites.jump_table[25].y = 0x78;
-
+    osprites.jump_table[SPRITE_FERRARI].x = -0x80;
+    osprites.jump_table[SPRITE_FERRARI].y = 0x78;
     map_state = MAP_INIT;
 }
 

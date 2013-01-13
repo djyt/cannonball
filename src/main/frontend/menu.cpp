@@ -16,6 +16,8 @@
 #include "engine/ologo.hpp"
 #include "engine/opalette.hpp"
 
+#include "frontend/ttrial.hpp"
+
 // Logo Y Position
 const static int16_t LOGO_Y = -60;
 
@@ -35,9 +37,15 @@ const static char* ENTRY_BACK       = "BACK";
 
 // Main Menu
 const static char* ENTRY_PLAYGAME   = "PLAY GAME";
+const static char* ENTRY_TIMETRIAL  = "TIME TRIAL";
 const static char* ENTRY_SETTINGS   = "SETTINGS";
+const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 const static char* ENTRY_ABOUT      = "ABOUT";
 const static char* ENTRY_EXIT       = "EXIT";
+
+// Time Trial Menu
+const static char* ENTRY_START     =  "START TIME TRIAL";
+const static char* ENTRY_LAPS      =  "NO OF LAPS ";
 
 // Settings Menu
 const static char* ENTRY_VIDEO      = "VIDEO";
@@ -70,23 +78,37 @@ const static char* ENTRY_TIME       = "TIME ";
 const static char* ENTRY_TRAFFIC    = "TRAFFIC ";
 const static char* ENTRY_OBJECTS    = "OBJECTS ";
 
+// Music Test Menu
+const static char* ENTRY_MUSIC1     = "MAGICAL SOUND SHOWER";
+const static char* ENTRY_MUSIC2     = "PASSING BREEZE";
+const static char* ENTRY_MUSIC3     = "SPLASH WAVE";
+const static char* ENTRY_MUSIC4     = "LAST WAVE";
+
 Menu::Menu(void)
 {
-
+    ttrial = new TTrial(config.ttrial.best_times);
 }
 
 
 Menu::~Menu(void)
 {
+    delete ttrial;
 }
 
 void Menu::populate()
 {
     // Create Menus
     menu_main.push_back(ENTRY_PLAYGAME);
+    menu_main.push_back(ENTRY_TIMETRIAL);
     menu_main.push_back(ENTRY_SETTINGS);
+    menu_main.push_back(ENTRY_MUSICTEST);
     menu_main.push_back(ENTRY_ABOUT);
     menu_main.push_back(ENTRY_EXIT);
+
+    menu_timetrial.push_back(ENTRY_START);
+    menu_timetrial.push_back(ENTRY_LAPS);
+    menu_timetrial.push_back(ENTRY_TRAFFIC);
+    menu_timetrial.push_back(ENTRY_BACK);
 
     menu_settings.push_back(ENTRY_VIDEO);
     #ifdef COMPILE_SOUND_CODE
@@ -120,6 +142,12 @@ void Menu::populate()
     menu_engine.push_back(ENTRY_OBJECTS);
     menu_engine.push_back(ENTRY_BACK);
 
+    menu_musictest.push_back(ENTRY_MUSIC1);
+    menu_musictest.push_back(ENTRY_MUSIC2);
+    menu_musictest.push_back(ENTRY_MUSIC3);
+    menu_musictest.push_back(ENTRY_MUSIC4);
+    menu_musictest.push_back(ENTRY_BACK);
+
     menu_about.push_back("CANNONBALL © CHRIS WHITE 2013");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back(" ");
@@ -140,6 +168,13 @@ void Menu::populate()
 
 void Menu::init()
 {   
+    // If we got a new high score on previous time trial, then save it!
+    if (outrun.ttrial.new_high_score)
+    {
+        outrun.ttrial.new_high_score = false;
+        ttrial->update_best_time();
+    }
+
     outrun.select_course(false);
     video.enabled = true;
     video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
@@ -156,7 +191,7 @@ void Menu::init()
     opalette.setup_road_stripes();
     opalette.setup_road_side();
     opalette.setup_road_colour();
-    otiles.setup_palette_default();
+    otiles.setup_palette_hud();
 
     oroad.init();
     oroad.road_ctrl = ORoad::ROAD_R0;
@@ -183,6 +218,33 @@ void Menu::init()
 }
 
 void Menu::tick()
+{
+    switch (state)
+    {
+        case STATE_MENU:
+            tick_ui();
+            break;
+
+        case STATE_TTRIAL:
+            {
+                int ttrial_state = ttrial->tick();
+
+                if (ttrial_state == TTrial::INIT_GAME)
+                {
+                    cannonball::state = cannonball::STATE_INIT_GAME;
+                    osoundint.queue_clear();
+                }
+                else if (ttrial_state == TTrial::BACK_TO_MENU)
+                {
+                    init();
+                }
+            }
+            break;
+    }
+
+}
+
+void Menu::tick_ui()
 {
     // Skip odd frames at 60fps
     frame++;
@@ -227,7 +289,7 @@ void Menu::tick()
         uint32_t result = 0x12F * (oinitengine.car_increment >> 16);
         oroad.road_pos_change = result;
         oroad.road_pos += result;
-        if (oroad.road_pos >> 16 > 0x79C) // loop to beginning of track data
+        if (oroad.road_pos >> 16 > oinitengine.ROAD_END) // loop to beginning of track data
             oroad.road_pos = 0;
         oinitengine.update_road();
         oinitengine.set_granular_position();
@@ -241,13 +303,7 @@ void Menu::tick()
     {
         ologo.tick();
         osprites.sprite_copy();
-
-	    if (osprites.do_sprite_swap)
-	    {
-            osprites.do_sprite_swap = false;
-            video.sprite_layer->swap();
-            osprites.copy_palette_data();
-	    }
+        osprites.update_sprites();
     }
 
     oroad.tick();
@@ -321,22 +377,47 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_PLAYGAME))
             {
-                if (config.engine.jap && !roms.load_japanese_roms())
+                if (check_jap_roms())
                 {
-                    display_message("JAPANESE ROMSET NOT FOUND");
-                }
-                else
-                {
+                    outrun.ttrial.enabled = false;
                     cannonball::state = cannonball::STATE_INIT_GAME;
                     osoundint.queue_clear();
                 }
             }
+            else if (SELECTED(ENTRY_TIMETRIAL))
+                set_menu(&menu_timetrial);
             else if (SELECTED(ENTRY_SETTINGS))
                 set_menu(&menu_settings);
+            else if (SELECTED(ENTRY_MUSICTEST))
+                set_menu(&menu_musictest);
             else if (SELECTED(ENTRY_ABOUT))
                 set_menu(&menu_about);
             else if (SELECTED(ENTRY_EXIT))
                 cannonball::state = cannonball::STATE_QUIT;
+        }
+        else if (menu_selected == &menu_timetrial)
+        {
+            if (SELECTED(ENTRY_START))
+            {
+                if (check_jap_roms())
+                {
+                    config.save("config.xml");
+                    state = STATE_TTRIAL;
+                    ttrial->init();
+                }
+            }
+            else if (SELECTED(ENTRY_LAPS))
+            {
+                if (++config.ttrial.laps > TTrial::MAX_LAPS)
+                    config.ttrial.laps = 1;
+            }
+            else if (SELECTED(ENTRY_TRAFFIC))
+            {
+                if (++config.ttrial.traffic > TTrial::MAX_TRAFFIC)
+                    config.ttrial.traffic = 0;
+            }
+            else if (SELECTED(ENTRY_BACK))
+                set_menu(&menu_main);
         }
         else if (menu_selected == &menu_settings)
         {
@@ -479,6 +560,23 @@ void Menu::tick_menu()
             if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
         }
+        else if (menu_selected == &menu_musictest)
+        {
+            if (SELECTED(ENTRY_MUSIC1))
+                osoundint.queue_sound(sound::MUSIC_MAGICAL);
+            else if (SELECTED(ENTRY_MUSIC2))
+                osoundint.queue_sound(sound::MUSIC_BREEZE);
+            else if (SELECTED(ENTRY_MUSIC3))
+                osoundint.queue_sound(sound::MUSIC_SPLASH);
+            else if (SELECTED(ENTRY_MUSIC4))
+                osoundint.queue_sound(sound::MUSIC_LASTWAVE);
+
+            else if (SELECTED(ENTRY_BACK))
+            {
+                osoundint.queue_sound(sound::FM_RESET);
+                set_menu(&menu_main);
+            }
+        }
         else
             set_menu(&menu_main);
 
@@ -507,7 +605,14 @@ void Menu::refresh_menu()
         // Get option that was selected
         const char* OPTION = menu_selected->at(cursor).c_str();
 
-        if (menu_selected == &menu_video)
+        if (menu_selected == &menu_timetrial)
+        {
+            if (SELECTED(ENTRY_LAPS))
+                set_menu_text(ENTRY_LAPS, config.to_string((int) config.ttrial.laps));
+            else if (SELECTED(ENTRY_TRAFFIC))
+                set_menu_text(ENTRY_TRAFFIC, config.ttrial.traffic == 0 ? "DISABLED" : config.to_string((int) config.ttrial.traffic));
+        }
+        else if (menu_selected == &menu_video)
         {
             if (SELECTED(ENTRY_WIDESCREEN))
                 set_menu_text(ENTRY_WIDESCREEN, config.video.widescreen ? "ON" : "OFF");
@@ -637,4 +742,14 @@ void Menu::display_message(std::string s)
 {
     msg = s;
     message_counter = MESSAGE_TIME * config.fps;
+}
+
+bool Menu::check_jap_roms()
+{
+    if (config.engine.jap && !roms.load_japanese_roms())
+    {
+        display_message("JAPANESE ROMSET NOT FOUND");
+        return false;
+    }
+    return true;
 }

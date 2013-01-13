@@ -11,6 +11,8 @@
 #include <vector>
 #include "stdint.hpp"
 
+class TTrial;
+
 class Menu
 {
 public:
@@ -30,7 +32,10 @@ private:
         STATE_MENU,
         STATE_REDEFINE_KEYS,
         STATE_REDEFINE_JOY,
+        STATE_TTRIAL,
     };
+
+    TTrial* ttrial;
 
     // Redefine keys/joystick substate
     uint8_t redef_state;
@@ -57,15 +62,18 @@ private:
 
     std::vector<std::string>* menu_selected;
     std::vector<std::string> menu_main;
+    std::vector<std::string> menu_timetrial;
     std::vector<std::string> menu_about;
     std::vector<std::string> menu_settings;
     std::vector<std::string> menu_video;
     std::vector<std::string> menu_sound;
     std::vector<std::string> menu_controls;
     std::vector<std::string> menu_engine;
+    std::vector<std::string> menu_musictest;
 
     std::vector<std::string> text_redefine;
     
+    void tick_ui();
     void draw_menu_options();
     void draw_text(std::string);
     void tick_menu();
@@ -75,4 +83,5 @@ private:
     void redefine_keyboard();
     void redefine_joystick();
     void display_message(std::string);
+    bool check_jap_roms();
 };

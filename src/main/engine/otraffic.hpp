@@ -38,6 +38,7 @@ public:
     OTraffic(void);
     ~OTraffic(void);
     void init();
+    void init_stage1_traffic();
     void tick();
     void disable_traffic();
     void set_max_traffic();
@@ -45,6 +46,16 @@ public:
     void traffic_sound();
 
 private:
+	// -------------------------------------------------------------------------
+	// Function Holders
+	// -------------------------------------------------------------------------
+    enum
+    {
+        TRAFFIC_INIT = 0x10,       // Initalize Traffic Object
+        TRAFFIC_ENTRY = 0x11,      // First 0x80 Positions Of Road
+        TRAFFIC_TICK = 0x12        // Tick Normally
+    };
+
     // Onscreen traffic objects
     oentry* traffic_adr[8];
 

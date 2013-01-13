@@ -1,5 +1,5 @@
+#include "globals.hpp"
 #include "hwvideo/hwtiles.hpp"
-
 #include "frontend/config.hpp"
 
 /***************************************************************************

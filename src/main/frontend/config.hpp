@@ -21,6 +21,13 @@ struct custom_music_t
     std::string filename;
 };
 
+struct ttrial_settings_t
+{
+    int laps;
+    int traffic;
+    uint16_t best_times[15];
+};
+
 struct menu_settings_t
 {
     int enabled;
@@ -68,16 +75,18 @@ struct engine_settings_t
     int jap;
     int randomgen;
     int level_objects;
+    bool fix_bugs;
 };
 
 class Config
 {
 public:
-    menu_settings_t menu;
-    video_settings_t video;
-    sound_settings_t sound;
+    menu_settings_t     menu;
+    video_settings_t    video;
+    sound_settings_t    sound;
     controls_settings_t controls;
-    engine_settings_t engine;
+    engine_settings_t   engine;
+    ttrial_settings_t   ttrial;
 
     // Internal screen width
     uint16_t s16_width;

@@ -42,6 +42,54 @@ void OTraffic::init()
     wheel_counter = wheel_reset = 12;
 }
 
+// Initalize traffic in right land lane for Stage 1
+void OTraffic::init_stage1_traffic()
+{
+    const uint8_t flags = OSprites::TRAFFIC_SPRITE | OSprites::TRAFFIC_RHS | OSprites::ENABLE;
+
+    oentry* t = &osprites.jump_table[OSprites::SPRITE_TRAFF1];
+    t->function_holder = TRAFFIC_INIT;
+    t->control        |= flags;
+    t->draw_props     |= oentry::BOTTOM;
+    t->z               = 0x140F520;
+
+    t = &osprites.jump_table[OSprites::SPRITE_TRAFF2];
+    t->function_holder = TRAFFIC_INIT;
+    t->control        |= flags;
+    t->draw_props     |= oentry::BOTTOM;
+    t->xw1             = 0x70;
+    t->z               = 0x14004E0;
+    t->type            = 0x18;
+    t->xw2             = 0x70;
+
+    t = &osprites.jump_table[OSprites::SPRITE_TRAFF3];
+    t->function_holder = TRAFFIC_INIT;
+    t->control        |= flags;
+    t->draw_props     |= oentry::BOTTOM;
+    t->xw1             = -0x70;
+    t->z               = 0x14004E0;
+    t->type            = 0x20; 
+    t->xw2             = -0x70;
+
+    t = &osprites.jump_table[OSprites::SPRITE_TRAFF4];
+    t->function_holder = TRAFFIC_INIT;
+    t->control        |= flags;
+    t->draw_props     |= oentry::BOTTOM;
+    t->xw1             = 0x70;
+    t->z               = 0x1D004E0;
+    t->type            = 0x28; 
+    t->xw2             = 0x70;
+
+    t = &osprites.jump_table[OSprites::SPRITE_TRAFF5];
+    t->function_holder = TRAFFIC_INIT;
+    t->control        |= flags;
+    t->draw_props     |= oentry::BOTTOM;
+    t->xw1             = -0x70;
+    t->z               = 0x1D004E0;
+    t->type            = 0x30; 
+    t->xw2             = -0x70;
+}
+
 // Tick Spawned Traffic Objects
 //
 // Source: 0x521A
@@ -55,7 +103,7 @@ void OTraffic::tick()
     {
         oentry* sprite = &osprites.jump_table[i];
 
-        if (sprite->function_holder == OSprites::TRAFFIC_INIT)
+        if (sprite->function_holder == TRAFFIC_INIT)
         {
             if (outrun.game_state != GS_INGAME && outrun.game_state != GS_ATTRACT)
             {
@@ -65,19 +113,19 @@ void OTraffic::tick()
             }
 
             sprite->traffic_orig_speed = 0xD4;
-            sprite->function_holder = OSprites::TRAFFIC_ENTRY;
+            sprite->function_holder = TRAFFIC_ENTRY;
         }
 
         // Skip collision code in first section of level
-        if (sprite->function_holder == OSprites::TRAFFIC_ENTRY)
+        if (sprite->function_holder == TRAFFIC_ENTRY)
         {
             if (oroad.road_pos >> 16 >= 0x80)
-                sprite->function_holder = OSprites::TRAFFIC_TICK;
+                sprite->function_holder = TRAFFIC_TICK;
             else
                 move_spawned_sprite(sprite); // Skip collision code
         }
 
-        if (sprite->function_holder == OSprites::TRAFFIC_TICK)
+        if (sprite->function_holder == TRAFFIC_TICK)
             tick_spawned_sprite(sprite);
     }
 }
@@ -198,7 +246,7 @@ void OTraffic::spawn_car(oentry* sprite)
     };
 
     sprite->type = TYPE[spawn_index] << 3;
-    sprite->function_holder = OSprites::TRAFFIC_TICK;
+    sprite->function_holder = TRAFFIC_TICK;
 }
 
 // Check Traffic Collision
@@ -360,7 +408,14 @@ void OTraffic::update_props(oentry* sprite)
         if (outrun.game_state == GS_INGAME)
         {
             // Update score on overtake
-            ostats.update_score(0x20000);
+            if (!outrun.ttrial.enabled)
+                ostats.update_score(0x20000);
+            else
+            {
+                ohud.draw_score(ohud.translate(3, 2), outils::convert16_dechex(++outrun.ttrial.overtakes), 2);
+                ohud.blit_text1(2, 1, HUD_SCORE1);
+                ohud.blit_text1(2, 2, HUD_SCORE2);
+            }
         }
 
         olevelobjs.hide_sprite(sprite);
@@ -504,17 +559,24 @@ void OTraffic::set_zoom_lookup(oentry* sprite)
 // Source: 0x846E
 void OTraffic::set_max_traffic()
 {
-    const uint8_t MAX_TRAFFIC[] =
+    if (!outrun.ttrial.enabled)
     {
-    // S1 S2 S3 S4 S5
-        2, 2, 3, 4, 5, // Easy Traffic
-        3, 4, 5, 6, 7, // Normal Traffic
-        4, 5, 6, 7, 8, // Hard Traffic
-        5, 6, 7, 8, 8, // Very Hard Traffic
-    };
+        const static uint8_t MAX_TRAFFIC[] =
+        {
+        // S1 S2 S3 S4 S5
+            2, 2, 3, 4, 5, // Easy Traffic
+            3, 4, 5, 6, 7, // Normal Traffic
+            4, 5, 6, 7, 8, // Hard Traffic
+            5, 6, 7, 8, 8, // Very Hard Traffic
+        };
 
-    uint8_t index = (config.engine.dip_traffic * 5) + (oroad.stage_lookup_off / 8);
-    max_traffic = MAX_TRAFFIC[index];
+        uint8_t index = (config.engine.dip_traffic * 5) + (oroad.stage_lookup_off / 8);
+        max_traffic = MAX_TRAFFIC[index];
+    }
+    else
+    {
+        max_traffic = outrun.ttrial.traffic;
+    }
 }
 
 // -------------
@@ -680,6 +742,7 @@ void OTraffic::check_collision(oentry* sprite)
                 oferrari.car_inc_old = traffic_speed;
                 d0 = sound::REBOUND; // rebound sound effect
                 collision_traffic++; // denote collision with traffic
+                outrun.ttrial.vehicle_cols++;
             }
         }
     }

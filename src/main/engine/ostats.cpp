@@ -57,9 +57,6 @@ void OStats::do_timers()
         stage_counters[outrun.ttrial.current_lap]++;
         ohud.draw_digits(ohud.translate(30, 2 + outrun.ttrial.current_lap), (outrun.ttrial.current_lap + 1), OHud::GREY);
         ohud.draw_lap_timer(ohud.translate(32, 2 + outrun.ttrial.current_lap), stage_times[cur_stage], ms_value);
-
-        std::cout << std::hex << stage_counters[outrun.ttrial.current_lap] << std::endl;
-        std::cout << std::hex << (int) stage_times[cur_stage][0] << " : " << (int) stage_times[cur_stage][1] << " : " << (int) ms_value <<std::endl;
     }
     else 
     {
@@ -196,7 +193,7 @@ void OStats::init_next_level()
 
         // Draw last laptime
         // Note there is a bug in the original code here, where the current ms value is displayed, instead of the ms value from the last lap time
-        ohud.draw_lap_timer(0x110554, stage_times[cur_stage-1], FIX_BUGS ? LAP_MS[stage_times[cur_stage-1][2]] : ms_value);
+        ohud.draw_lap_timer(0x110554, stage_times[cur_stage-1], config.engine.fix_bugs ? LAP_MS[stage_times[cur_stage-1][2]] : ms_value);
 
         // Update Stage Number on HUD
         ohud.draw_digits(0x110d76, cur_stage+1);

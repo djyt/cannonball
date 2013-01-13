@@ -1,10 +1,6 @@
 #pragma once
 
-// For reporting errors :)
-#include <iostream>
-
 #include "stdint.hpp"
-#include "globals.hpp"
 
 class HWRoad
 {

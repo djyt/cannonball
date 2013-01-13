@@ -11,6 +11,8 @@
 #include <vector>
 #include "stdint.hpp"
 
+class TTrial;
+
 class Menu
 {
 public:
@@ -32,6 +34,8 @@ private:
         STATE_REDEFINE_JOY,
         STATE_TTRIAL,
     };
+
+    TTrial* ttrial;
 
     // Redefine keys/joystick substate
     uint8_t redef_state;

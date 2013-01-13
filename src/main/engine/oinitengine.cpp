@@ -453,7 +453,7 @@ void OInitEngine::check_stage()
             outrun.ttrial.best_lap_counter = counter;
             outrun.ttrial.best_lap[0] = laptimes[0];
             outrun.ttrial.best_lap[1] = laptimes[1];
-            outrun.ttrial.best_lap[2] = laptimes[2];
+            outrun.ttrial.best_lap[2] = OStats::LAP_MS[laptimes[2]];
 
             // Draw best laptime
             ostats.extend_play_timer = 0x80;
@@ -464,21 +464,23 @@ void OInitEngine::check_stage()
             outrun.ttrial.new_high_score = true;
         }
 
-        // More laps to go, loop the course
-        if (++outrun.ttrial.current_lap < outrun.ttrial.laps)
+        if (outrun.game_state == GS_INGAME)
         {
-            // Update lap number
-            //ohud.draw_digits(ohud.translate(35, 26), outrun.ttrial.current_lap + 1);
-            oroad.road_pos = 0;
-            oroad.tilemap_h_target = 0;
-            init_road_seg_master();
-        }
-        else
-        {
-            // Set correct finish segment for final 5 stages, otherwise just default to first one.
-            oroad.stage_lookup_off = oroad.stage_lookup_off < 0x20 ? 0x20 : oroad.stage_lookup_off;
-            ostats.time_counter = 1;
-            init_bonus();
+            // More laps to go, loop the course
+            if (++outrun.ttrial.current_lap < outrun.ttrial.laps)
+            {
+                // Update lap number
+                oroad.road_pos = 0;
+                oroad.tilemap_h_target = 0;
+                init_road_seg_master();
+            }
+            else 
+            {
+                // Set correct finish segment for final 5 stages, otherwise just default to first one.
+                oroad.stage_lookup_off = oroad.stage_lookup_off < 0x20 ? 0x20 : oroad.stage_lookup_off;
+                ostats.time_counter = 1;
+                init_bonus();
+            }
         }
     }
     // Stages 0-4, do road split
@@ -852,7 +854,6 @@ void OInitEngine::init_crash_bonus()
                     {
                         ocrash.spin_control1 = 1;
                         ocrash.skid_counter_bak = ocrash.skid_counter;
-                        //ocrash.enable();
                         test_bonus_mode(true); // 9924 fall through
                         return;
                     }
@@ -930,6 +931,11 @@ void OInitEngine::test_bonus_mode(bool do_bonus_check)
 //
 // You can change the stage order by editing this table.
 // Bear in mind that the double lanes are hard coded in Stage 1.
+//
+// For USA there are unused tracks:
+// 0x3A = Unused Coconut Beach
+// 0x25 = Original Gateway track from Japanese edition
+// 0x19 = Devils Canyon Variant
 
 const uint8_t OInitEngine::STAGE_DATA_USA[] = 
 { 

@@ -54,6 +54,8 @@ public:
         v = ((v & 0xFFFF0000) >> 16) + ((v & 0xFFFF) << 16);
     }
 
+    static void convert_counter_to_time(uint16_t counter, uint8_t* converted);
+
 private:
 	static int32_t next(int32_t, int32_t);
 	static int32_t abs(int32_t);

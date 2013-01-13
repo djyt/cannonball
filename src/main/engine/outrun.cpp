@@ -34,9 +34,6 @@ Outrun outrun;
 
 */
 
-// Set to debug a particular level
-//static const uint8_t LOAD_LEVEL = 9;
-
 Outrun::Outrun()
 {
 }
@@ -371,7 +368,7 @@ void Outrun::main_switch()
             #endif
                 osoundint.queue_sound(omusic.music_selected);
             
-            if (!config.engine.freeze_timer)
+            if (!freeze_timer)
                 ostats.time_counter = ostats.TIME[config.engine.dip_time * 40]; // Set time to begin level with
             else
                 ostats.time_counter = 0x30;
@@ -456,15 +453,14 @@ void Outrun::main_switch()
 
                 ohud.blit_text1(TEXT1_LAPTIME1);
                 ohud.blit_text1(TEXT1_LAPTIME2);
-                ohud.draw_lap_timer(0x110554, ttrial.best_lap, OStats::LAP_MS[ttrial.best_lap[2]]);
+                ohud.draw_lap_timer(0x110554, ttrial.best_lap, ttrial.best_lap[2]);
 
-                ohud.blit_text_new(9,  14, "NUMBER OF OVERTAKES - ");
+                ohud.blit_text_new(9,  14, "OVERTAKES          - ");
                 ohud.blit_text_new(31, 14, config.to_string((int) ttrial.overtakes).c_str(), OHud::GREEN);
-                //ohud.blit_text_new(6,  16, "AVERAGE SPEED       - ");
-                //ohud.blit_text_new(28, 16, "128 KPH", OHud::GREEN);
-
-                ostats.time_counter = 8;
-                ostats.frame_counter = ostats.frame_reset;
+                ohud.blit_text_new(9,  16, "VEHICLE COLLISIONS - ");
+                ohud.blit_text_new(31, 16, config.to_string((int) ttrial.vehicle_cols).c_str(), OHud::GREEN);
+                ohud.blit_text_new(9,  18, "CRASHES            - ");
+                ohud.blit_text_new(31, 18, config.to_string((int) ttrial.crashes).c_str(), OHud::GREEN);
             }
             osoundint.queue_sound(sound::NEW_COMMAND);
             game_state = GS_GAMEOVER;
@@ -477,11 +473,13 @@ void Outrun::main_switch()
             }
             else
             {
-                if (decrement_timers())
-                {
-                    game_state = GS_INIT;
+                if (outrun.tick_counter & BIT_4)
+                    ohud.blit_text1(10, 20, TEXT1_PRESS_START);
+                else
+                    ohud.blit_text1(10, 20, TEXT1_CLEAR_START);
+
+                if (input.is_pressed(Input::START))
                     cannonball::state = cannonball::STATE_INIT_MENU;
-                }
             }
             break;
 
@@ -764,6 +762,7 @@ void Outrun::select_course(bool jap)
         adr.sprite_crash_girl2    = SPRITE_CRASH_GIRL2_J;
         adr.smoke_data            = SMOKE_DATA_J;
         adr.spray_data            = SPRAY_DATA_J;
+        adr.anim_ferrari_frames   = ANIM_FERRARI_FRAMES_J;
         adr.anim_endseq_obj1      = ANIM_ENDSEQ_OBJ1_J;
         adr.anim_endseq_obj2      = ANIM_ENDSEQ_OBJ2_J;
         adr.anim_endseq_obj3      = ANIM_ENDSEQ_OBJ3_J;
@@ -900,6 +899,7 @@ void Outrun::select_course(bool jap)
         adr.anim_pass1_next       = ANIM_PASS1_NEXT;
         adr.anim_pass2_curr       = ANIM_PASS2_CURR;
         adr.anim_pass2_next       = ANIM_PASS2_NEXT;
+        adr.anim_ferrari_frames   = ANIM_FERRARI_FRAMES;
         adr.anim_endseq_obj1      = ANIM_ENDSEQ_OBJ1;
         adr.anim_endseq_obj2      = ANIM_ENDSEQ_OBJ2;
         adr.anim_endseq_obj3      = ANIM_ENDSEQ_OBJ3;

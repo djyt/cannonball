@@ -56,7 +56,6 @@ public:
     void draw_credits();
     uint32_t setup_mini_map();
     uint32_t translate(const uint16_t x, const uint16_t y, const uint32_t BASE_POS = 0x110030);
-    void blit_debug();
 
 private:
     void draw_mini_map(uint32_t);

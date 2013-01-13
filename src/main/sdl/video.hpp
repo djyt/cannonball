@@ -1,8 +1,5 @@
 #pragma once
 
-// For reporting errors :)
-#include <iostream>
-
 #include <SDL.h>
 #include "stdint.hpp"
 #include "roms.hpp"
@@ -108,4 +105,3 @@ private:
 };
 
 extern Video video;
-

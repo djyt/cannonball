@@ -144,6 +144,7 @@ void Config::load(const std::string &filename)
     // Additional Level Objects
     engine.level_objects = pt_config.get("engine.levelobjects", 1);
     engine.randomgen     = pt_config.get("engine.randomgen",    1);
+    engine.fix_bugs      = pt_config.get("engine.fix_bugs",     1) != 0;
 
     // ------------------------------------------------------------------------
     // Time Trial Mode
@@ -230,6 +231,7 @@ void Config::load_scores()
         return;
     }
     
+    // Game Scores
     for (int i = 0; i < ohiscore.NO_SCORES; i++)
     {
         score_entry* e = &ohiscore.scores[i];
@@ -247,6 +249,15 @@ void Config::load_scores()
         if (e->initial1 == '.') e->initial1 = 0x20;
         if (e->initial2 == '.') e->initial2 = 0x20;
         if (e->initial3 == '.') e->initial3 = 0x20;
+    }
+
+    // Counter value that represents 1m 15s 0ms
+    static const uint16_t COUNTER_1M_15 = 0x11D0;
+
+    // Time Trial Scores
+    for (int i = 0; i < 15; i++)
+    {
+        ttrial.best_times[i] = pt.get("time_trial.score" + to_string(i), COUNTER_1M_15);
     }
 }
 
@@ -268,6 +279,12 @@ void Config::save_scores()
         pt.put(xmltag + ".initial3", e->initial3 == 0x20 ? "." : to_string(e->initial3));
         pt.put(xmltag + ".maptiles", to_hex_string(e->maptiles));
         pt.put(xmltag + ".time",     to_hex_string(e->time));
+    }
+
+    // Time Trial Scores
+    for (int i = 0; i < 15; i++)
+    {
+        pt.put("time_trial.score" + to_string(i), ttrial.best_times[i]);
     }
     
     // Tab space 1

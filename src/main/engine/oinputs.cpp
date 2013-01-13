@@ -163,7 +163,7 @@ void OInputs::adjust_inputs()
         // Note the below line "if (d0 > 2)" causes a bug in the original game
         // whereby if you hold the wheel to the left whilst stationary, then accelerate the car will veer left even
         // when the wheel has been centered
-        if (FIX_BUGS || d0 > 2)
+        if (config.engine.fix_bugs || d0 > 2)
         {
             steering_change = 0;
             // Convert input steering value to internal value

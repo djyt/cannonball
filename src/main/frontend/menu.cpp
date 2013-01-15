@@ -222,6 +222,8 @@ void Menu::tick()
     switch (state)
     {
         case STATE_MENU:
+        case STATE_REDEFINE_KEYS:
+        case STATE_REDEFINE_JOY:
             tick_ui();
             break;
 

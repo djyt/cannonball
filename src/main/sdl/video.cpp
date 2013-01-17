@@ -33,7 +33,7 @@ int Video::init(Roms* roms, video_settings_t* settings)
         scan_pixels = new uint32_t[(config.s16_width * 2) * (config.s16_height * 2)];
 
     // Convert S16 tiles to a more useable format
-    tile_layer->init(roms->tiles.rom);
+    tile_layer->init(roms->tiles.rom, config.video.hires);
     clear_tile_ram();
     clear_text_ram();
     delete[] roms->tiles.rom;
@@ -43,7 +43,7 @@ int Video::init(Roms* roms, video_settings_t* settings)
     delete[] roms->sprites.rom;
 
     // Convert S16 Road Stuff
-    hwroad.init((uint8_t*) roms->road.rom);
+    hwroad.init((uint8_t*) roms->road.rom, config.video.hires);
     delete[] roms->road.rom;
 
     enabled = true;
@@ -220,19 +220,19 @@ void Video::draw_frame(void)
              pixels[i] = 0;
 
         tile_layer->update_tile_values();
-        // HIRES COMMENTS
-        hwroad.render_background_hires(pixels);
+
+        ((hwroad).*(hwroad.render_background))(pixels);
         sprite_layer->render(1);
-        //tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
+        tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
         sprite_layer->render(2);
-        //tile_layer->render_tile_layer(pixels, 1, 1);      // background layer
-        //tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
+        tile_layer->render_tile_layer(pixels, 1, 1);      // background layer
+        tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
         sprite_layer->render(4);
-        //tile_layer->render_tile_layer(pixels, 0, 1);      // foreground layer
-        hwroad.render_foreground_hires(pixels);
-        //tile_layer->render_text_layer(pixels, 0);
+        tile_layer->render_tile_layer(pixels, 0, 1);      // foreground layer
+        ((hwroad).*(hwroad.render_foreground))(pixels);
+        tile_layer->render_text_layer(pixels, 0);
         sprite_layer->render(8);
-        //tile_layer->render_text_layer(pixels, 1);
+        tile_layer->render_text_layer(pixels, 1);
  
         // Do Scaling
         /*if (scale_factor != 1)

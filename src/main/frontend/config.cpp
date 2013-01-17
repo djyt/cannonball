@@ -78,13 +78,25 @@ void Config::load(const std::string &filename)
 
     if (video.widescreen)
     {
-        s16_width = S16_WIDTH_WIDE;
+        s16_width  = S16_WIDTH_WIDE;
         s16_x_off = (S16_WIDTH_WIDE - S16_WIDTH) / 2;
     }
     else
     {
         s16_width = S16_WIDTH;
         s16_x_off = 0;
+    }
+
+    s16_height = S16_HEIGHT;
+
+    video.hires = 1;
+
+    // HIRES
+    if (video.hires)
+    {
+        s16_width  <<= 1;
+        s16_height <<= 1;
+        //s16_x_off  <<= 1;
     }
 
     // ------------------------------------------------------------------------

@@ -82,7 +82,6 @@ void hwsprites::reset()
         ram[i] = 0;
         ramBuff[i] = 0;
     }
-
 }
 
 // Clip areas of the screen in wide-screen mode
@@ -93,6 +92,12 @@ void hwsprites::set_x_clip(bool on)
     {
         x1 = config.s16_x_off;
         x2 = x1 + S16_WIDTH;
+
+        if (config.video.hires)
+        {
+            x1 <<= 1;
+            x2 <<= 1;
+        }
     }
     // Allow full wide-screen.
     else
@@ -167,9 +172,6 @@ void hwsprites::render(const uint8_t priority)
             xpos += 0x200;
         xpos -= 0xbe;
 
-        // Adjust for widescreen mode
-        xpos += config.s16_x_off;
-
         // initialize the end address to the start address
         ramBuff[data+7] = addr;
 
@@ -189,10 +191,23 @@ void hwsprites::render(const uint8_t priority)
 
         // loop from top to bottom
         ytarget = top + ydelta * height;
+
+        // Adjust for widescreen mode
+        xpos += config.s16_x_off;
+
+        if (config.video.hires)
+        {
+            xpos <<= 1;
+            top <<= 1;
+            ytarget <<= 1;
+            hzoom >>= 1;
+            vzoom >>= 1;
+        }
+
         for (y = top; y != ytarget; y += ydelta)
         {
             // skip drawing if not within the cliprect
-            if (y >= 0 && y < S16_HEIGHT) 
+            if (y >= 0 && y < config.s16_height)
             {
                 uint32_t* pPixel = &video.pixels[y * config.s16_width];
 
@@ -206,17 +221,17 @@ void hwsprites::render(const uint8_t priority)
 
                     for (x = xpos; (xdelta > 0 && x < config.s16_width) || (xdelta < 0 && x >= 0); )
                     {
-                        uint32_t pixels = sprites[spritedata + ++ramBuff[data+7]];
+                        uint32_t pixels = sprites[spritedata + ++ramBuff[data+7]]; // Add to base sprite data the vzoom value
 
                         // draw four pixels
-                        pix = (pixels >> 28) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >> 24) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >> 20) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >> 16) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >> 12) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >>  8) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >>  4) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >>  0) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >> 28) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >> 24) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >> 20) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >> 16) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >> 12) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >>  8) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >>  4) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >>  0) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
 
                         // stop if the second-to-last pixel in the group was 0xf
                         if ((pixels & 0x000000f0) == 0x000000f0)
@@ -235,14 +250,14 @@ void hwsprites::render(const uint8_t priority)
                         uint32_t pixels = sprites[spritedata + --ramBuff[data+7]];
 
                         // draw four pixels
-                        pix = (pixels >>  0) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >>  4) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >>  8) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >> 12) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >> 16) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >> 20) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >> 24) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
-                        pix = (pixels >> 28) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel + x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >>  0) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >>  4) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >>  8) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >> 12) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >> 16) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >> 20) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >> 24) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+                        pix = (pixels >> 28) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel); x += xdelta; xacc += hzoom; } xacc -= 0x200;
 
                         // stop if the second-to-last pixel in the group was 0xf
                         if ((pixels & 0x0f000000) == 0x0f000000)
@@ -251,7 +266,7 @@ void hwsprites::render(const uint8_t priority)
                 }
             }
             // accumulate zoom factors; if we carry into the high bit, skip an extra row
-            yacc += vzoom;
+            yacc += vzoom; 
             addr += pitch * (yacc >> 9);
             yacc &= 0x1ff;
         }
@@ -260,17 +275,21 @@ void hwsprites::render(const uint8_t priority)
 
 void hwsprites::draw_pixel(const int32_t x, const uint16_t pix, const uint16_t colour, const uint8_t shadow, uint32_t* pPixel)
 {
+    // HIRES
+    uint32_t *pPixelX = pPixel + x;
+
     if (x >= x1 && x < x2 && pix != 0 && pix != 15)
     {
         if (shadow && pix == 0xa) 
-        {        
-            *pPixel &= 0xfff;
-            uint16_t pal_entry = video.read_pal16(*pPixel) & 0x8000;
-            *pPixel += (0x2000 - (pal_entry >> 3));
+        {                
+            *pPixelX &= 0xfff;
+            uint16_t pal_entry = video.read_pal16(*pPixelX) & 0x8000;        
+            *pPixelX += (0x2000 - (pal_entry >> 3));
         } 
         else 
         {
-            *pPixel = (pix | colour | COLOR_BASE) & 0xfff;
+            *pPixelX = (pix | colour | COLOR_BASE) & 0xfff;
         }
     }  
 }
+

@@ -26,11 +26,11 @@ int Video::init(Roms* roms, video_settings_t* settings)
         return 0;
 
     // Internal pixel array. The size of this is always constant
-    pixels = new uint32_t[config.s16_width * S16_HEIGHT];
+    pixels = new uint32_t[config.s16_width * config.s16_height]; // HIRES
 
     // Doubled intermediate pixel array for scanlines
     if (scanlines)
-        scan_pixels = new uint32_t[(config.s16_width * 2) * (S16_HEIGHT * 2)];
+        scan_pixels = new uint32_t[(config.s16_width * 2) * (config.s16_height * 2)];
 
     // Convert S16 tiles to a more useable format
     tile_layer->init(roms->tiles.rom);
@@ -124,21 +124,37 @@ int Video::set_video_mode(video_settings_t* settings)
 
         if (settings->scale < 1)
             settings->scale = 1;
-
+       
         scale_factor  = settings->scale;
 
-        screen_width  = config.s16_width * scale_factor;
-        screen_height = S16_HEIGHT * scale_factor;
+        if (config.video.hires)
+            scale_factor = 1; // HIRES HACK
+
+        screen_width  = config.s16_width  * scale_factor;
+        screen_height = config.s16_height * scale_factor;
 
         // As we're windowed this is just the same
         scaled_width  = screen_width;
         scaled_height = screen_height;
+
+// HI RES HACKS /////////////////
+// Double the screen size, but don't scale
+
+
+        
+        //screen_width = config.s16_width * 2;
+        //screen_height =  S16_HEIGHT * 2;
+
+        //scaled_width = screen_width;
+        //scaled_height = screen_height;
+
+/////////////////////////////////
         
         SDL_ShowCursor(true);
     }
 
     // If we're not stretching the screen, centre the image
-    if (video_mode != MODE_FULL_STRETCH)
+    /*if (video_mode != MODE_FULL_STRETCH)
     {
         screen_xoff = screen_width - scaled_width;
         if (screen_xoff)
@@ -149,7 +165,7 @@ int Video::set_video_mode(video_settings_t* settings)
             screen_yoff = (screen_yoff / 2) * screen_width;
     }
     // Otherwise set to the top-left corner
-    else
+    else*/
     {
         screen_xoff = 0;
         screen_yoff = 0;
@@ -199,24 +215,27 @@ void Video::draw_frame(void)
         // ------------------------------------------------------------------------
         // Draw
         // ------------------------------------------------------------------------
+        // HIRES FILL
+        for (int i = 0; i < (config.s16_width * config.s16_height); i++) // HIRES
+             pixels[i] = 0;
 
         tile_layer->update_tile_values();
-
-        hwroad.render_background(pixels);
+        // HIRES COMMENTS
+        hwroad.render_background_hires(pixels);
         sprite_layer->render(1);
-        tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
+        //tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
         sprite_layer->render(2);
-        tile_layer->render_tile_layer(pixels, 1, 1);      // background layer
-        tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
+        //tile_layer->render_tile_layer(pixels, 1, 1);      // background layer
+        //tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
         sprite_layer->render(4);
-        tile_layer->render_tile_layer(pixels, 0, 1);      // foreground layer
-        hwroad.render_foreground(pixels);
-        tile_layer->render_text_layer(pixels, 0);
+        //tile_layer->render_tile_layer(pixels, 0, 1);      // foreground layer
+        hwroad.render_foreground_hires(pixels);
+        //tile_layer->render_text_layer(pixels, 0);
         sprite_layer->render(8);
-        tile_layer->render_text_layer(pixels, 1);
+        //tile_layer->render_text_layer(pixels, 1);
  
         // Do Scaling
-        if (scale_factor != 1)
+        /*if (scale_factor != 1)
         {
             uint32_t* pix = pixels;
     
@@ -235,10 +254,10 @@ void Video::draw_frame(void)
                       screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
             }
             // Windowed: Use Faster Scaling algorithm
-            else if (video_mode == MODE_WINDOW)
-            {
-                scalex(pixels, config.s16_width, S16_HEIGHT, screen_pixels, scale_factor); 
-            }
+            //else if (video_mode == MODE_WINDOW)
+            //{
+            //    scalex(pixels, config.s16_width, S16_HEIGHT, screen_pixels, scale_factor); 
+            //}
             // Full Screen: Stretch screen. May not be an integer multiple of original size.
             //                              Therefore, scaling is slower.
             else
@@ -248,13 +267,13 @@ void Video::draw_frame(void)
             }
         }
         // No Scaling
-        else
+        else*/
         {
             uint32_t* pix  = pixels;
             uint32_t* spix = screen_pixels;
     
             // Lookup real RGB value from rgb array for backbuffer
-            for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)
+            for (int i = 0; i < (config.s16_width * config.s16_height); i++) // HIRES
                 *(spix++) = rgb[*(pix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
         }
 

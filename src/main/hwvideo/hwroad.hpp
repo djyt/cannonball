@@ -16,7 +16,9 @@ public:
     uint16_t read_road_control();
     void write_road_control(const uint8_t);
     void render_background(uint32_t*);
+    void render_background_hires(uint32_t*);
     void render_foreground(uint32_t*);
+    void render_foreground_hires(uint32_t*);
 
 private:
     uint8_t road_control;
@@ -29,13 +31,14 @@ private:
     static const uint16_t rom_size = 0x8000;
 
     // Decoded road graphics
-    uint8_t roads[0x40200];
+    uint8_t roads[0x40200 * 4];
 
     // Two halves of RAM
     uint16_t ram[ROAD_RAM_SIZE / 2];
     uint16_t ramBuff[ROAD_RAM_SIZE / 2];
 
     void decode_road(const uint8_t*);
+    void decode_road_hires(const uint8_t*);
 };
 
 extern HWRoad hwroad;

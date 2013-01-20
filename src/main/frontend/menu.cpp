@@ -511,7 +511,7 @@ void Menu::tick_menu()
             {
                 if (++config.video.fps > 2)
                     config.video.fps = 0;
-                restart_video();
+                config.set_fps(config.video.fps);
             }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);

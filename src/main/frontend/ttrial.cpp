@@ -50,7 +50,7 @@ int TTrial::tick()
     switch (state)
     {
         case INIT_COURSEMAP:
-            outrun.select_course(config.engine.jap != 0); // Need to setup correct course map graphics.
+            outrun.select_course(config.engine.jap != 0, config.engine.prototype != 0); // Need to setup correct course map graphics.
             config.load_scores();
             osprites.init();
             video.enabled = true;

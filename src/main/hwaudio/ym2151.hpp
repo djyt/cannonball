@@ -26,7 +26,7 @@ typedef struct
     uint32_t dt1_i;             /* DT1 index * 32 */
     uint32_t dt2;               /* current DT2 (detune 2) value */
 
-    signed int *connect;        /* operator output 'direction' */
+    signed int *connects;       /* operator output 'direction' */
 
     /* only M1 (operator 0) is filled with this data: */
     signed int *mem_connect;    /* where to put the delayed sample (MEM) */

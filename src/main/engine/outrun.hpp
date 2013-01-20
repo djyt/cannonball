@@ -222,7 +222,7 @@ public:
 	void init();
 	void tick();
 	void vint();
-    void select_course(bool jap);
+    void select_course(const bool jap, const bool prototype);
 
 private:    
     // Car Increment Backup for attract mode

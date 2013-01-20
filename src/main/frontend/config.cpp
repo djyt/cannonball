@@ -9,7 +9,6 @@
 ***************************************************************************/
 
 // see: http://www.boost.org/doc/libs/1_52_0/doc/html/boost_propertytree/tutorial.html
-
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <iostream>
@@ -17,6 +16,7 @@
 #include "main.hpp"
 #include "config.hpp"
 #include "globals.hpp"
+#include "setup.hpp"
 
 #include "engine/ohiscore.hpp"
 #include "engine/audio/osoundint.hpp"
@@ -69,23 +69,12 @@ void Config::load(const std::string &filename)
    
     video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed 
     video.scale      = pt_config.get("video.window.scale",       2); // Video Scale: Default is 2x    
-    video.stretch    = pt_config.get("video.fullscreen.stretch", 0); // Stretch in full-screen mode
     video.scanlines  = pt_config.get("video.scanlines",          0); // Scanlines
     video.fps        = pt_config.get("video.fps",                2); // Default is 60 fps   
-    video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode   
+    video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode
+    video.hires      = pt_config.get("video.hires",              0); // Hi-Resolution Mode
           
     set_fps(video.fps);
-
-    if (video.widescreen)
-    {
-        s16_width = S16_WIDTH_WIDE;
-        s16_x_off = (S16_WIDTH_WIDE - S16_WIDTH) / 2;
-    }
-    else
-    {
-        s16_width = S16_WIDTH;
-        s16_x_off = 0;
-    }
 
     // ------------------------------------------------------------------------
     // Sound Settings
@@ -140,6 +129,7 @@ void Config::load(const std::string &filename)
     engine.dip_traffic &= 3;
 
     engine.jap           = pt_config.get("engine.japanese_tracks", 0);
+    engine.prototype     = pt_config.get("engine.prototype",       0);
     
     // Additional Level Objects
     engine.level_objects = pt_config.get("engine.levelobjects", 1);
@@ -157,11 +147,12 @@ void Config::load(const std::string &filename)
 bool Config::save(const std::string &filename)
 {
     // Save stuff
-    pt_config.put("video.fps",                video.fps);
-    pt_config.put("video.widescreen",         video.widescreen);
     pt_config.put("video.mode",               video.mode);
     pt_config.put("video.window.scale",       video.scale);
-    pt_config.put("video.fullscreen.stretch", video.stretch);
+    pt_config.put("video.scanlines",          video.scanlines);
+    pt_config.put("video.fps",                video.fps);
+    pt_config.put("video.widescreen",         video.widescreen);
+    pt_config.put("video.hires",              video.hires);
 
     pt_config.put("sound.enable",    sound.enabled);
     pt_config.put("sound.advertise", sound.advertise);
@@ -189,6 +180,7 @@ bool Config::save(const std::string &filename)
     pt_config.put("engine.time", engine.freeze_timer ? 4 : engine.dip_time);
     pt_config.put("engine.traffic", engine.disable_traffic ? 4 : engine.dip_traffic);
     pt_config.put("engine.japanese_tracks", engine.jap);
+    pt_config.put("engine.prototype", engine.prototype);
     pt_config.put("engine.levelobjects", engine.level_objects);
 
     pt_config.put("time_trial.laps",    ttrial.laps);
@@ -213,9 +205,6 @@ bool Config::save(const std::string &filename)
     return true;
 }
 
-std::string filename_scores     = "hiscores.xml";
-std::string filename_scores_jap = "hiscores_jap.xml";
-
 void Config::load_scores()
 {
     // Create empty property tree object
@@ -223,7 +212,7 @@ void Config::load_scores()
 
     try
     {
-        read_xml(engine.jap ? filename_scores_jap : filename_scores, pt, boost::property_tree::xml_parser::trim_whitespace);
+        read_xml(engine.jap ? FILENAME_SCORES_JAP : FILENAME_SCORES, pt, boost::property_tree::xml_parser::trim_whitespace);
     }
     catch (std::exception &e)
     {
@@ -292,7 +281,7 @@ void Config::save_scores()
     
     try
     {
-        write_xml(engine.jap ? filename_scores_jap : filename_scores, pt, std::locale(), settings);
+        write_xml(engine.jap ? FILENAME_SCORES_JAP : FILENAME_SCORES, pt, std::locale(), settings);
     }
     catch (std::exception &e)
     {
@@ -305,7 +294,7 @@ bool Config::clear_scores()
     // Init Default Hiscores
     ohiscore.init_def_scores();
     // Remove hiscore xml file if it exists
-    return remove(engine.jap ? filename_scores_jap.c_str() : filename_scores.c_str()) == 0; 
+    return remove(engine.jap ? FILENAME_SCORES_JAP : FILENAME_SCORES) == 0; 
 }
 
 void Config::set_fps(int fps)

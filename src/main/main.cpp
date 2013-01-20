@@ -22,6 +22,7 @@
 #include "romloader.hpp"
 #include "stdint.hpp"
 #include "main.hpp"
+#include "setup.hpp"
 #include "engine/outrun.hpp"
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
@@ -207,7 +208,7 @@ int main(int argc, char* argv[])
     if (roms_loaded)
     {
         // Load XML Config
-        config.load("config.xml");
+        config.load(FILENAME_CONFIG);
 
         //Set the window caption 
         SDL_WM_SetCaption( "Cannonball", NULL ); 

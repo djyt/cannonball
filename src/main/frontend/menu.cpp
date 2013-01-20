@@ -11,6 +11,7 @@
 
 #include "main.hpp"
 #include "menu.hpp"
+#include "setup.hpp"
 
 #include "engine/osprites.hpp"
 #include "engine/ologo.hpp"
@@ -39,7 +40,6 @@ const static char* ENTRY_BACK       = "BACK";
 const static char* ENTRY_PLAYGAME   = "PLAY GAME";
 const static char* ENTRY_TIMETRIAL  = "TIME TRIAL";
 const static char* ENTRY_SETTINGS   = "SETTINGS";
-const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 const static char* ENTRY_ABOUT      = "ABOUT";
 const static char* ENTRY_EXIT       = "EXIT";
 
@@ -57,13 +57,18 @@ const static char* ENTRY_SAVE       = "SAVE AND RETURN";
 
 // Video Menu
 const static char* ENTRY_FPS        = "FRAME RATE ";
+const static char* ENTRY_FULLSCREEN = "FULL SCREEN ";
 const static char* ENTRY_WIDESCREEN = "WIDESCREEN ";
+const static char* ENTRY_HIRES      = "HIRES ";
+const static char* ENTRY_SCALE      = "WINDOW SCALE ";
+const static char* ENTRY_SCANLINES  = "SCANLINES ";
 
 // Sound Menu
 const static char* ENTRY_MUTE       = "SOUND ";
 const static char* ENTRY_BGM        = "BGM VOL ";
 const static char* ENTRY_SFX        = "SFX VOL ";
 const static char* ENTRY_ADVERTISE  = "ADVERTISE SOUND ";
+const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 
 // Controls Menu
 const static char* ENTRY_GEAR       = "GEAR ";
@@ -77,6 +82,7 @@ const static char* ENTRY_TRACKS     = "TRACKS ";
 const static char* ENTRY_TIME       = "TIME ";
 const static char* ENTRY_TRAFFIC    = "TRAFFIC ";
 const static char* ENTRY_OBJECTS    = "OBJECTS ";
+const static char* ENTRY_PROTOTYPE  = "PROTOTYPE STAGE 1 ";
 
 // Music Test Menu
 const static char* ENTRY_MUSIC1     = "MAGICAL SOUND SHOWER";
@@ -101,7 +107,6 @@ void Menu::populate()
     menu_main.push_back(ENTRY_PLAYGAME);
     menu_main.push_back(ENTRY_TIMETRIAL);
     menu_main.push_back(ENTRY_SETTINGS);
-    menu_main.push_back(ENTRY_MUSICTEST);
     menu_main.push_back(ENTRY_ABOUT);
     menu_main.push_back(ENTRY_EXIT);
 
@@ -120,13 +125,18 @@ void Menu::populate()
     menu_settings.push_back(ENTRY_SAVE);
 
     menu_video.push_back(ENTRY_FPS);
+    menu_video.push_back(ENTRY_FULLSCREEN);
     menu_video.push_back(ENTRY_WIDESCREEN);
+    menu_video.push_back(ENTRY_HIRES);
+    menu_video.push_back(ENTRY_SCALE);
+    menu_video.push_back(ENTRY_SCANLINES);
     menu_video.push_back(ENTRY_BACK);
 
     menu_sound.push_back(ENTRY_MUTE);
     //menu_sound.push_back(ENTRY_BGM);
     //menu_sound.push_back(ENTRY_SFX);
     menu_sound.push_back(ENTRY_ADVERTISE);
+    menu_sound.push_back(ENTRY_MUSICTEST);
     menu_sound.push_back(ENTRY_BACK);
 
     menu_controls.push_back(ENTRY_GEAR);
@@ -140,6 +150,7 @@ void Menu::populate()
     menu_engine.push_back(ENTRY_TIME);
     menu_engine.push_back(ENTRY_TRAFFIC);
     menu_engine.push_back(ENTRY_OBJECTS);
+    menu_engine.push_back(ENTRY_PROTOTYPE);
     menu_engine.push_back(ENTRY_BACK);
 
     menu_musictest.push_back(ENTRY_MUSIC1);
@@ -175,7 +186,7 @@ void Menu::init()
         ttrial->update_best_time();
     }
 
-    outrun.select_course(false);
+    outrun.select_course(false, config.engine.prototype != 0);
     video.enabled = true;
     video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
     video.sprite_layer->reset();
@@ -243,7 +254,6 @@ void Menu::tick()
             }
             break;
     }
-
 }
 
 void Menu::tick_ui()
@@ -288,6 +298,8 @@ void Menu::tick_ui()
 
         if (oinitengine.car_increment < scroll_speed << 16)
             oinitengine.car_increment += (1 << 14);
+        if (oinitengine.car_increment > scroll_speed << 16)
+            oinitengine.car_increment = scroll_speed << 16;
         uint32_t result = 0x12F * (oinitengine.car_increment >> 16);
         oroad.road_pos_change = result;
         oroad.road_pos += result;
@@ -390,8 +402,6 @@ void Menu::tick_menu()
                 set_menu(&menu_timetrial);
             else if (SELECTED(ENTRY_SETTINGS))
                 set_menu(&menu_settings);
-            else if (SELECTED(ENTRY_MUSICTEST))
-                set_menu(&menu_musictest);
             else if (SELECTED(ENTRY_ABOUT))
                 set_menu(&menu_about);
             else if (SELECTED(ENTRY_EXIT))
@@ -403,7 +413,7 @@ void Menu::tick_menu()
             {
                 if (check_jap_roms())
                 {
-                    config.save("config.xml");
+                    config.save(FILENAME_CONFIG);
                     state = STATE_TTRIAL;
                     ttrial->init();
                 }
@@ -444,11 +454,10 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_SAVE))
             {
-                if (config.save("config.xml"))
+                if (config.save(FILENAME_CONFIG))
                     display_message("SETTINGS SAVED");
                 else
                     display_message("ERROR SAVING SETTINGS!");
-                config.set_fps(config.video.fps);
                 set_menu(&menu_main);
             }
         }
@@ -458,15 +467,51 @@ void Menu::tick_menu()
         }
         else if (menu_selected == &menu_video)
         {
-            if (SELECTED(ENTRY_WIDESCREEN))
+            if (SELECTED(ENTRY_FULLSCREEN))
+            {
+                if (++config.video.mode > video_settings_t::MODE_STRETCH)
+                    config.video.mode = video_settings_t::MODE_WINDOW;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_WIDESCREEN))
             {
                 config.video.widescreen = !config.video.widescreen;
-                display_message("REQUIRES RESTART");
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_HIRES))
+            {
+                config.video.hires = !config.video.hires;
+                if (config.video.hires)
+                {
+                    if (config.video.scale > 1)
+                        config.video.scale >>= 1;
+                }
+                else
+                {
+                    config.video.scale <<= 1;
+                }
+
+                restart_video();
+                video.sprite_layer->set_x_clip(false);
+            }
+            else if (SELECTED(ENTRY_SCALE))
+            {
+                if (++config.video.scale > (config.video.hires ? 2 : 4))
+                    config.video.scale = 1;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_SCANLINES))
+            {
+                config.video.scanlines += 10;
+                if (config.video.scanlines > 100)
+                    config.video.scanlines = 0;
+                restart_video();
             }
             else if (SELECTED(ENTRY_FPS))
             {
                 if (++config.video.fps > 2)
                     config.video.fps = 0;
+                restart_video();
             }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
@@ -485,6 +530,8 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_ADVERTISE))
                 config.sound.advertise = !config.sound.advertise;
+            else if (SELECTED(ENTRY_MUSICTEST))
+                set_menu(&menu_musictest);
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
         }
@@ -558,7 +605,8 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_OBJECTS))
                 config.engine.level_objects = !config.engine.level_objects;
-
+            else if (SELECTED(ENTRY_PROTOTYPE))
+                config.engine.prototype = !config.engine.prototype;
             if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
         }
@@ -576,7 +624,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_BACK))
             {
                 osoundint.queue_sound(sound::FM_RESET);
-                set_menu(&menu_main);
+                set_menu(&menu_sound);
             }
         }
         else
@@ -610,14 +658,25 @@ void Menu::refresh_menu()
         if (menu_selected == &menu_timetrial)
         {
             if (SELECTED(ENTRY_LAPS))
-                set_menu_text(ENTRY_LAPS, config.to_string((int) config.ttrial.laps));
+                set_menu_text(ENTRY_LAPS, config.to_string(config.ttrial.laps));
             else if (SELECTED(ENTRY_TRAFFIC))
-                set_menu_text(ENTRY_TRAFFIC, config.ttrial.traffic == 0 ? "DISABLED" : config.to_string((int) config.ttrial.traffic));
+                set_menu_text(ENTRY_TRAFFIC, config.ttrial.traffic == 0 ? "DISABLED" : config.to_string(config.ttrial.traffic));
         }
         else if (menu_selected == &menu_video)
         {
-            if (SELECTED(ENTRY_WIDESCREEN))
+            if (SELECTED(ENTRY_FULLSCREEN))
+            {
+                if (config.video.mode == video_settings_t::MODE_WINDOW)       s = "OFF";
+                else if (config.video.mode == video_settings_t::MODE_FULL)    s = "ON";
+                else if (config.video.mode == video_settings_t::MODE_STRETCH) s = "STRETCH";
+                set_menu_text(ENTRY_FULLSCREEN, s);
+            }
+            else if (SELECTED(ENTRY_WIDESCREEN))
                 set_menu_text(ENTRY_WIDESCREEN, config.video.widescreen ? "ON" : "OFF");
+            else if (SELECTED(ENTRY_SCALE))
+                set_menu_text(ENTRY_SCALE, config.to_string(config.video.scale) + "X");
+            else if (SELECTED(ENTRY_HIRES))
+                set_menu_text(ENTRY_HIRES, config.video.hires ? "ON" : "OFF");
             else if (SELECTED(ENTRY_FPS))
             {               
                 if (config.video.fps == 0)      s = "30 FPS";
@@ -625,6 +684,8 @@ void Menu::refresh_menu()
                 else if (config.video.fps == 2) s = "60 FPS";
                 set_menu_text(ENTRY_FPS, s);
             }
+            else if (SELECTED(ENTRY_SCANLINES))
+                set_menu_text(ENTRY_SCANLINES, config.video.scanlines ? config.to_string(config.video.scanlines) +"%": "OFF");
         }
         else if (menu_selected == &menu_sound)
         {
@@ -671,6 +732,8 @@ void Menu::refresh_menu()
             }
             else if (SELECTED(ENTRY_OBJECTS))
                 set_menu_text(ENTRY_OBJECTS, config.engine.level_objects ? "ENHANCED" : "ORIGINAL");
+            else if (SELECTED(ENTRY_PROTOTYPE))
+                set_menu_text(ENTRY_PROTOTYPE, config.engine.prototype ? "ON" : "OFF");
 
         }
     }
@@ -754,4 +817,19 @@ bool Menu::check_jap_roms()
         return false;
     }
     return true;
+}
+
+// Reinitalize Video, and stop audio to avoid crackles
+void Menu::restart_video()
+{
+    #ifdef COMPILE_SOUND_CODE
+    if (config.sound.enabled)
+        cannonball::audio.stop_audio();
+    #endif
+    video.init(&roms, &config.video);
+    #ifdef COMPILE_SOUND_CODE
+    osoundint.init();
+    if (config.sound.enabled)
+        cannonball::audio.start_audio();
+    #endif
 }

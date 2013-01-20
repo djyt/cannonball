@@ -109,9 +109,8 @@ void OTraffic::tick()
             {
                 sprite->traffic_proximity = 0;
                 move_spawned_sprite(sprite); // Skip collision code
-                return;
+                continue;
             }
-
             sprite->traffic_orig_speed = 0xD4;
             sprite->function_holder = TRAFFIC_ENTRY;
         }
@@ -237,7 +236,7 @@ void OTraffic::spawn_car(oentry* sprite)
     // Randomize Type of traffic to spawn
     uint8_t spawn_index = (rnd >> 2) + 0x20;
 
-    const int8_t TYPE[] =
+    static const int8_t TYPE[] =
     {
         0x00, 0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03, 0x06, 0x07, 0x05, 0x06, 0x07, 0x08, 0x09,
         0x0A, 0x0B, 0x08, 0x09, 0x0A, 0x0B, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0C, 0x0D, 0x0C, 0x0D,
@@ -698,7 +697,6 @@ void OTraffic::traffic_logic()
 void OTraffic::calculate_avg_speed(uint16_t c)
 {
     traffic_count = c;
-
     if (traffic_count != 0)
         traffic_speed_avg = traffic_speed_total / traffic_count;
     traffic_speed_total = 0;

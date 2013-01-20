@@ -134,9 +134,9 @@ public:
     int16_t change_width;
 
     // Stage Order Tables
-    static const uint8_t STAGE_DATA_USA[];
-    static const uint8_t STAGE_DATA_JAP[];
-    const uint8_t* stage_data;
+    static uint8_t stage_data_usa[];
+    static uint8_t stage_data_jap[];
+    uint8_t* stage_data;
 
 	OInitEngine();
 	~OInitEngine();

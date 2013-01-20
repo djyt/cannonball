@@ -4,7 +4,12 @@
     Video Settings
 -->
 <video>
-    <!-- Set Screen Mode: 0 is windowed, 1 is full-screen -->
+    <!-- Set Screen Mode: 
+    
+         0 is windowed, 
+         1 is full-screen
+         2 is full-screen stretched, no borders. (Aspect ratio will be lost. Scanlines will be disabled.)
+    -->
     <mode>0</mode>
 
     <!-- 
@@ -14,16 +19,7 @@
     <window>
         <scale>3</scale>
     </window>
-    
-    <!-- 
-        Fullscreen Mode Settings 
-        Stretch: Set to 1 to stretch the screen and remove borders.
-        Aspect ratio will be lost. Scanlines will be disabled.
-    -->
-    <fullscreen>
-        <stretch>0</stretch>
-    </fullscreen>
-    
+
     <!-- 
         Scanline intensity.
         0   = No scanlines
@@ -46,6 +42,10 @@
     
     <!-- Enhanced Widescreen Mode -->
     <widescreen>1</widescreen>
+    
+    <!-- Higher Internal Resolution. Better Sprite Scaling, but has a performance hit. 
+         Disable for original experience. -->
+    <hires>0</hires>
 </video>
 
 <!-- 
@@ -154,6 +154,9 @@
          epr-10327.76,  epr-10329.58,  epr-10328.75,  epr-10330.57
     --->
     <japanese_tracks>0</japanese_tracks>
+    
+    <!-- Swap In Prototype Coconut Beach Track -->
+    <prototype>0</prototype>
     
     <!-- Increase the number of allowed level objects. 
          This fixes the broken arches in Gateway for example.

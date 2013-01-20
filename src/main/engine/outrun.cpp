@@ -31,6 +31,8 @@ Outrun outrun;
     - Stage 2a: Incomplete arches due to lack of sprite slots [fixed]
     - Best OutRunners screen looks odd after Stage 2 Gateway
     - Stage 3c: Clouds overlapping trees [unable to fix easily]
+    - Traffic spawns on horizon and transforms type as you approach. 
+      This is mostly noticeable when using hi-res mode.
 
 */
 
@@ -48,7 +50,7 @@ void Outrun::init()
 
     game_state = GS_INIT;
     video.enabled = false;
-    select_course(config.engine.jap != 0);
+    select_course(config.engine.jap != 0, config.engine.prototype != 0);
     video.clear_text_ram();
 
     frame = 0;
@@ -377,7 +379,6 @@ void Outrun::main_switch()
             ostats.credits--;                                   // Update Credits
             ohud.blit_text1(TEXT1_CLEAR_START);
             ohud.blit_text1(TEXT1_CLEAR_CREDITS);
-            //oroad.road_width = LOAD_LEVEL? 0D4 << 16 : 0x1C2 << 16;
             osoundint.queue_sound(sound::INIT_CHEERS);
             video.enabled = true;
             game_state = GS_START1;
@@ -718,14 +719,14 @@ bool Outrun::decrement_timers()
 // Remap ROM addresses and select course.
 // -------------------------------------------------------------------------------
 
-void Outrun::select_course(bool jap)
+void Outrun::select_course(bool jap, bool prototype)
 {
     if (jap)
     {
         roms.rom0p = &roms.j_rom0;
         roms.rom1p = &roms.j_rom1;
 
-        oinitengine.stage_data    = oinitengine.STAGE_DATA_JAP;
+        oinitengine.stage_data    = oinitengine.stage_data_jap;
 
         // Main CPU
         adr.tiles_def_lookup      = TILES_DEF_LOOKUP_J;
@@ -826,7 +827,7 @@ void Outrun::select_course(bool jap)
         roms.rom0p = &roms.rom0;
         roms.rom1p = &roms.rom1;
 
-        oinitengine.stage_data    = oinitengine.STAGE_DATA_USA;
+        oinitengine.stage_data    = oinitengine.stage_data_usa;
 
         // Main CPU
         adr.tiles_def_lookup      = TILES_DEF_LOOKUP;
@@ -925,4 +926,8 @@ void Outrun::select_course(bool jap)
         // Sub CPU
         adr.road_height_lookup    = ROAD_HEIGHT_LOOKUP;
     }
+
+    // Use Prototype Coconut Beach Track
+    if (prototype)
+        oinitengine.stage_data[0] = 0x3A;
 }

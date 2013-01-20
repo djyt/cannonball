@@ -54,7 +54,7 @@ uint32_t       csm_req;             /* CSM  KEY ON / KEY OFF sequence request */
 
 uint32_t       irq_enable;          /* IRQ enable for timer B (bit 3) and timer A (bit 2); bit 7 - CSM mode (keyon to all slots, everytime timer A overflows) */
 uint32_t       status;              /* chip status (BUSY, IRQ Flags) */
-uint8_t        connect[8];          /* channels connections */
+uint8_t        connects[8];         /* channels connections */
 
 #ifdef USE_MAME_TIMERS
 /* ASG 980324 -- added for tracking timers */
@@ -792,36 +792,36 @@ void YM2151::set_connect(YM2151Operator *om1, int cha, int v)
     {
     case 0:
         /* M1---C1---MEM---M2---C2---OUT */
-        om1->connect = &c1;
-        oc1->connect = &mem;
-        om2->connect = &c2;
+        om1->connects = &c1;
+        oc1->connects = &mem;
+        om2->connects = &c2;
         om1->mem_connect = &m2;
         break;
 
     case 1:
         /* M1------+-MEM---M2---C2---OUT */
         /*      C1-+                     */
-        om1->connect = &mem;
-        oc1->connect = &mem;
-        om2->connect = &c2;
+        om1->connects = &mem;
+        oc1->connects = &mem;
+        om2->connects = &c2;
         om1->mem_connect = &m2;
         break;
 
     case 2:
         /* M1-----------------+-C2---OUT */
         /*      C1---MEM---M2-+          */
-        om1->connect = &c2;
-        oc1->connect = &mem;
-        om2->connect = &c2;
+        om1->connects = &c2;
+        oc1->connects = &mem;
+        om2->connects = &c2;
         om1->mem_connect = &m2;
         break;
 
     case 3:
         /* M1---C1---MEM------+-C2---OUT */
         /*                 M2-+          */
-        om1->connect = &c1;
-        oc1->connect = &mem;
-        om2->connect = &c2;
+        om1->connects = &c1;
+        oc1->connects = &mem;
+        om2->connects = &c2;
         om1->mem_connect = &c2;
         break;
 
@@ -829,9 +829,9 @@ void YM2151::set_connect(YM2151Operator *om1, int cha, int v)
         /* M1---C1-+-OUT */
         /* M2---C2-+     */
         /* MEM: not used */
-        om1->connect = &c1;
-        oc1->connect = &chanout[cha];
-        om2->connect = &c2;
+        om1->connects = &c1;
+        oc1->connects = &chanout[cha];
+        om2->connects = &c2;
         om1->mem_connect = &mem;    /* store it anywhere where it will not be used */
         break;
 
@@ -839,9 +839,9 @@ void YM2151::set_connect(YM2151Operator *om1, int cha, int v)
         /*    +----C1----+     */
         /* M1-+-MEM---M2-+-OUT */
         /*    +----C2----+     */
-        om1->connect = 0;    /* special mark */
-        oc1->connect = &chanout[cha];
-        om2->connect = &chanout[cha];
+        om1->connects = 0;    /* special mark */
+        oc1->connects = &chanout[cha];
+        om2->connects = &chanout[cha];
         om1->mem_connect = &m2;
         break;
 
@@ -850,9 +850,9 @@ void YM2151::set_connect(YM2151Operator *om1, int cha, int v)
         /*      M2-+-OUT */
         /*      C2-+     */
         /* MEM: not used */
-        om1->connect = &c1;
-        oc1->connect = &chanout[cha];
-        om2->connect = &chanout[cha];
+        om1->connects = &c1;
+        oc1->connects = &chanout[cha];
+        om2->connects = &chanout[cha];
         om1->mem_connect = &mem;    /* store it anywhere where it will not be used */
         break;
 
@@ -862,9 +862,9 @@ void YM2151::set_connect(YM2151Operator *om1, int cha, int v)
         /* M2-+     */
         /* C2-+     */
         /* MEM: not used*/
-        om1->connect = &chanout[cha];
-        oc1->connect = &chanout[cha];
-        om2->connect = &chanout[cha];
+        om1->connects = &chanout[cha];
+        oc1->connects = &chanout[cha];
+        om2->connects = &chanout[cha];
         om1->mem_connect = &mem;    /* store it anywhere where it will not be used */
         break;
     }
@@ -1126,7 +1126,7 @@ void YM2151::write_reg(int r, int v)
             op->fb_shift = ((v>>3)&7) ? ((v>>3)&7)+6:0;
             pan[ (r&7)*2    ] = (v & 0x40) ? ~0 : 0;
             pan[ (r&7)*2 +1 ] = (v & 0x80) ? ~0 : 0;
-            connect[r&7] = v&7;
+            connects[r&7] = v&7;
             set_connect(op, r&7, v&7);
             break;
 
@@ -1440,12 +1440,12 @@ void YM2151::chan_calc(unsigned int chan)
         int32_t out = op->fb_out_prev + op->fb_out_curr;
         op->fb_out_prev = op->fb_out_curr;
 
-        if (!op->connect)
+        if (!op->connects)
             /* algorithm 5 */
             mem = c1 = c2 = op->fb_out_prev;
         else
             /* other algorithms */
-            *op->connect = op->fb_out_prev;
+            *op->connects = op->fb_out_prev;
 
         op->fb_out_curr = 0;
         if (env < ENV_QUIET)
@@ -1458,11 +1458,11 @@ void YM2151::chan_calc(unsigned int chan)
 
     env = volume_calc(op+1);    /* M2 */
     if (env < ENV_QUIET)
-        *(op+1)->connect += op_calc(op+1, env, m2);
+        *(op+1)->connects += op_calc(op+1, env, m2);
 
     env = volume_calc(op+2);    /* C1 */
     if (env < ENV_QUIET)
-        *(op+2)->connect += op_calc(op+2, env, c1);
+        *(op+2)->connects += op_calc(op+2, env, c1);
 
     env = volume_calc(op+3);    /* C2 */
     if (env < ENV_QUIET)
@@ -1490,12 +1490,12 @@ void YM2151::chan7_calc()
         int32_t out = op->fb_out_prev + op->fb_out_curr;
         op->fb_out_prev = op->fb_out_curr;
 
-        if (!op->connect)
+        if (!op->connects)
             /* algorithm 5 */
             mem = c1 = c2 = op->fb_out_prev;
         else
             /* other algorithms */
-            *op->connect = op->fb_out_prev;
+            *op->connects = op->fb_out_prev;
 
         op->fb_out_curr = 0;
         if (env < ENV_QUIET)
@@ -1508,11 +1508,11 @@ void YM2151::chan7_calc()
 
     env = volume_calc(op+1);    /* M2 */
     if (env < ENV_QUIET)
-        *(op+1)->connect += op_calc(op+1, env, m2);
+        *(op+1)->connects += op_calc(op+1, env, m2);
 
     env = volume_calc(op+2);    /* C1 */
     if (env < ENV_QUIET)
-        *(op+2)->connect += op_calc(op+2, env, c1);
+        *(op+2)->connects += op_calc(op+2, env, c1);
 
     env = volume_calc(op+3);    /* C2 */
     if (noise & 0x80)

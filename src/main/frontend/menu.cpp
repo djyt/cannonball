@@ -11,6 +11,7 @@
 
 #include "main.hpp"
 #include "menu.hpp"
+#include "setup.hpp"
 
 #include "engine/osprites.hpp"
 #include "engine/ologo.hpp"
@@ -411,7 +412,7 @@ void Menu::tick_menu()
             {
                 if (check_jap_roms())
                 {
-                    config.save("config.xml");
+                    config.save(FILENAME_CONFIG);
                     state = STATE_TTRIAL;
                     ttrial->init();
                 }
@@ -452,7 +453,7 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_SAVE))
             {
-                if (config.save("config.xml"))
+                if (config.save(FILENAME_CONFIG))
                     display_message("SETTINGS SAVED");
                 else
                     display_message("ERROR SAVING SETTINGS!");

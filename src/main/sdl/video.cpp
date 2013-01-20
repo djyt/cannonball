@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "sdl/video.hpp"
+#include "setup.hpp"
 #include "globals.hpp"
 #include "frontend/config.hpp"
     
@@ -113,7 +114,7 @@ int Video::set_video_mode(video_settings_t* settings)
 
     //int bpp = info->vfmt->BitsPerPixel;
     const int bpp = 32;
-    int flags = SDL_DOUBLEBUF | SDL_SWSURFACE;
+    int flags = SDL_FLAGS;
     
     scanlines = settings->scanlines;
     if (scanlines < 0) scanlines = 0;

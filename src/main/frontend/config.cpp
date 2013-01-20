@@ -16,6 +16,7 @@
 #include "main.hpp"
 #include "config.hpp"
 #include "globals.hpp"
+#include "setup.hpp"
 
 #include "engine/ohiscore.hpp"
 #include "engine/audio/osoundint.hpp"
@@ -201,9 +202,6 @@ bool Config::save(const std::string &filename)
     return true;
 }
 
-std::string filename_scores     = "hiscores.xml";
-std::string filename_scores_jap = "hiscores_jap.xml";
-
 void Config::load_scores()
 {
     // Create empty property tree object
@@ -211,7 +209,7 @@ void Config::load_scores()
 
     try
     {
-        read_xml(engine.jap ? filename_scores_jap : filename_scores, pt, boost::property_tree::xml_parser::trim_whitespace);
+        read_xml(engine.jap ? FILENAME_SCORES_JAP : FILENAME_SCORES, pt, boost::property_tree::xml_parser::trim_whitespace);
     }
     catch (std::exception &e)
     {
@@ -280,7 +278,7 @@ void Config::save_scores()
     
     try
     {
-        write_xml(engine.jap ? filename_scores_jap : filename_scores, pt, std::locale(), settings);
+        write_xml(engine.jap ? FILENAME_SCORES_JAP : FILENAME_SCORES, pt, std::locale(), settings);
     }
     catch (std::exception &e)
     {
@@ -293,7 +291,7 @@ bool Config::clear_scores()
     // Init Default Hiscores
     ohiscore.init_def_scores();
     // Remove hiscore xml file if it exists
-    return remove(engine.jap ? filename_scores_jap.c_str() : filename_scores.c_str()) == 0; 
+    return remove(engine.jap ? FILENAME_SCORES_JAP : FILENAME_SCORES) == 0; 
 }
 
 void Config::set_fps(int fps)

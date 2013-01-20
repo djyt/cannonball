@@ -525,7 +525,7 @@ void HWRoad::render_foreground_hires(uint32_t* pixels)
             {
                 data0      = (data0      >> 1) & 0xFF;
                 data0_next = (data0_next >> 1) & 0xFF;
-                int32_t diff = data0 + ((data0_next - data0) >> 1);
+                int32_t diff = (data0 + ((data0_next - data0) >> 1)) & 0xFF;
                 src0 = (roads + (0x000 + diff) * 512);
                 hpos0 = (hpos0 + ((hpos0_next - hpos0) >> 1)) & 0xFFF;
             }
@@ -534,7 +534,7 @@ void HWRoad::render_foreground_hires(uint32_t* pixels)
             {
                 data1      = (data1      >> 1) & 0xFF;
                 data1_next = (data1_next >> 1) & 0xFF;
-                int32_t diff = data1 + ((data1_next - data1) >> 1);
+                int32_t diff = (data1 + ((data1_next - data1) >> 1)) & 0xFF;
                 src1 = (roads + (0x100 + diff) * 512);
                 hpos1 = (hpos1 + ((hpos1_next - hpos1) >> 1)) & 0xFFF;
             }     

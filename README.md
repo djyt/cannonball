@@ -17,7 +17,7 @@ Getting Started
 * Extract the [SDL Library](http://www.libsdl.org/download-1.2.php) somewhere, for example: c:\coding\lib\SDL-1.2.15
 * Read the SDL documentation & compile the SDL Library for your system.
 * Extract the Cannonball code somewhere, for example: c:\dev\cannonball
-* Configure the CMakeLists.txt file to reflect the correct directory structure for your libraries.
+* Configure the CMakeLists.txt file, use a build.cmake file to reflect the correct directory structure for your libraries.
 
 Build
 -----

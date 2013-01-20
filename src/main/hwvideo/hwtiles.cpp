@@ -89,21 +89,24 @@ hwtiles::~hwtiles(void)
 // Convert S16 tiles to a more useable format
 void hwtiles::init(uint8_t* src_tiles, const bool hires)
 {
-    for (int i = 0; i < TILES_LENGTH; i++)
+    if (src_tiles)
     {
-        uint8_t p0 = src_tiles[i];
-        uint8_t p1 = src_tiles[i + 0x10000];
-        uint8_t p2 = src_tiles[i + 0x20000];
-
-        uint32_t val = 0;
-
-        for (int ii = 0; ii < 8; ii++) 
+        for (int i = 0; i < TILES_LENGTH; i++)
         {
-            uint8_t bit = 7 - ii;
-            uint8_t pix = ((((p0 >> bit)) & 1) | (((p1 >> bit) << 1) & 2) | (((p2 >> bit) << 2) & 4));
-            val = (val << 4) | pix;
+            uint8_t p0 = src_tiles[i];
+            uint8_t p1 = src_tiles[i + 0x10000];
+            uint8_t p2 = src_tiles[i + 0x20000];
+
+            uint32_t val = 0;
+
+            for (int ii = 0; ii < 8; ii++) 
+            {
+                uint8_t bit = 7 - ii;
+                uint8_t pix = ((((p0 >> bit)) & 1) | (((p1 >> bit) << 1) & 2) | (((p2 >> bit) << 2) & 4));
+                val = (val << 4) | pix;
+            }
+            tiles[i] = val; // Store converted value
         }
-        tiles[i] = val; // Store converted value
     }
     
     if (hires)

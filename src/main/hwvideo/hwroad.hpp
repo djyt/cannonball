@@ -9,7 +9,6 @@ public:
     ~HWRoad();
 
     void init(const uint8_t*, const bool hires);
-
     void write16(uint32_t adr, const uint16_t data);
     void write16(uint32_t* adr, const uint16_t data);
     void write32(uint32_t* adr, const uint32_t data);
@@ -36,7 +35,6 @@ private:
     uint16_t ramBuff[ROAD_RAM_SIZE / 2];
 
     void decode_road(const uint8_t*);
-    //void decode_road_hires(const uint8_t*);
     void render_background_lores(uint32_t*);
     void render_foreground_lores(uint32_t*);
     void render_background_hires(uint32_t*);

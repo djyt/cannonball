@@ -125,7 +125,8 @@ void HWRoad::init(const uint8_t* src_road, const bool hires)
     color_offset3 = 0x780;
     x_offset = 0;
 
-    decode_road(src_road);
+    if (src_road)
+        decode_road(src_road);
     
     if (hires)
     {
@@ -418,7 +419,7 @@ void HWRoad::render_foreground_lores(uint32_t* pixels)
         color_table[0x17] = color_offset1 ^ 0x0e ^ ((color1 >> 7) & 1);
 
         // Shift road dependent on whether we are in widescreen mode or not
-        static const uint16_t S16_X = 0x5f8 + config.s16_x_off;
+        uint16_t s16_x = 0x5f8 + config.s16_x_off;
 
         // draw the road
         switch (control) 
@@ -426,7 +427,7 @@ void HWRoad::render_foreground_lores(uint32_t* pixels)
             case 0:
                 if (data0 & 0x800)
                     continue;
-                hpos0 = (hpos0 - (S16_X + x_offset)) & 0xfff;
+                hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
                 for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
@@ -436,8 +437,8 @@ void HWRoad::render_foreground_lores(uint32_t* pixels)
                 break;
 
             case 1:
-                hpos0 = (hpos0 - (S16_X + x_offset)) & 0xfff;
-                hpos1 = (hpos1 - (S16_X + x_offset)) & 0xfff;
+                hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
+                hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
                 for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
@@ -453,8 +454,8 @@ void HWRoad::render_foreground_lores(uint32_t* pixels)
                 break;
 
             case 2:
-                hpos0 = (hpos0 - (S16_X + x_offset)) & 0xfff;
-                hpos1 = (hpos1 - (S16_X + x_offset)) & 0xfff;
+                hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
+                hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
                 for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
@@ -472,7 +473,7 @@ void HWRoad::render_foreground_lores(uint32_t* pixels)
             case 3:
                 if (data1 & 0x800)
                     continue;
-                hpos1 = (hpos1 - (S16_X + x_offset)) & 0xfff;
+                hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
                 for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
@@ -644,7 +645,7 @@ void HWRoad::render_foreground_hires(uint32_t* pixels)
             src1 = ((data1 & 0x800) != 0) ? roads + 256 * 2 * 512 : (roads + (0x100 + ((data1 >> 1) & 0xff)) * 512);
 
         // Shift road dependent on whether we are in widescreen mode or not
-        static const uint16_t S16_X = 0x5f8 + config.s16_x_off;
+        uint16_t s16_x = 0x5f8 + config.s16_x_off;
         uint32_t* const pPixel = pixels + (y * config.s16_width);
 
         // draw the road
@@ -653,7 +654,7 @@ void HWRoad::render_foreground_hires(uint32_t* pixels)
             case 0:
                 if (data0 & 0x800)
                     continue;
-                hpos0 = (hpos0 - (S16_X + x_offset)) & 0xfff;
+                hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
                 for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
@@ -664,8 +665,8 @@ void HWRoad::render_foreground_hires(uint32_t* pixels)
                 break;
 
             case 1:
-                hpos0 = (hpos0 - (S16_X + x_offset)) & 0xfff;
-                hpos1 = (hpos1 - (S16_X + x_offset)) & 0xfff;
+                hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
+                hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
                 for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
@@ -684,8 +685,8 @@ void HWRoad::render_foreground_hires(uint32_t* pixels)
                 break;
 
             case 2:
-                hpos0 = (hpos0 - (S16_X + x_offset)) & 0xfff;
-                hpos1 = (hpos1 - (S16_X + x_offset)) & 0xfff;
+                hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
+                hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
                 for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
@@ -706,7 +707,7 @@ void HWRoad::render_foreground_hires(uint32_t* pixels)
             case 3:
                 if (data1 & 0x800)
                     continue;
-                hpos1 = (hpos1 - (S16_X + x_offset)) & 0xfff;
+                hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
                 for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;

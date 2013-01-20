@@ -60,17 +60,20 @@ void hwsprites::init(const uint8_t* src_sprites)
 {
     reset();
 
-    // Convert S16 tiles to a more useable format
-    const uint8_t *spr = src_sprites;
-
-    for (uint32_t i = 0; i < SPRITES_LENGTH; i++)
+    if (src_sprites)
     {
-        uint8_t d3 = *spr++;
-        uint8_t d2 = *spr++;
-        uint8_t d1 = *spr++;
-        uint8_t d0 = *spr++;
+        // Convert S16 tiles to a more useable format
+        const uint8_t *spr = src_sprites;
 
-        sprites[i] = (d0 << 24) | (d1 << 16) | (d2 << 8) | d3;
+        for (uint32_t i = 0; i < SPRITES_LENGTH; i++)
+        {
+            uint8_t d3 = *spr++;
+            uint8_t d2 = *spr++;
+            uint8_t d1 = *spr++;
+            uint8_t d0 = *spr++;
+
+            sprites[i] = (d0 << 24) | (d1 << 16) | (d2 << 8) | d3;
+        }
     }
 }
 

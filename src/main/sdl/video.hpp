@@ -70,20 +70,16 @@ private:
     // Video Mode
     uint8_t video_mode;
 
-    enum
-    {
-        MODE_FULL         = 0, // Fullscreen: No Stretch
-        MODE_FULL_STRETCH = 1, // Fullscreen: Stretch
-        MODE_WINDOW       = 2, // Windowed  : No Scale
-    };
-    
     // Enable Scanlines
     int scanlines;
 
     // Scanline pixels
     uint32_t* scan_pixels;
 
-    // Screen Width/Height
+    // Original Screen Width & Height
+    uint16_t orig_width, orig_height;
+
+    // Screen Width/Height Of Window
     uint16_t screen_width, screen_height;
 
     // Scaled Width/Height

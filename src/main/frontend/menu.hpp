@@ -84,4 +84,6 @@ private:
     void redefine_joystick();
     void display_message(std::string);
     bool check_jap_roms();
+
+    void restart_video();
 };

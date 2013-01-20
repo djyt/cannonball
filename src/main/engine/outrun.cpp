@@ -31,6 +31,8 @@ Outrun outrun;
     - Stage 2a: Incomplete arches due to lack of sprite slots [fixed]
     - Best OutRunners screen looks odd after Stage 2 Gateway
     - Stage 3c: Clouds overlapping trees [unable to fix easily]
+    - Traffic spawns on horizon and transforms type as you approach. 
+      This is mostly noticeable when using hi-res mode.
 
 */
 
@@ -377,7 +379,6 @@ void Outrun::main_switch()
             ostats.credits--;                                   // Update Credits
             ohud.blit_text1(TEXT1_CLEAR_START);
             ohud.blit_text1(TEXT1_CLEAR_CREDITS);
-            //oroad.road_width = LOAD_LEVEL? 0D4 << 16 : 0x1C2 << 16;
             osoundint.queue_sound(sound::INIT_CHEERS);
             video.enabled = true;
             game_state = GS_START1;

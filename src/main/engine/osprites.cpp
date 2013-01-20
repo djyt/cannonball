@@ -586,6 +586,10 @@ void OSprites::do_sprite(oentry* input)
     // Set width & height values using lookup
     // -------------------------------------------------------------------------
     uint16_t lookup_mask = ZOOM_LOOKUP[index++]; // Width/Height lookup helper
+    
+    // This is the address of the frame required for the level of zoom we're using
+    // There are 5 unique frames that are typically used for zoomed sprites.
+    // which correspond to different screen sizes
     uint32_t src_offsets = input->addr + ZOOM_LOOKUP[index];
 
     uint16_t d0 = input->draw_props | (input->zoom << 8);

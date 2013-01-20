@@ -9,7 +9,6 @@
 ***************************************************************************/
 
 // see: http://www.boost.org/doc/libs/1_52_0/doc/html/boost_propertytree/tutorial.html
-
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <iostream>
@@ -69,23 +68,12 @@ void Config::load(const std::string &filename)
    
     video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed 
     video.scale      = pt_config.get("video.window.scale",       2); // Video Scale: Default is 2x    
-    video.stretch    = pt_config.get("video.fullscreen.stretch", 0); // Stretch in full-screen mode
     video.scanlines  = pt_config.get("video.scanlines",          0); // Scanlines
     video.fps        = pt_config.get("video.fps",                2); // Default is 60 fps   
-    video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode   
+    video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode
+    video.hires      = pt_config.get("video.hires",              0); // Hi-Resolution Mode
           
     set_fps(video.fps);
-
-    if (video.widescreen)
-    {
-        s16_width = S16_WIDTH_WIDE;
-        s16_x_off = (S16_WIDTH_WIDE - S16_WIDTH) / 2;
-    }
-    else
-    {
-        s16_width = S16_WIDTH;
-        s16_x_off = 0;
-    }
 
     // ------------------------------------------------------------------------
     // Sound Settings
@@ -157,11 +145,11 @@ void Config::load(const std::string &filename)
 bool Config::save(const std::string &filename)
 {
     // Save stuff
-    pt_config.put("video.fps",                video.fps);
-    pt_config.put("video.widescreen",         video.widescreen);
     pt_config.put("video.mode",               video.mode);
     pt_config.put("video.window.scale",       video.scale);
-    pt_config.put("video.fullscreen.stretch", video.stretch);
+    pt_config.put("video.fps",                video.fps);
+    pt_config.put("video.widescreen",         video.widescreen);
+    pt_config.put("video.hires",              video.hires);
 
     pt_config.put("sound.enable",    sound.enabled);
     pt_config.put("sound.advertise", sound.advertise);

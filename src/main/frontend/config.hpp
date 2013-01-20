@@ -36,15 +36,16 @@ struct menu_settings_t
 
 struct video_settings_t
 {
-    const static int MODE_WINDOW = 0;
-    const static int FULLSCREEN = 1;
+    const static int MODE_WINDOW  = 0;
+    const static int MODE_FULL    = 1;
+    const static int MODE_STRETCH = 2;
 
     int mode;
     int scale;
-    int stretch;
     int scanlines;
     int widescreen;
     int fps;
+    int hires;
 };
 
 struct sound_settings_t
@@ -88,8 +89,8 @@ public:
     engine_settings_t   engine;
     ttrial_settings_t   ttrial;
 
-    // Internal screen width
-    uint16_t s16_width;
+    // Internal screen width and height
+    uint16_t s16_width, s16_height;
 
     // Internal screen x offset
     uint16_t s16_x_off;

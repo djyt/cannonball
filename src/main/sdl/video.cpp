@@ -8,6 +8,11 @@ Video video;
 
 Video::Video(void)
 {
+    orig_width  = 0;
+    orig_height = 0;
+    pixels      = NULL;
+    scan_pixels = NULL;
+    surface     = NULL;
     sprite_layer = new hwsprites();
     tile_layer = new hwtiles();
 }
@@ -16,38 +21,67 @@ Video::~Video(void)
 {
     delete sprite_layer;
     delete tile_layer;
-    delete[] pixels;
+    if (pixels) delete[] pixels;
     if (scanlines) delete[] scan_pixels;
 }
 
 int Video::init(Roms* roms, video_settings_t* settings)
 {
+    if (orig_width == 0 || orig_height == 0)
+    {
+        const SDL_VideoInfo* info = SDL_GetVideoInfo();
+
+        if (!info)
+        {
+            std::cerr << "Video query failed: " << SDL_GetError() << std::endl;
+            return 0;
+        }
+        
+        orig_width  = info->current_w; 
+        orig_height = info->current_h;
+    }
+
     if (!set_video_mode(settings))
         return 0;
 
     // Internal pixel array. The size of this is always constant
-    pixels = new uint32_t[config.s16_width * S16_HEIGHT];
+    if (pixels) delete[] pixels;
+    pixels = new uint32_t[config.s16_width * config.s16_height];
 
     // Doubled intermediate pixel array for scanlines
     if (scanlines)
-        scan_pixels = new uint32_t[(config.s16_width * 2) * (S16_HEIGHT * 2)];
+    {
+        if (scan_pixels) delete[] scan_pixels;
+        scan_pixels = new uint32_t[(config.s16_width * 2) * (config.s16_height * 2)];
+    }
 
     // Convert S16 tiles to a more useable format
-    tile_layer->init(roms->tiles.rom);
+    tile_layer->init(roms->tiles.rom, config.video.hires != 0);
     clear_tile_ram();
     clear_text_ram();
-    delete[] roms->tiles.rom;
+    if (roms->tiles.rom)
+    {
+        delete[] roms->tiles.rom;
+        roms->tiles.rom = NULL;
+    }
 
     // Convert S16 sprites
     sprite_layer->init(roms->sprites.rom);
-    delete[] roms->sprites.rom;
+    if (roms->sprites.rom)
+    {
+        delete[] roms->sprites.rom;
+        roms->sprites.rom = NULL;
+    }
 
     // Convert S16 Road Stuff
-    hwroad.init((uint8_t*) roms->road.rom);
-    delete[] roms->road.rom;
+    hwroad.init(roms->road.rom, config.video.hires != 0);
+    if (roms->road.rom)
+    {
+        delete[] roms->road.rom;
+        roms->road.rom = NULL;
+    }
 
     enabled = true;
-
     return 1;
 }
 
@@ -57,13 +91,35 @@ int Video::init(Roms* roms, video_settings_t* settings)
 
 int Video::set_video_mode(video_settings_t* settings)
 {
+    if (settings->widescreen)
+    {
+        config.s16_width  = S16_WIDTH_WIDE;
+        config.s16_x_off = (S16_WIDTH_WIDE - S16_WIDTH) / 2;
+    }
+    else
+    {
+        config.s16_width = S16_WIDTH;
+        config.s16_x_off = 0;
+    }
+
+    config.s16_height = S16_HEIGHT;
+
+    // Internal video buffer is doubled in hi-res mode.
+    if (settings->hires)
+    {
+        config.s16_width  <<= 1;
+        config.s16_height <<= 1;
+    }
+
     //int bpp = info->vfmt->BitsPerPixel;
     const int bpp = 32;
     int flags = SDL_DOUBLEBUF | SDL_SWSURFACE;
     
-    scanlines = config.video.scanlines;
+    scanlines = settings->scanlines;
     if (scanlines < 0) scanlines = 0;
     else if (scanlines > 100) scanlines = 100;
+
+    video_mode = settings->mode;
 
     // --------------------------------------------------------------------------------------------
     // Full Screen Mode
@@ -71,24 +127,14 @@ int Video::set_video_mode(video_settings_t* settings)
     // This is because for LCD monitors, I suspect it's what we want to remain in
     // and we don't want to risk upsetting the aspect ratio.
     // --------------------------------------------------------------------------------------------
-    if (settings->mode == video_settings_t::FULLSCREEN)
+    if (video_mode == video_settings_t::MODE_FULL || video_mode == video_settings_t::MODE_STRETCH)
     {
-        video_mode = (settings->stretch) ? MODE_FULL_STRETCH : MODE_FULL;
-
-        const SDL_VideoInfo* info = SDL_GetVideoInfo();
-
-        if (!info)
-        {
-            std::cerr << "Video query failed: " << SDL_GetError() << std::endl;
-            return 0;
-        }
-        
-        screen_width  = info->current_w; 
-        screen_height = info->current_h;
+        screen_width  = orig_width;
+        screen_height = orig_height;
 
         scale_factor = 0; // Use scaling code
         
-        if (video_mode == MODE_FULL_STRETCH)
+        if (video_mode == video_settings_t::MODE_STRETCH)
         {
             scaled_width  = screen_width;
             scaled_height = screen_height;
@@ -99,17 +145,17 @@ int Video::set_video_mode(video_settings_t* settings)
             // With scanlines, only allow a proportional scale
             if (scanlines)
             {
-                scale_factor  = std::min(screen_width / config.s16_width, screen_height / S16_HEIGHT);
-                scaled_width  = config.s16_width * scale_factor;
-                scaled_height = S16_HEIGHT * scale_factor;
+                scale_factor  = std::min(screen_width / config.s16_width, screen_height / config.s16_height);
+                scaled_width  = config.s16_width  * scale_factor;
+                scaled_height = config.s16_height * scale_factor;
             }
             else
             {
                 // Calculate how much to scale screen from its original resolution
                 uint32_t w = (screen_width << 16)  / config.s16_width;
-                uint32_t h = (screen_height << 16) / S16_HEIGHT;
+                uint32_t h = (screen_height << 16) / config.s16_height;
                 scaled_width  = (config.s16_width  * std::min(w, h)) >> 16;
-                scaled_height = (S16_HEIGHT * std::min(w, h)) >> 16;
+                scaled_height = (config.s16_height * std::min(w, h)) >> 16;
             }
         }
         flags |= SDL_FULLSCREEN; // Set SDL flag
@@ -120,15 +166,15 @@ int Video::set_video_mode(video_settings_t* settings)
     // --------------------------------------------------------------------------------------------
     else
     {
-        video_mode = MODE_WINDOW;
+        video_mode = video_settings_t::MODE_WINDOW;
 
         if (settings->scale < 1)
             settings->scale = 1;
-
+       
         scale_factor  = settings->scale;
 
-        screen_width  = config.s16_width * scale_factor;
-        screen_height = S16_HEIGHT * scale_factor;
+        screen_width  = config.s16_width  * scale_factor;
+        screen_height = config.s16_height * scale_factor;
 
         // As we're windowed this is just the same
         scaled_width  = screen_width;
@@ -138,7 +184,7 @@ int Video::set_video_mode(video_settings_t* settings)
     }
 
     // If we're not stretching the screen, centre the image
-    if (video_mode != MODE_FULL_STRETCH)
+    if (video_mode != video_settings_t::MODE_STRETCH)
     {
         screen_xoff = screen_width - scaled_width;
         if (screen_xoff)
@@ -199,10 +245,9 @@ void Video::draw_frame(void)
         // ------------------------------------------------------------------------
         // Draw
         // ------------------------------------------------------------------------
-
         tile_layer->update_tile_values();
 
-        hwroad.render_background(pixels);
+        (hwroad.*hwroad.render_background)(pixels);
         sprite_layer->render(1);
         tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
         sprite_layer->render(2);
@@ -210,7 +255,7 @@ void Video::draw_frame(void)
         tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
         sprite_layer->render(4);
         tile_layer->render_tile_layer(pixels, 0, 1);      // foreground layer
-        hwroad.render_foreground(pixels);
+        (hwroad.*hwroad.render_foreground)(pixels);
         tile_layer->render_text_layer(pixels, 0);
         sprite_layer->render(8);
         tile_layer->render_text_layer(pixels, 1);
@@ -221,29 +266,29 @@ void Video::draw_frame(void)
             uint32_t* pix = pixels;
     
             // Lookup real RGB value from rgb array for backbuffer
-            for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)    
+            for (int i = 0; i < (config.s16_width * config.s16_height); i++)    
                 *(pix++) = rgb[*pix & ((S16_PALETTE_ENTRIES * 3) - 1)];
 
             // Scanlines: (Full Screen or Windowed). Potentially slow. 
             if (scanlines)
             {
                 // Add the scanlines. Double image in the process to create space for the scanlines.
-                scanlines_32bpp(pixels, config.s16_width, S16_HEIGHT, scan_pixels, scanlines);
+                scanlines_32bpp(pixels, config.s16_width, config.s16_height, scan_pixels, scanlines);
 
                 // Now scale up again
-                scale(scan_pixels, config.s16_width * 2, S16_HEIGHT * 2, 
+                scale(scan_pixels, config.s16_width * 2, config.s16_height * 2, 
                       screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
             }
             // Windowed: Use Faster Scaling algorithm
-            else if (video_mode == MODE_WINDOW)
+            else if (video_mode == video_settings_t::MODE_WINDOW)
             {
-                scalex(pixels, config.s16_width, S16_HEIGHT, screen_pixels, scale_factor); 
+                scalex(pixels, config.s16_width, config.s16_height, screen_pixels, scale_factor); 
             }
             // Full Screen: Stretch screen. May not be an integer multiple of original size.
             //                              Therefore, scaling is slower.
             else
             {
-                scale(pixels, config.s16_width, S16_HEIGHT, 
+                scale(pixels, config.s16_width, config.s16_height, 
                       screen_pixels + screen_xoff + screen_yoff, scaled_width, scaled_height);
             }
         }
@@ -254,7 +299,7 @@ void Video::draw_frame(void)
             uint32_t* spix = screen_pixels;
     
             // Lookup real RGB value from rgb array for backbuffer
-            for (int i = 0; i < (config.s16_width * S16_HEIGHT); i++)
+            for (int i = 0; i < (config.s16_width * config.s16_height); i++)
                 *(spix++) = rgb[*(pix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
         }
 

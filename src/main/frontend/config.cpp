@@ -129,6 +129,7 @@ void Config::load(const std::string &filename)
     engine.dip_traffic &= 3;
 
     engine.jap           = pt_config.get("engine.japanese_tracks", 0);
+    engine.prototype     = pt_config.get("engine.prototype",       0);
     
     // Additional Level Objects
     engine.level_objects = pt_config.get("engine.levelobjects", 1);
@@ -148,6 +149,7 @@ bool Config::save(const std::string &filename)
     // Save stuff
     pt_config.put("video.mode",               video.mode);
     pt_config.put("video.window.scale",       video.scale);
+    pt_config.put("video.scanlines",          video.scanlines);
     pt_config.put("video.fps",                video.fps);
     pt_config.put("video.widescreen",         video.widescreen);
     pt_config.put("video.hires",              video.hires);
@@ -178,6 +180,7 @@ bool Config::save(const std::string &filename)
     pt_config.put("engine.time", engine.freeze_timer ? 4 : engine.dip_time);
     pt_config.put("engine.traffic", engine.disable_traffic ? 4 : engine.dip_traffic);
     pt_config.put("engine.japanese_tracks", engine.jap);
+    pt_config.put("engine.prototype", engine.prototype);
     pt_config.put("engine.levelobjects", engine.level_objects);
 
     pt_config.put("time_trial.laps",    ttrial.laps);

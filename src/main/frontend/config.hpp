@@ -74,6 +74,7 @@ struct engine_settings_t
     bool freeze_timer;
     bool disable_traffic;
     int jap;
+    int prototype;
     int randomgen;
     int level_objects;
     bool fix_bugs;

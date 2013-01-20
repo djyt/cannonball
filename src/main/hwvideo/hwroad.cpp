@@ -188,81 +188,6 @@ void HWRoad::decode_road(const uint8_t* src_road)
     }
 }
 
-/*#include <iostream>
-#include "SDL.h"
-
-namespace road_image
-{
-    // Colours from BMP Road Image
-    const uint32_t GROUND          = 0x00B300;
-    const uint32_t ROAD            = 0xB8B8B8;
-    const uint32_t STRIPE_CENTER   = 0xFFFB00;
-    const uint32_t STRIPE_INTERNAL = 0xFFFFFF;
-    const uint32_t STRIPE_OUTER    = 0x7A7A78;
-
-    // Mapping from RGB colour to internal road format
-    const static uint32_t MAPPING[] = 
-    {
-        GROUND,          3,
-        ROAD,            0, 
-        STRIPE_CENTER,   7,
-        STRIPE_INTERNAL, 1,
-        STRIPE_OUTER,    2, 
-    };
-};
-
-
-// iterate x and y through double the amount
-// y source should presumably always remain the same
-// x divide by 16?
-void HWRoad::decode_road_hires(const uint8_t* src_road)
-{
-    // Load the bitmap representation of the road rom
-    SDL_Surface* road_img = SDL_LoadBMP("road.bmp");
-
-    if (road_img->format->BitsPerPixel == 24)
-    {
-        uint8_t* pixels = (uint8_t*) road_img->pixels;
-        const int w = road_img->w;
-        const int h = road_img->h;
-
-        // Iterate the pixels in the bitmap and convert it to the format required by the road emulation
-        for (int y = 0; y < h; y++)
-        {
-            for (int x = 0; x < w; x++)
-            {
-                uint32_t rgb = pixels[0] + (pixels[1] << 8) + (pixels[2] << 16);
-                pixels += 3;
-
-                // Map RGB mapping to internal format for road
-                for (int mapi = 0; mapi < 10; mapi += 2)
-                {
-                    if (road_image::MAPPING[mapi] == rgb)
-                    {
-                        roads[x + (y * w)] = (uint8_t) road_image::MAPPING[mapi+1];
-                        break;
-                    }
-
-                    if (mapi == 8)
-                        std::cout << " poo " << std::endl;
-                }
-            }
-        }
-
-        // Duplicate in memory for the second road
-        memcpy(roads + (w*h), roads, w*h);
-
-        // set up a dummy road in the last entry
-        for (int i = 0; i < h; i++) 
-        {
-            roads[w * 2 * h + i] = 3;
-        }
-
-    }
-
-    SDL_FreeSurface(road_img);
-}*/
-
 // Writes go to RAM, but we read from the RAM Buffer.
 void HWRoad::write16(uint32_t adr, const uint16_t data)
 {
@@ -602,7 +527,7 @@ void HWRoad::render_foreground_hires(uint32_t* pixels)
                 data0_next = (data0_next >> 1) & 0xFF;
                 int32_t diff = data0 + ((data0_next - data0) >> 1);
                 src0 = (roads + (0x000 + diff) * 512);
-                hpos0 = hpos0 + ((hpos0_next - hpos0) >> 1);
+                hpos0 = (hpos0 + ((hpos0_next - hpos0) >> 1)) & 0xFFF;
             }
             // Interpolate road 2 source position
             if (((data1 & 0x800) == 0) && (data1_next & 0x800) == 0)
@@ -611,7 +536,7 @@ void HWRoad::render_foreground_hires(uint32_t* pixels)
                 data1_next = (data1_next >> 1) & 0xFF;
                 int32_t diff = data1 + ((data1_next - data1) >> 1);
                 src1 = (roads + (0x100 + diff) * 512);
-                hpos1 = hpos1 + ((hpos1_next - hpos1) >> 1);
+                hpos1 = (hpos1 + ((hpos1_next - hpos1) >> 1)) & 0xFFF;
             }     
         }
         // ----------------------------------------------------------------------------------------

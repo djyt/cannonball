@@ -155,6 +155,9 @@
     --->
     <japanese_tracks>0</japanese_tracks>
     
+    <!-- Swap In Prototype Coconut Beach Track -->
+    <prototype>0</prototype>
+    
     <!-- Increase the number of allowed level objects. 
          This fixes the broken arches in Gateway for example.
     --->

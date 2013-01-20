@@ -40,7 +40,6 @@ const static char* ENTRY_BACK       = "BACK";
 const static char* ENTRY_PLAYGAME   = "PLAY GAME";
 const static char* ENTRY_TIMETRIAL  = "TIME TRIAL";
 const static char* ENTRY_SETTINGS   = "SETTINGS";
-const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 const static char* ENTRY_ABOUT      = "ABOUT";
 const static char* ENTRY_EXIT       = "EXIT";
 
@@ -62,12 +61,14 @@ const static char* ENTRY_FULLSCREEN = "FULL SCREEN ";
 const static char* ENTRY_WIDESCREEN = "WIDESCREEN ";
 const static char* ENTRY_HIRES      = "HIRES ";
 const static char* ENTRY_SCALE      = "WINDOW SCALE ";
+const static char* ENTRY_SCANLINES  = "SCANLINES ";
 
 // Sound Menu
 const static char* ENTRY_MUTE       = "SOUND ";
 const static char* ENTRY_BGM        = "BGM VOL ";
 const static char* ENTRY_SFX        = "SFX VOL ";
 const static char* ENTRY_ADVERTISE  = "ADVERTISE SOUND ";
+const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 
 // Controls Menu
 const static char* ENTRY_GEAR       = "GEAR ";
@@ -81,6 +82,7 @@ const static char* ENTRY_TRACKS     = "TRACKS ";
 const static char* ENTRY_TIME       = "TIME ";
 const static char* ENTRY_TRAFFIC    = "TRAFFIC ";
 const static char* ENTRY_OBJECTS    = "OBJECTS ";
+const static char* ENTRY_PROTOTYPE  = "PROTOTYPE STAGE 1 ";
 
 // Music Test Menu
 const static char* ENTRY_MUSIC1     = "MAGICAL SOUND SHOWER";
@@ -105,7 +107,6 @@ void Menu::populate()
     menu_main.push_back(ENTRY_PLAYGAME);
     menu_main.push_back(ENTRY_TIMETRIAL);
     menu_main.push_back(ENTRY_SETTINGS);
-    menu_main.push_back(ENTRY_MUSICTEST);
     menu_main.push_back(ENTRY_ABOUT);
     menu_main.push_back(ENTRY_EXIT);
 
@@ -128,12 +129,14 @@ void Menu::populate()
     menu_video.push_back(ENTRY_WIDESCREEN);
     menu_video.push_back(ENTRY_HIRES);
     menu_video.push_back(ENTRY_SCALE);
+    menu_video.push_back(ENTRY_SCANLINES);
     menu_video.push_back(ENTRY_BACK);
 
     menu_sound.push_back(ENTRY_MUTE);
     //menu_sound.push_back(ENTRY_BGM);
     //menu_sound.push_back(ENTRY_SFX);
     menu_sound.push_back(ENTRY_ADVERTISE);
+    menu_sound.push_back(ENTRY_MUSICTEST);
     menu_sound.push_back(ENTRY_BACK);
 
     menu_controls.push_back(ENTRY_GEAR);
@@ -147,6 +150,7 @@ void Menu::populate()
     menu_engine.push_back(ENTRY_TIME);
     menu_engine.push_back(ENTRY_TRAFFIC);
     menu_engine.push_back(ENTRY_OBJECTS);
+    menu_engine.push_back(ENTRY_PROTOTYPE);
     menu_engine.push_back(ENTRY_BACK);
 
     menu_musictest.push_back(ENTRY_MUSIC1);
@@ -182,7 +186,7 @@ void Menu::init()
         ttrial->update_best_time();
     }
 
-    outrun.select_course(false);
+    outrun.select_course(false, config.engine.prototype != 0);
     video.enabled = true;
     video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
     video.sprite_layer->reset();
@@ -250,7 +254,6 @@ void Menu::tick()
             }
             break;
     }
-
 }
 
 void Menu::tick_ui()
@@ -399,8 +402,6 @@ void Menu::tick_menu()
                 set_menu(&menu_timetrial);
             else if (SELECTED(ENTRY_SETTINGS))
                 set_menu(&menu_settings);
-            else if (SELECTED(ENTRY_MUSICTEST))
-                set_menu(&menu_musictest);
             else if (SELECTED(ENTRY_ABOUT))
                 set_menu(&menu_about);
             else if (SELECTED(ENTRY_EXIT))
@@ -499,6 +500,13 @@ void Menu::tick_menu()
                     config.video.scale = 1;
                 restart_video();
             }
+            else if (SELECTED(ENTRY_SCANLINES))
+            {
+                config.video.scanlines += 10;
+                if (config.video.scanlines > 100)
+                    config.video.scanlines = 0;
+                restart_video();
+            }
             else if (SELECTED(ENTRY_FPS))
             {
                 if (++config.video.fps > 2)
@@ -522,6 +530,8 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_ADVERTISE))
                 config.sound.advertise = !config.sound.advertise;
+            else if (SELECTED(ENTRY_MUSICTEST))
+                set_menu(&menu_musictest);
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
         }
@@ -595,7 +605,8 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_OBJECTS))
                 config.engine.level_objects = !config.engine.level_objects;
-
+            else if (SELECTED(ENTRY_PROTOTYPE))
+                config.engine.prototype = !config.engine.prototype;
             if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
         }
@@ -613,7 +624,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_BACK))
             {
                 osoundint.queue_sound(sound::FM_RESET);
-                set_menu(&menu_main);
+                set_menu(&menu_sound);
             }
         }
         else
@@ -673,6 +684,8 @@ void Menu::refresh_menu()
                 else if (config.video.fps == 2) s = "60 FPS";
                 set_menu_text(ENTRY_FPS, s);
             }
+            else if (SELECTED(ENTRY_SCANLINES))
+                set_menu_text(ENTRY_SCANLINES, config.video.scanlines ? config.to_string(config.video.scanlines) +"%": "OFF");
         }
         else if (menu_selected == &menu_sound)
         {
@@ -719,6 +732,8 @@ void Menu::refresh_menu()
             }
             else if (SELECTED(ENTRY_OBJECTS))
                 set_menu_text(ENTRY_OBJECTS, config.engine.level_objects ? "ENHANCED" : "ORIGINAL");
+            else if (SELECTED(ENTRY_PROTOTYPE))
+                set_menu_text(ENTRY_PROTOTYPE, config.engine.prototype ? "ON" : "OFF");
 
         }
     }

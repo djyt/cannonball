@@ -57,7 +57,10 @@ const static char* ENTRY_SAVE       = "SAVE AND RETURN";
 
 // Video Menu
 const static char* ENTRY_FPS        = "FRAME RATE ";
+const static char* ENTRY_FULLSCREEN = "FULL SCREEN ";
 const static char* ENTRY_WIDESCREEN = "WIDESCREEN ";
+const static char* ENTRY_HIRES      = "HIRES ";
+const static char* ENTRY_SCALE      = "WINDOW SCALE ";
 
 // Sound Menu
 const static char* ENTRY_MUTE       = "SOUND ";
@@ -120,7 +123,10 @@ void Menu::populate()
     menu_settings.push_back(ENTRY_SAVE);
 
     menu_video.push_back(ENTRY_FPS);
+    menu_video.push_back(ENTRY_FULLSCREEN);
     menu_video.push_back(ENTRY_WIDESCREEN);
+    menu_video.push_back(ENTRY_HIRES);
+    menu_video.push_back(ENTRY_SCALE);
     menu_video.push_back(ENTRY_BACK);
 
     menu_sound.push_back(ENTRY_MUTE);
@@ -222,6 +228,8 @@ void Menu::tick()
     switch (state)
     {
         case STATE_MENU:
+        case STATE_REDEFINE_KEYS:
+        case STATE_REDEFINE_JOY:
             tick_ui();
             break;
 
@@ -286,6 +294,8 @@ void Menu::tick_ui()
 
         if (oinitengine.car_increment < scroll_speed << 16)
             oinitengine.car_increment += (1 << 14);
+        if (oinitengine.car_increment > scroll_speed << 16)
+            oinitengine.car_increment = scroll_speed << 16;
         uint32_t result = 0x12F * (oinitengine.car_increment >> 16);
         oroad.road_pos_change = result;
         oroad.road_pos += result;
@@ -446,7 +456,6 @@ void Menu::tick_menu()
                     display_message("SETTINGS SAVED");
                 else
                     display_message("ERROR SAVING SETTINGS!");
-                config.set_fps(config.video.fps);
                 set_menu(&menu_main);
             }
         }
@@ -456,15 +465,44 @@ void Menu::tick_menu()
         }
         else if (menu_selected == &menu_video)
         {
-            if (SELECTED(ENTRY_WIDESCREEN))
+            if (SELECTED(ENTRY_FULLSCREEN))
+            {
+                if (++config.video.mode > video_settings_t::MODE_STRETCH)
+                    config.video.mode = video_settings_t::MODE_WINDOW;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_WIDESCREEN))
             {
                 config.video.widescreen = !config.video.widescreen;
-                display_message("REQUIRES RESTART");
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_HIRES))
+            {
+                config.video.hires = !config.video.hires;
+                if (config.video.hires)
+                {
+                    if (config.video.scale > 1)
+                        config.video.scale >>= 1;
+                }
+                else
+                {
+                    config.video.scale <<= 1;
+                }
+
+                restart_video();
+                video.sprite_layer->set_x_clip(false);
+            }
+            else if (SELECTED(ENTRY_SCALE))
+            {
+                if (++config.video.scale > (config.video.hires ? 2 : 4))
+                    config.video.scale = 1;
+                restart_video();
             }
             else if (SELECTED(ENTRY_FPS))
             {
                 if (++config.video.fps > 2)
                     config.video.fps = 0;
+                restart_video();
             }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
@@ -608,14 +646,25 @@ void Menu::refresh_menu()
         if (menu_selected == &menu_timetrial)
         {
             if (SELECTED(ENTRY_LAPS))
-                set_menu_text(ENTRY_LAPS, config.to_string((int) config.ttrial.laps));
+                set_menu_text(ENTRY_LAPS, config.to_string(config.ttrial.laps));
             else if (SELECTED(ENTRY_TRAFFIC))
-                set_menu_text(ENTRY_TRAFFIC, config.ttrial.traffic == 0 ? "DISABLED" : config.to_string((int) config.ttrial.traffic));
+                set_menu_text(ENTRY_TRAFFIC, config.ttrial.traffic == 0 ? "DISABLED" : config.to_string(config.ttrial.traffic));
         }
         else if (menu_selected == &menu_video)
         {
-            if (SELECTED(ENTRY_WIDESCREEN))
+            if (SELECTED(ENTRY_FULLSCREEN))
+            {
+                if (config.video.mode == video_settings_t::MODE_WINDOW)       s = "OFF";
+                else if (config.video.mode == video_settings_t::MODE_FULL)    s = "ON";
+                else if (config.video.mode == video_settings_t::MODE_STRETCH) s = "STRETCH";
+                set_menu_text(ENTRY_FULLSCREEN, s);
+            }
+            else if (SELECTED(ENTRY_WIDESCREEN))
                 set_menu_text(ENTRY_WIDESCREEN, config.video.widescreen ? "ON" : "OFF");
+            else if (SELECTED(ENTRY_SCALE))
+                set_menu_text(ENTRY_SCALE, config.to_string(config.video.scale) + "X");
+            else if (SELECTED(ENTRY_HIRES))
+                set_menu_text(ENTRY_HIRES, config.video.hires ? "ON" : "OFF");
             else if (SELECTED(ENTRY_FPS))
             {               
                 if (config.video.fps == 0)      s = "30 FPS";
@@ -752,4 +801,19 @@ bool Menu::check_jap_roms()
         return false;
     }
     return true;
+}
+
+// Reinitalize Video, and stop audio to avoid crackles
+void Menu::restart_video()
+{
+    #ifdef COMPILE_SOUND_CODE
+    if (config.sound.enabled)
+        cannonball::audio.stop_audio();
+    #endif
+    video.init(&roms, &config.video);
+    #ifdef COMPILE_SOUND_CODE
+    osoundint.init();
+    if (config.sound.enabled)
+        cannonball::audio.start_audio();
+    #endif
 }

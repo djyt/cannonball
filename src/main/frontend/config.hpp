@@ -36,12 +36,12 @@ struct menu_settings_t
 
 struct video_settings_t
 {
-    const static int MODE_WINDOW = 0;
-    const static int FULLSCREEN = 1;
+    const static int MODE_WINDOW  = 0;
+    const static int MODE_FULL    = 1;
+    const static int MODE_STRETCH = 2;
 
     int mode;
     int scale;
-    int stretch;
     int scanlines;
     int widescreen;
     int fps;

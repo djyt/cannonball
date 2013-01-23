@@ -13,6 +13,8 @@ link_libraries(cannonball
     ${SDL_LIBRARY}
     SDLmain
 )
+
+set(CMAKE_CXX_FLAGS "-Ofast")
  
 # Location for Cannonball to create save files
 # Used to auto-generate setup.hpp with various file paths

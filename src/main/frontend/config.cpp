@@ -318,8 +318,7 @@ void Config::set_fps(int fps)
 }
 
 // Convert value to string
-template<class T>
-std::string Config::to_string(T i)
+std::string Config::to_string(int i)
 {
     std::stringstream ss;
     ss << i;

@@ -112,8 +112,7 @@ public:
     void save_scores();
     bool clear_scores();
     void set_fps(int fps);
-
-    template<class T> std::string to_string(T i);
+    std::string to_string(int i);
    
 private:
     // Conversions

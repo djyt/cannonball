@@ -69,7 +69,7 @@ void Audio::start_audio()
         SDL_AudioSpec desired, obtained;
 
         desired.freq     = FREQ;
-        desired.format   = AUDIO_S16;
+        desired.format   = AUDIO_S16SYS;
         desired.channels = CHANNELS;
         desired.samples  = SAMPLES;
         desired.callback = fill_audio;

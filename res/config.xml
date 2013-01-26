@@ -118,7 +118,7 @@
     </padconfig>
     
     <!-- Analog Controls -->
-    <analog enabled = "1">
+    <analog enabled = "0">
         <!-- Select axis for analog controls -->
         <axis>
             <wheel>0</wheel>

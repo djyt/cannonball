@@ -125,9 +125,9 @@
             <accel>2</accel>
             <brake>3</brake>
         </axis>
-		<!-- Amount of wheel turning circle to use.
+        <!-- Amount of wheel turning circle to use.
              Example:  0 means use the entire wheel 
-                         larger values mean to progressively use less of the wheel turning circle -->
+             larger values mean to progressively use less of the wheel turning circle -->
         <wheelzone>75</wheelzone>
     </analog>
     

@@ -72,6 +72,7 @@ const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 
 // Controls Menu
 const static char* ENTRY_GEAR       = "GEAR ";
+const static char* ENTRY_ANALOG     = "ANALOG ";
 const static char* ENTRY_REDEFJOY   = "REDEFINE GAMEPAD";
 const static char* ENTRY_REDEFKEY   = "REDEFINE KEYS";
 const static char* ENTRY_DSTEER     = "DIGITAL STEER SPEED ";
@@ -140,6 +141,7 @@ void Menu::populate()
     menu_sound.push_back(ENTRY_BACK);
 
     menu_controls.push_back(ENTRY_GEAR);
+    if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
     menu_controls.push_back(ENTRY_REDEFKEY);
     if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
     menu_controls.push_back(ENTRY_DSTEER);
@@ -542,6 +544,11 @@ void Menu::tick_menu()
                 if (++config.controls.gear > 2)
                     config.controls.gear = 0;
             }
+            else if (SELECTED(ENTRY_ANALOG))
+            {
+                config.controls.analog = !config.controls.analog;
+                input.analog = config.controls.analog != 0;
+            }
             else if (SELECTED(ENTRY_REDEFKEY))
             {
                 state = STATE_REDEFINE_KEYS;
@@ -551,7 +558,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_REDEFJOY))
             {
                 state = STATE_REDEFINE_JOY;
-                redef_state = 0;
+                redef_state = config.controls.analog ? 2 : 0; // Ignore pedals when redefining analog
                 input.joy_button = -1;
             }
             else if (SELECTED(ENTRY_DSTEER))
@@ -703,6 +710,8 @@ void Menu::refresh_menu()
                 else if (config.controls.gear == 2) s = "AUTOMATIC";
                 set_menu_text(ENTRY_GEAR, s);
             }
+            else if (SELECTED(ENTRY_ANALOG))
+                set_menu_text(ENTRY_ANALOG, config.controls.analog ? "ON" : "OFF");
             else if (SELECTED(ENTRY_DSTEER))
                 set_menu_text(ENTRY_DSTEER, config.to_string(config.controls.steer_speed));
             else if (SELECTED(ENTRY_DPEDAL))

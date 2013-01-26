@@ -213,6 +213,9 @@ bool Config::save(const std::string &filename)
 
 void Config::load_scores()
 {
+    // Counter value that represents 1m 15s 0ms
+    static const uint16_t COUNTER_1M_15 = 0x11D0;
+
     // Create empty property tree object
     ptree pt;
 
@@ -222,6 +225,9 @@ void Config::load_scores()
     }
     catch (std::exception &e)
     {
+        for (int i = 0; i < 15; i++)
+            ttrial.best_times[i] = COUNTER_1M_15;
+
         e.what();
         return;
     }
@@ -245,9 +251,6 @@ void Config::load_scores()
         if (e->initial2 == '.') e->initial2 = 0x20;
         if (e->initial3 == '.') e->initial3 = 0x20;
     }
-
-    // Counter value that represents 1m 15s 0ms
-    static const uint16_t COUNTER_1M_15 = 0x11D0;
 
     // Time Trial Scores
     for (int i = 0; i < 15; i++)

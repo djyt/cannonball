@@ -10,7 +10,6 @@
     See http://mamedev.org/source/docs/license.txt for more details.
 ***************************************************************************/
 
-#include <iostream> // debugging only remove
 #include <stdlib.h>
 #include <cmath>
 #include <cstring>  // For memset on GCC

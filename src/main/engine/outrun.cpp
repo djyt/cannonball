@@ -178,7 +178,7 @@ void Outrun::jump_table()
 
             if (!outrun.tick_frame)
             {
-                omusic.check_start();
+                //omusic.check_start();
                 omusic.blit();
             }
             break;
@@ -643,52 +643,10 @@ void Outrun::init_jump_table()
 
 void Outrun::controls()
 {
-    // ------------------------------------------------------------------------
-    // DEBUG CONTROLS
-    // ------------------------------------------------------------------------
-    if (DEBUG_LEVEL)
-    {
-        if (input.is_pressed(Input::LEFT))
-             oinitengine.camera_x_off += 5;
-        if (input.is_pressed(Input::RIGHT))
-             oinitengine.camera_x_off -= 5;
-
-        // Start/Stop 
-        if (input.has_pressed(Input::GEAR))
-        {
-            if (oinitengine.car_increment != 0xd0 << 16)
-                oinitengine.car_increment = 0xd0 << 16;
-            else
-                oinitengine.car_increment = 0;
-        }
-
-        if (input.is_pressed(Input::UP))
-            oinitengine.car_increment = 0x20 << 16;
-        else if (oinitengine.car_increment != 0xd0 << 16)
-            oinitengine.car_increment = 0;
-
-        if (input.is_pressed(Input::ACCEL))
-        {
-            oroad.horizon_base += -20;
-            if (oroad.horizon_base < 0x100)
-                oroad.horizon_base = 0x100;
-        }
-
-        if (input.is_pressed(Input::BRAKE))
-        {
-            oroad.horizon_base += 20;
-            if (oroad.horizon_base > 0x6A0)
-                oroad.horizon_base = 0x6A0;
-        }
-    }
-
-    // ------------------------------------------------------------------------
-    // NORMAL CONTROLS
-    // ------------------------------------------------------------------------
-    else
-    {
+    if (!input.analog)
         oinputs.simulate_analog();
-    }
+    else
+        oinputs.analog();
 }
 
 // -------------------------------------------------------------------------------

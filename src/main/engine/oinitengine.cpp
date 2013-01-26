@@ -253,27 +253,18 @@ void OInitEngine::update_engine()
     // Main Car Logic Block
     // ------------------------------------------------------------------------
 
-    if (DEBUG_LEVEL)
-    {
-        uint32_t result = 0x12F * (car_increment >> 16);
-        oroad.road_pos_change = result;
-        oroad.road_pos += result;
-    }
-    else
-    {
-        oferrari.move();
+    oferrari.move();
 
-        if (oferrari.car_ctrl_active)
-        {
-            oferrari.set_curve_adjust();
-            oferrari.set_ferrari_x();
-            oferrari.do_skid();
-            oferrari.check_wheels();
-            oferrari.set_ferrari_bounds();
-        }
-
-        oferrari.do_sound_score_slip();
+    if (oferrari.car_ctrl_active)
+    {
+        oferrari.set_curve_adjust();
+        oferrari.set_ferrari_x();
+        oferrari.do_skid();
+        oferrari.check_wheels();
+        oferrari.set_ferrari_bounds();
     }
+
+    oferrari.do_sound_score_slip();
 
     // ------------------------------------------------------------------------
     // Setup New Sprite Scroll Speed. Based On Granular Difference.

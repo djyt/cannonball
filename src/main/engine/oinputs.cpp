@@ -39,7 +39,14 @@ void OInputs::init()
     crash_input = 0;
 }
 
-// Simulate analogue controls
+void OInputs::analog()
+{
+    input_steering = input.a_wheel;
+    input_acc      = input.a_accel;
+    input_brake    = input.a_brake;
+}
+
+// Digital Simulation
 void OInputs::simulate_analog()
 {
     // ------------------------------------------------------------------------

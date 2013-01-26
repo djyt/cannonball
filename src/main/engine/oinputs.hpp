@@ -43,6 +43,7 @@ public:
 
     void init();
     void simulate_analog();
+    void analog();
     void adjust_inputs();
     void do_gear();
     void do_credits();

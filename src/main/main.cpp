@@ -223,7 +223,8 @@ int main(int argc, char* argv[])
         state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
 
         // Initalize controls
-        input.init(config.controls.keyconfig, config.controls.padconfig);
+        input.init(config.controls.keyconfig, config.controls.padconfig, 
+            config.controls.analog != 0, config.controls.axis, config.controls.analog_zone);
         // Populate menus
         menu.populate();
         main_loop();  // Loop until we quit the app

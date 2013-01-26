@@ -20,10 +20,13 @@ Input::~Input(void)
 {
 }
 
-void Input::init(int* key_config, int* pad_config)
+void Input::init(int* key_config, int* pad_config, bool analog, int* axis, int analog_zone)
 {
-    this->key_config = key_config;
-    this->pad_config = pad_config;
+    this->key_config  = key_config;
+    this->pad_config  = pad_config;
+    this->analog      = analog;
+    this->axis        = axis;
+    this->analog_zone = analog_zone;
 
     gamepad = SDL_NumJoysticks() >= 1;
 
@@ -126,40 +129,83 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
 {
     int16_t value = evt->value;
 
-    // X-Axis
-    if (evt->axis == 0)
+    // Digital Controls
+    if (!analog)
     {
-        // Neural
-        if ( (value > -3200 ) && (value < 3200 ) )
+        // X-Axis
+        if (evt->axis == 0)
         {
-            keys[LEFT]  = false;
-            keys[RIGHT] = false;
+            // Neural
+            if ( (value > -3200 ) && (value < 3200 ) )
+            {
+                keys[LEFT]  = false;
+                keys[RIGHT] = false;
+            }
+            else if (value < 0)
+            {
+                keys[LEFT] = true;
+            }
+            else if (value > 0)
+            {
+                keys[RIGHT] = true;
+            }
         }
-        else if (value < 0)
+        // Y-Axis
+        else if (evt->axis == 1)
         {
-            keys[LEFT] = true;
-        }
-        else if (value > 0)
-        {
-            keys[RIGHT] = true;
+            // Neural
+            if ( (value > -3200 ) && (value < 3200 ) )
+            {
+                keys[UP]  = false;
+                keys[DOWN] = false;
+            }
+            else if (value < 0)
+            {
+                keys[UP] = true;
+            }
+            else if (value > 0)
+            {
+                keys[DOWN] = true;
+            }
         }
     }
-    // Y-Axis
-    else if (evt->axis == 1)
+    // Analog Controls
+    else
     {
-        // Neural
-        if ( (value > -3200 ) && (value < 3200 ) )
+        // Steering
+        // OutRun requires values between 0x48 and 0xb8. 0x80 is center
+        if (evt->axis == axis[0])
         {
-            keys[UP]  = false;
-            keys[DOWN] = false;
+            int percentage_adjust = ((analog_zone) << 8) / 100;         
+            int adjusted = value + ((value * percentage_adjust) >> 8);
+            
+            // Make 0 hard left, and 0x80 centre value.
+            adjusted = ((adjusted + (1 << 15)) >> 9);
+            adjusted += 0x40; // Centre
+
+            if (adjusted < 0x40)
+                adjusted = 0x40;
+            else if (adjusted > 0xC0)
+                adjusted = 0xC0;
+
+            //std::cout << "wheel zone : " << analog_zone << " : " << std::hex << " : " << (int) adjusted << std::endl;
+            a_wheel = adjusted;
         }
-        else if (value < 0)
+        // Accelerator
+        else if (evt->axis == axis[1])
         {
-            keys[UP] = true;
+            // Scale input to be in the range of 0 to 0x7F
+            int adjusted = 0x7F - ((value + (1 << 15)) >> 9);           
+            adjusted += (adjusted >> 2);
+            a_accel = adjusted;
         }
-        else if (value > 0)
+        // Brake
+        else if (evt->axis == axis[2])
         {
-            keys[DOWN] = true;
+            // Scale input to be in the range of 0 to 0x7F
+            int adjusted = 0x7F - ((value + (1 << 15)) >> 9);
+            adjusted += (adjusted >> 2);
+            a_brake = adjusted;
         }
     }
 }

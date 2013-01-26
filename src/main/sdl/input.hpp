@@ -40,16 +40,24 @@ public:
     // Has gamepad been found?
     bool gamepad;
 
+    // Use analog controls
+    bool analog;
+
     // Latch last key press for redefines
     int key_press;
 
     // Latch last joystick button press for redefines
     int16_t joy_button;
 
+    // Analog Controls
+    int a_wheel;
+    int a_accel;
+    int a_brake;
+
     Input(void);
     ~Input(void);
 
-    void init(int*, int*);
+    void init(int*, int*, const bool, int*, const int);
     void stop();
 
     void handle_key_up(SDL_keysym*);
@@ -68,6 +76,9 @@ private:
     // Configurations for keyboard and joypad
     int* pad_config;
     int* key_config;
+    int* axis;
+
+    int analog_zone;
 
     void handle_key(const int, const bool);
     void handle_joy(const uint8_t, const bool);

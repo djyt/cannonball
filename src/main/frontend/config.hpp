@@ -62,6 +62,9 @@ struct controls_settings_t
     int pedal_speed;   // Pedal Digital Speed
     int padconfig[6];  // Joypad Button Config
     int keyconfig[10]; // Keyboard Button Config
+    int analog;       // Use analog controls
+    int axis[3];       // Analog Axis
+    int analog_zone;   // Percentage of wheel turning circle to use
 };
 
 struct engine_settings_t
@@ -113,6 +116,7 @@ public:
     bool clear_scores();
     void set_fps(int fps);
     std::string to_string(int i);
+    std::string to_string(char c);
    
 private:
     // Conversions

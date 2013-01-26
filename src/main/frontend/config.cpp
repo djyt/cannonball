@@ -115,6 +115,11 @@ void Config::load(const std::string &filename)
     controls.padconfig[3]  = pt_config.get("controls.padconfig.start", 3);
     controls.padconfig[4]  = pt_config.get("controls.padconfig.coin", 4);
     controls.padconfig[5]  = pt_config.get("controls.padconfig.menu", 5);
+    controls.analog        = pt_config.get("controls.analog.<xmlattr>.enabled", 0);
+    controls.axis[0]       = pt_config.get("controls.analog.axis.wheel", 0);
+    controls.axis[1]       = pt_config.get("controls.analog.axis.accel", 2);
+    controls.axis[2]       = pt_config.get("controls.analog.axis.brake", 3);
+    controls.analog_zone   = pt_config.get("controls.analog.wheelzone", 75);
 
     // ------------------------------------------------------------------------
     // Engine Settings
@@ -176,6 +181,7 @@ bool Config::save(const std::string &filename)
     pt_config.put("controls.padconfig.start", controls.padconfig[3]);
     pt_config.put("controls.padconfig.coin",  controls.padconfig[4]);
     pt_config.put("controls.padconfig.menu",  controls.padconfig[5]);
+    pt_config.put("controls.analog.<xmlattr>.enabled", controls.analog);
 
     pt_config.put("engine.time", engine.freeze_timer ? 4 : engine.dip_time);
     pt_config.put("engine.traffic", engine.disable_traffic ? 4 : engine.dip_traffic);
@@ -263,9 +269,9 @@ void Config::save_scores()
         xmltag += to_string(i);    
         
         pt.put(xmltag + ".score",    to_hex_string(e->score));
-        pt.put(xmltag + ".initial1", e->initial1 == 0x20 ? "." : to_string(e->initial1)); // use . to represent space
-        pt.put(xmltag + ".initial2", e->initial2 == 0x20 ? "." : to_string(e->initial2));
-        pt.put(xmltag + ".initial3", e->initial3 == 0x20 ? "." : to_string(e->initial3));
+        pt.put(xmltag + ".initial1", e->initial1 == 0x20 ? "." : to_string((char) e->initial1)); // use . to represent space
+        pt.put(xmltag + ".initial2", e->initial2 == 0x20 ? "." : to_string((char) e->initial2));
+        pt.put(xmltag + ".initial3", e->initial3 == 0x20 ? "." : to_string((char) e->initial3));
         pt.put(xmltag + ".maptiles", to_hex_string(e->maptiles));
         pt.put(xmltag + ".time",     to_hex_string(e->time));
     }
@@ -322,6 +328,14 @@ std::string Config::to_string(int i)
 {
     std::stringstream ss;
     ss << i;
+    return ss.str();
+}
+
+// Convert value to string
+std::string Config::to_string(char c)
+{
+    std::stringstream ss;
+    ss << c;
     return ss.str();
 }
 

@@ -17,7 +17,7 @@
         Scale: Scale or zoom factor for window mode. 1 is original size. 
     -->
     <window>
-        <scale>3</scale>
+        <scale>2</scale>
     </window>
 
     <!-- 
@@ -116,6 +116,20 @@
         <coin>4</coin>
         <menu>5</menu>    
     </padconfig>
+    
+    <!-- Analog Controls -->
+    <analog enabled = "1">
+        <!-- Select axis for analog controls -->
+        <axis>
+            <wheel>0</wheel>
+            <accel>2</accel>
+            <brake>3</brake>
+        </axis>
+		<!-- Amount of wheel turning circle to use.
+             Example:  0 means use the entire wheel 
+                         larger values mean to progressively use less of the wheel turning circle -->
+        <wheelzone>75</wheelzone>
+    </analog>
     
     <!-- Digital Controls: Steering Adjust Speed (1 to 9) -->
     <steerspeed>3</steerspeed>

@@ -289,10 +289,13 @@ void OInitEngine::update_engine()
         ohud.blit_text1(HUD_KPH2);
 
         // Blit High/Low Gear
-        if (oinputs.gear)
-            ohud.blit_text_new(9, 26, "H");
-        else
-            ohud.blit_text_new(9, 26, "L");
+        if (config.controls.gear == config.controls.GEAR_BUTTON)
+        {
+            if (oinputs.gear)
+                ohud.blit_text_new(9, 26, "H");
+            else
+                ohud.blit_text_new(9, 26, "L");
+        }
     }
 
     if (olevelobjs.spray_counter > 0)

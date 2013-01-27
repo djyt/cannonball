@@ -643,7 +643,7 @@ void Outrun::init_jump_table()
 
 void Outrun::controls()
 {
-    if (!input.analog)
+    if (!input.analog || !input.gamepad)
         oinputs.simulate_analog();
     else
         oinputs.analog();

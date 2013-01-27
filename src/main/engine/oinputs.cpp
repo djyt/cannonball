@@ -123,12 +123,12 @@ void OInputs::do_gear()
     // ------------------------------------------------------------------------
 
     // Automatic Gears: Don't do anything
-    if (config.controls.gear == config.engine.GEAR_AUTO)
+    if (config.controls.gear == config.controls.GEAR_AUTO)
         return;
 
     // Manual: Cabinet Shifter
-    if (config.controls.gear == config.engine.GEAR_PRESS)
-        gear = input.is_pressed(Input::GEAR);
+    if (config.controls.gear == config.controls.GEAR_PRESS)
+        gear = !input.is_pressed(Input::GEAR);
 
     // Manual: Keyboard/Digital Button
     else

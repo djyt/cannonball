@@ -57,21 +57,22 @@ struct sound_settings_t
 
 struct controls_settings_t
 {
+    const static int GEAR_BUTTON = 0;
+    const static int GEAR_PRESS  = 1; // For cabinets
+    const static int GEAR_AUTO   = 2;
+
     int gear;
     int steer_speed;   // Steering Digital Speed
     int pedal_speed;   // Pedal Digital Speed
     int padconfig[6];  // Joypad Button Config
     int keyconfig[10]; // Keyboard Button Config
-    int analog;       // Use analog controls
+    int analog;        // Use analog controls
     int axis[3];       // Analog Axis
     int analog_zone;   // Percentage of wheel turning circle to use
 };
 
 struct engine_settings_t
 {
-    const static int GEAR_PRESS = 1; // For cabinets
-    const static int GEAR_AUTO  = 2;
-
     int dip_time;
     int dip_traffic;
     bool freeze_timer;

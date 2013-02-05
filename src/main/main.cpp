@@ -61,7 +61,7 @@ static void process_events(void)
             case SDL_KEYDOWN:
                 // Handle key presses.
                 if (event.key.keysym.sym == SDLK_ESCAPE)
-                    quit_func(0);
+                    state = config.menu.enabled ? STATE_INIT_MENU : STATE_QUIT;
                 else
                     input.handle_key_down(&event.key.keysym);
                 break;

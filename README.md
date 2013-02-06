@@ -16,13 +16,13 @@ Getting Started
 * Extract the [Boost Library](http://www.boost.org/) somewhere, for example: c:\coding\lib\boost_1_51_0
 * Extract the [SDL Library](http://www.libsdl.org/download-1.2.php) somewhere, for example: c:\coding\lib\SDL-1.2.15
 * Read the SDL documentation & compile the SDL Library for your system.
-* Extract the Cannonball code somewhere, for example: c:\dev\cannonball
-* Configure the CMakeLists.txt file, use a build.cmake file to reflect the correct directory structure for your libraries.
+* Extract the Cannonball code somewhere, for example: c:\coding\cannonball
+* You may need to create a .cmake file for your system to configure specific options. See the cmake subdirectory for more details. If not, the default.cmake file will be used.
 
 Build
 -----
 
-* Run CMake to generate the relevant build files for your compiler.
+* Run CMake to generate the relevant build files for your compiler. You can optionally pass -DTARGET=filename to pass a custom .cmake file
 * Compile using your chosen compiler. Further details below.
 
 ###
@@ -35,7 +35,7 @@ Build
     cmake -G "Insert Generator Name Here" ../cmake
     make
 
-### MingGW
+### MinGW
 
     cmake -G "MinGW Makefiles" -DTARGET=mingw ../cmake
     mingw32-make

@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 2.6.2)
 project (cannonball)
+set(DCMAKE default.cmake)
+set(CMDIR cmake)
 
 # Uncomment for debug output
 #set(Boost_DEBUG 1)
@@ -8,7 +10,19 @@ project (cannonball)
 set(main_cpp_base ../src/main)
 
 # Include relevant CMAKE file (default, mingw, pandora etc.)
-include(default.cmake)
+if(TARGET)
+    set(TCMAKE ${TARGET}.cmake)
+    if(EXISTS ${CMDIR}/${TCMAKE})
+        message("CMake files for ${TARGET} found, using ${TCMAKE}")
+        include(${TCMAKE})
+    else()
+        message("CMake files for ${TARGET} not found, using ${DCMAKE}")
+        include(${DCMAKE})
+    endif()
+else()
+    message("TARGET not passed, using ${DCMAKE}")
+    include(${DCMAKE})
+endif(TARGET)
 
 set(BOOST_INCLUDEDIR ${lib_base}/boost_1_51_0)
 find_package(Boost REQUIRED)

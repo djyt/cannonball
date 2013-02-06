@@ -37,7 +37,7 @@ Build
 
 ### MingGW
 
-    cmake -G "MinGW Makefiles" ../cmake
+    cmake -G "MinGW Makefiles" -DTARGET=mingw ../cmake
     mingw32-make
     
 ### Visual Studio 2010

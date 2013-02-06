@@ -11,6 +11,9 @@ Credits
 
 Getting Started
 ---------------
+
+Cannonball has been successfully built for Windows, Mac OS X, Linux, Open Pandora and the Raspberry Pi. 
+
 * Install your favourite C++ environment (e.g. GCC, Visual Studio, Xcode, MingGW etc.)
 * Install [CMake](http://www.cmake.org/). This generates your platform and compiler build files. 
 * Extract the [Boost Library](http://www.boost.org/) somewhere, for example: c:\coding\lib\boost_1_51_0

@@ -8,8 +8,24 @@
 ***************************************************************************/
 
 #include "main.hpp"
+#include "engine/oanimseq.hpp"
+#include "engine/obonus.hpp"
+#include "engine/ocrash.hpp"
+#include "engine/oferrari.hpp"
+#include "engine/ohiscore.hpp"
+#include "engine/ohud.hpp"
+#include "engine/oinputs.hpp"
+#include "engine/olevelobjs.hpp"
+#include "engine/ologo.hpp"
+#include "engine/omap.hpp"
+#include "engine/omusic.hpp"
+#include "engine/ooutputs.hpp"
+#include "engine/osmoke.hpp"
 #include "engine/outrun.hpp"
 #include "engine/opalette.hpp"
+#include "engine/ostats.hpp"
+#include "engine/otiles.hpp"
+#include "engine/otraffic.hpp"
 #include "engine/outils.hpp"
 
 Outrun outrun;
@@ -38,10 +54,12 @@ Outrun outrun;
 
 Outrun::Outrun()
 {
+    outputs = new OOutputs();
 }
 
 Outrun::~Outrun()
 {
+    delete outputs;
 }
 
 void Outrun::init()
@@ -233,6 +251,8 @@ void Outrun::jump_table()
     }
 
     osprites.sprite_copy();
+    if (tick_frame)
+        outputs->do_motors();
 }
 
 // Source: 0xB15E
@@ -636,6 +656,7 @@ void Outrun::init_jump_table()
     opalette.init();
     oinputs.init();
     obonus.init();
+    outputs->init();
 
     video.tile_layer->set_x_clamp(video.tile_layer->RIGHT);
     video.sprite_layer->set_x_clip(false);

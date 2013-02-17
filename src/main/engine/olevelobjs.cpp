@@ -16,6 +16,7 @@
 
 #include "engine/outils.hpp"
 #include "engine/olevelobjs.hpp"
+#include "engine/ostats.hpp"
 
 OLevelObjs olevelobjs;
 

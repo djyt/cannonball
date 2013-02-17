@@ -56,7 +56,7 @@ set(src_main
     "${main_cpp_base}/main.cpp"
     "${main_cpp_base}/romloader.cpp"
     "${main_cpp_base}/roms.cpp"
-)
+    )
 
 set(src_frontend
     "${main_cpp_base}/frontend/config.hpp"
@@ -66,7 +66,7 @@ set(src_frontend
     "${main_cpp_base}/frontend/config.cpp"
     "${main_cpp_base}/frontend/menu.cpp"
     "${main_cpp_base}/frontend/ttrial.cpp"
-)
+    )
 
 set(src_hwvideo
     "${main_cpp_base}/hwvideo/hwroad.hpp"
@@ -98,7 +98,12 @@ set(src_sdl
     "${main_cpp_base}/sdl/timer.cpp"
     "${main_cpp_base}/sdl/input.cpp"
     "${main_cpp_base}/sdl/video.cpp"
-)
+    )
+
+set(src_directx
+    "${main_cpp_base}/directx/ffeedback.hpp"
+    "${main_cpp_base}/directx/ffeedback.cpp"
+    )
 
 set(src_engine
     "${main_cpp_base}/engine/oaddresses.hpp"
@@ -117,6 +122,7 @@ set(src_engine
     "${main_cpp_base}/engine/ologo.hpp"
     "${main_cpp_base}/engine/omap.hpp"
     "${main_cpp_base}/engine/omusic.hpp"
+    "${main_cpp_base}/engine/ooutputs.hpp"
     "${main_cpp_base}/engine/opalette.hpp"
     "${main_cpp_base}/engine/oroad.hpp"
     "${main_cpp_base}/engine/osmoke.hpp"
@@ -142,6 +148,7 @@ set(src_engine
     "${main_cpp_base}/engine/ologo.cpp"
     "${main_cpp_base}/engine/omap.cpp"
     "${main_cpp_base}/engine/omusic.cpp"
+    "${main_cpp_base}/engine/ooutputs.cpp"
     "${main_cpp_base}/engine/opalette.cpp"
     "${main_cpp_base}/engine/oroad.cpp"
     "${main_cpp_base}/engine/osmoke.cpp"
@@ -170,6 +177,7 @@ SOURCE_GROUP(src\\frontend FILES ${src_frontend})
 SOURCE_GROUP(src\\hwvideo FILES ${src_hwvideo})
 SOURCE_GROUP(src\\hwaudio FILES ${src_hwaudio})
 SOURCE_GROUP(src\\sdl FILES ${src_sdl})
+SOURCE_GROUP(src\\directx FILES ${src_directx})
 SOURCE_GROUP(src\\engine FILES ${src_engine})
 SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
 
@@ -179,6 +187,7 @@ set(SRCS
     ${src_hwvideo}
     ${src_hwaudio}
     ${src_sdl}
+    ${src_directx}
     ${src_engine}
     ${src_engine_audio}
 )

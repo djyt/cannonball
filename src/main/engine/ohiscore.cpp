@@ -7,8 +7,10 @@
 ***************************************************************************/
 
 #include "main.hpp"
+#include "engine/ohud.hpp"
+#include "engine/oinputs.hpp"
+#include "engine/ostats.hpp"
 #include "engine/outils.hpp"
-#include "outrun.hpp"
 #include "engine/ohiscore.hpp"
 
 OHiScore ohiscore;

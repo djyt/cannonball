@@ -17,6 +17,14 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "engine/oanimseq.hpp"
+#include "engine/oattractai.hpp"
+#include "engine/obonus.hpp"
+#include "engine/ocrash.hpp"
+#include "engine/ohud.hpp"
+#include "engine/oinputs.hpp"
+#include "engine/olevelobjs.hpp"
+#include "engine/ostats.hpp"
 #include "engine/outils.hpp"
 #include "engine/oferrari.hpp"
 

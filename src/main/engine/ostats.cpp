@@ -9,8 +9,10 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "engine/ohud.hpp"
 #include "engine/outils.hpp"
 #include "engine/ostats.hpp"
+#include "engine/otraffic.hpp"
 
 OStats ostats;
 

@@ -12,7 +12,12 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "engine/oanimseq.hpp"
+#include "engine/ocrash.hpp"
+#include "engine/oferrari.hpp"
+#include "engine/olevelobjs.hpp"
 #include "engine/osprites.hpp"
+#include "engine/otraffic.hpp"
 #include "engine/ozoom_lookup.hpp"
 
 OSprites osprites;

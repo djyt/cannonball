@@ -24,6 +24,7 @@
 #include "engine/oinitengine.hpp"
 
 #include "engine/oroad.hpp"
+#include "engine/ostats.hpp"
 
 ORoad oroad;
 

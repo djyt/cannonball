@@ -19,27 +19,9 @@
 
 // Main include for Ported OutRun Code
 #include "oaddresses.hpp"
-#include "otiles.hpp"
-#include "oentry.hpp"
-#include "osprite.hpp"
 #include "osprites.hpp"
-#include "oferrari.hpp"
-#include "osmoke.hpp"
-#include "otraffic.hpp"
-#include "olevelobjs.hpp"
-#include "ologo.hpp"
 #include "oroad.hpp"
 #include "oinitengine.hpp"
-#include "oinputs.hpp"
-#include "ohud.hpp"
-#include "ocrash.hpp"
-#include "oattractai.hpp"
-#include "oanimseq.hpp"
-#include "ostats.hpp"
-#include "omap.hpp"
-#include "ohiscore.hpp"
-#include "omusic.hpp"
-#include "obonus.hpp"
 #include "audio/osoundint.hpp"
 
 // Globals
@@ -191,6 +173,8 @@ struct adr_t
     uint32_t road_height_lookup;
 };
 
+class OOutputs;
+
 class Outrun
 {
 public:
@@ -224,7 +208,9 @@ public:
 	void vint();
     void select_course(const bool jap, const bool prototype);
 
-private:    
+private:
+    OOutputs* outputs;
+
     // Car Increment Backup for attract mode
     uint32_t car_inc_bak;
 

@@ -7,6 +7,8 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "engine/ohud.hpp"
+#include "engine/oinputs.hpp"
 #include "engine/opalette.hpp"
 
 OPalette opalette;

@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include "outrun.hpp"
 #include "oanimsprite.hpp"
 
 class OAnimSeq

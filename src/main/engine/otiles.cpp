@@ -12,6 +12,7 @@
 ***************************************************************************/
 
 #include "engine/opalette.hpp"
+#include "engine/ostats.hpp"
 #include "engine/otiles.hpp"
 
 OTiles otiles;

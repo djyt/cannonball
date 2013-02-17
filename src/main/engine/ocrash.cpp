@@ -21,6 +21,9 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "engine/oferrari.hpp"
+#include "engine/oinputs.hpp"
+#include "engine/olevelobjs.hpp"
 #include "engine/outils.hpp"
 #include "engine/ocrash.hpp"
 

@@ -20,7 +20,6 @@
 #pragma once
 
 #include "outrun.hpp"
-#include "osprites.hpp"
 
 class OFerrari
 {

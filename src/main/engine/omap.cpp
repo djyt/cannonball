@@ -12,7 +12,12 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "engine/oferrari.hpp"
+#include "engine/ohiscore.hpp"
 #include "engine/omap.hpp"
+#include "engine/otiles.hpp"
+#include "engine/otraffic.hpp"
+#include "engine/ostats.hpp"
 
 OMap omap;
 

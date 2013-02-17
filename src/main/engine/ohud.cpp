@@ -11,8 +11,10 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "engine/oferrari.hpp"
 #include "engine/outils.hpp"
 #include "engine/ohud.hpp"
+#include "engine/ostats.hpp"
 
 OHud ohud;
 

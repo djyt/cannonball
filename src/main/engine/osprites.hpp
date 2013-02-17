@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "oentry.hpp"
+#include "osprite.hpp"
 #include "outrun.hpp"
 
 class OSprites

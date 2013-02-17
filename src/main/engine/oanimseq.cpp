@@ -13,6 +13,9 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "engine/obonus.hpp"
+#include "engine/oferrari.hpp"
+#include "engine/oinputs.hpp"
 #include "engine/oanimseq.hpp"
 
 // ----------------------------------------------------------------------------

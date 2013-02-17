@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "stdint.hpp"
+
 struct score_entry
 {
     uint32_t score;

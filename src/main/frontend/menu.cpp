@@ -13,11 +13,16 @@
 #include "menu.hpp"
 #include "setup.hpp"
 
+#include "engine/ohud.hpp"
+#include "engine/oinputs.hpp"
 #include "engine/osprites.hpp"
 #include "engine/ologo.hpp"
 #include "engine/opalette.hpp"
+#include "engine/otiles.hpp"
 
 #include "frontend/ttrial.hpp"
+
+#include "directx/ffeedback.hpp"
 
 // Logo Y Position
 const static int16_t LOGO_Y = -60;
@@ -181,6 +186,8 @@ void Menu::populate()
 
 void Menu::init()
 {   
+    forcefeedback::init();
+
     // If we got a new high score on previous time trial, then save it!
     if (outrun.ttrial.new_high_score)
     {
@@ -372,6 +379,8 @@ void Menu::tick_menu()
     // Tick Controls
     if (input.has_pressed(Input::DOWN))
     {
+        forcefeedback::set(10, 1);
+
         osoundint.queue_sound(sound::BEEP1);
 
         if (++cursor >= (int16_t) menu_selected->size())
@@ -379,6 +388,8 @@ void Menu::tick_menu()
     }
     else if (input.has_pressed(Input::UP))
     {
+        forcefeedback::set(1, 1);
+
         osoundint.queue_sound(sound::BEEP1);
 
         if (--cursor < 0)

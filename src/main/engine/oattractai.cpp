@@ -21,6 +21,10 @@
 ***************************************************************************/
 
 #include "engine/oattractai.hpp"
+#include "engine/oferrari.hpp"
+#include "engine/oinputs.hpp"
+#include "engine/ostats.hpp"
+#include "engine/otraffic.hpp"
 
 OAttractAI oattractai;
 

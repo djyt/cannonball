@@ -58,7 +58,7 @@ public:
     ~Input(void);
 
     void init(int*, int*, const bool, int*, const int);
-    void stop();
+    void close();
 
     void handle_key_up(SDL_keysym*);
     void handle_key_down(SDL_keysym*);

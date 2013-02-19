@@ -36,7 +36,7 @@ void Input::init(int* key_config, int* pad_config, bool analog, int* axis, int a
     }
 }
 
-void Input::stop()
+void Input::close()
 {
     if (gamepad && stick != NULL)
         SDL_JoystickClose(stick);

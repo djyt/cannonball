@@ -103,7 +103,7 @@ set(src_sdl
 set(src_directx
     "${main_cpp_base}/directx/ffeedback.hpp"
     "${main_cpp_base}/directx/ffeedback.cpp"
-    )
+)
 
 set(src_engine
     "${main_cpp_base}/engine/oaddresses.hpp"

@@ -1,3 +1,19 @@
+/***************************************************************************
+    Process Outputs.
+    
+    - Only the Deluxe Moving Motor Code is ported for now.
+    - This is used by the force-feedback haptic system.
+
+    One thing to note is that this code was originally intended to drive
+    a moving hydraulic cabinet, not to be mapped to a haptic device.
+
+    Therefore, it's not perfect when used in this way, but the results
+    aren't bad :)
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "stdint.hpp"
@@ -17,7 +33,7 @@ public:
     ~OOutputs(void);
 
     void init();
-    void do_motors();
+    void tick();
 
 private:
     const static uint8_t MOTOR_OFF    = 0;
@@ -25,8 +41,9 @@ private:
 
     // These are calculated during startup in the original game.
     // Here we just hardcode them, as the motor init code isn't ported.
-    const static int8_t LEFT_LIMIT    = -14;
-    const static int8_t RIGHT_LIMIT   = 14;
+    const static uint8_t MOTOR_PREV    = 0x80;
+    const static uint8_t LEFT_LIMIT    = 0xC1;
+    const static uint8_t RIGHT_LIMIT   = 0x3C;
 
     // Motor Value, representing the x-position of the cabinet.
     // We fudge this and just use the x-position of the steering wheel
@@ -62,7 +79,7 @@ private:
     // 0x26: Adjusted movement value based on steering 3
     int16_t movement_adjust3;
 
-    void motor_output(uint8_t cmd);
+    void do_motors();
     void car_moving();
     void car_stationary();
     void adjust_motor();
@@ -70,4 +87,5 @@ private:
     void do_motor_offroad();
     void set_value(const uint8_t*, uint8_t);
     void done();
+    void motor_output(uint8_t cmd);
 };

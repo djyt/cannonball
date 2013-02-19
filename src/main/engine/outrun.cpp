@@ -49,6 +49,7 @@ Outrun outrun;
     - Stage 3c: Clouds overlapping trees [unable to fix easily]
     - Traffic spawns on horizon and transforms type as you approach. 
       This is mostly noticeable when using hi-res mode.
+    - Sometimes the Ferrari stalls on the start-line on game restart. Happens in Attract Mode too.
 
 */
 
@@ -251,8 +252,8 @@ void Outrun::jump_table()
     }
 
     osprites.sprite_copy();
-    if (tick_frame)
-        outputs->do_motors();
+    if (tick_frame && config.controls.haptic && config.controls.analog)
+        outputs->tick();
 }
 
 // Source: 0xB15E

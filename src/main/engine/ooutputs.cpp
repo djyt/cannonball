@@ -2,47 +2,17 @@
     Process Outputs.
     
     - Only the Deluxe Moving Motor Code is ported for now.
-    - This is used by the force-feedback system.
+    - This is used by the force-feedback haptic system.
+
+    One thing to note is that this code was originally intended to drive
+    a moving hydraulic cabinet, not to be mapped to a haptic device.
+
+    Therefore, it's not perfect when used in this way, but the results
+    aren't bad :)
     
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
-
-// Port code at 0xE644
-
-//REGISTERS:00140001 hw_motor_limit: ds.b 1                                      ; DATA XREF: sub_ED46:loc_ED56r
-//REGISTERS:00140001                                                             ; sub_ED46:loc_EDD4r ...
-//REGISTERS:00140001                                                             ; Bit 3 = Set to indicate left limit reached
-//REGISTERS:00140001                                                             ; Bit 4 = Set to indicate centre reached
-//REGISTERS:00140001                                                             ; Bit 5 = Set to indicate right limit reached
-//REGISTERS:00140001                                                             ;
-//REGISTERS:00140002                 ds.b 1
-//REGISTERS:00140003 hw_motor_ctrl:  ds.b 1                                      ; DATA XREF: DoMotors+9Ew
-//REGISTERS:00140003                                                             ; DoMotors+18Cw ...
-//REGISTERS:00140003                                                             ; Move motor
-//REGISTERS:00140003                                                             ;
-//REGISTERS:00140003                                                             ; 0 = Switch off?
-//REGISTERS:00140003                                                             ; 5 = Left
-//REGISTERS:00140003                                                             ; 8 = Centre
-//REGISTERS:00140003                                                             ; B = Right
-
-  //if (a==0x140001) {
-	 // // Motor Limit Status
-	 // // return 0x2d; 
-	 // if (OutAxis[0]<0x03) return 0x0d; // LEFT LIMIT REACHED
-	 // if (OutAxis[0]>0xfc) return 0x20; // RIGHT LIMIT REACHED
-	 // return 0x2d;
-  //}
-
-  //if (a==0x140031)
-  //{
-  //  switch (AnalogSelect)
-  //  {
-  //    case 0x0: return OutAxis[0];
-  //    case 0x4: return OutAxis[1];
-  //    case 0x8: return OutAxis[2];
-  //    case 0xc: return OutAxis[0]; // Motor Status x-pos
-  //  }
 
 #include "engine/outrun.hpp"
 #include "engine/ocrash.hpp"
@@ -50,6 +20,9 @@
 #include "engine/oinputs.hpp"
 #include "engine/ooutputs.hpp"
 #include "directx/ffeedback.hpp"
+
+// Disable areas of code that cause problems when mapping motor to haptic device
+#define CHANGED_CODE 1
 
 const static uint8_t MOTOR_VALUES[] = 
 {
@@ -116,6 +89,14 @@ void OOutputs::init()
     movement_adjust3   = 0;
 }
 
+void OOutputs::tick()
+{
+    do_motors();
+
+    // Finally output the info to the force feedback handling class
+    motor_output(hw_motor_control);
+}
+
 // Process Motor Code.
 // Note, that only the Deluxe Moving Motor Code is ported for now.
 // Source: 0xE644
@@ -125,7 +106,7 @@ void OOutputs::do_motors()
     // Normally this would be done on H-Blank
     // But instead we return the x-position of the wheel
     input_motor = oinputs.input_steering;
-    motor_x_change = -(input_motor - input_motor_old);
+    motor_x_change = -(input_motor - MOTOR_PREV);
 
     if (!motor_enabled)
     {
@@ -138,7 +119,7 @@ void OOutputs::do_motors()
     {
         if (ocrash.crash_counter)
         {
-            if (oinitengine.car_increment <= 0x14)
+            if ((oinitengine.car_increment >> 16) <= 0x14)
                 car_stationary();
             else
                 do_motor_crash();
@@ -149,7 +130,7 @@ void OOutputs::do_motors()
         }
         else
         {
-            if (oinitengine.car_increment <= 0x14)
+            if ((oinitengine.car_increment >> 16) <= 0x14)
             {
                 if (!was_small_change)
                     done();
@@ -186,15 +167,16 @@ void OOutputs::car_moving()
         return;
     }
 
-    if (oinitengine.car_increment <= 0x64)      speed = 0;
-    else if (oinitengine.car_increment <= 0xA0) speed = 1 << 3;
-    else if (oinitengine.car_increment <= 0xDC) speed = 2 << 3;
-    else                                        speed = 3 << 3;
+    const uint16_t car_inc = oinitengine.car_increment >> 16;
+    if (car_inc <= 0x64)                    speed = 0;
+    else if (car_inc <= 0xA0)               speed = 1 << 3;
+    else if (car_inc <= 0xDC)               speed = 2 << 3;
+    else                                    speed = 3 << 3;
 
-    if (oinitengine.road_curve == 0)            curve = 0;
-    else if (oinitengine.road_curve <= 0x3C)    curve = 2; // sharp curve
-    else if (oinitengine.road_curve <= 0x5A)    curve = 1; // gentle curve
-    else                                        curve = 0;
+    if (oinitengine.road_curve == 0)         curve = 0;
+    else if (oinitengine.road_curve <= 0x3C) curve = 2; // sharp curve
+    else if (oinitengine.road_curve <= 0x5A) curve = 1; // gentle curve
+    else                                     curve = 0;
 
     int16_t steering = oinputs.steering_adjust;
     steering += (movement_adjust1 + movement_adjust2 + movement_adjust3);
@@ -217,8 +199,9 @@ void OOutputs::car_moving()
             steering--;
 
         uint8_t motor_value = MOTOR_VALUES[speed + curve];
-        int16_t change = motor_x_change + (motor_value << 1);
 
+        #ifndef CHANGED_CODE
+        int16_t change = motor_x_change + (motor_value << 1);
         // Latch left movement
         if (change >= LEFT_LIMIT)
         {
@@ -228,6 +211,7 @@ void OOutputs::car_moving()
             motor_change_latch = motor_x_change;
         }
         else
+        #endif
         {
             hw_motor_control = motor_value + 8;
         }
@@ -249,8 +233,9 @@ void OOutputs::car_moving()
             steering--;
 
         uint8_t motor_value = MOTOR_VALUES[speed + curve];
-        int16_t change = motor_x_change - (motor_value << 1);
 
+        #ifndef CHANGED_CODE
+        int16_t change = motor_x_change - (motor_value << 1);
         // Latch right movement
         if (change <= RIGHT_LIMIT)
         {
@@ -260,6 +245,7 @@ void OOutputs::car_moving()
             motor_change_latch = motor_x_change;
         }
         else
+        #endif
         {
             hw_motor_control = -motor_value + 8;
         }
@@ -291,7 +277,7 @@ void OOutputs::car_stationary()
     {
         int8_t motor_value = MOTOR_VALUES_STATIONARY[change >> 3];
 
-        if (motor_x_change < 0)
+        if (motor_x_change >= 0)
             motor_value = -motor_value;
 
         hw_motor_control = motor_value + 8;
@@ -331,23 +317,6 @@ void OOutputs::adjust_motor()
     done();
 }
 
-// Source: 0xE94E
-void OOutputs::done()
-{
-    if (std::abs(motor_x_change) <= 8)
-    {
-        was_small_change = true;
-        motor_control    = MOTOR_CENTRE;
-    }
-    else
-    {
-        was_small_change = false;
-    }
-
-    // Finally output the info to the force feedback handling class
-    motor_output(hw_motor_control);
-}
-
 // Adjust motor during crash/skid state
 // Source: 0xE994
 void OOutputs::do_motor_crash()
@@ -366,11 +335,12 @@ void OOutputs::do_motor_offroad()
 {
     const uint8_t* table = (oferrari.wheel_state != OFerrari::WHEELS_OFF) ? MOTOR_VALUES_OFFROAD2 : MOTOR_VALUES_OFFROAD1;
 
+    const uint16_t car_inc = oinitengine.car_increment >> 16;
     uint8_t index;
-    if (oinitengine.car_increment <= 0x32)      index = 0;
-    else if (oinitengine.car_increment <= 0x50) index = 1;
-    else if (oinitengine.car_increment <= 0x6E) index = 2;
-    else                                        index = 3;
+    if (car_inc <= 0x32)      index = 0;
+    else if (car_inc <= 0x50) index = 1;
+    else if (car_inc <= 0x6E) index = 2;
+    else                      index = 3;
 
     set_value(table, index);
 }
@@ -379,8 +349,21 @@ void OOutputs::set_value(const uint8_t* table, uint8_t index)
 {
     hw_motor_control = table[(index << 3) + (counter & 7)];
     counter++;
-
     done();
+}
+
+// Source: 0xE94E
+void OOutputs::done()
+{
+    if (std::abs(motor_x_change) <= 8)
+    {
+        was_small_change = true;
+        motor_control    = MOTOR_CENTRE;
+    }
+    else
+    {
+        was_small_change = false;
+    }
 }
 
 // Send output commands to motor hardware

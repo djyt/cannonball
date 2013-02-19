@@ -1,17 +1,45 @@
-//#ifdef WIN32
+/***************************************************************************
+    Microsoft DirectX 8 Force Feedback (aka Haptic) Support
+    
+    - Currently, SDL does not support haptic devices. So this is Win32 only.
 
-// DirectX 8 Needed.
-// This version works on Windows XP, so best not to go for a higher version.
+    - DirectX 8 still works on Windows XP, so I'm not attempting to support
+      a higher version for now. 
+
+    Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ee417563%28v=vs.85%29.aspx
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
+#include "ffeedback.hpp"
+
+//-----------------------------------------------------------------------------
+// Dummy Functions For Non-Windows Builds
+//-----------------------------------------------------------------------------
+#ifndef WIN32
+namespace forcefeedback
+{
+    bool init(int a, int b, int c) { return false; } // Did not initialize
+    void close()                   {}
+    int  set(int x, int f)         { return 0; }
+    bool is_supported()            { return false; } // Not supported
+};
+
+//-----------------------------------------------------------------------------
+// DirectX 8 Code Below
+//-----------------------------------------------------------------------------
+#else
+
+// DirectX 8 Needed (Windows XP and up)
 #define DIRECTINPUT_VERSION 0x0800
 
 #include <dinput.h>
 #include <SDL_syswm.h> // Used to get window handle for DirectX
-#include <iostream>
-
-#include "ffeedback.hpp"
 
 namespace forcefeedback
 {
+
 //-----------------------------------------------------------------------------
 // Function prototypes 
 //-----------------------------------------------------------------------------
@@ -28,26 +56,38 @@ HRESULT       InitForceEffects();
 
 LPDIRECTINPUT8        g_pDI       = NULL;         
 LPDIRECTINPUTDEVICE8  g_pDevice   = NULL;
-LPDIRECTINPUTEFFECT   g_pEffect   = NULL; // Force Feedback Effect
-
+LPDIRECTINPUTEFFECT   g_pEffect   = NULL;           // Force Feedback Effect
 DWORD                 g_dwNumForceFeedbackAxis = 0;
 
-int diMaxForce  = 10000;
-int diMinForce  = -1000;
+bool                  g_supported = false;         //  Is Haptic Device Supported?
 
-// Lower = turn more slowly
-int diForceFreq = 1;
+//-----------------------------------------------------------------------------
+// User Configurable Values
+//-----------------------------------------------------------------------------
 
-void init()
+int g_max_force;      // Maximum Force To Apply (0 to DI_FFNOMINALMAX)
+int g_min_force;      // Minimum Force To Apply (0 to g_max_force)
+int g_force_duration; // Length of each effect. (1/x seconds)
+
+bool init(int max_force, int min_force, int force_duration)
 {
-    // Platform Specific SDL code to get a window handle
-    SDL_SysWMinfo i;
-    SDL_VERSION(&i.version); 
-    if (SDL_GetWMInfo(&i))
+    g_max_force      = max_force;
+    g_min_force      = min_force;
+    g_force_duration = force_duration;
+
+    if (!g_supported)
     {
-        HWND hwnd = i.window;
-        InitDirectInput(hwnd);
+        // Platform Specific SDL code to get a window handle
+        SDL_SysWMinfo i;
+        SDL_VERSION(&i.version); 
+        if (SDL_GetWMInfo(&i))
+        {
+            HWND hwnd = i.window;
+            InitDirectInput(hwnd);
+        }
     }
+
+    return g_supported;
 }
 
 void close()
@@ -61,6 +101,8 @@ void close()
     SAFE_RELEASE( g_pEffect );
     SAFE_RELEASE( g_pDevice );
     SAFE_RELEASE( g_pDI );
+
+    g_supported = false;
 }
 
 HRESULT InitDirectInput( HWND hDlg )
@@ -105,7 +147,7 @@ HRESULT InitDirectInput( HWND hDlg )
     // Exclusive access is required in order to perform force feedback.
     if( FAILED( hr = g_pDevice->SetCooperativeLevel( hDlg,
                                                      DISCL_EXCLUSIVE | 
-                                                     DISCL_FOREGROUND ) ) )
+                                                     DISCL_BACKGROUND ) ) )
     {
         return hr;
     }
@@ -183,13 +225,8 @@ HRESULT InitForceEffects()
     HRESULT     hr;
 
     // Cap Default Values
-    if (diForceFreq <= 0) 
-        diForceFreq = 20;
-
-    if (diMaxForce > DI_FFNOMINALMAX || diMaxForce < -DI_FFNOMINALMAX) 
-        diMaxForce = DI_FFNOMINALMAX;
-    if (diMinForce > DI_FFNOMINALMAX || diMinForce < -DI_FFNOMINALMAX) 
-        diMinForce = 0;
+    if (g_force_duration <= 0) 
+        g_force_duration = 20;
  
     DWORD            dwAxes[2]     = { DIJOFS_X, DIJOFS_Y };
     LONG             lDirection[2] = { 0, 0 };
@@ -197,9 +234,8 @@ HRESULT InitForceEffects()
     DIEFFECT         eff;
     ZeroMemory( &eff, sizeof(eff) );
     eff.dwSize                  = sizeof(DIEFFECT) ;
-    eff.dwFlags                 = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;    // Using X/Y style coords
-    eff.dwDuration              = DI_SECONDS/diForceFreq;    // Duration: 20th of a second
-    //    eff.dwDuration        = INFINITE;    // Duration: never-ending
+    eff.dwFlags                 = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS; // Using X/Y style coords
+    eff.dwDuration              = DI_SECONDS/g_force_duration;           // Duration: 20th of a second (use INFINITE for never ending)
     eff.dwSamplePeriod          = 0;
     eff.dwGain                  = DI_FFNOMINALMAX;
     eff.dwTriggerButton         = DIEB_NOTRIGGER;
@@ -218,7 +254,9 @@ HRESULT InitForceEffects()
     if (g_pEffect == NULL)
         return E_FAIL;
 
-    std::cout << "all ok!" << std::endl;
+    // Denote Force Feedback Device Found & Supported
+    g_supported = true;
+
     return S_OK;
 }
 
@@ -229,8 +267,8 @@ HRESULT InitForceEffects()
 // Higher force = Less aggressive steer
 int set(int xdirection, int force)
 {
-    if (g_pEffect == NULL) return -1;
-    if (force < 0) return -1;
+    if (!g_supported || g_pEffect == NULL || force < 0)
+        return -1;
 
     LONG lDirection[2] = { 0, 0 }; // centred by default
        
@@ -239,7 +277,14 @@ int set(int xdirection, int force)
     else if (xdirection < 0x08)    // push left
         lDirection[0] = -1;  
 
-    LONG magnitude = diMaxForce - ((diMaxForce-diMinForce) / 7*force);
+    // 7 possible force positions, so divide maximum amount to subtract by 7.
+    LONG magnitude = g_max_force - (((g_max_force-g_min_force) / 7) * force);
+
+    // Cap within range
+    if (magnitude > DI_FFNOMINALMAX)
+        magnitude = DI_FFNOMINALMAX;
+    else if (magnitude < -DI_FFNOMINALMAX)
+        magnitude = -DI_FFNOMINALMAX;
 
     DICONSTANTFORCE cf;    // Type-specific parameters
     cf.lMagnitude = magnitude;
@@ -256,6 +301,12 @@ int set(int xdirection, int force)
     return g_pEffect->SetParameters(&eff, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
 }
 
+// Is Haptic Device Supported?
+bool is_supported()
+{
+    return g_supported;
+}
+
 };
 
-//#endif
+#endif

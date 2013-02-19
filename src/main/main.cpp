@@ -14,7 +14,7 @@
 #pragma comment(lib, "SDL.lib")
 #pragma comment(lib, "glu32.lib")
 
-// SDL Code
+// SDL Specific Code
 #include "sdl/timer.hpp"
 #include "sdl/input.hpp"
 #include "sdl/video.hpp"
@@ -26,6 +26,10 @@
 #include "engine/outrun.hpp"
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
+
+// Direct X Haptic Support.
+// Fine to include on non-windows builds as dummy functions used.
+#include "directx/ffeedback.hpp"
 
 // Initialize Shared Variables
 using namespace cannonball;
@@ -44,7 +48,8 @@ static void quit_func(int code)
 #ifdef COMPILE_SOUND_CODE
     audio.stop_audio();
 #endif
-    input.stop();
+    input.close();
+    forcefeedback::close();
     SDL_Quit();
     exit(code);
 }
@@ -61,7 +66,7 @@ static void process_events(void)
             case SDL_KEYDOWN:
                 // Handle key presses.
                 if (event.key.keysym.sym == SDLK_ESCAPE)
-                    state = config.menu.enabled ? STATE_INIT_MENU : STATE_QUIT;
+                    state = STATE_QUIT;
                 else
                     input.handle_key_down(&event.key.keysym);
                 break;
@@ -223,8 +228,12 @@ int main(int argc, char* argv[])
         state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
 
         // Initalize controls
-        input.init(config.controls.keyconfig, config.controls.padconfig, 
-            config.controls.analog != 0, config.controls.axis, config.controls.analog_zone);
+        input.init(config.controls.keyconfig,   config.controls.padconfig, 
+                   config.controls.analog != 0, config.controls.axis, config.controls.analog_zone);
+
+        if (config.controls.haptic) 
+            config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
+        
         // Populate menus
         menu.populate();
         main_loop();  // Loop until we quit the app

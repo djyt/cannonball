@@ -129,8 +129,25 @@
              Example:  0 means use the entire wheel 
              larger values mean to progressively use less of the wheel turning circle -->
         <wheelzone>75</wheelzone>
+        
+        <!-- Force Feedback / Haptic Support -->
+        <haptic enabled = "1">
+        
+            <!-- Make both of the below values negative, 
+                 if force feedback is in the wrong direction -->
+        
+            <!-- Maximum Force To Apply (0 to 10000) -->
+            <max_force>8500</max_force>
+            
+            <!-- Minimum Force To Apply (0 to max_force) -->
+            <min_force>7000</min_force>
+            
+            <!-- Length of each effect. (1/x seconds) -->
+            <force_duration>20</force_duration>
+        </haptic>
+        
     </analog>
-    
+        
     <!-- Digital Controls: Steering Adjust Speed (1 to 9) -->
     <steerspeed>3</steerspeed>
     

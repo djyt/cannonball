@@ -116,22 +116,44 @@
         <coin>4</coin>
         <menu>5</menu>    
     </padconfig>
+           
+    <!-- Digital Controls: Steering Adjust Speed (1 to 9) -->
+    <steerspeed>3</steerspeed>
     
-    <!-- Analog Controls -->
+    <!-- Digital Controls: Pedal Adjust Speed (1 to 9) -->
+    <pedalspeed>4</pedalspeed>
+    
+    <!-- Analog Controls
+         0 = Off
+         1 = On
+         2 = Wheel Only
+    -->
     <analog enabled = "0">
-        <!-- Select axis for analog controls -->
+        <!-- Select axis for analog controls 
+             You can place the accelerator and the brake on the same axis if your controller
+             has a split axis setup. This is best avoided though.
+          -->
         <axis>
             <wheel>0</wheel>
             <accel>2</accel>
             <brake>3</brake>
         </axis>
-        <!-- Amount of wheel turning circle to use.
-             Example:  0 means use the entire wheel 
-             larger values mean to progressively use less of the wheel turning circle -->
-        <wheelzone>75</wheelzone>
+        
+        <!-- Analog Wheel Settings -->
+        <wheel>
+            <!-- Amount of wheel turning circle to use.
+                 Example:  0 means use the entire wheel (this works best if haptic is enabled)
+                 larger values mean to progressively use less of the wheel turning circle -->
+            <zone>50</zone>
+            
+            <!-- Dead Zone In Centre Of Wheel. Total Wheel Range = 128
+                 A Dead zone is useful if the centre accuracy of your wheel is poor.
+                 A good Logitech Racing wheel should not need this -->
+            <dead>0</dead>
+        </wheel>
         
         <!-- Force Feedback / Haptic Support -->
-        <haptic enabled = "1">
+        <haptic enabled = "0">
         
             <!-- Make both of the below values negative, 
                  if force feedback is in the wrong direction -->
@@ -142,17 +164,11 @@
             <!-- Minimum Force To Apply (0 to max_force) -->
             <min_force>7000</min_force>
             
-            <!-- Length of each effect. (1/x seconds) -->
+            <!-- Length of each effect. (1/x seconds) 1/20th suggested. -->
             <force_duration>20</force_duration>
         </haptic>
         
     </analog>
-        
-    <!-- Digital Controls: Steering Adjust Speed (1 to 9) -->
-    <steerspeed>3</steerspeed>
-    
-    <!-- Digital Controls: Pedal Adjust Speed (1 to 9) -->
-    <pedalspeed>4</pedalspeed>
 </controls>
 
 <!-- 

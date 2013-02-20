@@ -119,8 +119,9 @@ void Config::load(const std::string &filename)
     controls.axis[0]       = pt_config.get("controls.analog.axis.wheel", 0);
     controls.axis[1]       = pt_config.get("controls.analog.axis.accel", 2);
     controls.axis[2]       = pt_config.get("controls.analog.axis.brake", 3);
-    controls.analog_zone   = pt_config.get("controls.analog.wheelzone", 75);
-
+    controls.wheel[0]      = pt_config.get("controls.analog.wheel.zone", 75);
+    controls.wheel[1]      = pt_config.get("controls.analog.wheel.dead", 0);
+    
     controls.haptic        = pt_config.get("controls.analog.haptic.<xmlattr>.enabled", 0);
     controls.max_force     = pt_config.get("controls.analog.haptic.max_force", 9000);
     controls.min_force     = pt_config.get("controls.analog.haptic.min_force", 8500);

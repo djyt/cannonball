@@ -79,6 +79,8 @@ private:
 
     // Brake Input
     int16_t input_brake;
+
+    void digital_pedals();
 };
 
 extern OInputs oinputs;

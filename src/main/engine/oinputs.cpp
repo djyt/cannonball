@@ -44,8 +44,18 @@ void OInputs::init()
 void OInputs::analog()
 {
     input_steering = input.a_wheel;
-    input_acc      = input.a_accel;
-    input_brake    = input.a_brake;
+
+    // Analog Pedals
+    if (input.analog == 1)
+    {
+        input_acc      = input.a_accel;
+        input_brake    = input.a_brake;
+    }
+    // Digital Pedals
+    else
+    {
+        digital_pedals();
+    }
 }
 
 // Digital Simulation
@@ -87,6 +97,11 @@ void OInputs::simulate_analog()
         }
     }
 
+    digital_pedals();
+}
+
+void OInputs::digital_pedals()
+{
     // ------------------------------------------------------------------------
     // ACCELERATION
     // ------------------------------------------------------------------------

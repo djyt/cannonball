@@ -8,6 +8,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <cstdlib>
 #include "sdl/input.hpp"
 
 Input input;
@@ -20,13 +21,14 @@ Input::~Input(void)
 {
 }
 
-void Input::init(int* key_config, int* pad_config, bool analog, int* axis, int analog_zone)
+void Input::init(int* key_config, int* pad_config, int analog, int* axis, int* wheel)
 {
     this->key_config  = key_config;
     this->pad_config  = pad_config;
     this->analog      = analog;
     this->axis        = axis;
-    this->analog_zone = analog_zone;
+    this->wheel_zone  = wheel[0];
+    this->wheel_dead  = wheel[1];
 
     gamepad = SDL_NumJoysticks() >= 1;
 
@@ -34,6 +36,9 @@ void Input::init(int* key_config, int* pad_config, bool analog, int* axis, int a
     {
         stick = SDL_JoystickOpen(0);
     }
+
+    a_wheel = CENTRE;
+    delay   = 0;
 }
 
 void Input::close()
@@ -125,6 +130,8 @@ void Input::handle_key(const int key, const bool is_pressed)
     }
 }
 
+#include <iostream>
+
 void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
 {
     int16_t value = evt->value;
@@ -136,7 +143,7 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
         if (evt->axis == 0)
         {
             // Neural
-            if ( (value > -3200 ) && (value < 3200 ) )
+            if ( (value > -DIGITAL_DEAD ) && (value < DIGITAL_DEAD ) )
             {
                 keys[LEFT]  = false;
                 keys[RIGHT] = false;
@@ -154,7 +161,7 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
         else if (evt->axis == 1)
         {
             // Neural
-            if ( (value > -3200 ) && (value < 3200 ) )
+            if ( (value > -DIGITAL_DEAD ) && (value < DIGITAL_DEAD ) )
             {
                 keys[UP]  = false;
                 keys[DOWN] = false;
@@ -173,10 +180,10 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
     else
     {
         // Steering
-        // OutRun requires values between 0x48 and 0xb8. 0x80 is center
+        // OutRun requires values between 0x48 and 0xb8.
         if (evt->axis == axis[0])
         {
-            int percentage_adjust = ((analog_zone) << 8) / 100;         
+            int percentage_adjust = ((wheel_zone) << 8) / 100;         
             int adjusted = value + ((value * percentage_adjust) >> 8);
             
             // Make 0 hard left, and 0x80 centre value.
@@ -188,10 +195,42 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             else if (adjusted > 0xC0)
                 adjusted = 0xC0;
 
-            //std::cout << "wheel zone : " << analog_zone << " : " << std::hex << " : " << (int) adjusted << std::endl;
+            // Remove Dead Zone
+            if (wheel_dead)
+            {
+                if (std::abs(CENTRE - adjusted) <= wheel_dead)
+                    adjusted = CENTRE;
+            }
+
+            //std::cout << "wheel zone : " << wheel_zone << " : " << std::hex << " : " << (int) adjusted << std::endl;
             a_wheel = adjusted;
         }
-        // Accelerator
+        // Accelerator and Brake [Combined Axis - Best Avoided!]
+        else if (axis[1] == axis[2])
+        {
+            // Accelerator
+            if (value < -DIGITAL_DEAD)
+            {
+                value = -value;
+                int adjusted = 0xBF - ((value + (1 << 15)) >> 9);           
+                adjusted += (adjusted >> 2);
+                a_accel = adjusted;
+            }
+            // Brake
+            else if (value > DIGITAL_DEAD)
+            {
+                value = -value;
+                int adjusted = 0xBF - ((value + (1 << 15)) >> 9);           
+                adjusted += (adjusted >> 2);
+                a_brake = adjusted;
+            }
+            else
+            {
+                a_accel = 0;
+                a_brake = 0;
+            }
+        }
+        // Accelerator [Single Axis]
         else if (evt->axis == axis[1])
         {
             // Scale input to be in the range of 0 to 0x7F
@@ -199,7 +238,7 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             adjusted += (adjusted >> 2);
             a_accel = adjusted;
         }
-        // Brake
+        // Brake [Single Axis]
         else if (evt->axis == axis[2])
         {
             // Scale input to be in the range of 0 to 0x7F
@@ -208,6 +247,47 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             a_brake = adjusted;
         }
     }
+}
+
+// Use analog controls for menu.
+bool Input::is_analog_l()
+{
+    if (analog && a_wheel < CENTRE - 0x10)
+    {
+        if (--delay < 0)
+        {
+            delay = DELAY_RESET;
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool Input::is_analog_r()
+{
+    if (analog && a_wheel > CENTRE + 0x10)
+    {
+        if (--delay < 0)
+        {
+            delay = DELAY_RESET;
+            return true;
+        }
+    }   
+    return false;
+}
+
+bool Input::is_analog_select()
+{
+    if (analog && a_accel > 0x50)
+    {
+        if (--delay < 0)
+        {
+            delay = DELAY_RESET;
+            return true;
+        }
+    }   
+    return false;
 }
 
 void Input::handle_joy_down(SDL_JoyButtonEvent* evt)

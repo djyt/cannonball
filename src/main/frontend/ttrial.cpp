@@ -74,17 +74,17 @@ int TTrial::tick()
                 {
                     return BACK_TO_MENU;
                 }
-                else if (input.has_pressed(Input::LEFT))
+                else if (input.has_pressed(Input::LEFT) || input.is_analog_l())
                 {
                     if (--level_selected < 0)
                         level_selected = sizeof(FERRARI_POS) - 1;
                 }
-                else if (input.has_pressed(Input::RIGHT))
+                else if (input.has_pressed(Input::RIGHT)|| input.is_analog_r())
                 {
                     if (++level_selected > sizeof(FERRARI_POS) - 1)
                         level_selected = 0;
                 }
-                else if (input.has_pressed(Input::START) || input.has_pressed(Input::ACCEL))
+                else if (input.has_pressed(Input::START) || input.has_pressed(Input::ACCEL) || input.is_analog_select())
                 {
                     outils::convert_counter_to_time(best_times[level_selected], best_converted);
 

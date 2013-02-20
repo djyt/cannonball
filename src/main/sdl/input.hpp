@@ -41,7 +41,7 @@ public:
     bool gamepad;
 
     // Use analog controls
-    bool analog;
+    int analog;
 
     // Latch last key press for redefines
     int key_press;
@@ -57,7 +57,7 @@ public:
     Input(void);
     ~Input(void);
 
-    void init(int*, int*, const bool, int*, const int);
+    void init(int*, int*, const int, int*, int*);
     void close();
 
     void handle_key_up(SDL_keysym*);
@@ -68,8 +68,16 @@ public:
     void frame_done();
     bool is_pressed(presses p);
     bool has_pressed(presses p);
+    bool is_analog_l();
+    bool is_analog_r();
+    bool is_analog_select();
 
 private:
+    static const int CENTRE = 0x80;
+
+    // Digital Dead Zone
+    static const int DIGITAL_DEAD = 3200;
+
     // SDL Joystick / Keypad
     SDL_Joystick *stick;
 
@@ -78,7 +86,11 @@ private:
     int* key_config;
     int* axis;
 
-    int analog_zone;
+    int wheel_zone;
+    int wheel_dead;
+
+    static const int DELAY_RESET = 60;
+    int delay;
 
     void handle_key(const int, const bool);
     void handle_joy(const uint8_t, const bool);

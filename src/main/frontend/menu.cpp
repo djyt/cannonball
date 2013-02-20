@@ -373,21 +373,21 @@ void Menu::draw_text(std::string s)
 void Menu::tick_menu()
 {
     // Tick Controls
-    if (input.has_pressed(Input::DOWN))
+    if (input.has_pressed(Input::DOWN) || input.is_analog_r())
     {
         osoundint.queue_sound(sound::BEEP1);
 
         if (++cursor >= (int16_t) menu_selected->size())
             cursor = 0;
     }
-    else if (input.has_pressed(Input::UP))
+    else if (input.has_pressed(Input::UP) || input.is_analog_l())
     {
         osoundint.queue_sound(sound::BEEP1);
 
         if (--cursor < 0)
             cursor = menu_selected->size() - 1;
     }
-    else if (input.has_pressed(Input::ACCEL) || input.has_pressed(Input::START))
+    else if (input.has_pressed(Input::ACCEL) || input.has_pressed(Input::START) || input.is_analog_select())
     {
         // Get option that was selected
         const char* OPTION = menu_selected->at(cursor).c_str();
@@ -549,8 +549,9 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_ANALOG))
             {
-                config.controls.analog = !config.controls.analog;
-                input.analog = config.controls.analog != 0;
+                if (++config.controls.analog == 3)
+                    config.controls.analog = 0;
+                input.analog = config.controls.analog;
             }
             else if (SELECTED(ENTRY_REDEFKEY))
             {
@@ -561,7 +562,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_REDEFJOY))
             {
                 state = STATE_REDEFINE_JOY;
-                redef_state = config.controls.analog ? 2 : 0; // Ignore pedals when redefining analog
+                redef_state = config.controls.analog == 1 ? 2 : 0; // Ignore pedals when redefining analog
                 input.joy_button = -1;
             }
             else if (SELECTED(ENTRY_DSTEER))
@@ -714,7 +715,12 @@ void Menu::refresh_menu()
                 set_menu_text(ENTRY_GEAR, s);
             }
             else if (SELECTED(ENTRY_ANALOG))
-                set_menu_text(ENTRY_ANALOG, config.controls.analog ? "ON" : "OFF");
+            {
+                if (config.controls.analog == 0)      s = "OFF";
+                else if (config.controls.analog == 1) s = "ON";
+                else if (config.controls.analog == 2) s = "ON WHEEL ONLY";
+                set_menu_text(ENTRY_ANALOG, s);
+            }
             else if (SELECTED(ENTRY_DSTEER))
                 set_menu_text(ENTRY_DSTEER, config.to_string(config.controls.steer_speed));
             else if (SELECTED(ENTRY_DPEDAL))

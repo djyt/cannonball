@@ -68,7 +68,7 @@ struct controls_settings_t
     int keyconfig[10]; // Keyboard Button Config
     int analog;        // Use analog controls
     int axis[3];       // Analog Axis
-    int analog_zone;   // Percentage of wheel turning circle to use
+    int wheel[2];      // Wheel Settings
 
     int haptic;        // Force Feedback Enabled
     int max_force;

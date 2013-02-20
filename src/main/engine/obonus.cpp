@@ -127,7 +127,7 @@ void OBonus::decrement_bonus_secs()
         osoundint.queue_sound(sound::SIGNAL1);
 
     // Increment Score by 100K points
-    ostats.update_score(100000);
+    ostats.update_score(0x100000);
     
     // Blit bonus seconds remaining
     blit_bonus_secs();

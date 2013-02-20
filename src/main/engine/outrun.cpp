@@ -908,6 +908,5 @@ void Outrun::select_course(bool jap, bool prototype)
     }
 
     // Use Prototype Coconut Beach Track
-    if (prototype)
-        oinitengine.stage_data[0] = 0x3A;
+    oinitengine.stage_data[0] = prototype ? 0x3A : 0x3C; 
 }

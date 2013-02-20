@@ -8,7 +8,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include <cstdlib>
+#include <cstdlib> // abs
 #include "sdl/input.hpp"
 
 Input input;

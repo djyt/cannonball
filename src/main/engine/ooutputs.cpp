@@ -14,6 +14,8 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <cstdlib> // abs
+
 #include "engine/outrun.hpp"
 #include "engine/ocrash.hpp"
 #include "engine/oferrari.hpp"

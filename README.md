@@ -19,6 +19,7 @@ Cannonball has been successfully built for Windows, Mac OS X, Linux, Open Pandor
 * Extract the [Boost Library](http://www.boost.org/) somewhere, for example: c:\coding\lib\boost_1_51_0
 * Extract the [SDL Library](http://www.libsdl.org/download-1.2.php) somewhere, for example: c:\coding\lib\SDL-1.2.15
 * Read the SDL documentation & compile the SDL Library for your system.
+* Windows only, download and install the [Direct 8.1 SDK](http://stackoverflow.com/questions/5192384/looking-for-the-old-directx-8-1-sdk)
 * Extract the Cannonball code somewhere, for example: c:\coding\cannonball
 * You may need to create a .cmake file for your system to configure specific options. See the cmake subdirectory for more details. If not, the default.cmake file will be used.
 

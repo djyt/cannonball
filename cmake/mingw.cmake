@@ -11,7 +11,11 @@ endif()
 
 find_package(SDL REQUIRED)
 
-include_directories("${SDL_INCLUDE_DIR}")
+include_directories(
+    "${SDL_INCLUDE_DIR}"
+    # You may need to remove the next line based on your DirectX setup
+    "$ENV{DXSDK}/include"
+)
 
 link_libraries(cannonball 
     ${SDL_LIBRARY}

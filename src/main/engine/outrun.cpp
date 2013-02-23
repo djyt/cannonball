@@ -47,9 +47,8 @@ Outrun outrun;
     - Stage 2a: Incomplete arches due to lack of sprite slots [fixed]
     - Best OutRunners screen looks odd after Stage 2 Gateway
     - Stage 3c: Clouds overlapping trees [unable to fix easily]
-    - Traffic spawns on horizon and transforms type as you approach. 
-      This is mostly noticeable when using hi-res mode.
     - Sometimes the Ferrari stalls on the start-line on game restart. Happens in Attract Mode too.
+    - On completion screen, some of the side crowd graphics are misplaced. Japanese version only [fixed]
 
 */
 

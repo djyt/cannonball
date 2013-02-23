@@ -123,10 +123,10 @@ public:
     void set_fps(int fps);
     std::string to_string(int i);
     std::string to_string(char c);
+    std::string to_hex_string(int i);
    
 private:
     // Conversions
-    template<class T> std::string to_hex_string(T i);
     uint32_t from_hex_string(std::string s);
 };
 

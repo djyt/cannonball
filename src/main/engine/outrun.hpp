@@ -186,9 +186,6 @@ public:
     // Service Mode Toggle: Not implemented yet.
     bool service_mode;
 
-    // Frame counter
-	uint32_t frame;
-
     // Tick Logic. Used when running at non-standard > 30 fps
     bool tick_frame;
 
@@ -204,7 +201,7 @@ public:
 	Outrun();
 	~Outrun();
 	void init();
-	void tick();
+	void tick(bool tick_frame);
 	void vint();
     void select_course(const bool jap, const bool prototype);
 

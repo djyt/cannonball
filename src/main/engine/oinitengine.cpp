@@ -252,13 +252,7 @@ void OInitEngine::update_engine()
     // Setup the shadow offset based on how much we've scrolled left/right. Lovely and subtle!
     // ------------------------------------------------------------------------
 
-    int16_t shadow_off = oroad.tilemap_h_target & 0x3FF;
-    if (shadow_off > 0x1FF)
-        shadow_off = -shadow_off + 0x3FF;
-    shadow_off >>= 2;
-    if (oroad.tilemap_h_target & BIT_A)
-        shadow_off = -shadow_off; // reverse direction of shadow
-    osprites.shadow_offset = shadow_off;
+    update_shadow_offset();
 
     // ------------------------------------------------------------------------
     // Main Car Logic Block
@@ -281,15 +275,7 @@ void OInitEngine::update_engine()
     // Setup New Sprite Scroll Speed. Based On Granular Difference.
     // ------------------------------------------------------------------------
     set_granular_position();
-
-    uint16_t d0 = oroad.pos_fine - pos_fine_old;
-    if (d0 > 0xF)
-        d0 = 0xF;
-
-    d0 <<= 0xB;
-    osprites.sprite_scroll_speed = d0;
-
-    pos_fine_old = oroad.pos_fine;
+    set_fine_position();
 
     // Draw Speed & Hud Stuff
     if (outrun.game_state >= GS_START1 && outrun.game_state <= GS_BONUS)
@@ -316,6 +302,17 @@ void OInitEngine::update_engine()
         olevelobjs.sprite_collision_counter--;
 
     opalette.setup_sky_cycle();
+}
+
+void OInitEngine::update_shadow_offset()
+{
+    int16_t shadow_off = oroad.tilemap_h_target & 0x3FF;
+    if (shadow_off > 0x1FF)
+        shadow_off = -shadow_off + 0x3FF;
+    shadow_off >>= 2;
+    if (oroad.tilemap_h_target & BIT_A)
+        shadow_off = -shadow_off; // reverse direction of shadow
+    osprites.shadow_offset = shadow_off;
 }
 
 // Check for Road Split
@@ -834,6 +831,18 @@ void OInitEngine::set_granular_position()
         result++;
     }
     oroad.pos_fine += result;
+}
+
+void OInitEngine::set_fine_position()
+{
+    uint16_t d0 = oroad.pos_fine - pos_fine_old;
+    if (d0 > 0xF)
+        d0 = 0xF;
+
+    d0 <<= 0xB;
+    osprites.sprite_scroll_speed = d0;
+
+    pos_fine_old = oroad.pos_fine;
 }
 
 // Check whether to initalize crash or bonus sequence code

@@ -349,8 +349,8 @@ std::string Config::to_string(char c)
 }
 
 // Convert value to string
-template<class T>
-std::string Config::to_hex_string(T i)
+//template<class T>
+std::string Config::to_hex_string(int i)
 {
     std::stringstream ss;
     ss << std::hex << i;

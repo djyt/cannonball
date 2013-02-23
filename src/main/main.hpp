@@ -12,6 +12,12 @@ namespace cannonball
     extern Audio audio;
 #endif
 
+    // Frame counter
+	extern int frame;
+
+    // Tick Logic. Used when running at non-standard > 30 fps
+    extern bool tick_frame;
+
     // Millisecond Time Per Frame
     extern int frame_ms;
 
@@ -25,6 +31,7 @@ namespace cannonball
         STATE_MENU,
         STATE_INIT_GAME,
         STATE_GAME,
+        STATE_TRACKED,
         STATE_QUIT
     };
 }

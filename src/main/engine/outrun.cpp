@@ -71,8 +71,6 @@ void Outrun::init()
     select_course(config.engine.jap != 0, config.engine.prototype != 0);
     video.clear_text_ram();
 
-    frame = 0;
-    tick_frame = true;
     tick_counter = 0;
     ohiscore.init_def_scores();  // Initialize default hi-score entries
     config.load_scores();        // Load saved hi-score entries
@@ -84,8 +82,10 @@ void Outrun::init()
 }
 
 
-void Outrun::tick()
+void Outrun::tick(bool tick_frame)
 {
+    this->tick_frame = tick_frame;
+
     /*if (input.has_pressed(Input::LEFT))
     {
         game_state = GS_INIT_BONUS;
@@ -96,19 +96,7 @@ void Outrun::tick()
         oinitengine.init_bonus();
     }*/
 
-    frame++;
-
-    // Non standard FPS.
-    // Determine whether to tick the current frame.
-    if (config.fps != 30)
-    {
-        if (config.fps == 60)
-            tick_frame = frame & 1;
-        else if (config.fps == 120)
-            tick_frame = (frame & 3) == 1;
-    }
-
-    if (tick_frame)
+    if (cannonball::tick_frame)
     {
         tick_counter++;       
         controls();      // Analogue Controls
@@ -135,7 +123,7 @@ void Outrun::tick()
     // Updates V-Blank 1/1 frames
     else if (config.fps == 60 && config.tick_fps == 30)
     {
-        if (tick_frame)
+        if (cannonball::tick_frame)
         {
             jump_table();
             oroad.tick();
@@ -160,7 +148,7 @@ void Outrun::vint()
     osprites.update_sprites();
     otiles.update_tilemaps();
 
-    if (config.fps < 120 || (frame & 1))
+    if (config.fps < 120 || (cannonball::frame & 1))
     {
         opalette.cycle_sky_palette();
         opalette.fade_palette();
@@ -224,7 +212,7 @@ void Outrun::jump_table()
         // Core Game Engine Routines
         // ----------------------------------------------------------------------------------------
         case GS_LOGO:
-            if (!outrun.tick_frame)
+            if (!cannonball::tick_frame)
                 ologo.blit();
         
         default:

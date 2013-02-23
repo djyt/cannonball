@@ -146,7 +146,9 @@ public:
     void init_crash_bonus();
     void update_road();
     void update_engine();
+    void update_shadow_offset();
     void set_granular_position();
+    void set_fine_position();
 
     void init_bonus(); // moved here for debugging purposes
 

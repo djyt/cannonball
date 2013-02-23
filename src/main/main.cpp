@@ -26,6 +26,7 @@
 #include "engine/outrun.hpp"
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
+#include "tracked/tracked.hpp"
 
 // Direct X Haptic Support.
 // Fine to include on non-windows builds as dummy functions used.
@@ -34,14 +35,17 @@
 // Initialize Shared Variables
 using namespace cannonball;
 
-int cannonball::state    = STATE_BOOT;
-int cannonball::frame_ms = 0;
+int cannonball::state       = STATE_BOOT;
+int cannonball::frame_ms    = 0;
+int cannonball::frame       = 0;
+bool cannonball::tick_frame = true;
 
 #ifdef COMPILE_SOUND_CODE
 Audio cannonball::audio;
 #endif
 
 Menu menu;
+Tracked tracked;
 
 static void quit_func(int code)
 {
@@ -100,6 +104,18 @@ bool pause_engine;
 
 static void tick()
 {
+    frame++;
+
+    // Non standard FPS.
+    // Determine whether to tick the current frame.
+    if (config.fps != 30)
+    {
+        if (config.fps == 60)
+            tick_frame = frame & 1;
+        else if (config.fps == 120)
+            tick_frame = (frame & 3) == 1;
+    }
+
     process_events();
 
     switch(state)
@@ -117,7 +133,7 @@ static void tick()
 
             if (!pause_engine || input.has_pressed(Input::STEP))
             {
-                outrun.tick();
+                outrun.tick(tick_frame);
                 input.frame_done(); // Denote keys read
 
                 #ifdef COMPILE_SOUND_CODE
@@ -162,6 +178,10 @@ static void tick()
         case STATE_INIT_MENU:
             menu.init();
             state = STATE_MENU;
+            break;
+
+        case STATE_TRACKED:
+            tracked.tick();
             break;
     }
     // Draw SDL Video
@@ -225,7 +245,8 @@ int main(int argc, char* argv[])
 #ifdef COMPILE_SOUND_CODE
         audio.init();
 #endif
-        state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
+        //state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
+        state = STATE_TRACKED;
 
         // Initalize controls
         input.init(config.controls.keyconfig, config.controls.padconfig, 

@@ -84,7 +84,7 @@ int TTrial::tick()
                     if (++level_selected > sizeof(FERRARI_POS) - 1)
                         level_selected = 0;
                 }
-                else if (input.has_pressed(Input::START) || input.has_pressed(Input::ACCEL) || input.is_analog_select())
+                else if (input.has_pressed(Input::START) || input.has_pressed(Input::ACCEL))
                 {
                     outils::convert_counter_to_time(best_times[level_selected], best_converted);
 

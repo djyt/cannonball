@@ -387,7 +387,7 @@ void Menu::tick_menu()
         if (--cursor < 0)
             cursor = menu_selected->size() - 1;
     }
-    else if (input.has_pressed(Input::ACCEL) || input.has_pressed(Input::START) || input.is_analog_select())
+    else if (input.has_pressed(Input::ACCEL) || input.has_pressed(Input::START))
     {
         // Get option that was selected
         const char* OPTION = menu_selected->at(cursor).c_str();

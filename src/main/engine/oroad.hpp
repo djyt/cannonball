@@ -11,9 +11,13 @@
     This is the most complex area of the game code, and an area of the code
     in need of refactoring.
 
+    Useful background reading on road rendering:
+    http://www.extentofthejam.com/pseudo/
+
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
+
 
 #pragma once
 
@@ -94,6 +98,10 @@ public:
 	// Once the distance is greater than F0 or so, it's obvious there are two independent roads.
 	int32_t road_width;// DANGER! USED AS LONG AND WORD
 
+	// 0x420: Offset Into Road Data [Current Road Position * 4]
+    // Moved from private for tracked
+	uint16_t road_data_offset;
+
 	// 0x4F0: Start Address of Road Data For Current Stage In ROM
     // TODO - move back to being private at some stage
 	uint32_t stage_addr;
@@ -150,33 +158,6 @@ private:
 	uint16_t stage_loaded; // 0x4: Current Stage Backup (So we know when to load next stage road data)
 
 	uint32_t road_pos_old; // 0x410: Road Position Backup
-
-	// 0x420: Offset Into Road Data [Current Road Position * 4]
-	uint16_t road_data_offset;
-
-	// 0x450 - [word] Curve x1 Difference FIRST [Note this is the first position of the road segment]
-	int16_t curve_x1_diff;
-	// 0x460 - [word] Curve x2 Difference FIRST (e.g. length of segment) [Note this is the first position of the road segment]
-	int16_t curve_x2_diff;
-	// 0x470 - [word] Curve x1 Distance [Note this is the first position of the road segment]
-	int16_t curve_x1_dist;
-	// 0x480 - [word] Curve x2 Distance [Note this is the first position of the road segment]
-	int16_t curve_x2_dist;
-	// 0x490 - [long] Curve x1 Difference NEXT [This can be any position of the road segment, not just the first]
-	int32_t curve_x1_next;
-	// 0x4a0 - [long] Curve x2 Difference NEXT (e.g. length of road segment)
-	int32_t curve_x2_next;
-	// 0x4b0 - [word] Curve Increment Previous
-	int16_t curve_inc_old;
-
-	// 0x4c0 - [word] Curve Start (Used to calculate number of steps)
-	int16_t curve_start;
-
-	// 0x4d0 - [word] Curve Increment
-	int16_t curve_inc;
-
-	// 0x4E0 - [word] Curve End (Used to calculate number of steps)
-	int16_t curve_end;
 
 	// 60530 - [word] Distance into section of track, for height #1
     // Ranges from 0x100 - 0x1FF
@@ -285,7 +266,8 @@ private:
 	void setup_x_data();
 	void set_tilemap_x();
 	void add_next_road_pos(uint32_t*);
-	void create_curve();
+	void create_curve(int16_t&, int16_t&,
+                      const int32_t, const int32_t, const int16_t, const int16_t);
 
 	void setup_hscroll();
 	void do_road_offset(int16_t*, int16_t, bool);

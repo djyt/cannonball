@@ -11,6 +11,9 @@
     This is the most complex area of the game code, and an area of the code
     in need of refactoring.
 
+    Useful background reading on road rendering:
+    http://www.extentofthejam.com/pseudo/
+
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
@@ -86,16 +89,6 @@ void ORoad::init()
 
     road_pos_old = 0;
     road_data_offset = 0;
-    curve_x1_diff = 0;
-    curve_x2_diff = 0;
-    curve_x1_dist = 0;
-    curve_x2_dist = 0;
-    curve_x1_next = 0;
-    curve_x2_next = 0;
-    curve_inc_old = 0;
-    curve_start = 0;
-    curve_inc = 0;
-    curve_end = 0;
     height_start = 0;
     height_ctrl = 0;
     pos_fine_old = 0;
@@ -284,6 +277,7 @@ void ORoad::setup_road_x()
     if (road_pos_change != 0)
     {
         road_data_offset = (road_pos >> 16) << 2;
+        set_tilemap_x();
         setup_x_data();
     }
     setup_hscroll();
@@ -337,31 +331,14 @@ void ORoad::setup_x_data()
 {
     uint32_t addr = stage_addr + road_data_offset;
 
-    // d0 = road_x1 + road_x1_next [x difference]
-    curve_x1_diff = roms.rom1p->read16(addr);
-    curve_x1_diff += (int16_t) roms.rom1p->read16(addr + 4);
+    const int16_t x = (int16_t) roms.rom1p->read16(addr)     + (int16_t) roms.rom1p->read16(addr + 4); // Length 1
+    const int16_t y = (int16_t) roms.rom1p->read16(addr + 2) + (int16_t) roms.rom1p->read16(addr + 6); // Length 2
 
-    // d1 = x2 difference
-    curve_x2_diff = roms.rom1p->read16(addr + 2);
-    curve_x2_diff += (int16_t) roms.rom1p->read16(addr + 6);
+    // Use Pythagorus' theorem to find the distance/length between x & y
+    const uint16_t distance = outils::isqrt((x * x) + (y * y));
 
-    int32_t distance = (curve_x1_diff * curve_x1_diff) + (curve_x2_diff * curve_x2_diff);
-
-    // The distance formula in Cartesian coordinates is derived from the Pythagorean theorem
-    // Use Pythagorus' theorem to find the distance between point 1 & point 2
-    // Result stored in d0 [distance]
-    distance = (uint16_t) outils::isqrt(distance);
-
-    int32_t d2 = (curve_x1_diff << 14); // extend to 32
-    int32_t d3 = (curve_x2_diff << 14); // extend to 32
-
-    // divide x,y
-    // source x (16-bit), destination y (32-bit)
-    // result y (32-bit). Remainder is upper 16 bits.
-    curve_x1_dist = d2 / distance; // here we only care about the lower 16 bits
-    curve_x2_dist = d3 / distance;
-
-    set_tilemap_x();
+    const int16_t curve_x_dist = (x << 14) / distance; // Scale up is for fixed point division in create_curve
+    const int16_t curve_y_dist = (y << 14) / distance;
 
     // Setup Default Straight Positions Of Road at 60800 - 608FF
     for (uint8_t i = 0; i < 0x80;)
@@ -372,27 +349,29 @@ void ORoad::setup_x_data()
     }
 
     // Now We Setup The Real Road Data at 60800
-    curve_x1_next = 0;
-    curve_x2_next = 0;
-    curve_inc_old = 0;
-    curve_start = 0;
+    int32_t curve_x_total = 0;
+    int32_t curve_y_total = 0;
+    int16_t curve_start   = 0;
+    int16_t curve_end     = 0;
+    int16_t curve_inc     = 0;
+    int16_t curve_inc_old = 0;
 
     int16_t scanline = 0x37E / 2; // Index into road_x
-    uint8_t road_x_addr = 0;
 
     // Note this works its way from closest to the camera, further into the horizon
+    // So the amount to offset x is going to increase over time
     // We sample 20 Road Positions to generate the road.
     for (uint8_t i = 0; i <= 0x20; i++)
     {
-        int32_t x1_next = (int16_t) roms.rom1p->read16(&addr);
-        int32_t x2_next = (int16_t) roms.rom1p->read16(&addr);
-        x1_next += (int16_t) roms.rom1p->read16(&addr);
-        x2_next += (int16_t) roms.rom1p->read16(&addr);
-        curve_x1_next += x1_next;
-        curve_x2_next += x2_next;
+        const int32_t x_next = (int16_t) roms.rom1p->read16(addr)     + (int16_t) roms.rom1p->read16(addr + 4); // Length 1
+        const int32_t y_next = (int16_t) roms.rom1p->read16(addr + 2) + (int16_t) roms.rom1p->read16(addr + 6); // Length 2
+        addr += 8;
+
+        curve_x_total += x_next;
+        curve_y_total += y_next;
 
         // Calculate curve increment and end position
-        create_curve();
+        create_curve(curve_inc, curve_end, curve_x_total, curve_y_total, curve_x_dist, curve_y_dist);
         int16_t curve_steps = curve_end - curve_start;
         if (curve_steps < 0) return;
         if (curve_steps == 0) continue; // skip_pos
@@ -406,12 +385,31 @@ void ORoad::setup_x_data()
             x += xinc;              
             if (x < -0x3200 || x > 0x3200) return;
             road_x[scanline] = x;           
-            if (--scanline < 0) return;   
+            if (--scanline < 0) return;
         }
 
         curve_inc_old = curve_inc;
         curve_start = curve_end;
     }
+}
+
+// Interpolates road data into a smooth curve.
+//
+// Source Address: 0x16B6
+
+void ORoad::create_curve(
+       int16_t &curve_inc, int16_t &curve_end,
+       int32_t curve_x_total, int32_t curve_y_total, int16_t curve_x_dist, int16_t curve_y_dist)
+{    
+    // Note multiplication result should be 32bit, inputs 16 bit
+    int32_t d0 = ((curve_x_total >> 5) * curve_y_dist) - ((curve_y_total >> 5) * curve_x_dist);
+    int32_t d2 = ((curve_x_total >> 5) * curve_x_dist) + ((curve_y_total >> 5) * curve_y_dist);
+
+    d2 >>= 7;        
+    int32_t d1 = (d2 >> 7) + 0x410;     
+
+    curve_inc = d0 / d1;        // Total amount to increment x by
+    curve_end = (d2 / d1) * 4;
 }
 
 // Set The Correct Tilemap X *target* Position From The Road Data
@@ -485,32 +483,6 @@ void ORoad::set_tilemap_x()
     tilemap_h_target = scroll_x;
 }
 
-// Interpolates road data into a smooth curve.
-//
-// Source Address: 0x16B6
-
-void ORoad::create_curve()
-{    
-    // Note multiplication result should be 32bit, inputs 16 bit
-    int32_t d0 = ((curve_x1_next >> 5) * curve_x2_dist);
-    int32_t d1 = ((curve_x2_next >> 5) * curve_x1_dist);
-    int32_t d2 = ((curve_x1_next >> 5) * curve_x1_dist);
-    int32_t d3 = ((curve_x2_next >> 5) * curve_x2_dist);
-
-    d0 -= d1;
-    d2 += d3;
-    d2 >>= 7;        
-    d1 = d2;
-    d1 >>= 7;        
-    d1 += 0x410;
-
-    d0 = d0 / d1;
-    d2 = d2 / d1;
-    
-    curve_inc = d0; // truncates to int16      
-    curve_end = d2 * 4; // truncates to int16
-}
-
 // Creates the bend in the next section of road.
 //
 // Source Address: 0x180C
@@ -565,7 +537,7 @@ void ORoad::do_road_offset(int16_t* dst_x, int16_t width, bool invert)
     int32_t car_offset = car_x_bak + width + oinitengine.camera_x_off; // note extra debug of camera x
     int32_t scanline_inc = 0; // Total amount to increment scanline (increased every line)
     int16_t* src_x = road_x; // a0
-
+/*
     // ---------------------------------------------------------------
     // Process H-Scroll: Car not central on road 0
     // The following loop ensures that the road offset 
@@ -600,7 +572,7 @@ void ORoad::do_road_offset(int16_t* dst_x, int16_t width, bool invert)
     // ------------------------------
     // Ignore Car Position / H-Scroll
     // ------------------------------
-
+*/
     if (!invert)
     {
         for (uint16_t i = 0; i <= 0x3F; i++)

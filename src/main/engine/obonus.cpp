@@ -71,18 +71,18 @@ void OBonus::init_bonus_text()
 
     uint16_t total_time = 0;
 
-    // Add seconds remaining from previous stage times
+    // Add milliseconds remaining from previous stage times
     for (int i = 0; i < 5; i++)
     {
-        total_time = outils::bcd_add(outils::DEC_TO_HEX[ostats.stage_times[i][1]], total_time);
+        total_time = outils::bcd_add(outils::DEC_TO_HEX[ostats.stage_times[i][2]], total_time);
     }
 
-    // Mask on top digit of lap seconds
+    // Mask on top digit of lap milliseconds
     total_time &= 0xF0;
 
     if (total_time)
     {
-        time_counter_bak |= (0x10 - (total_time >> 4));
+        time_counter_bak |= (10 - (total_time >> 4));
     }
     // So 60 seconds remaining on the clock and 3 from lap_seconds would be 0x0603
 
@@ -92,7 +92,7 @@ void OBonus::init_bonus_text()
     uint16_t digit_bot = (time_counter_bak & 0x0F);
 
     // Write them back to final bonus seconds value
-    bonus_secs = digit_bot | digit_mid | digit_top;
+    bonus_secs = digit_bot + digit_mid + digit_top;
 
     // Write to text layer
     ohud.blit_text2(TEXT2_BONUS_POINTS); // Print "BONUS POINTS"

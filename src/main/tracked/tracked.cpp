@@ -11,6 +11,16 @@
 #include "engine/olevelobjs.hpp"
 #include "engine/otiles.hpp"
 
+/*
+
+    Block End Position is when the block is deemed to end.
+    This is when the scenery is closest to the camera. 
+    Road pos is close to the block end position.
+
+    The block that is displayed is the stuff closest to the camera.
+
+*/
+
 Tracked::Tracked(void)
 {
 
@@ -42,7 +52,8 @@ void Tracked::tick()
             if (cannonball::tick_frame) controls();
             tick_track();
             video.clear_text_ram();
-            display_sprite_info();
+            //display_sprite_info();
+            display_path_info();
             break;
     }
 }
@@ -78,17 +89,35 @@ void Tracked::tick_track()
     oinitengine.set_granular_position();
 }
 
+void Tracked::display_path_info()
+{
+    static const int TX = 16; // Text X Offset
+    uint32_t addr = oroad.stage_addr + oroad.road_data_offset;
+
+    const int16_t x1 = (int16_t) roms.rom1p->read16(addr);
+    const int16_t x2 = (int16_t) roms.rom1p->read16(addr + 2);
+    const uint16_t road_pos    = oroad.road_pos >> 16;
+
+    ohud.blit_text_new(0,  0, "ROAD POS", OHud::GREEN);
+    ohud.blit_text_new(TX, 0, config.to_string(road_pos).c_str(), OHud::GREEN);
+
+    ohud.blit_text_new(0,  3, "X1     ", OHud::GREEN);
+    ohud.blit_text_new(TX, 3, config.to_string(x1).c_str(), OHud::GREEN);
+    ohud.blit_text_new(0,  4, "X2     ", OHud::GREEN);
+    ohud.blit_text_new(TX, 4, config.to_string(x2).c_str(), OHud::GREEN);
+}
+
 void Tracked::display_sprite_info()
 {
-    static const int TX = 16;
+    static const int TX = 16; // Text X Offset
 
     uint16_t road_pos    = oroad.road_pos >> 16;
     if (road_pos < 8) return;
     uint32_t sprite_adr  = oinitengine.road_seg_addr1 - 4;
-    uint16_t block_start = roms.rom0p->read16(&sprite_adr);
-    uint16_t block_end   = roms.rom0p->read16(oinitengine.road_seg_addr1);
-    uint8_t total_spr    = roms.rom0p->read8(&sprite_adr);
-    uint8_t sprite_id    = roms.rom0p->read8(&sprite_adr);
+    uint16_t block_start = roms.rom0p->read16(&sprite_adr);                // Road pos of block start
+    uint16_t block_end   = roms.rom0p->read16(oinitengine.road_seg_addr1); // Road pos of block end
+    uint8_t total_spr    = roms.rom0p->read8(&sprite_adr);                 // Number of sprites in block
+    uint8_t sprite_id    = roms.rom0p->read8(&sprite_adr);                 // Sprite Block ID (Used to lookup block)
 
     // Master Sprite Table
     //

@@ -217,13 +217,13 @@ void OSprites::sprite_control()
         oinitengine.road_seg_addr1 += 4;                              // Increment to next long
         seg_pos = roms.rom0p->read16(&a0);                            // Position In Level Data [Word]
         seg_total_sprites = roms.rom0p->read8(&a0);                   // Number Of Sprites In Segment [byte]
-        d0 = roms.rom0p->read8(a0) * 4;                               // Sprite Data Entry Number From Lookup Table * 4 [Byte]
-
+        d0 = roms.rom0p->read8(a0) * 4;                               // Block of Sprites [Byte]
+        
         a0 = roms.rom0p->read32(outrun.adr.sprite_master_table + d0); // Set a0 to new address from master table of addresses
         seg_sprite_freq = roms.rom0p->read16(&a0);                    // Set Sprite Frequency Value
         seg_spr_offset2 = roms.rom0p->read16(&a0);                    // Set Reload value for sprite info offset
         seg_spr_addr = a0;                                            // Set ROM address for sprite info lookup (x, y, type)
-                                                                      //  NOTE: Sets to value of a0 itself, not memory location
+                                                                      // NOTE: Sets to value of a0 itself, not memory location
         seg_spr_offset1 = 0;                                          // And Clear the offset into the above table
     }
 
@@ -254,7 +254,7 @@ void OSprites::sprite_control()
     }
 
     // ------------------------------------------------------------------------
-    // Sprite 2 - Note: We Attempt To Draw Two Sprites Each Cycle
+    // Sprite 2 - Second Sprite is slightly set back from the first.
     // ------------------------------------------------------------------------
     carry = seg_sprite_freq & 0x8000;
     seg_sprite_freq = ((seg_sprite_freq << 1) | ((seg_sprite_freq & 0x8000) >> 15)) & 0xFFFF;

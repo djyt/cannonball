@@ -150,7 +150,6 @@ void OInitEngine::update_road()
     check_road_split(); // Check/Process road split if necessary
     uint32_t addr = road_seg_addr2;
     uint16_t d0 = roms.rom0p->read16(&addr);
-    
     // Update next road section
     if (d0 <= oroad.road_pos >> 16)
     {

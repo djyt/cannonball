@@ -68,7 +68,6 @@ void OInitEngine::init(int8_t level)
     road_width_merge       = 0;
     route_updated          = 0;
 
-    // todo: Note we need to include code to skip SetSoundReset when initgameengine2 is called
 	init_road_seg_master();
 
     // Road Renderer: Setup correct stage address 
@@ -129,6 +128,10 @@ void OInitEngine::init_road_seg_master()
     // Rolled the following lines in from elsewhere
 	road_seg_addr3 = roms.rom0p->read32(0x18 + road_seg_master); // Type of curve and unknown
 	road_seg_addr2 = roms.rom0p->read32(0x1C + road_seg_master); // Width/Height Lookup
+
+    // hack for custom data
+    //road_seg_addr2 = roms.track_data->read32(4);
+
 	road_seg_addr1 = roms.rom0p->read32(0x20 + road_seg_master); // Sprite information
 }
 
@@ -163,16 +166,16 @@ void OInitEngine::update_road()
         else
         {
             // ROM:0000B87A
-            int16_t d0 = roms.rom0p->read16(&addr); // Segment road width
-            int16_t d1 = roms.rom0p->read16(&addr); // Segment adjustment speed
+            int16_t width  = roms.rom0p->read16(&addr); // Segment road width
+            int16_t change = roms.rom0p->read16(&addr); // Segment adjustment speed
 
-            if (d0 != (int16_t) (oroad.road_width >> 16))
+            if (width != (int16_t) (oroad.road_width >> 16))
             {
-                if (d0 <= (int16_t) (oroad.road_width >> 16))
-                    d1 = -d1;
+                if (width <= (int16_t) (oroad.road_width >> 16))
+                    change = -change;
 
-                road_width_next = d0;
-                road_width_adj = d1;
+                road_width_next = width;
+                road_width_adj  = change;
                 change_width = -1; // Denote road width is changing
             }
         }
@@ -206,7 +209,7 @@ void OInitEngine::update_road()
     // ROAD SEGMENT FORMAT
     //
     // Each segment of road is 6 bytes in memory, consisting of 3 words
-    // Each road segment is a signifcant length of road btw :)
+    // Each road segment is a significant length of road btw :)
     //
     // ADDRESS 3 - Road Segment Data [6 byte boundaries]
     //

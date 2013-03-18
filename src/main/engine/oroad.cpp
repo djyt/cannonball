@@ -277,62 +277,24 @@ void ORoad::setup_road_x()
     if (road_pos_change != 0)
     {
         road_data_offset = (road_pos >> 16) << 2;
-        set_tilemap_x();
-        setup_x_data();
+        //uint32_t addr = stage_addr + road_data_offset;
+        uint32_t addr = road_data_offset + 8; // temporary hack for custom data
+        set_tilemap_x(addr);
+        setup_x_data(addr);
     }
     setup_hscroll();
 }
 
-// Setup Road X Data from ROM
+// Setup Road Path
+//
+// Road Path is stored as a series of words representing x,y change
 //
 // Source Address: 0x15B0
-//
-// 1/ Reads Road X Data From ROM for Stage
-// 2/ Sets Up Road X Position Table (H-Scroll Not Applied At This Stage)
-// 3/ Sets Up Tilemap X Scroll
-//
-// Inputs:
-//
-// a4 = Road X Position Table (Before H-Scroll) [DESTINATION]
-//
-// Note that each word entry in this table represents one scanline of the screen
-// 60800 = bottom line of the screen.
-// so more of this table is filled based on horizon
-//
-// In Use:
-//
-// a6 = Road Data [SOURCE]
-// d4 = Index into X-Scroll Destination Table
-//
-// Road Format:
-//
-// NOTE - This doesn't contain height or width information :)
-//
-// Word 0: X Position of segment #1
-// Word 1: Y Position of segment #1 (Length of segment #1)
-//
-// Word 2: X Position of segment #2
-// Word 3: Y Position of segment #2 (Length of segment #2)
-//
-// Note, both X and Y positions need to be summed to each other to make sense.
-//
-//  | (point 2)
-//  | 
-//  |
-//  | (point 1)
-//
-// Signed bytes.
-//
-// Notes:
-//
-// Stage 1 Data Stored At 3da74
 
-void ORoad::setup_x_data()
+void ORoad::setup_x_data(uint32_t addr)
 {
-    uint32_t addr = stage_addr + road_data_offset;
-
-    const int16_t x = (int16_t) roms.rom1p->read16(addr)     + (int16_t) roms.rom1p->read16(addr + 4); // Length 1
-    const int16_t y = (int16_t) roms.rom1p->read16(addr + 2) + (int16_t) roms.rom1p->read16(addr + 6); // Length 2
+    const int16_t x = (int16_t) roms.track_data->read16(addr)     + (int16_t) roms.track_data->read16(addr + 4); // Length 1
+    const int16_t y = (int16_t) roms.track_data->read16(addr + 2) + (int16_t) roms.track_data->read16(addr + 6); // Length 2
 
     // Use Pythagorus' theorem to find the distance/length between x & y
     const uint16_t distance = outils::isqrt((x * x) + (y * y));
@@ -363,8 +325,8 @@ void ORoad::setup_x_data()
     // We sample 20 Road Positions to generate the road.
     for (uint8_t i = 0; i <= 0x20; i++)
     {
-        const int32_t x_next = (int16_t) roms.rom1p->read16(addr)     + (int16_t) roms.rom1p->read16(addr + 4); // Length 1
-        const int32_t y_next = (int16_t) roms.rom1p->read16(addr + 2) + (int16_t) roms.rom1p->read16(addr + 6); // Length 2
+        const int32_t x_next = (int16_t) roms.track_data->read16(addr)     + (int16_t) roms.track_data->read16(addr + 4); // Length 1
+        const int32_t y_next = (int16_t) roms.track_data->read16(addr + 2) + (int16_t) roms.track_data->read16(addr + 6); // Length 2
         addr += 8;
 
         curve_x_total += x_next;
@@ -419,60 +381,46 @@ void ORoad::create_curve(
 // Use Euclidean distance between a series of points.
 // This is essentially the standard distance that you'd measure with a ruler.
 
-void ORoad::set_tilemap_x()
-{
-    uint32_t addr = stage_addr + road_data_offset;
-    
-    // d0 = Word 0 + Word 2 + Word 4 + Word 6 [Next 4 x1 positions]
-    // d1 = Word 1 + Word 3 + Word 5 + Word 7 [Next 4 x2 positions]
-    int16_t x1_diff = roms.rom1p->read16(&addr);
-    int16_t x2_diff = roms.rom1p->read16(&addr);
-    x1_diff += (int16_t) roms.rom1p->read16(&addr);
-    x2_diff += (int16_t) roms.rom1p->read16(&addr);
-    x1_diff += (int16_t) roms.rom1p->read16(&addr);
-    x2_diff += (int16_t) roms.rom1p->read16(&addr);
-    x1_diff += (int16_t) roms.rom1p->read16(&addr);
-    x2_diff += (int16_t) roms.rom1p->read16(&addr);
+void ORoad::set_tilemap_x(uint32_t addr)
+{    
+    // d0 = Word 0 + Word 2 + Word 4 + Word 6 [Next 4 x positions]
+    // d1 = Word 1 + Word 3 + Word 5 + Word 7 [Next 4 y positions]
+    int16_t x = roms.track_data->read16(&addr);
+    int16_t y = roms.track_data->read16(&addr);
+    x += (int16_t) roms.track_data->read16(&addr);
+    y += (int16_t) roms.track_data->read16(&addr);
+    x += (int16_t) roms.track_data->read16(&addr);
+    y += (int16_t) roms.track_data->read16(&addr);
+    x += (int16_t) roms.track_data->read16(&addr);
+    y += (int16_t) roms.track_data->read16(&addr);
 
-    int16_t x1_abs = x1_diff;
-    int16_t x2_abs = x2_diff;
-    if (x1_abs < 0) x1_abs = -x1_abs;
-    if (x2_abs < 0) x2_abs = -x2_abs;
+    int16_t x_abs = x;
+    int16_t y_abs = y;
+    if (x_abs < 0) x_abs = -x_abs;
+    if (y_abs < 0) y_abs = -y_abs;
 
     int16_t scroll_x;
 
     // scroll right
-    if (x2_abs > x1_abs)
+    if (y_abs > x_abs)
     {
-        scroll_x = (0x100 * x1_diff) / x2_diff;
+        scroll_x = (0x100 * x) / y;
     }
     // scroll left
     else
     {
-        scroll_x = (-0x100 * x2_diff) / x1_diff;
+        scroll_x = (-0x100 * y) / x;
     }
     
     // turn right
-    if (x1_diff > 0)
-    {
-        scroll_x += 0x200;
-    }
-    else if (x1_diff < 0)
-    {
-        scroll_x += 0x600;
-    }
-    else if (x2_diff >= 0)
-    {
-        scroll_x += 0x200;
-    }
-    else
-    {
-        scroll_x += 0x600;
-    }
+    if (x > 0)       scroll_x += 0x200;
+    else if (y < 0)  scroll_x += 0x600;
+    else if (y >= 0) scroll_x += 0x200;
+    else             scroll_x += 0x600;
 
-    if (x2_abs > x1_abs)
+    if (y_abs > x_abs)
     {
-        int32_t d0 = x1_diff * x2_diff;
+        int32_t d0 = x * y;
 
         if (d0 >= 0)
             scroll_x -= 0x200;
@@ -537,7 +485,7 @@ void ORoad::do_road_offset(int16_t* dst_x, int16_t width, bool invert)
     int32_t car_offset = car_x_bak + width + oinitengine.camera_x_off; // note extra debug of camera x
     int32_t scanline_inc = 0; // Total amount to increment scanline (increased every line)
     int16_t* src_x = road_x; // a0
-/*
+
     // ---------------------------------------------------------------
     // Process H-Scroll: Car not central on road 0
     // The following loop ensures that the road offset 
@@ -572,7 +520,7 @@ void ORoad::do_road_offset(int16_t* dst_x, int16_t width, bool invert)
     // ------------------------------
     // Ignore Car Position / H-Scroll
     // ------------------------------
-*/
+
     if (!invert)
     {
         for (uint16_t i = 0; i <= 0x3F; i++)
@@ -728,6 +676,8 @@ void ORoad::init_elevation(uint32_t& addr)
 
 void ORoad::do_elevation()
 {
+    // There are 6 road positions per height entry.
+    // Each height entry is two bytes (6 * 2)
     height_step += pos_fine_diff * 12;
     uint16_t d3 = dist_ctrl;
 
@@ -934,6 +884,7 @@ void ORoad::set_road_y()
     }
 }
 
+#include <iostream>
 
 // 1/ Takes distance into track section
 // 2/ Interpolates this value into a series of counters, stored between 60700 - 6070D
@@ -982,7 +933,7 @@ void ORoad::set_y_interpolate()
 
     // Address of next entry in road height table data [rom so no need to scale]
     a1_lookup = (height_index * 2) + height_addr;
-
+    //std::cout << std::hex << a1_lookup << std::endl;
     // Road Y Positions (references to this decrement) [Destination]    
     y_addr = 0x200 + road_p1;
 

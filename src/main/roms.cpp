@@ -19,8 +19,15 @@ Roms::~Roms(void)
 {
 }
 
+#include <iostream>
+
 bool Roms::load_revb_roms()
 {
+    uint32_t adr = 0;
+    custom_track.init(7838);
+    custom_track.load("output.bin", 0, 7838, 0);
+    track_data = &custom_track;
+
     // If incremented, a rom has failed to load.
     int status = 0;
 
@@ -83,6 +90,13 @@ bool Roms::load_revb_roms()
     status += pcm.load("opr-10190.69", 0x30000, 0x08000, 0x7cab70e2);
     status += pcm.load("opr-10189.70", 0x40000, 0x08000, 0x01366b54);
     status += pcm.load("opr-10188.71", 0x50000, 0x08000, 0xbad30ad9);
+    
+    uint32_t adr1 = 0x23DEA;
+
+    for (int i = 0; i < 0x79C; i++)
+    {
+        std::cout << std::dec << rom1.read16(&adr1) << "," << rom1.read16(&adr1) << "," << std::endl;
+    }
 
     // If status has been incremented, a rom has failed to load.
     return status == 0;

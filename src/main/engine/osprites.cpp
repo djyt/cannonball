@@ -152,7 +152,7 @@ void OSprites::disable_sprites()
 
 void OSprites::tick()
 {
-    sprite_control();
+    //sprite_control();
 }
 
 // Sprite Control

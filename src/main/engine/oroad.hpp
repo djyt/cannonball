@@ -263,8 +263,8 @@ private:
 	void check_load_road();
 	
 	void setup_road_x();
-	void setup_x_data();
-	void set_tilemap_x();
+	void setup_x_data(uint32_t);
+	void set_tilemap_x(uint32_t);
 	void add_next_road_pos(uint32_t*);
 	void create_curve(int16_t&, int16_t&,
                       const int32_t, const int32_t, const int16_t, const int16_t);

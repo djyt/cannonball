@@ -18,9 +18,12 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <iostream> // debug
+
 #include "stdint.hpp"
 #include "globals.hpp"
 #include "roms.hpp"
+#include "trackloader.hpp"
 
 #include "engine/oaddresses.hpp"
 #include "engine/outils.hpp"
@@ -102,8 +105,8 @@ void ORoad::init()
     height_addr = 0;
     elevation = 0;
     height_lookup_wrk = 0;
-    updowncombo = 0;
-    dist_ctrl = 0;
+    height_delay = 0;
+    step_adjust = 0;
     do_height_inc = 0;
     height_end = 0;
     up_mult = 0;
@@ -202,8 +205,9 @@ void ORoad::init_stage1()
 {
     // Sets to 0x3c [Stage 1] - First Entry Of Stage Master Table In RAM
     // Multiply by 4, as table contains longs
-    uint16_t stage1 = oinitengine.stage_data[0] << 2; 
-    stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage1);
+    const uint16_t stage1 = oinitengine.stage_data[0] << 2; 
+    //stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage1);
+    trackloader.setup_path(stage1);
     
     road_pos = 0;
     road_ctrl = ROAD_BOTH_P0;
@@ -244,8 +248,9 @@ void ORoad::check_load_road()
         stage_loaded = ostats.cur_stage; // Denote loaded
 
         // Table contains longs, so multiply by 4
-        uint16_t stage_index = oinitengine.stage_data[stage_lookup_off] << 2;
-        stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage_index);
+        const uint16_t stage_index = oinitengine.stage_data[stage_lookup_off] << 2;
+        trackloader.setup_path(stage_index);
+        //stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage_index);
         return;
     }
 
@@ -278,7 +283,7 @@ void ORoad::setup_road_x()
     {
         road_data_offset = (road_pos >> 16) << 2;
         //uint32_t addr = stage_addr + road_data_offset;
-        uint32_t addr = road_data_offset + 8; // temporary hack for custom data
+        uint32_t addr = road_data_offset; // temporary hack for custom data
         set_tilemap_x(addr);
         setup_x_data(addr);
     }
@@ -293,8 +298,8 @@ void ORoad::setup_road_x()
 
 void ORoad::setup_x_data(uint32_t addr)
 {
-    const int16_t x = (int16_t) roms.track_data->read16(addr)     + (int16_t) roms.track_data->read16(addr + 4); // Length 1
-    const int16_t y = (int16_t) roms.track_data->read16(addr + 2) + (int16_t) roms.track_data->read16(addr + 6); // Length 2
+    const int16_t x = trackloader.readPath(addr)     + trackloader.readPath(addr + 4); // Length 1
+    const int16_t y = trackloader.readPath(addr + 2) + trackloader.readPath(addr + 6); // Length 2
 
     // Use Pythagorus' theorem to find the distance/length between x & y
     const uint16_t distance = outils::isqrt((x * x) + (y * y));
@@ -325,8 +330,8 @@ void ORoad::setup_x_data(uint32_t addr)
     // We sample 20 Road Positions to generate the road.
     for (uint8_t i = 0; i <= 0x20; i++)
     {
-        const int32_t x_next = (int16_t) roms.track_data->read16(addr)     + (int16_t) roms.track_data->read16(addr + 4); // Length 1
-        const int32_t y_next = (int16_t) roms.track_data->read16(addr + 2) + (int16_t) roms.track_data->read16(addr + 6); // Length 2
+        const int32_t x_next = trackloader.readPath(addr)     + trackloader.readPath(addr + 4); // Length 1
+        const int32_t y_next = trackloader.readPath(addr + 2) + trackloader.readPath(addr + 6); // Length 2
         addr += 8;
 
         curve_x_total += x_next;
@@ -385,14 +390,15 @@ void ORoad::set_tilemap_x(uint32_t addr)
 {    
     // d0 = Word 0 + Word 2 + Word 4 + Word 6 [Next 4 x positions]
     // d1 = Word 1 + Word 3 + Word 5 + Word 7 [Next 4 y positions]
-    int16_t x = roms.track_data->read16(&addr);
-    int16_t y = roms.track_data->read16(&addr);
-    x += (int16_t) roms.track_data->read16(&addr);
-    y += (int16_t) roms.track_data->read16(&addr);
-    x += (int16_t) roms.track_data->read16(&addr);
-    y += (int16_t) roms.track_data->read16(&addr);
-    x += (int16_t) roms.track_data->read16(&addr);
-    y += (int16_t) roms.track_data->read16(&addr);
+    
+    int16_t x = trackloader.readPath(&addr);
+    int16_t y = trackloader.readPath(&addr);
+    x += trackloader.readPath(&addr);
+    y += trackloader.readPath(&addr);
+    x += trackloader.readPath(&addr);
+    y += trackloader.readPath(&addr);
+    x += trackloader.readPath(&addr);
+    y += trackloader.readPath(&addr);
 
     int16_t x_abs = x;
     int16_t y_abs = y;
@@ -414,7 +420,7 @@ void ORoad::set_tilemap_x(uint32_t addr)
     
     // turn right
     if (x > 0)       scroll_x += 0x200;
-    else if (y < 0)  scroll_x += 0x600;
+    else if (x < 0)  scroll_x += 0x600;
     else if (y >= 0) scroll_x += 0x200;
     else             scroll_x += 0x600;
 
@@ -630,32 +636,34 @@ void ORoad::setup_road_y()
 // Source Address: 0x1BCE
 void ORoad::init_height_seg()
 {
-    height_index = 0;
-    height_inc = 0;
-    elevation = FLAT;
-    height_step = 1;    
-
-    height_lookup_wrk = height_lookup;
-
+    height_index = 0;    // Set to first entry in height segment
+    height_inc   = 0;    // Do not increment to next segment
+    elevation    = FLAT; // Default to flat elevation
+    height_step  = 1;    // Set to start of height segment
+//height_lookup = 41; // 32
     // Get Address of actual road height data
+    height_lookup_wrk = height_lookup;
     uint32_t h_addr = roms.rom1p->read32(outrun.adr.road_height_lookup + (height_lookup_wrk * 4));
 
     height_ctrl2 = roms.rom1p->read8(&h_addr);
-    dist_ctrl = roms.rom1p->read8(&h_addr);
+    step_adjust  = roms.rom1p->read8(&h_addr); // Speed at which to move through height segment
 
     switch (height_ctrl2)
     {
         case 0:
             init_elevation(h_addr);
             break;
+        
         // Chicane on stage 1
         case 1:
         case 2:
             init_elevation_hill(h_addr);
             break;
+        
         case 3:
             init_level_4d(h_addr);
             break;
+        
         case 4:
             init_horizon_adjust(h_addr);
             break;
@@ -667,8 +675,8 @@ void ORoad::init_height_seg()
 // Source Address: 0x1C2C
 void ORoad::init_elevation(uint32_t& addr)
 {
-    up_mult = roms.rom1p->read8(&addr);
     down_mult = roms.rom1p->read8(&addr);
+    up_mult   = roms.rom1p->read8(&addr);
     height_addr = addr;
     height_ctrl = 2; // Use do_elevation_flat function below
     do_elevation();
@@ -676,34 +684,36 @@ void ORoad::init_elevation(uint32_t& addr)
 
 void ORoad::do_elevation()
 {
-    // There are 6 road positions per height entry.
-    // Each height entry is two bytes (6 * 2)
+    // By Default: One Height Entry Per Two Road Positions 
+    // Potential advance stage of height map we're on 
     height_step += pos_fine_diff * 12;
-    uint16_t d3 = dist_ctrl;
 
-    if (elevation > 0)
-        d3 *= down_mult;
-    else if (elevation < 0)
+    // Adjust the speed at which we transverse elevation sections of the height map
+    uint16_t d3 = step_adjust;
+    if (elevation == UP)
         d3 *= up_mult;
+    else if (elevation == DOWN)
+        d3 *= down_mult;
 
     uint16_t d1 = (height_step / d3);
     if (d1 > 0xFF) d1 = 0xFF;
     d1 += 0x100;
 
     height_start = d1;
-    height_end = d1;
+    height_end   = d1;
 
-    height_index += height_inc;
+    // Advance to next height entry if appropriate. 
+    height_index += height_inc; 
     height_inc = 0;
 
-    // Increment to next height entry
+    // Increment to next height entry in table.
     if (height_start == 0x1FF)
     {
         height_start = 0x1FF;
-        height_end = 0x1FF;
-        height_step = 1; // Set position on road segment to start
-        height_inc = 1;
-        elevation = FLAT;
+        height_end   = 0x1FF;
+        height_step  = 1; // Start Of Height Segment
+        height_inc   = 1;
+        elevation    = FLAT;
         return;
     }
     if (height_lookup == 0 || height_lookup_wrk != 0)
@@ -713,9 +723,10 @@ void ORoad::do_elevation()
 }
 
 // Source: 1CE4 (first used at the chicane at stage 1)
+// Example data at: 0x29aa
 void ORoad::init_elevation_hill(uint32_t& addr)
 {
-    updowncombo = roms.rom1p->read16(&addr);
+    height_delay = roms.rom1p->read16(&addr);
     height_addr = addr;
     do_height_inc = 1;
     height_inc = 0;
@@ -724,11 +735,14 @@ void ORoad::init_elevation_hill(uint32_t& addr)
     do_elevation_hill();
 }
 
+// Note there is an intriguing bug in this routine, where if you drive slow enough
+// height_delay can't be decremented, so the delay lasts for every elongating the hill.
+//
 // Source: 1D04
 void ORoad::do_elevation_hill()
 {
     int16_t d1 = pos_fine_diff * 12;
-    uint16_t d3 = dist_ctrl;
+    uint16_t d3 = step_adjust;
     height_index += height_inc; // Next height entry
     height_inc = 0;
 
@@ -741,6 +755,8 @@ void ORoad::do_elevation_hill()
         if (d1 > 0xFF) d1 = 0xFF;
 
         height_start = d1;
+
+        // At end of height section, advance to next
         if (height_start > 0xFE)
         {
             height_start = 0xFF;
@@ -759,19 +775,20 @@ void ORoad::do_elevation_hill()
     // 1D2E 
     else
     {
-        //d1 = d1 / dist_ctrl;
-        updowncombo -= (d1 / dist_ctrl);    
+        //d1 = d1 / step_adjust;
+        height_delay -= (d1 / step_adjust);    
         height_start = 0x1FF;
 
-        if (updowncombo < 0) // // Set flag so we inc next time
+        if (height_delay < 0) // Set flag so we inc next time
             do_height_inc = 0;
     }
 }
 
 // Source: 1DAC
+// Data Usage Source: 0x2a8e
 void ORoad::init_level_4d(uint32_t& addr)
 {
-    updowncombo = roms.rom1p->read16(&addr);
+    height_delay = roms.rom1p->read16(&addr);
     height_addr = addr;
     do_height_inc = 1;
     height_inc = 0;
@@ -783,21 +800,20 @@ void ORoad::init_level_4d(uint32_t& addr)
 void ORoad::do_level_4d()
 {
     uint16_t d1 = pos_fine_diff * 12;
-
     height_index += height_inc;
     height_inc = 0;
     
     // 1E1C - On crest of hill (hill type >= 6)
     if (height_index >= 6)
     {
-        uint16_t d3 = dist_ctrl;
+        uint16_t d3 = step_adjust;
         if (do_height_inc != 0)
         {
-            updowncombo -= (d1 / d3);
+            height_delay -= (d1 / d3);
             height_start = 0x1FF;
             height_end = 0x100;
             // 1E46
-            if (updowncombo < 0)
+            if (height_delay < 0)
             {
                 height_addr += 12;
                 do_height_inc = 0;
@@ -839,6 +855,7 @@ void ORoad::do_level_4d()
 }
     
 // Source Address: 0x1EB6
+// Data Example: 0x3672
 void ORoad::init_horizon_adjust(uint32_t& addr)
 {
     height_addr = addr;
@@ -851,14 +868,14 @@ void ORoad::init_horizon_adjust(uint32_t& addr)
 void ORoad::do_horizon_adjust()
 {
     height_step += pos_fine_diff * 12;
-    uint16_t d1 = (height_step / dist_ctrl);
+    uint16_t d1 = (height_step / step_adjust);
 
     // Scale height between 100 and 1FF
     if (d1 > 0xFF) d1 = 0xFF;
     d1 += 0x100;
 
     height_start = d1;
-    height_end = d1;
+    height_end   = d1;
 }
 
 // ----------------------------------------------------------------------------
@@ -884,11 +901,12 @@ void ORoad::set_road_y()
     }
 }
 
-#include <iostream>
-
 // 1/ Takes distance into track section
 // 2/ Interpolates this value into a series of counters, stored between 60700 - 6070D
 // 3/ Each of these counters define how many times to write and adjust the height value
+//
+// section_lengths stores the distance from the player to the horizon.
+// This essentially represents 7 track segments.
 
 // Source Address: 0x1F22
 void ORoad::set_y_interpolate()
@@ -933,7 +951,7 @@ void ORoad::set_y_interpolate()
 
     // Address of next entry in road height table data [rom so no need to scale]
     a1_lookup = (height_index * 2) + height_addr;
-    //std::cout << std::hex << a1_lookup << std::endl;
+    //std::cout << std::hex << (road_pos >> 16) << " : " << a1_lookup << std::endl;
     // Road Y Positions (references to this decrement) [Destination]    
     y_addr = 0x200 + road_p1;
 
@@ -941,14 +959,13 @@ void ORoad::set_y_interpolate()
     road_unk[a3_o++] = 0x1FF;
     road_unk[a3_o++] = 0;
     counter = 0; // Reset interpolated counter index to 0
-    //uint16_t d4 = 0x200; // 200 (512 pixels)
 
-    // height_final = (Next Height Value * (Distance into section - 0x100)) / 16
-    height_final = (((int16_t) roms.rom1p->read16(a1_lookup)) * (height_start - 0x100)) >> 4;
+    const int16_t next_height_value = roms.rom1p->read16(a1_lookup);
+    height_final = (next_height_value * (height_start - 0x100)) >> 4;
 
     // 1faa 
     int32_t horizon_copy = horizon_base << 4;
-    if (height_ctrl2 == 2) 
+    if (height_ctrl2 == 2)  // hold state
         horizon_copy += height_final;
 
     //set_y_2044(0x200, horizon_copy, 0, y_addr, 2);
@@ -956,9 +973,7 @@ void ORoad::set_y_interpolate()
     change_per_entry = horizon_copy;
     scanline = 0x200; // 200 (512 pixels)
     total_height = 0;
-    set_y_2044();
-
-    // loc: 2044    
+    set_y_2044();  
 }
 
 // Source: 0x2044
@@ -1025,13 +1040,9 @@ void ORoad::read_next_height()
 
         case 1:
             change_per_entry += height_final;
-            set_elevation();
-            return; // Note we return
-
         case 2:
             set_elevation();
             return; // Note we return
-
         case 3:
             if (height_index >= 6)
             {
@@ -1041,10 +1052,6 @@ void ORoad::read_next_height()
             }
             // otherwise set_elevation_flag
             break;
-
-        /*default:
-            std::cout << "Possible Error in ORoad::read_next_height()" << std::endl;
-            break;*/
     }
 
     // 1ff2: set_elevation_flag
@@ -1059,7 +1066,6 @@ void ORoad::read_next_height()
     }
 
     // Writing first part of interpolated data
-
     change_per_entry -= height_final;
 
     int32_t horizon_shift = (horizon_base << 4);
@@ -1110,7 +1116,7 @@ void ORoad::set_elevation()
     set_y_2044();
 }
 
-// Set Horizon Base Position
+// Set Horizon Base Position. Used on Gateway.
 //
 // Source Address: 0x219E
 void ORoad::set_y_horizon()

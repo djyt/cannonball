@@ -53,7 +53,8 @@ void Tracked::tick()
             tick_track();
             video.clear_text_ram();
             //display_sprite_info();
-            display_path_info();
+            //display_path_info();
+            display_height_info();
             break;
     }
 }
@@ -87,6 +88,51 @@ void Tracked::tick_track()
     osprites.update_sprites();
     otiles.update_tilemaps();
     oinitengine.set_granular_position();
+}
+
+void Tracked::display_height_info()
+{
+    static const int TX = 15; // Text X Offset
+    
+    static const int COL2 = 21; // Column 2
+    uint32_t addr = oroad.stage_addr + oroad.road_data_offset;
+
+    const uint16_t road_pos    = oroad.road_pos >> 16;
+    const uint32_t h_addr      = roms.rom1p->read32(outrun.adr.road_height_lookup + (oroad.height_lookup * 4));
+    const int16_t height       = roms.rom1p->read16(oroad.a1_lookup);
+
+    ohud.blit_text_new(0,  0, "ROAD POS", OHud::GREEN);
+    ohud.blit_text_new(TX, 0, config.to_string(road_pos).c_str(), OHud::GREEN);
+
+    ohud.blit_text_new(0,  3, "HEIGHT START ", OHud::GREEN);
+    ohud.blit_text_new(TX, 3, config.to_string(oroad.height_start).c_str(), OHud::PINK);
+    ohud.blit_text_new(0,  4, "HEIGHT END   ", OHud::GREEN);
+    ohud.blit_text_new(TX, 4, config.to_string(oroad.height_end).c_str(), OHud::PINK);
+    ohud.blit_text_new(0,  5, "HEIGHT INDEX ", OHud::GREEN);
+    ohud.blit_text_new(TX, 5, config.to_string(oroad.height_index).c_str(), OHud::PINK);
+    ohud.blit_text_new(0,  6, "HEIGHT STEP  ", OHud::GREEN);
+    ohud.blit_text_new(TX, 6, config.to_string(oroad.height_step).c_str(), OHud::PINK);
+    ohud.blit_text_new(0,  7, "HEIGHT VALUE ", OHud::GREEN);
+    ohud.blit_text_new(TX, 7, config.to_string(height / 0x60).c_str(), OHud::PINK);
+
+    
+    ohud.blit_text_new(COL2 + 0,  0, "SEGMENT ADR  ", OHud::GREEN);
+    ohud.blit_text_new(COL2 + TX, 0, config.to_hex_string(h_addr).c_str(), OHud::GREEN);
+    ohud.blit_text_new(COL2 + 0,  1, "CURRENT ADR  ", OHud::GREEN);
+    ohud.blit_text_new(COL2 + TX, 1, config.to_hex_string(oroad.a1_lookup).c_str(), OHud::GREEN);
+    ohud.blit_text_new(COL2 + 0,  3, "HEIGHT CTRL1 ", OHud::GREEN);
+    ohud.blit_text_new(COL2 + TX, 3, config.to_string(oroad.height_ctrl).c_str(), OHud::PINK);
+    ohud.blit_text_new(COL2 + 0,  4, "HEIGHT CTRL2 ", OHud::GREEN);
+    ohud.blit_text_new(COL2 + TX, 4, config.to_string(oroad.height_ctrl2).c_str(), OHud::PINK);
+    ohud.blit_text_new(COL2 + 0,  5, "HEIGHT DELAY ", OHud::GREEN);
+    ohud.blit_text_new(COL2 + TX, 5, config.to_string(oroad.height_delay).c_str(), OHud::PINK);    
+    ohud.blit_text_new(COL2 + 0,  6, "UP MULT      ", OHud::GREEN);
+    ohud.blit_text_new(COL2 + TX, 6, config.to_string(oroad.up_mult).c_str(), OHud::PINK);
+    ohud.blit_text_new(COL2 + 0,  7, "DOWN MULT    ", OHud::GREEN);
+    ohud.blit_text_new(COL2 + TX, 7, config.to_string(oroad.down_mult).c_str(), OHud::PINK);  
+    ohud.blit_text_new(COL2 + 0,  8, "ENTRY CHANGE ", OHud::GREEN);
+    ohud.blit_text_new(COL2 + TX, 8, config.to_hex_string(oroad.change_per_entry >> 4).c_str(), OHud::PINK); 
+
 }
 
 void Tracked::display_path_info()
@@ -213,7 +259,7 @@ void Tracked::controls()
     }
 
     if (input.is_pressed(Input::UP))
-        oinitengine.car_increment = 0x20 << 16;
+        oinitengine.car_increment = 0x60 << 16;
     else if (oinitengine.car_increment != 0x80 << 16)
         oinitengine.car_increment = 0;
 

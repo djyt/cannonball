@@ -20,6 +20,7 @@
 #include "sdl/video.hpp"
 
 #include "romloader.hpp"
+#include "trackloader.hpp"
 #include "stdint.hpp"
 #include "main.hpp"
 #include "setup.hpp"
@@ -229,6 +230,7 @@ int main(int argc, char* argv[])
 
     // Load Roms
     bool roms_loaded = roms.load_revb_roms();
+    trackloader.load_level("output.bin");
 
     if (roms_loaded)
     {

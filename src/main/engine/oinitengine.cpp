@@ -11,6 +11,8 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "trackloader.hpp"
+
 #include "engine/oanimseq.hpp"
 #include "engine/obonus.hpp"
 #include "engine/ocrash.hpp"
@@ -126,13 +128,11 @@ void OInitEngine::init_road_seg_master()
     road_seg_master = roms.rom0p->read32(outrun.adr.road_seg_table + stage_offset);
 
     // Rolled the following lines in from elsewhere
-	road_seg_addr3 = roms.rom0p->read32(0x18 + road_seg_master); // Type of curve and unknown
-	road_seg_addr2 = roms.rom0p->read32(0x1C + road_seg_master); // Width/Height Lookup
+	//road_seg_addr3 = roms.rom0p->read32(0x18 + road_seg_master); // Type of curve and unknown
+	//road_seg_addr2 = roms.rom0p->read32(0x1C + road_seg_master); // Width/Height Lookup
+	//road_seg_addr1 = roms.rom0p->read32(0x20 + road_seg_master); // Sprite information
 
-    // hack for custom data
-    //road_seg_addr2 = roms.track_data->read32(4);
-
-	road_seg_addr1 = roms.rom0p->read32(0x20 + road_seg_master); // Sprite information
+    trackloader.setup_track(road_seg_master);
 }
 
 //
@@ -151,23 +151,23 @@ void OInitEngine::init_road_seg_master()
 void OInitEngine::update_road()
 {
     check_road_split(); // Check/Process road split if necessary
-    uint32_t addr = road_seg_addr2;
-    uint16_t d0 = roms.rom0p->read16(&addr);
+    uint32_t addr = 0;//road_seg_addr2;
+    uint16_t d0 = trackloader.read_width_height(&addr);//roms.rom0p->read16(&addr);
     // Update next road section
     if (d0 <= oroad.road_pos >> 16)
     {
         // Skip road width adjustment if set and adjust height
-        if (roms.rom0p->read16(&addr) == 0)
+        if (trackloader.read_width_height(&addr) == 0)
         {
             // ROM:0000B8A6 skip_next_width
             if (oroad.height_lookup == 0)
-                oroad.height_lookup = roms.rom0p->read16(addr); // Set new height lookup section
+                 oroad.height_lookup = trackloader.read_width_height(&addr); // Set new height lookup section
         }
         else
         {
             // ROM:0000B87A
-            int16_t width  = roms.rom0p->read16(&addr); // Segment road width
-            int16_t change = roms.rom0p->read16(&addr); // Segment adjustment speed
+            int16_t width  = trackloader.read_width_height(&addr); // Segment road width
+            int16_t change = trackloader.read_width_height(&addr); // Segment adjustment speed
 
             if (width != (int16_t) (oroad.road_width >> 16))
             {
@@ -179,7 +179,8 @@ void OInitEngine::update_road()
                 change_width = -1; // Denote road width is changing
             }
         }
-        road_seg_addr2 += 8;
+        //road_seg_addr2 += 8;
+        trackloader.wh_offset += 8;
     }
 
     // ROM:0000B8BC set_road_width    
@@ -222,7 +223,7 @@ void OInitEngine::update_road()
 
     // ROM:0000B91C set_road_type: 
 
-    int16_t segment_pos = roms.rom0p->read16(road_seg_addr3);
+    int16_t segment_pos = trackloader.read_curve(0);//roms.rom0p->read16(road_seg_addr3);
 
     if (segment_pos != -1)
     {
@@ -230,15 +231,16 @@ void OInitEngine::update_road()
 
         if (d1 <= (int16_t) (oroad.road_pos >> 16))
         {
-            road_curve_next = roms.rom0p->read16(2 + road_seg_addr3);
-            road_type_next  = roms.rom0p->read16(4 + road_seg_addr3);
+            road_curve_next = trackloader.read_curve(2);//roms.rom0p->read16(2 + road_seg_addr3);
+            road_type_next  = trackloader.read_curve(4);//roms.rom0p->read16(4 + road_seg_addr3);
         }
 
         if (segment_pos <= (int16_t) (oroad.road_pos >> 16))
         {
-            road_curve = roms.rom0p->read16(2 + road_seg_addr3);
-            road_type  = roms.rom0p->read16(4 + road_seg_addr3);
-            road_seg_addr3 += 6;
+            road_curve = trackloader.read_curve(2);//roms.rom0p->read16(2 + road_seg_addr3);
+            road_type  = trackloader.read_curve(4);//roms.rom0p->read16(4 + road_seg_addr3);
+            //road_seg_addr3 += 6;
+            trackloader.curve_offset += 6;
             road_type_next = 0;
             road_curve_next = 0;
         }
@@ -816,8 +818,11 @@ void OInitEngine::bonus6()
 // Uses the car increment value to set the granular position.
 // The granular position is used to finely scroll the road by CPU 1 and smooth zooming of scenery.
 //
+// pos_fine is the (road_pos >> 16) * 10
+//
 // Notes:
 // Disable with - bpset bd3e,1,{pc = bd76; g}
+
 void OInitEngine::set_granular_position()
 {
     uint16_t car_inc16 = car_increment >> 16;

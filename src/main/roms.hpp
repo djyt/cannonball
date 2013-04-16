@@ -29,8 +29,8 @@ public:
     RomLoader* rom0p;
     RomLoader* rom1p;
 
-    RomLoader* track_data;
-    RomLoader custom_track;
+    //RomLoader* track_data;
+    //RomLoader custom_track;
 
 
     Roms();

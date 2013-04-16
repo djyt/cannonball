@@ -154,7 +154,16 @@ public:
 	void tick();
     int16_t get_road_y(uint16_t);
 
-private:
+
+
+
+
+
+
+
+
+
+//private:
 	uint16_t stage_loaded; // 0x4: Current Stage Backup (So we know when to load next stage road data)
 
 	uint32_t road_pos_old; // 0x410: Road Position Backup
@@ -212,11 +221,11 @@ private:
 	// 0x722 - [word] Road Height Index. Working copy of 60066.
 	uint16_t height_lookup_wrk;
 
-	// 0x724 - [word] Ascend/Descent Modifier Combo
-	int16_t updowncombo;
+	// 0x724 - [word] Ascend/Descent Hold
+	int16_t height_delay;
 
-	// 0x726 - [word] Distance Control
-	uint16_t dist_ctrl;
+	// 0x726 - [word] Speed at which to adjust height_step
+	uint16_t step_adjust;
 
 	// 0x728 
 	uint16_t do_height_inc;
@@ -246,6 +255,9 @@ private:
     uint32_t y_addr;
     int16_t scanline;
     int32_t total_height;
+
+    // MOVED FOR DEBUGGING PURPOSES ONLY!
+    private:
 
 	// -------------------------------------------------------------------------
 	// Locations in Road RAM

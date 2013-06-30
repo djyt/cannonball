@@ -1,4 +1,4 @@
-#include "sdl/video.hpp"
+#include "video.hpp"
 #include "hwvideo/hwsprites.hpp"
 #include "globals.hpp"
 #include "frontend/config.hpp"

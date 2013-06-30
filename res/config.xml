@@ -46,6 +46,9 @@
     <!-- Higher Internal Resolution. Better Sprite Scaling, but has a performance hit. 
          Disable for original experience. -->
     <hires>0</hires>
+    
+    <!-- Open GL Filtering for Scaling. 0 = Nearest Neighbour. 1 = Linear -->
+    <filtering>0</filtering>
 </video>
 
 <!-- 

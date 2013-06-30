@@ -4,5 +4,5 @@
 const static char* FILENAME_CONFIG     = "./config.xml";
 const static char* FILENAME_SCORES     = "./hiscores.xml";
 const static char* FILENAME_SCORES_JAP = "./hiscores_jap.xml";
-const static int SDL_FLAGS = SDL_DOUBLEBUF | SDL_SWSURFACE;
+const static int SDL_FLAGS = SDL_SWSURFACE | SDL_DOUBLEBUF;
     

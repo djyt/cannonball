@@ -18,8 +18,6 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include <iostream> // debug
-
 #include "stdint.hpp"
 #include "globals.hpp"
 #include "roms.hpp"
@@ -257,14 +255,16 @@ void ORoad::check_load_road()
     // Check Split
     if (road_load_split)
     {
-        stage_addr = ROAD_DATA_SPLIT;
+        trackloader.set_split();
+        //stage_addr = ROAD_DATA_SPLIT;
         road_load_split = 0;
     }
 
     // Check Bonus
     else if (road_load_bonus)
     {
-        stage_addr = ROAD_DATA_BONUS;
+        trackloader.set_bonus();
+        //stage_addr = ROAD_DATA_BONUS;
         road_load_bonus = 0;
     }
 }
@@ -347,7 +347,7 @@ void ORoad::setup_x_data(uint32_t addr)
         int32_t xinc = (curve_inc - curve_inc_old) / curve_steps;
         int16_t x = curve_inc_old;
 
-        for (int16_t pos = curve_start; pos < curve_end; pos++)
+        for (int16_t pos = curve_start; pos <= curve_end; pos++)
         {
             x += xinc;              
             if (x < -0x3200 || x > 0x3200) return;
@@ -616,14 +616,14 @@ void ORoad::setup_road_y()
             do_elevation();
             break;
 
-        // Segment Initalized: ??? steep hill
+        // Segment Initalized: Delayed Elevation Section
         case 3:
-            do_elevation_hill();
+            do_elevation_delay();
             break;
 
         // Needed for stage 0x1b
         case 4:
-            do_level_4d();
+            do_elevation_mixed();
             break;
 
         // Segment Initalized: Ignore Elevation Flag
@@ -636,17 +636,17 @@ void ORoad::setup_road_y()
 // Source Address: 0x1BCE
 void ORoad::init_height_seg()
 {
-    height_index = 0;    // Set to first entry in height segment
-    height_inc   = 0;    // Do not increment to next segment
-    elevation    = FLAT; // Default to flat elevation
+    height_index = 0;         // Set to first entry in height segment
+    height_inc   = 0;         // Do not increment to next segment
+    elevation    = NO_CHANGE; // No Change to begin with
     height_step  = 1;    // Set to start of height segment
-//height_lookup = 41; // 32
+
     // Get Address of actual road height data
     height_lookup_wrk = height_lookup;
-    uint32_t h_addr = roms.rom1p->read32(outrun.adr.road_height_lookup + (height_lookup_wrk * 4));
+    uint32_t h_addr = trackloader.read_heightmap_table(height_lookup_wrk);
 
-    height_ctrl2 = roms.rom1p->read8(&h_addr);
-    step_adjust  = roms.rom1p->read8(&h_addr); // Speed at which to move through height segment
+    height_ctrl2 = trackloader.read8(trackloader.heightmap_data, &h_addr);
+    step_adjust  = trackloader.read8(trackloader.heightmap_data, &h_addr); // Speed at which to move through height segment
 
     switch (height_ctrl2)
     {
@@ -654,14 +654,13 @@ void ORoad::init_height_seg()
             init_elevation(h_addr);
             break;
         
-        // Chicane on stage 1
         case 1:
         case 2:
-            init_elevation_hill(h_addr);
+            init_elevation_delay(h_addr);
             break;
         
         case 3:
-            init_level_4d(h_addr);
+            init_elevation_mixed(h_addr);
             break;
         
         case 4:
@@ -670,15 +669,29 @@ void ORoad::init_height_seg()
     }
 }
 
-// Note - this can be either flat, up or down at this stage
+
+
+// Standard Elevation Height Section.
+// A series of sequential values are provided to adjust the horizon position.
+//
+// The duration of each value can be adjusted using the 'step' value and the multipliers. 
+//
+// To map a road position to a height segment length:
+//
+//  1 Position
+//  = 10 Pos Fine Difference (* 10)
+//  = 120 Height Step        (* 12)
+//  = 120 / 3 Step Adjust
+//  = 40
+//  = 255 / 40 = 6.3 positions per height segment
 //
 // Source Address: 0x1C2C
 void ORoad::init_elevation(uint32_t& addr)
 {
-    down_mult = roms.rom1p->read8(&addr);
-    up_mult   = roms.rom1p->read8(&addr);
+    down_mult   = trackloader.read8(trackloader.heightmap_data, &addr);
+    up_mult     = trackloader.read8(trackloader.heightmap_data, &addr);
     height_addr = addr;
-    height_ctrl = 2; // Use do_elevation_flat function below
+    height_ctrl = 2; // Use do_elevation()
     do_elevation();
 }
 
@@ -713,7 +726,7 @@ void ORoad::do_elevation()
         height_end   = 0x1FF;
         height_step  = 1; // Start Of Height Segment
         height_inc   = 1;
-        elevation    = FLAT;
+        elevation    = NO_CHANGE;
         return;
     }
     if (height_lookup == 0 || height_lookup_wrk != 0)
@@ -722,49 +735,66 @@ void ORoad::do_elevation()
     height_ctrl = 1;
 }
 
-// Source: 1CE4 (first used at the chicane at stage 1)
-// Example data at: 0x29aa
-void ORoad::init_elevation_hill(uint32_t& addr)
+// Hold Elevation For Specified Delay
+//
+// Two values are provided by the data referenced by Height Index and split over three parts.
+//
+// Part 1: [Height Index = 0] Height Start Increments from 256 to 511. Change horizon to relevant height over this period
+// Part 2: [Height Index = 1] Decrement Delay from provided value to 0. Hold horizon at this height
+// Part 3: [Height Index = 1] Height Start Decrements from 511 to 256. Revert horizon to original height over this period
+//
+//          <-delay->
+//          _________
+//    [1]  /   [2]   \ [3]
+// _______/           \______
+//
+// Height End remains constant during this period at 512
+//
+// Note: There is an intriguing bug in this routine, where the actual length of part 2 differs dependent on the speed you
+//       are driving at. It's actually possible to elongate the length of hills by driving slower!
+//
+// Example Data: 0x29AA
+// Source      : 0x1CE4 (first used at the chicane at stage 1)
+
+void ORoad::init_elevation_delay(uint32_t& addr)
 {
-    height_delay = roms.rom1p->read16(&addr);
-    height_addr = addr;
-    do_height_inc = 1;
-    height_inc = 0;
-    height_end = 0x100;
-    height_ctrl = 3; // Use do_elevation_hill function below
-    do_elevation_hill();
+    height_delay  = trackloader.read16(trackloader.heightmap_data, &addr);
+    height_addr   = addr;
+    do_height_inc = 1;     // Set to Part 1
+    height_inc    = 0;
+    height_end    = 0x100; // Remains constant
+    height_ctrl   = 3;     // Use do_elevation_delay()
+    do_elevation_delay();
 }
 
-// Note there is an intriguing bug in this routine, where if you drive slow enough
-// height_delay can't be decremented, so the delay lasts for every elongating the hill.
-//
 // Source: 1D04
-void ORoad::do_elevation_hill()
+void ORoad::do_elevation_delay()
 {
     int16_t d1 = pos_fine_diff * 12;
-    uint16_t d3 = step_adjust;
     height_index += height_inc; // Next height entry
     height_inc = 0;
 
+    // Part 1             || Part 3
     if (height_index == 0 || do_height_inc == 0)
     {
         // 1D50 inc_pos_in_seg:
-        height_step += d1; // height step is 1 on mame...
-        d1 = 0;
-        d1 = height_step / d3;
+        height_step += d1;
+        //d1 = 0;
+        d1 = height_step / step_adjust;
         if (d1 > 0xFF) d1 = 0xFF;
 
         height_start = d1;
 
-        // At end of height section, advance to next
+        // Advance to Part 2.
         if (height_start > 0xFE)
         {
             height_start = 0xFF;
-            height_step = 1;
-            height_inc = 1;
-            elevation = FLAT;
+            height_step  = 1;
+            height_inc   = 1;
+            elevation    = NO_CHANGE; // Keep horizon at level for delayed section
         }
 
+        // Part 3: Invert counter
         if (height_index != 0)
         {
             d1 = 0xFF - height_start;
@@ -772,10 +802,10 @@ void ORoad::do_elevation_hill()
 
         height_start = d1 + 0x100;
     }
-    // 1D2E 
+    // Part 2
+    // Source: 0x1D2E 
     else
     {
-        //d1 = d1 / step_adjust;
         height_delay -= (d1 / step_adjust);    
         height_start = 0x1FF;
 
@@ -784,42 +814,56 @@ void ORoad::do_elevation_hill()
     }
 }
 
-// Source: 1DAC
-// Data Usage Source: 0x2a8e
-void ORoad::init_level_4d(uint32_t& addr)
+// Mixed Elevation Section
+//
+// This is a combination of looking ahead at the height map entries, but then holding on entry 6 when reached.
+// It's like a combination of the previous two, although the way in which it's used seems to offer
+// no real advantage over the previous hold section code.
+//
+// Part 1: [Height Index = 0 - 5] Change horizon to relevant height over this period by looking at upcoming height entries.
+//                                Height Start & End Increments from 256 to 511. 
+// Part 2: [Height Index = 6]     Decrement Delay from provided value to 0. Hold horizon at this height.
+//                                Height Start constant at 511 and end at 256
+// Part 3: [Height Index = 1]     Height Start Decrements from 511 to 256. Revert horizon to original height over this period.
+//
+// Source      : 0x1DAC
+// Example Data: 0x2A8E
+void ORoad::init_elevation_mixed(uint32_t& addr)
 {
-    height_delay = roms.rom1p->read16(&addr);
-    height_addr = addr;
+    height_delay  = trackloader.read16(trackloader.heightmap_data, &addr);
+    height_addr   = addr;
     do_height_inc = 1;
-    height_inc = 0;
-    height_ctrl = 4; // Use function below
-    do_level_4d();
+    height_inc    = 0;
+    height_ctrl   = 4;    // Use do_elevation_mixed() function
+    do_elevation_mixed();
 }
 
-// Source: 1D46
-void ORoad::do_level_4d()
+// Source: 0x1DC6
+void ORoad::do_elevation_mixed()
 {
     uint16_t d1 = pos_fine_diff * 12;
     height_index += height_inc;
     height_inc = 0;
     
-    // 1E1C - On crest of hill (hill type >= 6)
+    // Parts 2 & 3 - Delayed Section. Source: 0x1E1C
     if (height_index >= 6)
     {
         uint16_t d3 = step_adjust;
+
+        // Part 2: Create a delay on the sixth entry
         if (do_height_inc != 0)
         {
             height_delay -= (d1 / d3);
             height_start = 0x1FF;
             height_end = 0x100;
-            // 1E46
+            // Delay has expired. Advance to last entry. Source: 0x1E46
             if (height_delay < 0)
             {
-                height_addr += 12;
+                height_addr += 12; // Advance 6 words.
                 do_height_inc = 0;
             }
         }
-        // 1E58
+        // Part 3. Source: 0x1E58
         else
         {
             height_step += d1;
@@ -829,11 +873,12 @@ void ORoad::do_level_4d()
             if (height_start != 0x100) return;
             
             height_step = 1; // Set position on road segment to start
-            height_inc = 1;
-            elevation = 0;
+            height_inc  = 1;
+            elevation   = NO_CHANGE;
         }
     }
-    // 1DEA
+    // Part 1. Source: 0x1DEA
+    // Look ahead at next 6 entries in data as normal. 
     else
     {
         height_step += d1;
@@ -841,27 +886,36 @@ void ORoad::do_level_4d()
         if (d1 > 0xFF) d1 = 0xFF;
         d1 += 0x100;
         height_start = d1;
-        height_end = d1;
+        height_end   = d1;
 
         if (height_start < 0x1FF) return;
         
         // set_end2:
         height_start = 0x1FF;
-        height_end = 0x1FF;
-        height_step = 1; // Set position on road segment to start
-        height_inc = 1;
-        elevation = 0;
+        height_end   = 0x1FF;
+        height_step  = 1; // Set position on road segment to start
+        height_inc   = 1;
+        elevation    = NO_CHANGE;
     }
 }
-    
-// Source Address: 0x1EB6
-// Data Example: 0x3672
+
+// Adjust Horizon To New Position
+//
+// Part 1: Height Start Increments from 256 to 512. Change horizon to relevant height over this period.
+//         Alter the speed at which this takes place with the step value.
+// Part 2: Horizon is set and remains at this position until changed with another horizon data block. 
+//
+// Example Data  : 0x3672
+// Source        : 0x1EB6
 void ORoad::init_horizon_adjust(uint32_t& addr)
 {
     height_addr = addr;
-    //  Base Horizon Y-Offset - Up/Down Modifier
-    horizon_mod = (int16_t) roms.rom1p->read16(addr) - horizon_base;
-    height_ctrl = 5; // Use do_horizon_adjust() function below
+
+    // Set Horizon Modifier
+    horizon_mod = trackloader.read16(trackloader.heightmap_data, addr) - horizon_base;
+    
+    // Use do_horizon_adjust() function
+    height_ctrl = 5;
     do_horizon_adjust();
 }
 
@@ -960,7 +1014,7 @@ void ORoad::set_y_interpolate()
     road_unk[a3_o++] = 0;
     counter = 0; // Reset interpolated counter index to 0
 
-    const int16_t next_height_value = roms.rom1p->read16(a1_lookup);
+    const int16_t next_height_value = trackloader.read16(trackloader.heightmap_data, a1_lookup);
     height_final = (next_height_value * (height_start - 0x100)) >> 4;
 
     // 1faa 
@@ -1017,7 +1071,7 @@ void ORoad::set_y_2044()
     // Writing last part of interpolated data
     road_unk[a3_o] = 0;
 
-    int16_t y = roms.rom1p->read16(a1_lookup);
+    int16_t y = trackloader.read16(trackloader.heightmap_data, a1_lookup);
 
     // Return if not end at end of height section data
     if (y != -1) return;
@@ -1057,7 +1111,7 @@ void ORoad::read_next_height()
     // 1ff2: set_elevation_flag
     // Note the way this bug was fixed
     // Needed to read the signed value into an int16_t before assigning to a 32 bit value
-    change_per_entry = ((int16_t) roms.rom1p->read16(&a1_lookup)) << 4;
+    change_per_entry = trackloader.read16(trackloader.heightmap_data, &a1_lookup) << 4;
     change_per_entry += d5_o;
     if (counter != 1)
     {
@@ -1142,7 +1196,7 @@ void ORoad::set_y_horizon()
     if (height_start != 0x1FF) return;
 
     // Read Up/Down Multiplier Word From Lookup Table and set new horizon base value
-    horizon_base = (int32_t) roms.rom1p->read16(height_addr);
+    horizon_base = (int32_t) trackloader.read16(trackloader.heightmap_data, height_addr);
 
     if (height_lookup == height_lookup_wrk)
         height_lookup = 0;

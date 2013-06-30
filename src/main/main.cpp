@@ -17,7 +17,7 @@
 // SDL Specific Code
 #include "sdl/timer.hpp"
 #include "sdl/input.hpp"
-#include "sdl/video.hpp"
+#include "video.hpp"
 
 #include "romloader.hpp"
 #include "trackloader.hpp"
@@ -27,7 +27,7 @@
 #include "engine/outrun.hpp"
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
-#include "tracked/tracked.hpp"
+//#include "tracked/tracked.hpp"
 
 // Direct X Haptic Support.
 // Fine to include on non-windows builds as dummy functions used.
@@ -46,7 +46,7 @@ Audio cannonball::audio;
 #endif
 
 Menu menu;
-Tracked tracked;
+//Tracked tracked;
 
 static void quit_func(int code)
 {
@@ -181,9 +181,9 @@ static void tick()
             state = STATE_MENU;
             break;
 
-        case STATE_TRACKED:
-            tracked.tick();
-            break;
+        //case STATE_TRACKED:
+        //    tracked.tick();
+        //    break;
     }
     // Draw SDL Video
     video.draw_frame();  
@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
 
     // Load Roms
     bool roms_loaded = roms.load_revb_roms();
-    trackloader.load_level("output.bin");
+    //trackloader.load_level("output.bin");
 
     if (roms_loaded)
     {
@@ -247,8 +247,8 @@ int main(int argc, char* argv[])
 #ifdef COMPILE_SOUND_CODE
         audio.init();
 #endif
-        //state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
-        state = STATE_TRACKED;
+        state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
+        //state = STATE_TRACKED;
 
         // Initalize controls
         input.init(config.controls.keyconfig, config.controls.padconfig, 

@@ -13,7 +13,7 @@
 #include "roms.hpp"
 #include "globals.hpp"
 
-#include "sdl/video.hpp"
+#include "video.hpp"
 
 #include "frontend/config.hpp"
 

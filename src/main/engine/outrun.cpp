@@ -8,6 +8,7 @@
 ***************************************************************************/
 
 #include "main.hpp"
+#include "trackloader.hpp"
 #include "engine/oanimseq.hpp"
 #include "engine/obonus.hpp"
 #include "engine/ocrash.hpp"

@@ -14,14 +14,23 @@ public:
     //uint32_t path_offset;
     uint32_t wh_offset;
     uint32_t curve_offset;
+    uint32_t heightmap_offset;
+
+    // Pointers into above track_data
+    uint8_t* path_data;
+    uint8_t* curve_data;
+    uint8_t* wh_data;
+    uint8_t* heightmap_data;
 
     TrackLoader();
     ~TrackLoader();
     void init(const int);
-    void setup_track(const uint32_t);
+    void setup_track(const uint32_t, const uint32_t);
     void setup_path(const uint32_t);
+    void set_split();
+    void set_bonus();
     int load_level(const char* filename);
-    
+    uint32_t read_heightmap_table(uint16_t entry);
 
     inline int16_t readPath(uint32_t addr)
     {
@@ -46,15 +55,6 @@ public:
     {
         return (curve_data[addr + curve_offset] << 8) | curve_data[addr+1 + curve_offset];
     }
-
-
-private:
-    uint8_t* track_data; // Custom track data
-    uint8_t* path_data;
-    uint8_t* curve_data;
-    uint8_t* wh_data;
-
-    int filesize(const char* filename);
 
     inline int32_t read32(uint8_t* data, uint32_t* addr)
     {    
@@ -89,6 +89,12 @@ private:
     {
         return data[addr];
     }
+
+
+private:
+    uint8_t* track_data; // Custom track data
+    
+    int filesize(const char* filename);
 };
 
 extern TrackLoader trackloader;

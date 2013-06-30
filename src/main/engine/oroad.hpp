@@ -104,7 +104,7 @@ public:
 
 	// 0x4F0: Start Address of Road Data For Current Stage In ROM
     // TODO - move back to being private at some stage
-	uint32_t stage_addr;
+	//uint32_t stage_addr;
 
     // 0x510: Horizon Y Position
 	int16_t horizon_y2;
@@ -216,7 +216,7 @@ public:
 
 	// 0x720 - [word] Elevation Flag
 	int16_t elevation;
-	enum {DOWN = -1, FLAT = 0, UP = 1};
+	enum {DOWN = -1, NO_CHANGE = 0, UP = 1};
 								 
 	// 0x722 - [word] Road Height Index. Working copy of 60066.
 	uint16_t height_lookup_wrk;
@@ -289,10 +289,10 @@ public:
 
 	void init_elevation(uint32_t&);
 	void do_elevation();
-	void init_elevation_hill(uint32_t&);
-	void do_elevation_hill();
-    void init_level_4d(uint32_t&);
-    void do_level_4d();
+	void init_elevation_delay(uint32_t&);
+	void do_elevation_delay();
+    void init_elevation_mixed(uint32_t&);
+    void do_elevation_mixed();
 	void init_horizon_adjust(uint32_t&);
 	void do_horizon_adjust();
 

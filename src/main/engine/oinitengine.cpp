@@ -74,7 +74,8 @@ void OInitEngine::init(int8_t level)
 
     // Road Renderer: Setup correct stage address 
     if (level)
-	    oroad.stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + (stage_data[oroad.stage_lookup_off] << 2));
+        trackloader.setup_path(stage_data[oroad.stage_lookup_off] << 2);
+	    //oroad.stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + (stage_data[oroad.stage_lookup_off] << 2));
 
 	opalette.setup_sky_palette();
 	opalette.setup_ground_color();
@@ -130,9 +131,9 @@ void OInitEngine::init_road_seg_master()
     // Rolled the following lines in from elsewhere
 	//road_seg_addr3 = roms.rom0p->read32(0x18 + road_seg_master); // Type of curve and unknown
 	//road_seg_addr2 = roms.rom0p->read32(0x1C + road_seg_master); // Width/Height Lookup
-	//road_seg_addr1 = roms.rom0p->read32(0x20 + road_seg_master); // Sprite information
+	road_seg_addr1 = roms.rom0p->read32(0x20 + road_seg_master); // Sprite information
 
-    trackloader.setup_track(road_seg_master);
+    trackloader.setup_track(road_seg_master + 0x18, outrun.adr.road_height_lookup);
 }
 
 //
@@ -532,8 +533,9 @@ void OInitEngine::init_split1()
     road_width_orig = oroad.road_width >> 16;
     oroad.road_pos = 0;
     oroad.tilemap_h_target = 0;
-    road_seg_addr3 = roms.rom0p->read32(outrun.adr.road_seg_split);
-    road_seg_addr2 = roms.rom0p->read32(outrun.adr.road_seg_split + 4);
+    //road_seg_addr3 = roms.rom0p->read32(outrun.adr.road_seg_split);
+    //road_seg_addr2 = roms.rom0p->read32(outrun.adr.road_seg_split + 4);
+    trackloader.setup_track(outrun.adr.road_seg_split, outrun.adr.road_height_lookup);
     road_seg_addr1 = roms.rom0p->read32(outrun.adr.road_seg_split + 8);
 }
 
@@ -729,9 +731,10 @@ void OInitEngine::init_bonus()
     oroad.tilemap_h_target = 0;
     oanimseq.end_seq = oroad.stage_lookup_off - 0x20; // Set End Sequence (0 - 4)
     uint32_t adr   = roms.rom0p->read32(outrun.adr.road_seg_end + (oanimseq.end_seq << 2)); // Road Data Addr
-    road_seg_addr3 = roms.rom0p->read32(&adr);
-    road_seg_addr2 = roms.rom0p->read32(&adr);
-    road_seg_addr1 = roms.rom0p->read32(&adr);
+    //road_seg_addr3 = roms.rom0p->read32(&adr);
+    //road_seg_addr2 = roms.rom0p->read32(&adr);
+    trackloader.setup_track(adr, outrun.adr.road_height_lookup);
+    road_seg_addr1 = roms.rom0p->read32(adr + 8);
     outrun.game_state = GS_INIT_BONUS;
     rd_split_state = 0x11;
     bonus1();

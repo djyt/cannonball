@@ -1,4 +1,5 @@
 # Default CMake Setup. Used for Win32 Builds.
+# Uses OpenGL for Graphics.
 # For DirectX, assumes DXSDK is already configured and pointing to your DirectX setup.
 
 set(lib_base c:/coding/lib)
@@ -15,6 +16,8 @@ include_directories(
 link_libraries(cannonball 
     SDL
     SDLmain
+    opengl32 # For OpenGL
+    glu32    # For OpenGL
     dxguid
     dinput8
 )
@@ -24,8 +27,13 @@ link_directories(
     "$ENV{DXSDK}/lib"
     "${sdl_root}/lib"
 )
+
+# Use OpenGL for rendering. Disable to use software rendering. 
+add_definitions(-DWITH_OPENGL)
  
 # Location for Cannonball to create save files
 # Used to auto-generate setup.hpp with various file paths
 set(xml_directory ./)
-set(sdl_flags "SDL_DOUBLEBUF | SDL_SWSURFACE")
+
+# SDL Software Rendering Flags (ignored if OpenGL used)
+set(sdl_flags "SDL_SWSURFACE | SDL_DOUBLEBUF")

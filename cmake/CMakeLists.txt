@@ -53,11 +53,13 @@ set(src_main
     "${main_cpp_base}/setup.hpp"
     "${main_cpp_base}/stdint.hpp"
     "${main_cpp_base}/main.hpp"
+    "${main_cpp_base}/video.hpp"
 
     "${main_cpp_base}/main.cpp"
     "${main_cpp_base}/romloader.cpp"
     "${main_cpp_base}/trackloader.cpp"
     "${main_cpp_base}/roms.cpp"
+    "${main_cpp_base}/video.cpp"
     )
 
 set(src_frontend
@@ -100,12 +102,16 @@ set(src_sdl
     "${main_cpp_base}/sdl/audio.hpp"
     "${main_cpp_base}/sdl/timer.hpp"
     "${main_cpp_base}/sdl/input.hpp"
-    "${main_cpp_base}/sdl/video.hpp"
+    "${main_cpp_base}/sdl/renderbase.hpp"
+    "${main_cpp_base}/sdl/rendergl.hpp"
+    "${main_cpp_base}/sdl/rendersw.hpp"
 
     "${main_cpp_base}/sdl/audio.cpp"
     "${main_cpp_base}/sdl/timer.cpp"
     "${main_cpp_base}/sdl/input.cpp"
-    "${main_cpp_base}/sdl/video.cpp"
+    "${main_cpp_base}/sdl/renderbase.cpp"
+    "${main_cpp_base}/sdl/rendergl.cpp"
+    "${main_cpp_base}/sdl/rendersw.cpp"
     )
 
 set(src_directx

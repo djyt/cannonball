@@ -26,20 +26,21 @@ void TrackLoader::init(const int mode)
     this->mode = mode;
 }
 
-void TrackLoader::setup_track(const uint32_t road_seg_master)
+void TrackLoader::setup_track(const uint32_t road_seg_master, const uint32_t road_height_lookup)
 {
     if (mode == MODE_ORIGINAL)
     {
-        curve_offset = roms.rom0p->read32(0x18 + road_seg_master); // Type of curve and unknown
-	    wh_offset    = roms.rom0p->read32(0x1C + road_seg_master); // Width/Height Lookup
-	    //road_seg_addr1 = roms.rom0p->read32(0x20 + road_seg_master); // Sprite information
+        curve_offset = roms.rom0p->read32(0 + road_seg_master); // Type of curve and unknown
+	    wh_offset    = roms.rom0p->read32(4 + road_seg_master); // Width/Height Lookup
+	    //road_seg_addr1 = roms.rom0p->read32(8 + road_seg_master); // Sprite information
 
-        //path_data  = &track_data[read32(track_data, &addr)];
-        curve_data = &roms.rom0p->rom[curve_offset];
-        wh_data    = &roms.rom0p->rom[wh_offset];
-
-        curve_offset = 0;
-        wh_offset = 0;
+        curve_data     = &roms.rom0p->rom[curve_offset];
+        wh_data        = &roms.rom0p->rom[wh_offset];
+        heightmap_data = roms.rom1p->rom;
+        
+        curve_offset     = 0;
+        wh_offset        = 0;
+        heightmap_offset = road_height_lookup;
     }
     else if (mode == MODE_CUSTOM)
     {
@@ -60,6 +61,20 @@ void TrackLoader::setup_path(const uint32_t stage_index)
     }
 }
 
+void TrackLoader::set_split()
+{
+    path_data  = &roms.rom1p->rom[ROAD_DATA_SPLIT];
+}
+
+void TrackLoader::set_bonus()
+{
+    path_data  = &roms.rom1p->rom[ROAD_DATA_BONUS];
+}
+
+uint32_t TrackLoader::read_heightmap_table(uint16_t entry)
+{
+    return read32(heightmap_data, heightmap_offset + (entry * 4));
+}
 
 int TrackLoader::load_level(const char* filename)
 {
@@ -87,9 +102,11 @@ int TrackLoader::load_level(const char* filename)
 
     // Setup Data Blocks
     uint32_t addr = 0;
-    path_data  = &track_data[read32(track_data, &addr)];
-    curve_data = &track_data[read32(track_data, &addr)];
-    wh_data    = &track_data[read32(track_data, &addr)];
+    path_data      = &track_data[read32(track_data, &addr)];
+    curve_data     = &track_data[read32(track_data, &addr)];
+    wh_data        = &track_data[read32(track_data, &addr)];
+    heightmap_offset = read32(track_data, &addr);
+    heightmap_data = track_data;
 
     mode       = MODE_CUSTOM;
 

@@ -628,7 +628,7 @@ void OLevelObjs::set_spr_zoom_priority2(oentry *sprite, uint8_t zoom)
 
     int32_t multiply = (xw1 * z16) >> 9; // only used as a 16 bit value so truncate here
     road_x += multiply;
-    if (road_x > 160 || road_x < -160) return; // NEW LINE compared with original routine (added for ROM REV. A)
+    if (road_x > (160 + config.s16_x_off) || road_x < -(160 + config.s16_x_off)) return; // NEW LINE compared with original routine (added for ROM REV. A)
     sprite->x = road_x;
 
     // Set Sprite Y Position [SCREEN]
@@ -723,7 +723,7 @@ void OLevelObjs::sprite_minitree(oentry* sprite)
     int32_t multiply = (xw1 * z16) >> 9;
     road_x += multiply;
 
-    if (road_x >= 160 || road_x < -160) return;
+    if (road_x >= (160 + config.s16_x_off) || road_x < -(160 + config.s16_x_off)) return;
     sprite->x = road_x;
 
     // 44fc
@@ -912,7 +912,7 @@ void OLevelObjs::do_thickness_sprite(oentry* sprite, const uint32_t sprite_table
     int32_t multiply = (xw1 * z16) >> 9;
     road_x += multiply;
 
-    if (road_x >= 160 || road_x < -160) return;
+    if (road_x >= (160 + config.s16_x_off) || road_x < -(160 + config.s16_x_off)) return;
     sprite->x = road_x;
 
     // 44fc
@@ -1039,7 +1039,7 @@ void OLevelObjs::set_spr_zoom_priority_rocks(oentry *sprite, uint8_t zoom)
     // Additional Draw Check Here, to prevent sprite from wrapping around screen and redrawing on left
     // Remember this routine is setup to draw from centre x
 
-    uint16_t width = (sprite->width >> 1) + 160;
+    uint16_t width = (sprite->width >> 1) + 160 + config.s16_x_off;
     if (sprite->x >= width || sprite->x + width < 0) return;
 
     osprites.do_spr_order_shadows(sprite);

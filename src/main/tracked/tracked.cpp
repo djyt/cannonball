@@ -2,8 +2,9 @@
 #include <sstream>
 
 #include "main.hpp"
+#include "trackloader.hpp"
 #include "sdl/input.hpp"
-#include "sdl/video.hpp"
+#include "video.hpp"
 #include "frontend/config.hpp"
 #include "tracked/tracked.hpp"
 #include "engine/outrun.hpp"
@@ -52,9 +53,9 @@ void Tracked::tick()
             if (cannonball::tick_frame) controls();
             tick_track();
             video.clear_text_ram();
-            //display_sprite_info();
+            display_sprite_info();
             //display_path_info();
-            display_height_info();
+            //display_height_info();
             break;
     }
 }
@@ -90,7 +91,7 @@ void Tracked::tick_track()
     oinitengine.set_granular_position();
 }
 
-void Tracked::display_height_info()
+/*void Tracked::display_height_info()
 {
     static const int TX = 15; // Text X Offset
     
@@ -98,8 +99,8 @@ void Tracked::display_height_info()
     uint32_t addr = oroad.stage_addr + oroad.road_data_offset;
 
     const uint16_t road_pos    = oroad.road_pos >> 16;
-    const uint32_t h_addr      = roms.rom1p->read32(outrun.adr.road_height_lookup + (oroad.height_lookup * 4));
-    const int16_t height       = roms.rom1p->read16(oroad.a1_lookup);
+    const uint32_t h_addr      = trackloader.read_heightmap_table(oroad.height_lookup);
+    const int16_t height       = trackloader.read16(trackloader.heightmap_data, oroad.a1_lookup);
 
     ohud.blit_text_new(0,  0, "ROAD POS", OHud::GREEN);
     ohud.blit_text_new(TX, 0, config.to_string(road_pos).c_str(), OHud::GREEN);
@@ -133,9 +134,9 @@ void Tracked::display_height_info()
     ohud.blit_text_new(COL2 + 0,  8, "ENTRY CHANGE ", OHud::GREEN);
     ohud.blit_text_new(COL2 + TX, 8, config.to_hex_string(oroad.change_per_entry >> 4).c_str(), OHud::PINK); 
 
-}
+}*/
 
-void Tracked::display_path_info()
+/*void Tracked::display_path_info()
 {
     static const int TX = 16; // Text X Offset
     uint32_t addr = oroad.stage_addr + oroad.road_data_offset;
@@ -151,7 +152,7 @@ void Tracked::display_path_info()
     ohud.blit_text_new(TX, 3, config.to_string(x1).c_str(), OHud::GREEN);
     ohud.blit_text_new(0,  4, "X2     ", OHud::GREEN);
     ohud.blit_text_new(TX, 4, config.to_string(x2).c_str(), OHud::GREEN);
-}
+}*/
 
 void Tracked::display_sprite_info()
 {
@@ -244,6 +245,8 @@ std::string Tracked::dec_to_bin(int nValue, bool bReverse)
 
 void Tracked::controls()
 {
+    const static uint32_t SPEED = 0xC0 << 16;
+
     if (input.is_pressed(Input::LEFT))
         oinitengine.camera_x_off += 5;
     if (input.is_pressed(Input::RIGHT))
@@ -252,15 +255,15 @@ void Tracked::controls()
     // Start/Stop 
     if (input.has_pressed(Input::GEAR))
     {
-        if (oinitengine.car_increment != 0x80 << 16)
-            oinitengine.car_increment = 0x80 << 16;
+        if (oinitengine.car_increment != SPEED)
+            oinitengine.car_increment = SPEED;
         else
             oinitengine.car_increment = 0;
     }
 
     if (input.is_pressed(Input::UP))
         oinitengine.car_increment = 0x60 << 16;
-    else if (oinitengine.car_increment != 0x80 << 16)
+    else if (oinitengine.car_increment != SPEED)
         oinitengine.car_increment = 0;
 
     if (input.is_pressed(Input::ACCEL))

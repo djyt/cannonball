@@ -47,14 +47,14 @@ public:
 	// [+2] Set = Denotes Road Height Info. Unset = Denotes Road Width
 	// [+4] Segment Road Width / Segment Road Height Index
 	// [+6] Segment Width Adjustment SIGNED (Speed at which width is adjusted)
-	uint32_t road_seg_addr2;
+	//uint32_t road_seg_addr2;
 
 	// road_seg_addr3 [6 byte boundaries]
 	//
 	// [+0] Segment Position
 	// [+2] Unknown data
 	// [+4] Segment Road type (1 = Straight, 2 = Slight Bend, 3 = Severe Bend)
-	uint32_t road_seg_addr3;
+	//uint32_t road_seg_addr3;
 
     // Road Split State
     // 0 = No Road Split

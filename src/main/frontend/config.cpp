@@ -73,6 +73,7 @@ void Config::load(const std::string &filename)
     video.fps        = pt_config.get("video.fps",                2); // Default is 60 fps   
     video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode
     video.hires      = pt_config.get("video.hires",              0); // Hi-Resolution Mode
+    video.filtering  = pt_config.get("video.filtering",          0); // Open GL Filtering Mode
           
     set_fps(video.fps);
 

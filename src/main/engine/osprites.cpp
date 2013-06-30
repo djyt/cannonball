@@ -152,7 +152,7 @@ void OSprites::disable_sprites()
 
 void OSprites::tick()
 {
-    //sprite_control();
+    sprite_control();
 }
 
 // Sprite Control
@@ -551,13 +551,18 @@ void OSprites::blit_sprites()
 // 2. Stores In Similar Format To Sprite Hardware, but with 4 extra bytes of scratch data on end
 // 3. Note: Mostly responsible for setting x,y,width,height,zoom,pitch,priorities etc.
 //
-// Source Offsets [These are all offsets into 0x20000 (the width and height table)]
+// 0x11ED2: Table of Sprite Addresses for Hardware. Contains:
 //
-// + 1 : [Byte] Offset for Sprite Width
-// + 3 : [Byte] Offset for Sprite Height
-// + 4 : [Byte] Length of horizontal line of data?
-// + 5 : [Byte] Sprite Pitch Value
-// + 7 : [Byte] Sprite Bank Value
+// 5 x 10 bytes. One block for each sprite size lookup. 
+// The exact sprite is selected using the ozoom_lookup.hpp table.
+//
+// + 0 : [Byte] Unused
+// + 1 : [Byte] Width Helper Lookup  [Offsets into 0x20000 (the width and height table)]
+// + 2 : [Byte] Line Data Width
+// + 3 : [Byte] Height Helper Lookup [Offsets into 0x20000 (the width and height table)]
+// + 4 : [Byte] Line Data Height
+// + 5 : [Byte] Sprite Pitch
+// + 7 : [Byte] Sprite Bank
 // + 8 : [Word] Offset Within Sprite Bank
 
 void OSprites::do_sprite(oentry* input)

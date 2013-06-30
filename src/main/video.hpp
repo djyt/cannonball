@@ -1,25 +1,34 @@
+/***************************************************************************
+    Video Rendering. 
+    
+    - Renders the System 16 Video Layers
+    - Handles Reads and Writes to these layers from the main game code
+    - Interfaces with platform specific rendering code
+
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
-#include <SDL.h>
 #include "stdint.hpp"
+#include "globals.hpp"
 #include "roms.hpp"
 #include "hwvideo/hwtiles.hpp"
 #include "hwvideo/hwsprites.hpp"
 #include "hwvideo/hwroad.hpp"
 
 class hwsprites;
+class RenderBase;
 
 struct video_settings_t;
 
 class Video
 {
 public:
-	static const uint16_t S16_PALETTE_ENTRIES = 0x1000;
-
 	hwsprites* sprite_layer;
     hwtiles* tile_layer;
 	uint32_t *pixels;
-    uint32_t *screen_pixels;
 
     bool enabled;
 
@@ -27,6 +36,7 @@ public:
     ~Video();
     
 	int init(Roms* roms, video_settings_t* settings);
+    void disable();
     int set_video_mode(video_settings_t* settings);
     void draw_frame();
 
@@ -58,46 +68,11 @@ public:
     uint32_t read_pal32(uint32_t*);
 
 private:
-	SDL_Surface *surface;
+    // SDL Renderer
+    RenderBase* renderer;
     
-    // SDL Pixel Format Codes. These differ between platforms.
-    uint8_t  Rshift, Gshift, Bshift;
-    uint32_t Rmask, Gmask, Bmask;
-
-	uint8_t palette[Video::S16_PALETTE_ENTRIES * 2]; // 2 Bytes Per Palette Entry
-	uint32_t rgb[Video::S16_PALETTE_ENTRIES * 3];    // Extended to hold shadow/hilight colours
-
-    // Video Mode
-    uint8_t video_mode;
-
-    // Enable Scanlines
-    int scanlines;
-
-    // Scanline pixels
-    uint32_t* scan_pixels;
-
-    // Original Screen Width & Height
-    uint16_t orig_width, orig_height;
-
-    // Screen Width/Height Of Window
-    uint16_t screen_width, screen_height;
-
-    // Scaled Width/Height
-    uint32_t scaled_width, scaled_height;
-
-    // Offsets (for full-screen mode, where x/y resolution isn't a multiple of the original height)
-    uint32_t screen_xoff, screen_yoff;
-
-    // Screen Scale multiplication factor
-    uint8_t scale_factor;
-
-	void refresh_palette(uint32_t);
-    void scale( uint32_t* src, int srcwid, int srchgt, 
-                uint32_t* dest, int dstwid, int dsthgt);
-    void scanlines_32bpp(uint32_t* src, const int width, const int height, 
-                         uint32_t* dst, int percent, const bool interpolate = true);
-
-    void scalex( uint32_t* src, const int srcwid, const int srchgt, uint32_t* dest, const int scale);
+	uint8_t palette[S16_PALETTE_ENTRIES * 2]; // 2 Bytes Per Palette Entry
+    void refresh_palette(uint32_t);
 };
 
 extern Video video;

@@ -27,6 +27,8 @@ const uint16_t S16_HEIGHT     = 224;
 // Internal Widescreen Width
 const uint16_t S16_WIDTH_WIDE = 398;
 
+const uint16_t S16_PALETTE_ENTRIES = 0x1000;
+
 enum
 {
     BIT_0 = 0x01,
@@ -39,5 +41,5 @@ enum
     BIT_7 = 0x80,
     BIT_8 = 0x100,
     BIT_9 = 0x200,
-    BIT_A = 0x400,
+    BIT_A = 0x400
 };

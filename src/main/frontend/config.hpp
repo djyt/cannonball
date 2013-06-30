@@ -46,6 +46,7 @@ struct video_settings_t
     int widescreen;
     int fps;
     int hires;
+    int filtering;
 };
 
 struct sound_settings_t

@@ -21,11 +21,6 @@ Roms::~Roms(void)
 
 bool Roms::load_revb_roms()
 {
-    //uint32_t adr = 0;
-    //custom_track.init(7838);
-    //custom_track.load("output.bin", 0, 7838, 0);
-    //track_data = &custom_track;
-
     // If incremented, a rom has failed to load.
     int status = 0;
 

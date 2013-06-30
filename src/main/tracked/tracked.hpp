@@ -24,7 +24,7 @@ private:
     void tick_track();
     void controls();
     void display_sprite_info();
-    void display_path_info();
-    void display_height_info();
+    //void display_path_info();
+    //void display_height_info();
     std::string dec_to_bin(int nValue, bool bReverse = false);
 };

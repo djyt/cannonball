@@ -20,11 +20,16 @@ include_directories(
 link_libraries(cannonball 
     ${SDL_LIBRARY}
     SDLmain
+    opengl32 # For OpenGL
+    glu32    # For OpenGL
     dxguid
     dinput8
 )
 
 set(CMAKE_CXX_FLAGS "-Ofast -static-libgcc -static-libstdc++")
+ 
+# Use OpenGL for rendering. Disable to use software rendering. 
+add_definitions(-DWITH_OPENGL)
  
 # Location for Cannonball to create save files
 # Used to auto-generate setup.hpp with various file paths

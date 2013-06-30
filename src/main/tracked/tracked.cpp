@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <algorithm> // std::reverse
 
 #include "main.hpp"
 #include "trackloader.hpp"

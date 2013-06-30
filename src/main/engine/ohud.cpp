@@ -11,6 +11,8 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <cstring>
+
 #include "engine/oferrari.hpp"
 #include "engine/outils.hpp"
 #include "engine/ohud.hpp"

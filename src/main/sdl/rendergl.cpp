@@ -186,13 +186,13 @@ bool RenderGL::init(int src_width, int src_height,
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 glBindTexture(GL_TEXTURE_2D, textures[SCANLN]);
                 glBegin(GL_QUADS);
-                    glTexCoord2i(0, src_height);
+                    glTexCoord2i(0, S16_HEIGHT);
                     glVertex2i  (screen_xoff,             screen_yoff + dst_height);  // lower left
                     glTexCoord2i(0, 0);
                     glVertex2i  (screen_xoff,             screen_yoff);               // upper left
                     glTexCoord2i(src_width, 0);
                     glVertex2i  (screen_xoff + dst_width, screen_yoff);               // upper right
-                    glTexCoord2i(src_width, src_height);
+                    glTexCoord2i(src_width, S16_HEIGHT);
                     glVertex2i  (screen_xoff + dst_width, screen_yoff + dst_height);  // lower right
                 glEnd();
             glDisable(GL_BLEND);

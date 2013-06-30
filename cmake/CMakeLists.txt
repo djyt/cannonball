@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 2.6.2)
 project (cannonball)
+
 set(DCMAKE default.cmake)
 set(CMDIR ../cmake)
 
@@ -97,22 +98,36 @@ set(src_hwaudio
     "${main_cpp_base}/hwaudio/soundchip.cpp"
     "${main_cpp_base}/hwaudio/ym2151.cpp"
     )
-    
-set(src_sdl
-    "${main_cpp_base}/sdl/audio.hpp"
-    "${main_cpp_base}/sdl/timer.hpp"
-    "${main_cpp_base}/sdl/input.hpp"
-    "${main_cpp_base}/sdl/renderbase.hpp"
-    "${main_cpp_base}/sdl/rendergl.hpp"
-    "${main_cpp_base}/sdl/rendersw.hpp"
+   
+if(OPENGL)
+    set(src_sdl
+        "${main_cpp_base}/sdl/audio.hpp"
+        "${main_cpp_base}/sdl/timer.hpp"
+        "${main_cpp_base}/sdl/input.hpp"
+        "${main_cpp_base}/sdl/renderbase.hpp"
+        "${main_cpp_base}/sdl/rendergl.hpp"
 
-    "${main_cpp_base}/sdl/audio.cpp"
-    "${main_cpp_base}/sdl/timer.cpp"
-    "${main_cpp_base}/sdl/input.cpp"
-    "${main_cpp_base}/sdl/renderbase.cpp"
-    "${main_cpp_base}/sdl/rendergl.cpp"
-    "${main_cpp_base}/sdl/rendersw.cpp"
-    )
+        "${main_cpp_base}/sdl/audio.cpp"
+        "${main_cpp_base}/sdl/timer.cpp"
+        "${main_cpp_base}/sdl/input.cpp"
+        "${main_cpp_base}/sdl/renderbase.cpp"
+        "${main_cpp_base}/sdl/rendergl.cpp"
+        )   
+else()
+    set(src_sdl
+        "${main_cpp_base}/sdl/audio.hpp"
+        "${main_cpp_base}/sdl/timer.hpp"
+        "${main_cpp_base}/sdl/input.hpp"
+        "${main_cpp_base}/sdl/renderbase.hpp"
+        "${main_cpp_base}/sdl/rendersw.hpp"
+
+        "${main_cpp_base}/sdl/audio.cpp"
+        "${main_cpp_base}/sdl/timer.cpp"
+        "${main_cpp_base}/sdl/input.cpp"
+        "${main_cpp_base}/sdl/renderbase.cpp"
+        "${main_cpp_base}/sdl/rendersw.cpp"
+        )
+endif()
 
 set(src_directx
     "${main_cpp_base}/directx/ffeedback.hpp"
@@ -212,6 +227,10 @@ set(SRCS
 if(WIN32)
   set(SRCS ${SRCS} ../res/cannonball.rc)
 endif(WIN32)
+
+if(OPENGL)
+    add_definitions(-DWITH_OPENGL)
+endif()
 
 add_executable(cannonball ${SRCS})
 

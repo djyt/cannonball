@@ -9,6 +9,9 @@ if (NOT DEFINED ENV{DXSDK})
     message(FATAL_ERROR "Warning: DirectX SDK Variable DXSDK Not Defined!")
 endif()
 
+# Use OpenGL for rendering.
+set(OPENGL 1)
+
 include_directories(
     "${sdl_root}/include"
 )
@@ -27,9 +30,6 @@ link_directories(
     "$ENV{DXSDK}/lib"
     "${sdl_root}/lib"
 )
-
-# Use OpenGL for rendering. Disable to use software rendering. 
-add_definitions(-DWITH_OPENGL)
  
 # Location for Cannonball to create save files
 # Used to auto-generate setup.hpp with various file paths

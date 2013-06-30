@@ -11,6 +11,9 @@ endif()
 
 find_package(SDL REQUIRED)
 
+# Use OpenGL for rendering.
+set(OPENGL 1)
+
 include_directories(
     "${SDL_INCLUDE_DIR}"
     # You may need to remove the next line based on your DirectX setup
@@ -27,11 +30,10 @@ link_libraries(cannonball
 )
 
 set(CMAKE_CXX_FLAGS "-Ofast -static-libgcc -static-libstdc++")
- 
-# Use OpenGL for rendering. Disable to use software rendering. 
-add_definitions(-DWITH_OPENGL)
- 
+  
 # Location for Cannonball to create save files
 # Used to auto-generate setup.hpp with various file paths
 set(xml_directory ./)
-set(sdl_flags "SDL_DOUBLEBUF | SDL_SWSURFACE")
+
+# SDL Software Rendering Flags (ignored if OpenGL used)
+set(sdl_flags "SDL_SWSURFACE | SDL_DOUBLEBUF")

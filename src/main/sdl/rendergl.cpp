@@ -1,6 +1,6 @@
 /***************************************************************************
-    Open GL Video Rendering.  
-    
+    Open GL Video Rendering.
+
     Useful References:
     http://www.sdltutorials.com/sdl-opengl-tutorial-basics
     http://www.opengl.org/wiki/Common_Mistakes
@@ -19,10 +19,10 @@ const static uint32_t SCANLINE_TEXTURE[] = { 0x00000000, 0xff000000 }; // BGRA 8
 
 RenderGL::RenderGL()
 {
-    
+
 }
 
-bool RenderGL::init(int src_width, int src_height, 
+bool RenderGL::init(int src_width, int src_height,
                     int scale,
                     int video_mode,
                     int scanlines)
@@ -61,7 +61,7 @@ bool RenderGL::init(int src_width, int src_height,
     else
     {
         scn_width  = dst_width  = src_width  * scale;
-        scn_height = dst_height = src_height * scale;        
+        scn_height = dst_height = src_height * scale;
         SDL_ShowCursor(true);
     }
 
@@ -73,7 +73,7 @@ bool RenderGL::init(int src_width, int src_height,
             screen_xoff = (screen_xoff / 2);
 
         screen_yoff = scn_height - dst_height;
-        if (screen_yoff) 
+        if (screen_yoff)
             screen_yoff = (screen_yoff / 2);
     }
     // Otherwise set to the top-left corner
@@ -100,10 +100,10 @@ bool RenderGL::init(int src_width, int src_height,
         return false;
     }
 
-    if (screen_pixels) 
+    if (screen_pixels)
         delete[] screen_pixels;
     screen_pixels = new uint32_t[src_width * src_height];
-    
+
     // SDL Pixel Format Information
     Rshift = surface->format->Rshift;
     Gshift = surface->format->Gshift;
@@ -116,13 +116,13 @@ bool RenderGL::init(int src_width, int src_height,
     // Initalize Open GL
     // --------------------------------------------------------------------------------------------
 
-	// Disable dithering
-	glDisable(GL_DITHER);
-	// Disable anti-aliasing
-	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_POINT_SMOOTH);
-	// Disable depth buffer
-	glDisable(GL_DEPTH_TEST);
+    // Disable dithering
+    glDisable(GL_DITHER);
+    // Disable anti-aliasing
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_POINT_SMOOTH);
+    // Disable depth buffer
+    glDisable(GL_DEPTH_TEST);
 
     glClearColor(0, 0, 0, 0); // Black background
     glShadeModel(GL_FLAT);
@@ -134,50 +134,50 @@ bool RenderGL::init(int src_width, int src_height,
 
     // Screen Texture Setup
     const GLint param = config.video.filtering ? GL_LINEAR : GL_NEAREST;
-	glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, param);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, param);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
-			    src_width, src_height, 0,                // texture width, texture height
-			    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,    // Data format in pixel array
-			    NULL);
+    glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, param);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, param);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+                src_width, src_height, 0,                // texture width, texture height
+                GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,    // Data format in pixel array
+                NULL);
 
     // Scanline Texture Setup
     if (scanlines)
     {
         glBindTexture(GL_TEXTURE_2D, textures[SCANLN]);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
                      1, 2, 0,
-		             GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
-		             SCANLINE_TEXTURE);
+                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
+                     SCANLINE_TEXTURE);
     }
 
     // Initalize D-List
     dlist = glGenLists(1);
-	glNewList(dlist, GL_COMPILE);
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-	glOrtho(0, scn_width, scn_height, 0, 0, 1);         // left, right, bottom, top, near, far
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen and depth buffer
-	glEnable(GL_TEXTURE_2D);
-	    glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);     // Select Screen Texture
-	    glBegin(GL_QUADS);
-	        glTexCoord2i(0, 1);
-	        glVertex2i  (screen_xoff,             screen_yoff + dst_height);  // lower left
-	        glTexCoord2i(0, 0);
-	        glVertex2i  (screen_xoff,             screen_yoff);               // upper left
-	        glTexCoord2i(1, 0);
-	        glVertex2i  (screen_xoff + dst_width, screen_yoff);               // upper right
-	        glTexCoord2i(1, 1);
-	        glVertex2i  (screen_xoff + dst_width, screen_yoff + dst_height);  // lower right
-	    glEnd();
+    glNewList(dlist, GL_COMPILE);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, scn_width, scn_height, 0, 0, 1);         // left, right, bottom, top, near, far
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen and depth buffer
+    glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);     // Select Screen Texture
+        glBegin(GL_QUADS);
+            glTexCoord2i(0, 1);
+            glVertex2i  (screen_xoff,             screen_yoff + dst_height);  // lower left
+            glTexCoord2i(0, 0);
+            glVertex2i  (screen_xoff,             screen_yoff);               // upper left
+            glTexCoord2i(1, 0);
+            glVertex2i  (screen_xoff + dst_width, screen_yoff);               // upper right
+            glTexCoord2i(1, 1);
+            glVertex2i  (screen_xoff + dst_width, screen_yoff + dst_height);  // lower right
+        glEnd();
 
         if (scanlines)
         {
@@ -186,20 +186,20 @@ bool RenderGL::init(int src_width, int src_height,
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 glBindTexture(GL_TEXTURE_2D, textures[SCANLN]);
                 glBegin(GL_QUADS);
-	                glTexCoord2i(0, src_height);
-	                glVertex2i  (screen_xoff,             screen_yoff + dst_height);  // lower left	            
+                    glTexCoord2i(0, src_height);
+                    glVertex2i  (screen_xoff,             screen_yoff + dst_height);  // lower left
                     glTexCoord2i(0, 0);
-	                glVertex2i  (screen_xoff,             screen_yoff);               // upper left	            
+                    glVertex2i  (screen_xoff,             screen_yoff);               // upper left
                     glTexCoord2i(src_width, 0);
-	                glVertex2i  (screen_xoff + dst_width, screen_yoff);               // upper right            
+                    glVertex2i  (screen_xoff + dst_width, screen_yoff);               // upper right
                     glTexCoord2i(src_width, src_height);
-	                glVertex2i  (screen_xoff + dst_width, screen_yoff + dst_height);  // lower right
+                    glVertex2i  (screen_xoff + dst_width, screen_yoff + dst_height);  // lower right
                 glEnd();
             glDisable(GL_BLEND);
         }
-	glDisable(GL_TEXTURE_2D);
-	glPopMatrix();
-	glEndList();
+    glDisable(GL_TEXTURE_2D);
+    glPopMatrix();
+    glEndList();
 
     return true;
 }
@@ -226,18 +226,18 @@ bool RenderGL::finalize_frame()
 void RenderGL::draw_frame(uint32_t* pixels)
 {
     uint32_t* spix = screen_pixels;
-    
+
     // Lookup real RGB value from rgb array for backbuffer
     for (int i = 0; i < (src_width * src_height); i++)
         *(spix++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
 
-	glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,            // target, LOD, xoff, yoff
-			src_width, src_height,                     // texture width, texture height
-			GL_BGRA,                                   // format of pixel data
+    glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,            // target, LOD, xoff, yoff
+            src_width, src_height,                     // texture width, texture height
+            GL_BGRA,                                   // format of pixel data
             GL_UNSIGNED_INT_8_8_8_8_REV,               // data type of pixel data
-			screen_pixels);                            // pointer in image memory
+            screen_pixels);                            // pointer in image memory
 
-	glCallList(dlist);
-	SDL_GL_SwapBuffers();
+    glCallList(dlist);
+    SDL_GL_SwapBuffers();
 }

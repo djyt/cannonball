@@ -108,9 +108,26 @@ bool RenderGL::init(int src_width, int src_height,
     Rshift = surface->format->Rshift;
     Gshift = surface->format->Gshift;
     Bshift = surface->format->Bshift;
-    Rmask  = surface->format->Rmask;
-    Gmask  = surface->format->Gmask;
-    Bmask  = surface->format->Bmask;
+
+    // This hack is necessary to fix an Apple OpenGL with SDL issue
+    #ifdef __APPLE__
+      #if SDL_BYTEORDER == SDL_LIL_ENDIAN
+        Rmask = 0x000000FF;
+        Gmask = 0x0000FF00;
+        Bmask = 0x00FF0000;
+        Rshift += 8;
+        Gshift -= 8;
+        Bshift += 8;
+      #else
+        Rmask = 0xFF000000;
+        Gmask = 0x00FF0000;
+        Bmask = 0x0000FF00;
+      #endif
+    #else
+        Rmask  = surface->format->Rmask;
+        Gmask  = surface->format->Gmask;
+        Bmask  = surface->format->Bmask;
+    #endif
 
     // --------------------------------------------------------------------------------------------
     // Initalize Open GL

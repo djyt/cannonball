@@ -16,6 +16,10 @@
 #include "stdint.hpp"
 #include "romloader.hpp"
 
+#ifdef __APPLE__
+#include "CoreFoundation/CoreFoundation.h"
+#endif
+
 RomLoader::RomLoader()
 {
 
@@ -38,6 +42,21 @@ void RomLoader::unload(void)
 
 int RomLoader::load(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
 {
+
+#ifdef __APPLE__    
+    CFBundleRef mainBundle = CFBundleGetMainBundle();
+    CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
+    char bundlepath[PATH_MAX];
+
+    if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)bundlepath, PATH_MAX))
+    {
+        // error!
+    }
+
+    CFRelease(resourcesURL);
+    chdir(bundlepath);
+#endif
+
     std::string path = "roms/";
     path += std::string(filename);
 

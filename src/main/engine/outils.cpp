@@ -8,8 +8,8 @@
     See license.txt for more details.
 ***************************************************************************/
 #include <cstdlib> 
-#include "engine/outils.hpp"
-#include "engine/ostats.hpp"
+#include "outils.hpp"
+#include "ostats.hpp"
 
 outils::outils(void)
 {

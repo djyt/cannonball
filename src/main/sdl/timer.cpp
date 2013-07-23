@@ -1,4 +1,4 @@
-#include "sdl/timer.hpp"
+#include "timer.hpp"
 
 /***************************************************************************
     SDL Based Timer.

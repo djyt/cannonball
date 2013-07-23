@@ -6,14 +6,14 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "sdl/input.hpp"
-#include "frontend/ttrial.hpp"
+#include "../sdl/input.hpp"
+#include "ttrial.hpp"
 
-#include "engine/ohud.hpp"
-#include "engine/outils.hpp"
-#include "engine/omap.hpp"
-#include "engine/ostats.hpp"
-#include "engine/otiles.hpp"
+#include "../engine/ohud.hpp"
+#include "../engine/outils.hpp"
+#include "../engine/omap.hpp"
+#include "../engine/ostats.hpp"
+#include "../engine/otiles.hpp"
 
 // Track Selection: Ferrari Position Per Track
 // This is a link to a sprite object that represents part of the course map.

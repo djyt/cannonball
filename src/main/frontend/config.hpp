@@ -12,7 +12,7 @@
 
 #include <set>
 #include <string>
-#include "stdint.hpp"
+#include "../stdint.hpp"
 
 struct custom_music_t
 {
@@ -122,6 +122,7 @@ public:
     void save_scores();
     bool clear_scores();
     void set_fps(int fps);
+    int get_config(std::string, int);
     std::string to_string(int i);
     std::string to_string(char c);
     std::string to_hex_string(int i);

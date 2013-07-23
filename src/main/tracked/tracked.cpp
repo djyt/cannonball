@@ -2,16 +2,16 @@
 #include <sstream>
 #include <algorithm> // std::reverse
 
-#include "main.hpp"
-#include "trackloader.hpp"
-#include "sdl/input.hpp"
-#include "video.hpp"
-#include "frontend/config.hpp"
-#include "tracked/tracked.hpp"
-#include "engine/outrun.hpp"
-#include "engine/ohud.hpp"
-#include "engine/olevelobjs.hpp"
-#include "engine/otiles.hpp"
+#include "../main.hpp"
+#include "../trackloader.hpp"
+#include "../sdl/input.hpp"
+#include "../video.hpp"
+#include "../frontend/config.hpp"
+#include "tracked.hpp"
+#include "../engine/outrun.hpp"
+#include "../engine/ohud.hpp"
+#include "../engine/olevelobjs.hpp"
+#include "../engine/otiles.hpp"
 
 /*
 

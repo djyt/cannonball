@@ -7,14 +7,14 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/oferrari.hpp"
-#include "engine/ohud.hpp"
-#include "engine/oinputs.hpp"
-#include "engine/ologo.hpp"
-#include "engine/omusic.hpp"
-#include "engine/otiles.hpp"
-#include "engine/otraffic.hpp"
-#include "engine/ostats.hpp"
+#include "oferrari.hpp"
+#include "ohud.hpp"
+#include "oinputs.hpp"
+#include "ologo.hpp"
+#include "omusic.hpp"
+#include "otiles.hpp"
+#include "otraffic.hpp"
+#include "ostats.hpp"
 
 OMusic omusic;
 

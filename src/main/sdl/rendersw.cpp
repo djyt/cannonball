@@ -11,7 +11,7 @@
 #include <iostream>
 
 #include "rendersw.hpp"
-#include "frontend/config.hpp"
+#include "../frontend/config.hpp"
 
 RenderSW::RenderSW()
 {
@@ -139,9 +139,17 @@ bool RenderSW::init(int src_width, int src_height,
     screen_pixels = (uint32_t*)surface->pixels;
     
     // SDL Pixel Format Information
-    Rshift = surface->format->Rshift;
-    Gshift = surface->format->Gshift;
-    Bshift = surface->format->Bshift;
+    #ifndef EMSCRIPTEN
+        Rshift = surface->format->Rshift;
+        Gshift = surface->format->Gshift;
+        Bshift = surface->format->Bshift;    
+    // Emscripten Specific Rendering
+    #else
+        Rshift = 0;
+        Gshift = 8;
+        Bshift = 16;
+    #endif
+    
     Rmask  = surface->format->Rmask;
     Gmask  = surface->format->Gmask;
     Bmask  = surface->format->Bmask;

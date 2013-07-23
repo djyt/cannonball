@@ -13,7 +13,7 @@
 #include <iostream>
 
 #include "rendergl.hpp"
-#include "frontend/config.hpp"
+#include "../frontend/config.hpp"
 
 const static uint32_t SCANLINE_TEXTURE[] = { 0x00000000, 0xff000000 }; // BGRA 8-8-8-8-REV
 
@@ -130,24 +130,27 @@ bool RenderGL::init(int src_width, int src_height,
     #endif
 
     // --------------------------------------------------------------------------------------------
-    // Initalize Open GL
+    // Initalize Web GL
+    // See: https://github.com/hulkholden/n64js/blob/master/src/hle.js
     // --------------------------------------------------------------------------------------------
 
     // Disable dithering
     glDisable(GL_DITHER);
     // Disable anti-aliasing
-    glDisable(GL_LINE_SMOOTH);
-    glDisable(GL_POINT_SMOOTH);
+    //glDisable(GL_LINE_SMOOTH);
+    //glDisable(GL_POINT_SMOOTH);
     // Disable depth buffer
     glDisable(GL_DEPTH_TEST);
 
     glClearColor(0, 0, 0, 0); // Black background
-    glShadeModel(GL_FLAT);
+    //glShadeModel(GL_FLAT);
 
     glViewport(0, 0, scn_width, scn_height);
 
     // Initalize Texture ID
-    glGenTextures(scanlines ? 2 : 1, textures);
+    glGenTextures(scanlines ? 2 : 1, textures); // createTextures
+    
+    glGenFrameBuffers();
 
     // Screen Texture Setup
     const GLint param = config.video.filtering ? GL_LINEAR : GL_NEAREST;
@@ -156,74 +159,74 @@ bool RenderGL::init(int src_width, int src_height,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, param);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, param);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                 src_width, src_height, 0,                // texture width, texture height
-                GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,    // Data format in pixel array
+                GL_RGBA, GL_UNSIGNED_BYTE,    // Data format in pixel array
                 NULL);
 
-    // Scanline Texture Setup
-    if (scanlines)
-    {
-        glBindTexture(GL_TEXTURE_2D, textures[SCANLN]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
-                     1, 2, 0,
-                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
-                     SCANLINE_TEXTURE);
-    }
-
-    // Initalize D-List
-    dlist = glGenLists(1);
-    glNewList(dlist, GL_COMPILE);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, scn_width, scn_height, 0, 0, 1);         // left, right, bottom, top, near, far
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen and depth buffer
-    glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);     // Select Screen Texture
-        glBegin(GL_QUADS);
-            glTexCoord2i(0, 1);
+   glGenBuffers(1, &vertexObject);
+   
+            /*glTexCoord2i(0, 1);
             glVertex2i  (screen_xoff,             screen_yoff + dst_height);  // lower left
             glTexCoord2i(0, 0);
             glVertex2i  (screen_xoff,             screen_yoff);               // upper left
             glTexCoord2i(1, 0);
             glVertex2i  (screen_xoff + dst_width, screen_yoff);               // upper right
             glTexCoord2i(1, 1);
-            glVertex2i  (screen_xoff + dst_width, screen_yoff + dst_height);  // lower right
-        glEnd();
+            glVertex2i  (screen_xoff + dst_width, screen_yoff + dst_height);  // lower right*/
+   
+   // Setup the vertex data
+   GLfloat vVertices[] = { -0.5,  0.5, 0.0,  // Position 0
+                            0.0,  1.0,       // TexCoord 0
+                           -0.5, -0.5, 0.0,  // Position 1
+                            0.0,  0.0,       // TexCoord 1
+                            0.5, -0.5, 0.0,  // Position 2
+                            1.0,  0.0,       // TexCoord 2
+                            0.5,  0.5, 0.0,  // Position 3
+                            1.0,  1.0        // TexCoord 3
+                         };
+   GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
-        if (scanlines)
-        {
-            glEnable(GL_BLEND);
-                glColor4ub(255, 255, 255, ((scanlines - 1) << 8) / 100);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                glBindTexture(GL_TEXTURE_2D, textures[SCANLN]);
-                glBegin(GL_QUADS);
-                    glTexCoord2i(0, S16_HEIGHT);
-                    glVertex2i  (screen_xoff,             screen_yoff + dst_height);  // lower left
-                    glTexCoord2i(0, 0);
-                    glVertex2i  (screen_xoff,             screen_yoff);               // upper left
-                    glTexCoord2i(src_width, 0);
-                    glVertex2i  (screen_xoff + dst_width, screen_yoff);               // upper right
-                    glTexCoord2i(src_width, S16_HEIGHT);
-                    glVertex2i  (screen_xoff + dst_width, screen_yoff + dst_height);  // lower right
-                glEnd();
-            glDisable(GL_BLEND);
-        }
-    glDisable(GL_TEXTURE_2D);
-    glPopMatrix();
-    glEndList();
+   glGenBuffers(1, &userData->vertexObject);
+   glBindBuffer(GL_ARRAY_BUFFER, userData->vertexObject );
+   glBufferData(GL_ARRAY_BUFFER, sizeof(vVertices), vVertices, GL_STATIC_DRAW );
+
+   glGenBuffers(1, &userData->indexObject);
+   glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, userData->indexObject );
+   glBufferData ( GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW );
+                
+    // Scanline Texture Setup
+    /*if (scanlines)
+    {
+        glBindTexture(GL_TEXTURE_2D, textures[SCANLN]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     1, 2, 0,
+                     GL_RGBA, UNSIGNED_BYTE,
+                     SCANLINE_TEXTURE);
+    }*/
+
+    // Initalize D-List
+    //dlist = glGenLists(1);
+    //glNewList(dlist, GL_COMPILE);
+    //glMatrixMode(GL_MODELVIEW);
+    //glPushMatrix();
+    //glLoadIdentity();
+    //glOrtho(0, scn_width, scn_height, 0, 0, 1);         // left, right, bottom, top, near, far
+
+    //glPopMatrix();
+    //glEndList();
 
     return true;
 }
 
 void RenderGL::disable()
 {
-    glDeleteLists(dlist, 1);
+    //glDeleteLists(dlist, 1);
     glDeleteTextures(scanlines ? 2 : 1, textures);
 }
 
@@ -251,10 +254,45 @@ void RenderGL::draw_frame(uint32_t* pixels)
     glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,            // target, LOD, xoff, yoff
             src_width, src_height,                     // texture width, texture height
-            GL_BGRA,                                   // format of pixel data
-            GL_UNSIGNED_INT_8_8_8_8_REV,               // data type of pixel data
+            GL_RGBA,                                   // format of pixel data
+            GL_UNSIGNED_BYTE,               // data type of pixel data
             screen_pixels);                            // pointer in image memory
 
-    glCallList(dlist);
+    //glCallList(dlist);
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen and depth buffer
+    glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);     // Select Screen Texture
+        //glBegin(GL_QUADS);
+            /*glTexCoord2i(0, 1);
+            glVertex2i  (screen_xoff,             screen_yoff + dst_height);  // lower left
+            glTexCoord2i(0, 0);
+            glVertex2i  (screen_xoff,             screen_yoff);               // upper left
+            glTexCoord2i(1, 0);
+            glVertex2i  (screen_xoff + dst_width, screen_yoff);               // upper right
+            glTexCoord2i(1, 1);
+            glVertex2i  (screen_xoff + dst_width, screen_yoff + dst_height);  // lower right*/
+        //glEnd();
+
+        /*if (scanlines)
+        {
+            glEnable(GL_BLEND);
+                glColor4ub(255, 255, 255, ((scanlines - 1) << 8) / 100);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glBindTexture(GL_TEXTURE_2D, textures[SCANLN]);
+                glBegin(GL_QUADS);
+                    glTexCoord2i(0, S16_HEIGHT);
+                    glVertex2i  (screen_xoff,             screen_yoff + dst_height);  // lower left
+                    glTexCoord2i(0, 0);
+                    glVertex2i  (screen_xoff,             screen_yoff);               // upper left
+                    glTexCoord2i(src_width, 0);
+                    glVertex2i  (screen_xoff + dst_width, screen_yoff);               // upper right
+                    glTexCoord2i(src_width, S16_HEIGHT);
+                    glVertex2i  (screen_xoff + dst_width, screen_yoff + dst_height);  // lower right
+                glEnd();
+            glDisable(GL_BLEND);
+        }*/
+    glDisable(GL_TEXTURE_2D);
+    
     SDL_GL_SwapBuffers();
 }

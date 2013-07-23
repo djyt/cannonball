@@ -9,13 +9,13 @@
 
 #pragma once
 
-#include "stdint.hpp"
-#include "roms.hpp"
-#include "globals.hpp"
+#include "../stdint.hpp"
+#include "../roms.hpp"
+#include "../globals.hpp"
 
-#include "video.hpp"
+#include "../video.hpp"
 
-#include "frontend/config.hpp"
+#include "../frontend/config.hpp"
 
 // Main include for Ported OutRun Code
 #include "oaddresses.hpp"

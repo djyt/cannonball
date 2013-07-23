@@ -12,9 +12,9 @@
 
 #pragma once
 
-#include "stdint.hpp"
-#include "romloader.hpp"
-#include "hwaudio/soundchip.hpp"
+#include "../stdint.hpp"
+#include "../romloader.hpp"
+#include "soundchip.hpp"
 
 class SegaPCM : public SoundChip
 {

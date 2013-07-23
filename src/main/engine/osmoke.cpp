@@ -7,10 +7,10 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/ocrash.hpp"
-#include "engine/oferrari.hpp"
-#include "engine/olevelobjs.hpp"
-#include "engine/osmoke.hpp"
+#include "ocrash.hpp"
+#include "oferrari.hpp"
+#include "olevelobjs.hpp"
+#include "osmoke.hpp"
 
 OSmoke osmoke;
 

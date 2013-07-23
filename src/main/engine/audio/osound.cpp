@@ -18,7 +18,7 @@ X More cars seem to be high pitched than on MAME. (Fixed - engine channel setup)
 
 //#include <iostream> // needed for debugging only. Can be removed.
 #include <cstring> // For memset on GCC
-#include "engine/audio/osound.hpp"
+#include "osound.hpp"
 
 // Use YM2151 Timing
 #define TIMER_CODE 1
@@ -1182,7 +1182,8 @@ void OSound::ym_finalize(uint8_t* chan)
         return;
     }
     
-    *(chan -= 0x2C0); // = corresponding music channel
+    // HACKED OUT
+    *chan -= 0x2C0; // = corresponding music channel
 
     // Return if no sound playing on corresponding channel
     if (!(chan[ch::FLAGS] & BIT_7))

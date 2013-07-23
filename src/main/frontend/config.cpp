@@ -8,18 +8,22 @@
     See license.txt for more details.
 ***************************************************************************/
 
-// see: http://www.boost.org/doc/libs/1_52_0/doc/html/boost_propertytree/tutorial.html
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
+#ifdef BOOST
+    // see: http://www.boost.org/doc/libs/1_52_0/doc/html/boost_propertytree/tutorial.html
+    #include <boost/property_tree/ptree.hpp>
+    #include <boost/property_tree/xml_parser.hpp>
+#endif
+
 #include <iostream>
+#include <sstream>
 
-#include "main.hpp"
+#include "../main.hpp"
 #include "config.hpp"
-#include "globals.hpp"
-#include "setup.hpp"
+#include "../globals.hpp"
+#include "../setup.hpp"
 
-#include "engine/ohiscore.hpp"
-#include "engine/audio/osoundint.hpp"
+#include "../engine/ohiscore.hpp"
+#include "../engine/audio/osoundint.hpp"
 
 Config config;
 
@@ -38,126 +42,133 @@ void Config::init()
 
 }
 
-using boost::property_tree::ptree;
-ptree pt_config;
+#ifdef BOOST
+    using boost::property_tree::ptree;
+    ptree pt_config;
+#endif
 
 void Config::load(const std::string &filename)
 {
-    // Load XML file and put its contents in property tree. 
-    // No namespace qualification is needed, because of Koenig 
-    // lookup on the second argument. If reading fails, exception
-    // is thrown.
-    try
-    {
-        read_xml(filename, pt_config, boost::property_tree::xml_parser::trim_whitespace);
-    }
-    catch (std::exception &e)
-    {
-        std::cout << "Error: " << e.what() << "\n";
-    }
+    #ifdef BOOST
+        // Load XML file and put its contents in property tree. 
+        // No namespace qualification is needed, because of Koenig 
+        // lookup on the second argument. If reading fails, exception
+        // is thrown.
+        try
+        {
+            read_xml(filename, pt_config, boost::property_tree::xml_parser::trim_whitespace);
+        }
+        catch (std::exception &e)
+        {
+            std::cout << "Error: " << e.what() << "\n";
+        }
+    #endif
 
     // ------------------------------------------------------------------------
     // Menu Settings
     // ------------------------------------------------------------------------
 
-    menu.enabled           = pt_config.get("menu.enabled",   1);
-    menu.road_scroll_speed = pt_config.get("menu.roadspeed", 50);
+    menu.enabled           = get_config("menu.enabled",   0);
+    menu.road_scroll_speed = get_config("menu.roadspeed", 50);
 
     // ------------------------------------------------------------------------
     // Video Settings
     // ------------------------------------------------------------------------
    
-    video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed 
-    video.scale      = pt_config.get("video.window.scale",       2); // Video Scale: Default is 2x    
-    video.scanlines  = pt_config.get("video.scanlines",          0); // Scanlines
-    video.fps        = pt_config.get("video.fps",                2); // Default is 60 fps   
-    video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode
-    video.hires      = pt_config.get("video.hires",              0); // Hi-Resolution Mode
-    video.filtering  = pt_config.get("video.filtering",          0); // Open GL Filtering Mode
+    video.mode       = get_config("video.mode",               0); // Video Mode: Default is Windowed 
+    video.scale      = get_config("video.window.scale",       1); // Video Scale: Default is 2x    
+    video.scanlines  = get_config("video.scanlines",          0); // Scanlines
+    video.fps        = get_config("video.fps",                0); // Default is 60 fps   
+    video.widescreen = get_config("video.widescreen",         1); // Enable Widescreen Mode
+    video.hires      = get_config("video.hires",              0); // Hi-Resolution Mode
+    video.filtering  = get_config("video.filtering",          0); // Open GL Filtering Mode
           
     set_fps(video.fps);
 
     // ------------------------------------------------------------------------
     // Sound Settings
     // ------------------------------------------------------------------------
-    sound.enabled   = pt_config.get("sound.enable",    1);
-    sound.advertise = pt_config.get("sound.advertise", 1);
+    sound.enabled   = get_config("sound.enable",    1);
+    sound.advertise = get_config("sound.advertise", 1);
 
-    // Custom Music
-    for (int i = 0; i < 4; i++)
-    {
-        std::string xmltag = "sound.custom_music.track";
-        xmltag += to_string(i+1);  
+    #ifdef BOOST
+        // Custom Music
+        for (int i = 0; i < 4; i++)
+        {
+            std::string xmltag = "sound.custom_music.track";
+            xmltag += to_string(i+1);  
 
-        sound.custom_music[i].enabled = pt_config.get(xmltag + ".<xmlattr>.enabled", 0);
-        sound.custom_music[i].title   = pt_config.get(xmltag + ".title", "TRACK " +to_string(i+1));
-        sound.custom_music[i].filename= pt_config.get(xmltag + ".filename", "track"+to_string(i+1)+".wav");
-    }
+            sound.custom_music[i].enabled = pt_config.get(xmltag + ".<xmlattr>.enabled", 0);
+            sound.custom_music[i].title   = pt_config.get(xmltag + ".title", "TRACK " +to_string(i+1));
+            sound.custom_music[i].filename= pt_config.get(xmltag + ".filename", "track"+to_string(i+1)+".wav");
+        }
+    #endif
 
     // ------------------------------------------------------------------------
     // Controls
     // ------------------------------------------------------------------------
-    controls.gear          = pt_config.get("controls.gear", 0);
-    controls.steer_speed   = pt_config.get("controls.steerspeed", 3);
-    controls.pedal_speed   = pt_config.get("controls.pedalspeed", 4);
-    controls.keyconfig[0]  = pt_config.get("controls.keyconfig.up",    273);
-    controls.keyconfig[1]  = pt_config.get("controls.keyconfig.down",  274);
-    controls.keyconfig[2]  = pt_config.get("controls.keyconfig.left",  276);
-    controls.keyconfig[3]  = pt_config.get("controls.keyconfig.right", 275);
-    controls.keyconfig[4]  = pt_config.get("controls.keyconfig.acc",   122);
-    controls.keyconfig[5]  = pt_config.get("controls.keyconfig.brake", 120);
-    controls.keyconfig[6]  = pt_config.get("controls.keyconfig.gear",  32);
-    controls.keyconfig[7]  = pt_config.get("controls.keyconfig.start", 49);
-    controls.keyconfig[8]  = pt_config.get("controls.keyconfig.coin",  53);
-    controls.keyconfig[9]  = pt_config.get("controls.keyconfig.menu",  286);
-    controls.padconfig[0]  = pt_config.get("controls.padconfig.acc", 0);
-    controls.padconfig[1]  = pt_config.get("controls.padconfig.brake", 1);
-    controls.padconfig[2]  = pt_config.get("controls.padconfig.gear", 2);
-    controls.padconfig[3]  = pt_config.get("controls.padconfig.start", 3);
-    controls.padconfig[4]  = pt_config.get("controls.padconfig.coin", 4);
-    controls.padconfig[5]  = pt_config.get("controls.padconfig.menu", 5);
-    controls.analog        = pt_config.get("controls.analog.<xmlattr>.enabled", 0);
-    controls.axis[0]       = pt_config.get("controls.analog.axis.wheel", 0);
-    controls.axis[1]       = pt_config.get("controls.analog.axis.accel", 2);
-    controls.axis[2]       = pt_config.get("controls.analog.axis.brake", 3);
-    controls.wheel[0]      = pt_config.get("controls.analog.wheel.zone", 75);
-    controls.wheel[1]      = pt_config.get("controls.analog.wheel.dead", 0);
+    controls.gear          = get_config("controls.gear", 0);
+    controls.steer_speed   = get_config("controls.steerspeed", 3);
+    controls.pedal_speed   = get_config("controls.pedalspeed", 4);
+    controls.keyconfig[0]  = get_config("controls.keyconfig.up",    SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_UP));
+    controls.keyconfig[1]  = get_config("controls.keyconfig.down",  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_DOWN));
+    controls.keyconfig[2]  = get_config("controls.keyconfig.left",  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_LEFT));
+    controls.keyconfig[3]  = get_config("controls.keyconfig.right", SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_RIGHT));
+    controls.keyconfig[4]  = get_config("controls.keyconfig.acc",   122);
+    controls.keyconfig[5]  = get_config("controls.keyconfig.brake", 120);
+    controls.keyconfig[6]  = get_config("controls.keyconfig.gear",  32);
+    controls.keyconfig[7]  = get_config("controls.keyconfig.start", 49);
+    controls.keyconfig[8]  = get_config("controls.keyconfig.coin",  53);
+    controls.keyconfig[9]  = get_config("controls.keyconfig.menu",  286);
+    controls.padconfig[0]  = get_config("controls.padconfig.acc", 0);
+    controls.padconfig[1]  = get_config("controls.padconfig.brake", 1);
+    controls.padconfig[2]  = get_config("controls.padconfig.gear", 2);
+    controls.padconfig[3]  = get_config("controls.padconfig.start", 3);
+    controls.padconfig[4]  = get_config("controls.padconfig.coin", 4);
+    controls.padconfig[5]  = get_config("controls.padconfig.menu", 5);
+    controls.analog        = get_config("controls.analog.<xmlattr>.enabled", 0);
+    controls.axis[0]       = get_config("controls.analog.axis.wheel", 0);
+    controls.axis[1]       = get_config("controls.analog.axis.accel", 2);
+    controls.axis[2]       = get_config("controls.analog.axis.brake", 3);
+    controls.wheel[0]      = get_config("controls.analog.wheel.zone", 75);
+    controls.wheel[1]      = get_config("controls.analog.wheel.dead", 0);
     
-    controls.haptic        = pt_config.get("controls.analog.haptic.<xmlattr>.enabled", 0);
-    controls.max_force     = pt_config.get("controls.analog.haptic.max_force", 9000);
-    controls.min_force     = pt_config.get("controls.analog.haptic.min_force", 8500);
-    controls.force_duration= pt_config.get("controls.analog.haptic.force_duration", 20);
+    controls.haptic        = get_config("controls.analog.haptic.<xmlattr>.enabled", 0);
+    controls.max_force     = get_config("controls.analog.haptic.max_force", 9000);
+    controls.min_force     = get_config("controls.analog.haptic.min_force", 8500);
+    controls.force_duration= get_config("controls.analog.haptic.force_duration", 20);
 
     // ------------------------------------------------------------------------
     // Engine Settings
     // ------------------------------------------------------------------------
 
-    engine.dip_time      = pt_config.get("engine.time",    0);
-    engine.dip_traffic   = pt_config.get("engine.traffic", 1);
+    engine.dip_time      = get_config("engine.time",    0);
+    engine.dip_traffic   = get_config("engine.traffic", 1);
     
     engine.freeze_timer    = engine.dip_time == 4;
     engine.disable_traffic = engine.dip_traffic == 4;
     engine.dip_time    &= 3;
     engine.dip_traffic &= 3;
 
-    engine.jap           = pt_config.get("engine.japanese_tracks", 0);
-    engine.prototype     = pt_config.get("engine.prototype",       0);
+    engine.jap           = get_config("engine.japanese_tracks", 0);
+    engine.prototype     = get_config("engine.prototype",       0);
     
     // Additional Level Objects
-    engine.level_objects = pt_config.get("engine.levelobjects", 1);
-    engine.randomgen     = pt_config.get("engine.randomgen",    1);
-    engine.fix_bugs      = pt_config.get("engine.fix_bugs",     1) != 0;
+    engine.level_objects = get_config("engine.levelobjects", 1);
+    engine.randomgen     = get_config("engine.randomgen",    1);
+    engine.fix_bugs      = get_config("engine.fix_bugs",     1) != 0;
 
     // ------------------------------------------------------------------------
     // Time Trial Mode
     // ------------------------------------------------------------------------
 
-    ttrial.laps    = pt_config.get("time_trial.laps",    5);
-    ttrial.traffic = pt_config.get("time_trial.traffic", 3);
+    ttrial.laps    = get_config("time_trial.laps",    5);
+    ttrial.traffic = get_config("time_trial.traffic", 3);
 }
 
 bool Config::save(const std::string &filename)
 {
+#ifdef BOOST
     // Save stuff
     pt_config.put("video.mode",               video.mode);
     pt_config.put("video.window.scale",       video.scale);
@@ -215,11 +226,13 @@ bool Config::save(const std::string &filename)
         std::cout << "Error saving config: " << e.what() << "\n";
         return false;
     }
+#endif
     return true;
 }
 
 void Config::load_scores()
 {
+#ifdef BOOST
     // Counter value that represents 1m 15s 0ms
     static const uint16_t COUNTER_1M_15 = 0x11D0;
 
@@ -264,10 +277,12 @@ void Config::load_scores()
     {
         ttrial.best_times[i] = pt.get("time_trial.score" + to_string(i), COUNTER_1M_15);
     }
+#endif
 }
 
 void Config::save_scores()
 {
+#ifdef BOOST
     // Create empty property tree object
     ptree pt;
         
@@ -303,6 +318,7 @@ void Config::save_scores()
     {
         std::cout << "Error saving hiscores: " << e.what() << "\n";
     }
+#endif
 }
 
 bool Config::clear_scores()
@@ -311,6 +327,15 @@ bool Config::clear_scores()
     ohiscore.init_def_scores();
     // Remove hiscore xml file if it exists
     return remove(engine.jap ? FILENAME_SCORES_JAP : FILENAME_SCORES) == 0; 
+}
+
+int Config::get_config(std::string s, int i)
+{
+    #ifdef BOOST
+        return pt_config.get(s, i);
+    #else
+        return i;
+    #endif
 }
 
 void Config::set_fps(int fps)

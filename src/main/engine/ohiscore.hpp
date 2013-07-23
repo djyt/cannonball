@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "stdint.hpp"
+#include "../stdint.hpp"
 
 struct score_entry
 {

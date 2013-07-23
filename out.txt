@@ -1,0 +1,361 @@
+emcc [options] file...
+
+Most normal gcc/g++ options will work, for example:
+  --help                   Display this information
+  --version                Display compiler version information
+
+Options that are modified or new in emcc include:
+  -O0                      No optimizations (default)
+  -O1                      Simple optimizations, including asm.js, LLVM -O1
+                           optimizations, and no runtime assertions
+                           or C++ exception catching (to re-enable
+                           C++ exception catching, use
+                           -s DISABLE_EXCEPTION_CATCHING=0 ).
+                           (For details on the affects of different
+                           opt levels, see apply_opt_level() in
+                           tools/shared.py and also src/settings.js.)
+                           Note: Optimizations are only done when
+                           compiling to JavaScript, not to intermediate
+                           bitcode, *unless* you build with
+                           EMCC_OPTIMIZE_NORMALLY=1 (not recommended
+                           unless you know what you are doing!)
+  -O2                      As -O1, plus the relooper (loop recreation),
+                           LLVM -O2 optimizations, and
+
+                              -s ALIASING_FUNCTION_POINTERS=1
+
+  -O3                      As -O2, plus dangerous optimizations that may
+                           break the generated code! This adds
+
+                              -s FORCE_ALIGNED_MEMORY=1
+                              -s DOUBLE_MODE=0
+                              -s PRECISE_I64_MATH=0
+                              --closure 1
+                              --llvm-lto 1
+
+                           This is not recommended at all. A better idea
+                           is to try each of these separately on top of
+                           -O2 to see what works. See the wiki and
+                           src/settings.js (for the -s options) for more
+                           information.
+
+  -s OPTION=VALUE          JavaScript code generation option passed
+                           into the emscripten compiler. For the
+                           available options, see src/settings.js
+                           Note that for options that are lists, you
+                           need quotation marks in most shells, for
+                           example
+
+                            -s RUNTIME_LINKED_LIBS="['liblib.so']"
+
+                           or
+
+                            -s "RUNTIME_LINKED_LIBS=['liblib.so']"
+
+                           (without the external "s in either of those,
+                           you would get an error)
+
+                           You can also specify a file from which the
+                           value would be read, for example,
+
+                            -s DEAD_FUNCTIONS=@/path/to/file
+
+                           The contents of /path/to/file will be read,
+                           JSON.parsed and set into DEAD_FUNCTIONS (so
+                           the file could contain
+
+                            ["_func1", "func2"]
+
+                           ). Note that the path must be absolute, not
+                           relative.
+
+  -g                       Use debug info. When compiling to bitcode,
+                           this is the same as in clang and gcc, it
+                           adds debug info to the object files. When
+                           compiling from source to JS or bitcode to JS,
+                           it is equivalent to -g3 (keep code as debuggable
+                           as possible, except for discarding LLVM
+                           debug info, so no C/C++ line numbers; use
+                           -g4 to get line number debugging info in JS).
+
+  -g<level>                When compiling from bitcode to JS, we can
+                           keep the code debuggable to different
+                           degrees. Each of these levels builds on the
+                           previous:
+
+                            -g0  Make no effort to keep code debuggable.
+                                 Will discard LLVM debug info. (default
+                                 in -O1+)
+                            -g1  Preserve (do not minify) whitespace
+                            -g2  Preserve function names
+                            -g3  Preserve variable names
+                            -g4  Preserve LLVM debug info (if -g was
+                                 used when compiling the C/C++ sources)
+                                 and show line number debug comments.
+                                 This is the highest level of debuggability.
+                                 (default in -O0)
+
+  --typed-arrays <mode>    0: No typed arrays
+                           1: Parallel typed arrays
+                           2: Shared (C-like) typed arrays (default)
+
+  --llvm-opts <level>      0: No LLVM optimizations (default in -O0)
+                           1: -O1 LLVM optimizations (default in -O1)
+                           2: -O2 LLVM optimizations
+                           3: -O3 LLVM optimizations (default in -O2+)
+
+  --llvm-lto <level>       0: No LLVM LTO (default in -O2 and below)
+                           1: LLVM LTO (default in -O3)
+                           Note: If LLVM optimizations are not run
+                           (see --llvm-opts), setting this to 1 has no
+                           effect.
+
+  --closure <on>           0: No closure compiler (default in -O2 and below)
+                           1: Run closure compiler. This greatly reduces
+                           code size and may in some cases increase
+                           runtime speed (although the opposite can also
+                           occur). Note that it takes time to run, and
+                           may require some changes to the code. This
+                           is run by default in -O3.
+
+                           In asm.js mode, closure will only be used on the
+                           'shell' code around the compiled code (the
+                           compiled code will be processed by the custom
+                           asm.js minifier).
+
+                           Note: If closure compiler hits an out-of-memory,
+                           try adjusting JAVA_HEAP_SIZE in the environment
+                           (for example, to 4096m for 4GB).
+
+  --js-transform <cmd>     <cmd> will be called on the generated code
+                           before it is optimized. This lets you modify
+                           the JavaScript, for example adding some code
+                           or removing some code, in a way that those
+                           modifications will be optimized together with
+                           the generated code properly. <cmd> will be
+                           called with the filename of the generated
+                           code as a parameter; to modify the code, you
+                           can read the original data and then append to
+                           it or overwrite it with the modified data.
+                           <cmd> is interpreted as a space-separated
+                           list of arguments, for example, <cmd> of
+                           "python processor.py" will cause a python
+                           script to be run.
+
+  --pre-js <file>          A file whose contents are added before the
+                           generated code. This is done *before*
+                           optimization, so it will be minified
+                           properly if closure compiler is run.
+
+  --post-js <file>         A file whose contents are added after the
+                           generated code This is done *before*
+                           optimization, so it will be minified
+                           properly if closure compiler is run.
+
+  --embed-file <file>      A file to embed inside the generated
+                           JavaScript. The compiled code will be able
+                           to access the file in the current directory
+                           with the same name as given here. So if
+                           you do --embed-file dir/file.dat, then
+                           (1) dir/file.dat must exist relative to
+                           where you run emcc, and (2) your compiled
+                           code will be able to find the file by
+                           reading that same path, dir/file.dat.
+                           If a directory is passed here, its entire
+                           contents will be embedded.
+
+  --preload-file <name>    A file to preload before running the
+                           compiled code asynchronously. Otherwise
+                           similar to --embed-file, except that this
+                           option is only relevant when generating
+                           HTML (it uses asynchronous binary XHRs),
+                           or JS that will be used in a web page.
+                           If a directory is passed here, its entire
+                           contents will be preloaded.
+                           Preloaded files are stored in filename.data,
+                           where filename.html is the main file you
+                           are compiling to. To run your code, you
+                           will need both the .html and the .data.
+
+                           emcc runs tools/file_packager.py to do the
+                           actual packaging of embedded and preloaded
+                           files. You can run the file packager yourself
+                           if you want, see docs inside that file. You
+                           should then put the output of the file packager
+                           in an emcc --pre-js, so that it executes before
+                           your main compiled code (or run it before in
+                           some other way).
+
+  --compression <codec>    Compress both the compiled code and embedded/
+                           preloaded files. <codec> should be a triple,
+
+                              <native_encoder>,<js_decoder>,<js_name>
+
+                           where native_encoder is a native executable
+                           that compresses stdin to stdout (the simplest
+                           possible interface), js_decoder is a
+                           JavaScript file that implements a decoder,
+                           and js_name is the name of the function to
+                           call in the decoder file (which should
+                           receive an array/typed array and return
+                           an array/typed array.
+                           Compression only works when generating HTML.
+                           When compression is on, all filed specified
+                           to be preloaded are compressed in one big
+                           archive, which is given the same name as the
+                           output HTML but with suffix .data.compress
+
+  --minify 0               Identical to -g1
+
+  --split <size>           Splits the resulting javascript file into pieces
+                           to ease debugging. This option only works if
+                           Javascript is generated (target -o <name>.js).
+                           Files with function declarations must be loaded
+                           before main file upon execution.
+
+                           Without "-g" option:
+                              Creates files with function declarations up
+                              to the given size with the suffix
+                              "_functions.partxxx.js" and a main file with
+                              the suffix ".js".
+
+                           With "-g" option:
+                              Recreates the directory structure of the C
+                              source files and stores function declarations
+                              in their respective C files with the suffix
+                              ".js". If such a file exceeds the given size,
+                              files with the suffix ".partxxx.js" are created.
+                              The main file resides in the base directory and
+                              has the suffix ".js".
+
+  --bind                   Compiles the source code using the "embind"
+                           bindings approach, which connects C/C++ and JS.
+
+  --ignore-dynamic-linking Normally emcc will treat dynamic linking like
+                           static linking, by linking in the code from
+                           the dynamic library. This fails if the same
+                           dynamic library is linked more than once.
+                           With this option, dynamic linking is ignored,
+                           which allows the build system to proceed without
+                           errors. However, you will need to manually
+                           link to the shared libraries later on yourself.
+
+  --shell-file <path>      The path name to a skeleton HTML file used
+                           when generating HTML output. The shell file
+                           used needs to have this token inside it:
+                           {{{ SCRIPT_CODE }}}
+                           Note that this argument is ignored if a
+                           target other than HTML is specified using
+                           the -o option.
+
+  --js-library <lib>       A JavaScript library to use in addition to
+                           those in Emscripten's src/library_*
+
+  -v                       Turns on verbose output. This will pass
+                           -v to Clang, and also enable EMCC_DEBUG
+                           to details emcc's operations
+
+  --jcache                 Use a JavaScript cache. This is disabled by
+                           default. When enabled, emcc will store the
+                           results of compilation in a cache and check
+                           the cache when compiling later, something
+                           like what ccache does. This allows incremental
+                           builds - where you are compiling a large
+                           program but only modified a small part of it -
+                           to be much faster (at the cost of more disk
+                           IO for cache accesses). Note that you need
+                           to enable --jcache for both loading and saving
+                           of data, so you must enable it on a full build
+                           for a later incremental build (where you also
+                           enable it) to be sped up.
+
+                           Caching works separately on 4 parts of compilation:
+                           'pre' which is types and global variables; that
+                           information is then fed into 'funcs' which are
+                           the functions (which we parallelize), and then
+                           'post' which adds final information based on
+                           the functions (e.g., do we need long64 support
+                           code). Finally, 'jsfuncs' are JavaScript-level
+                           optimizations. Each of the 4 parts can be cached
+                           separately, but note that they can affect each
+                           other: If you recompile a single C++ file that
+                           changes a global variable - e.g., adds, removes
+                           or modifies a global variable, say by adding
+                           a printf or by adding a compile-time timestamp,
+                           then 'pre' cannot be loaded from the cache. And
+                           since 'pre's output is sent to 'funcs' and 'post',
+                           they will get invalidated as well, and only
+                           'jsfuncs' will be cached. So avoid modifying
+                           globals to let caching work fully.
+
+                           To work around the problem mentioned in the
+                           previous paragraph, you can use
+
+                            emscripten_jcache_printf
+
+                           when adding debug printfs to your code. That
+                           function is specially preprocessed so that it
+                           does not create a constant string global for
+                           its first argument. See emscripten.h for more
+                           details. Note in particular that you need to
+                           already have a call to that function in your
+                           code *before* you add one and do an incremental
+                           build, so that adding an external reference
+                           (also a global property) does not invalidate
+                           everything.
+
+                           Note that you should use -g during the linking
+                           stage (bitcode to JS), for jcache to work
+                           (otherwise, JS minification can confuse it).
+
+  --clear-cache            Manually clears the cache of compiled
+                           emscripten system libraries (libc++,
+                           libc++abi, libc). This is normally
+                           handled automatically, but if you update
+                           llvm in-place (instead of having a different
+                           directory for a new version), the caching
+                           mechanism can get confused. Clearing the
+                           cache can fix weird problems related to
+                           cache incompatibilities, like clang failing
+                           to link with library files. This also clears
+                           other cached data like the jcache and
+                           the bootstrapped relooper. After the cache
+                           is cleared, this process will exit.
+
+  --save-bc PATH           When compiling to JavaScript or HTML, this
+                           option will save a copy of the bitcode to
+                           the specified path. The bitcode will include
+                           all files being linked, including standard
+                           libraries, and after any link-time optimizations
+                           (if any).
+
+  --memory-init-file <on>  If on, we generate a separate memory initialization
+                           file. This is more efficient than storing the
+                           memory initialization data embedded inside
+                           JavaScript as text. (default is off)
+
+The target file, if specified (-o <target>), defines what will
+be generated:
+
+  <name>.js                JavaScript
+  <name>.html              HTML with embedded JavaScript
+  <name>.bc                LLVM bitcode (default)
+  <name>.o                 LLVM bitcode (same as .bc)
+
+(Note that if --memory-init-file is used, then in addition to a
+.js or .html file that is generated, a .mem file will also appear.)
+
+The -c option (which tells gcc not to run the linker) will
+cause LLVM bitcode to be generated, as emcc only generates
+JavaScript in the final linking stage of building.
+
+The input file(s) can be either source code files that
+Clang can handle (C or C++), LLVM bitcode in binary form,
+or LLVM assembly files in human-readable form.
+
+emcc is affected by several environment variables. For details, view
+the source of emcc (search for 'os.environ').
+
+emcc: supported targets: llvm bitcode, javascript, NOT elf
+(autoconf likes to see elf above to enable shared object support)
+

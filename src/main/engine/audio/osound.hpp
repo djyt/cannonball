@@ -1,13 +1,13 @@
 #pragma once
 
-#include "stdint.hpp"
-#include "globals.hpp"
-#include "roms.hpp"
+#include "../../stdint.hpp"
+#include "../../globals.hpp"
+#include "../../roms.hpp"
 
-#include "hwaudio/ym2151.hpp"
+#include "../../hwaudio/ym2151.hpp"
 
-#include "engine/audio/commands.hpp"
-#include "engine/audio/osoundadr.hpp"
+#include "commands.hpp"
+#include "osoundadr.hpp"
 
 // PCM Sample Indexes
 namespace pcm_sample

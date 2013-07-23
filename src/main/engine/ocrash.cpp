@@ -21,11 +21,11 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/oferrari.hpp"
-#include "engine/oinputs.hpp"
-#include "engine/olevelobjs.hpp"
-#include "engine/outils.hpp"
-#include "engine/ocrash.hpp"
+#include "oferrari.hpp"
+#include "oinputs.hpp"
+#include "olevelobjs.hpp"
+#include "outils.hpp"
+#include "ocrash.hpp"
 
 OCrash ocrash;
 
@@ -101,33 +101,45 @@ void OCrash::tick()
 {
     // Do Ferrari
     if (spr_ferrari->control & OSprites::ENABLE)
+    {
         if (outrun.tick_frame) do_crash();
         else osprites.do_spr_order_shadows(spr_ferrari);
+    }
 
     // Do Car Shadow
     if (spr_shadow->control & OSprites::ENABLE)
+    {
         if (outrun.tick_frame) do_shadow(spr_ferrari, spr_shadow);
         else osprites.do_spr_order_shadows(spr_shadow);
+    }
 
     // Do Passenger 1
     if (spr_pass1->control & OSprites::ENABLE)
+    {
         if (outrun.tick_frame) ((ocrash).*(function_pass1))(spr_pass1);
         else osprites.do_spr_order_shadows(spr_pass1);
+    }
 
     // Do Passenger 1 Shadow
     if (spr_pass1s->control & OSprites::ENABLE)
+    {
         if (outrun.tick_frame) do_shadow(spr_pass1, spr_pass1s);
         else osprites.do_spr_order_shadows(spr_pass1s);
+    }
 
     // Do Passenger 2
     if (spr_pass2->control & OSprites::ENABLE)
+    {
         if (outrun.tick_frame) ((ocrash).*(function_pass2))(spr_pass2);
         else osprites.do_spr_order_shadows(spr_pass2);
+    }
 
     // Do Passenger 2 Shadow
     if (spr_pass2s->control & OSprites::ENABLE)
+    {
         if (outrun.tick_frame) do_shadow(spr_pass2, spr_pass2s);
         else osprites.do_spr_order_shadows(spr_pass2s);
+    }
 }
 
 // Source: 0x1162
@@ -843,7 +855,7 @@ void OCrash::init_spin1()
     crash_spin_count = 2;
     spinflipcount2 = 2;
 
-    slide = ((spins + 1) << 2) + (car_inc > 0xFF) ? 0xFF >> 3 : car_inc >> 3;
+    slide = (((spins + 1) << 2) + (car_inc > 0xFF)) ? 0xFF >> 3 : car_inc >> 3;
 
     if (skid_counter_bak < 0)
         addr = outrun.adr.sprite_crash_spin1;

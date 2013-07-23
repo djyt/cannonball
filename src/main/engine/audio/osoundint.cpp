@@ -9,9 +9,9 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/outrun.hpp"
-#include "engine/audio/osound.hpp"
-#include "engine/audio/osoundint.hpp"
+#include "../outrun.hpp"
+#include "osound.hpp"
+#include "osoundint.hpp"
 
 OSoundInt osoundint;
 OSound osound;
@@ -48,6 +48,15 @@ void OSoundInt::init()
         engine_data[i] = 0;
 
     osound.init(ym, pcm_ram);
+}
+
+void OSoundInt::set_frame_size(int size)
+{
+    if (pcm != NULL)
+        pcm->set_frame_size(size);
+        
+    if (ym != NULL)
+        ym->set_frame_size(size);
 }
 
 // Clear sound queue

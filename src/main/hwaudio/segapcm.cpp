@@ -54,7 +54,7 @@
  * 
  */
 
-#include "hwaudio/segapcm.hpp"
+#include "segapcm.hpp"
 
 SegaPCM::SegaPCM(uint32_t clock, RomLoader* rom, uint8_t* ram, int32_t bank)
 {

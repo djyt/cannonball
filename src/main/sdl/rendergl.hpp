@@ -14,8 +14,9 @@
 
 #include "renderbase.hpp"
 
-//#define GL_GLEXT_PROTOTYPES 
-#include <SDL_opengl.h>
+//#include <SDL_opengl.h>
+#include <GLES2/gl2.h>
+#include <EGL/egl.h>
 
 class RenderGL : public RenderBase
 {
@@ -37,4 +38,5 @@ private:
 
     GLuint textures[2];
     GLuint dlist; // GL display list
+    GLuint vertexObject;
 };

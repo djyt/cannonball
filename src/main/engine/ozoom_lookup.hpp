@@ -7,7 +7,7 @@
     positions to be scaled incorrectly.
 ***************************************************************************/
 
-#include "stdint.hpp"
+#include "../stdint.hpp"
 
 // Format is: vzoom & hzoom, width/height lookup, sprite size to use, unused
 // (0x200 = full size, 0x100 = half size, 0x300 = 2x size)

@@ -28,6 +28,8 @@ public:
     ~SoundChip();
 
     void init(uint8_t, int32_t, int32_t);
+    
+    void set_frame_size(int32_t);
 
     // Pure virtual function. Denotes virtual class.
     virtual void stream_update() = 0;

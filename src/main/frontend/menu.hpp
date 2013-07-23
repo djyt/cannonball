@@ -9,7 +9,8 @@
 #pragma once
 
 #include <vector>
-#include "stdint.hpp"
+#include <string>
+#include "../stdint.hpp"
 
 class TTrial;
 

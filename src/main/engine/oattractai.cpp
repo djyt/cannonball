@@ -20,11 +20,11 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/oattractai.hpp"
-#include "engine/oferrari.hpp"
-#include "engine/oinputs.hpp"
-#include "engine/ostats.hpp"
-#include "engine/otraffic.hpp"
+#include "oattractai.hpp"
+#include "oferrari.hpp"
+#include "oinputs.hpp"
+#include "ostats.hpp"
+#include "otraffic.hpp"
 
 OAttractAI oattractai;
 

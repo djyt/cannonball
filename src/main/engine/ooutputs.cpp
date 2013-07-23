@@ -16,12 +16,12 @@
 
 #include <cstdlib> // abs
 
-#include "engine/outrun.hpp"
-#include "engine/ocrash.hpp"
-#include "engine/oferrari.hpp"
-#include "engine/oinputs.hpp"
-#include "engine/ooutputs.hpp"
-#include "directx/ffeedback.hpp"
+#include "outrun.hpp"
+#include "ocrash.hpp"
+#include "oferrari.hpp"
+#include "oinputs.hpp"
+#include "ooutputs.hpp"
+#include "../directx/ffeedback.hpp"
 
 // Disable areas of code that cause problems when mapping motor to haptic device
 #define CHANGED_CODE 1

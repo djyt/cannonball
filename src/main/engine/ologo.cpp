@@ -7,10 +7,10 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "stdint.hpp"
-#include "engine/osprites.hpp"
-#include "engine/outils.hpp"
-#include "engine/ologo.hpp"
+#include "../stdint.hpp"
+#include "osprites.hpp"
+#include "outils.hpp"
+#include "ologo.hpp"
 
 OLogo ologo;
 

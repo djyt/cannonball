@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>CannonBall: The Enhanced OutRun Engine</title>
+    <style>
+      .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
+      textarea.emscripten { font-family: monospace; width: 80%; }
+      div.emscripten { text-align: center; }
+      div.emscripten_border { border: 1px solid black; }
+      /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+      canvas.emscripten { border: 0px none; }
+    </style>
+  </head>
+  <body>
+    <hr/>
+    <div class="emscripten" id="status">Downloading...</div>
+    <div class="emscripten">
+      <progress value="0" max="100" id="progress" hidden=1></progress>
+    </div>
+    <div class="emscripten_border">
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+    <hr/>
+
+    <!-- Additional Controls -->
+    <input type="button" id="start" value="Start CannonBall!" onclick="cannonball_main()" />
+    Current fps: 
+    <input type="text" id="fps" size="5"/>
+    Target fps:
+    <input type="text" id="framerate" size="20"/>
+    <input type="button" id="framerate_button" value="+" onclick="inc_fps = true" />
+    Sound:
+    <input type="checkbox" id="sound" onclick="audio_enabled = !audio_enabled; set_audio(audio_enabled)">
+    <hr/>
+    <input type="file" onchange="snes_readfile(this)" />
+    <hr/>
+    <input type="button" value="Fullscreen" onclick="cannonball_set_screen_mode(0)">
+    <textarea class="emscripten" id="output" rows="8"></textarea>
+
+    <!-- Converted CannonBall C++ Code -->
+    <script type="text/javascript" src="cannonball.html.js" > </script>
+
+    <!-- Front-End Javascript Code -->
+    <script type="text/javascript">
+  
+    // Setup references to C++ Routines
+    cpp_init      = Module._emscripten_init
+    cpp_tick      = Module._emscripten_tick
+    cpp_audio     = Module.cwrap('emscripten_audio', 'number', ['number', 'number']) // funcname, return, params
+    cpp_setfps    = Module._emscripten_setfps
+    cpp_framesize = Module._emscripten_set_framesize
+  
+    // Default to 30fps
+    inc_fps = false
+    fps = 0
+    fps_text        = document.getElementById("fps")
+    fps_text.value  = "0"
+
+    framerate = 30
+    framerate_text       = document.getElementById("framerate")
+    framerate_text.value = "30 fps"
+
+    framerate_inc   = document.getElementById("framerate_button")
+    framerate_inc.disabled = true
+
+    // Sound Buffer
+    audio_enabled = false;  
+    audio_freq   = 44100;
+    audio_chan   = 2;
+    buffer_size  = 512;  // Must be a multiple of 2
+          
+    // Initialize Web Audio
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext)
+    {
+        audio_supported = true;
+    
+        // Memory to share with C++
+        ptr_buffer_l = Module._malloc(buffer_size * Float32Array.BYTES_PER_ELEMENT) // 4 bytes per entry
+        ptr_buffer_r = Module._malloc(buffer_size * Float32Array.BYTES_PER_ELEMENT) // 4 bytes per entry
+        
+        // get a bytes-wise view on the audio buffer        
+        audio_l = new Float32Array(Module.HEAPU8.buffer, ptr_buffer_l, buffer_size);
+        audio_r = new Float32Array(Module.HEAPU8.buffer, ptr_buffer_r, buffer_size);
+    
+        audio_context = new AudioContext();
+        audio_node    = audio_context.createScriptProcessor(buffer_size, audio_chan, audio_chan);
+
+        // Setup Callback
+		audio_process = function(e) 
+        {
+			var left  = e.outputBuffer.getChannelData(0);
+            var right = e.outputBuffer.getChannelData(1);
+			fillBuffer(left, right);
+		}; 
+        set_audio(audio_enabled);      
+    }
+    else
+    {
+        audio_supported = false;
+        alert('Web Audio API is not supported in this browser');
+    }
+    
+    // Toggle Audio On/Off
+    function set_audio(state)
+    {  
+        // Audio Not Supported: Just Disable!
+        if (!audio_supported)
+        {
+            cpp_framesize(0);
+            return;
+        }
+        
+        // Enable
+        if (state)
+        {
+            audio_node.onaudioprocess = audio_process;
+            audio_node.connect(audio_context.destination);
+            cpp_framesize(buffer_size); // Start CPP sound code
+        }
+        // Disable
+        else
+        {
+            audio_node.onaudioprocess = null;
+            audio_node.disconnect(0);
+            cpp_framesize(0); // Stop CPP sound code
+        }
+    }
+    
+    // Callback Function To Fill Audio Buffer
+    function fillBuffer(left, right)
+    {            
+        // Pass audio buffer to C++ (byteOffset passes index at which array starts in underlying buffer)
+        cpp_audio(audio_l.byteOffset, audio_r.byteOffset);
+    
+        // Fill the buffer
+        left.set(audio_l);
+        right.set(audio_r);
+    }
+    // See: https://groups.google.com/forum/#!topic/emscripten-discuss/oeEg6WrZ7rg
+    // http://comments.gmane.org/gmane.comp.compilers.emscripten/302
+
+    function cannonball_mainloop()
+    {
+        start_time = new Date().getTime()
+        
+        // Increment FPS
+        if (inc_fps)
+            set_framerate(1)
+        
+        cpp_tick();
+
+        // Update Framerate counter
+        if (++frames >= framerate)
+        {
+            this_time=new Date().getTime()
+            fps_text.value=((frames)*1000/(this_time-last_time)).toFixed(3)
+            last_time=this_time
+            frames = 0
+        }
+
+        // Lock to desired FPS rate
+        frame_time = new Date().getTime() - start_time
+
+        if (frame_time < (1000/framerate))
+            delay = (1000/framerate) - frame_time
+        else
+            delay = 0
+
+        setTimeout("cannonball_mainloop()", delay);
+    }
+
+    function cannonball_init()
+    {        
+        // Enable Buttons
+        framerate_inc.disabled = false
+
+        fps_text=document.getElementById("fps")
+        frameskipped=0
+    }
+    
+    function set_sound(n)
+    {
+        var MIN = 256;
+        var MAX = 4096;
+    
+        if (n > 0)
+        {
+            buffer_size *= 2;
+        }
+        else if (n < 0)
+        {
+            buffer_size /= 2;
+        }
+            
+        /*if (buffer_size > MAX)
+            buffer_size = 0;
+        else if (buffer_size < MIN)
+            buffer_size = MAX;*/
+            
+        sound_text.value = buffer_size;
+            
+        cpp_framesize(buffer_size);
+        update_sound = 0;
+    }
+
+    function set_framerate(n)
+    {
+        fps += n
+
+         if (fps > 2)
+            fps = 0
+
+        // Call Native CannonBall Function
+        cpp_setfps(fps)
+
+        if (fps == 0)
+        {
+            framerate_text.value= "30 fps"
+            framerate = 30
+        }
+        else if (fps == 1)
+        {
+            framerate_text.value= "Arcade 30/60 fps"
+            framerate = 60
+        }
+        else if (fps == 2)
+        {
+            framerate_text.value= "Enhanced 60 fps"
+            framerate = 60
+        }
+        
+        frames = 0
+        inc_fps = false
+    }
+
+    function snes_readfile(controller)
+    {
+          if (window.File && window.FileReader && window.FileList && window.Blob) {
+        } else {
+        alert('The File APIs are not fully supported in this browser.');
+        }
+        var f=controller.files[0]
+        cout_print(f.name)
+        var reader= new FileReader()
+        reader.onprogress = function(e){
+        if (e.lengthComputable){
+        cout_print(Math.round((e.loaded / e.total) * 100)+"%")
+        }
+        else
+        count_print(e.loaded+"bytes")
+        document.getElementById("start").disabled=false
+
+        }
+        reader.onload = function(e) {
+        cout_print("_.smc loaded")
+        Module.FS_createDataFile("/", "_.smc", new Uint8Array(this.result) , true, true)
+        }
+          reader.readAsArrayBuffer(f)
+    }
+
+    function cannonball_main()
+    {
+        document.getElementById("start").disabled=true
+        cannonball_init()
+        cpp_init()
+        cpp_framesize(buffer_size);
+        frames = 0;
+        last_time = new Date().getTime()
+        cannonball_mainloop();
+    }
+    
+    function cannonball_set_screen_mode(mode)
+    {
+        // Full-Screen Mode
+        if (mode == 0)
+        {
+            var hide_cursor       = true
+            var notify_sdl_resize = false
+            Module.requestFullScreen(hide_cursor, notify_sdl_resize)
+        }
+    }
+
+    </script>
+</body>

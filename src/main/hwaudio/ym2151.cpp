@@ -14,7 +14,7 @@
 #include <cmath>
 #include <cstring>  // For memset on GCC
 
-#include "hwaudio/ym2151.hpp"
+#include "ym2151.hpp"
 
 signed int     chanout[8];
 signed int     m2,c1,c2;            /* Phase Modulation input for operators 2,3,4  */

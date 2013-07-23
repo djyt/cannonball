@@ -12,9 +12,9 @@
 
 #pragma once
 
-#include "stdint.hpp"
-#include "romloader.hpp"
-#include "hwaudio/soundchip.hpp"
+#include "../stdint.hpp"
+#include "../romloader.hpp"
+#include "soundchip.hpp"
 
 /* struct describing a single operator */
 typedef struct

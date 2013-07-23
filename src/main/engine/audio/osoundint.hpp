@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include "hwaudio/segapcm.hpp"
-#include "hwaudio/ym2151.hpp"
-#include "engine/audio/commands.hpp"
+#include "../../hwaudio/segapcm.hpp"
+#include "../../hwaudio/ym2151.hpp"
+#include "commands.hpp"
 
 class OSoundInt
 {
@@ -43,6 +43,7 @@ public:
     ~OSoundInt();
 
     void init();
+    void set_frame_size(int);
     void reset();
     void tick();
 

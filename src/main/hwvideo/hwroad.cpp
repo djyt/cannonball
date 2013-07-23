@@ -1,7 +1,7 @@
 #include <cstring> // memcpy
-#include "hwvideo/hwroad.hpp"
-#include "globals.hpp"
-#include "frontend/config.hpp"
+#include "hwroad.hpp"
+#include "../globals.hpp"
+#include "../frontend/config.hpp"
 
 /***************************************************************************
     Video Emulation: OutRun Road Rendering Hardware.

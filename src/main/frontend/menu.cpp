@@ -7,20 +7,20 @@
 ***************************************************************************/
 
 // Boost string prediction
-#include <boost/algorithm/string/predicate.hpp>
+//#include <boost/algorithm/string/predicate.hpp>
 
-#include "main.hpp"
+#include "../main.hpp"
 #include "menu.hpp"
-#include "setup.hpp"
+#include "../setup.hpp"
 
-#include "engine/ohud.hpp"
-#include "engine/oinputs.hpp"
-#include "engine/osprites.hpp"
-#include "engine/ologo.hpp"
-#include "engine/opalette.hpp"
-#include "engine/otiles.hpp"
+#include "../engine/ohud.hpp"
+#include "../engine/oinputs.hpp"
+#include "../engine/osprites.hpp"
+#include "../engine/ologo.hpp"
+#include "../engine/opalette.hpp"
+#include "../engine/otiles.hpp"
 
-#include "frontend/ttrial.hpp"
+#include "ttrial.hpp"
 
 // Logo Y Position
 const static int16_t LOGO_Y = -60;
@@ -164,7 +164,7 @@ void Menu::populate()
     menu_musictest.push_back(ENTRY_MUSIC4);
     menu_musictest.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL 0.19 © CHRIS WHITE 2013");
+    menu_about.push_back("CANNONBALL 0.19 CHRIS WHITE 2013");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back(" ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");
@@ -223,9 +223,11 @@ void Menu::init()
     refresh_menu();
 
     // Reset audio, so we can play tones
+    #ifdef COMPILE_SOUND_CODE
     osoundint.has_booted = true;
     osoundint.init();
     cannonball::audio.clear_wav();
+    #endif
 
     frame = 0;
     message_counter = 0;
@@ -368,7 +370,9 @@ void Menu::draw_text(std::string s)
     ohud.blit_text_new(x, y, s.c_str(), ohud.GREEN);
 }
 
-#define SELECTED(string) boost::starts_with(OPTION, string)
+//#define SELECTED(string) boost::starts_with(OPTION, string)
+// HACKED OUT
+#define SELECTED(string) false
 
 void Menu::tick_menu()
 {

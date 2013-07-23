@@ -10,14 +10,14 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/obonus.hpp"
-#include "engine/ocrash.hpp"
-#include "engine/oferrari.hpp"
-#include "engine/ohud.hpp"
-#include "engine/olevelobjs.hpp"
-#include "engine/outils.hpp"
-#include "engine/ostats.hpp"
-#include "engine/otraffic.hpp"
+#include "obonus.hpp"
+#include "ocrash.hpp"
+#include "oferrari.hpp"
+#include "ohud.hpp"
+#include "olevelobjs.hpp"
+#include "outils.hpp"
+#include "ostats.hpp"
+#include "otraffic.hpp"
 
 OTraffic otraffic;
 

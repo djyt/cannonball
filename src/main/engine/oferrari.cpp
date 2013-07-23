@@ -17,16 +17,16 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/oanimseq.hpp"
-#include "engine/oattractai.hpp"
-#include "engine/obonus.hpp"
-#include "engine/ocrash.hpp"
-#include "engine/ohud.hpp"
-#include "engine/oinputs.hpp"
-#include "engine/olevelobjs.hpp"
-#include "engine/ostats.hpp"
-#include "engine/outils.hpp"
-#include "engine/oferrari.hpp"
+#include "oanimseq.hpp"
+#include "oattractai.hpp"
+#include "obonus.hpp"
+#include "ocrash.hpp"
+#include "ohud.hpp"
+#include "oinputs.hpp"
+#include "olevelobjs.hpp"
+#include "ostats.hpp"
+#include "outils.hpp"
+#include "oferrari.hpp"
 
 OFerrari oferrari;
 

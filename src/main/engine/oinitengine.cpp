@@ -11,22 +11,22 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "trackloader.hpp"
+#include "../trackloader.hpp"
 
-#include "engine/oanimseq.hpp"
-#include "engine/obonus.hpp"
-#include "engine/ocrash.hpp"
-#include "engine/oferrari.hpp"
-#include "engine/ohud.hpp"
-#include "engine/oinputs.hpp"
-#include "engine/olevelobjs.hpp"
-#include "engine/ostats.hpp"
-#include "engine/outils.hpp"
-#include "engine/opalette.hpp"
-#include "engine/osmoke.hpp"
-#include "engine/otiles.hpp"
-#include "engine/otraffic.hpp"
-#include "engine/oinitengine.hpp"
+#include "oanimseq.hpp"
+#include "obonus.hpp"
+#include "ocrash.hpp"
+#include "oferrari.hpp"
+#include "ohud.hpp"
+#include "oinputs.hpp"
+#include "olevelobjs.hpp"
+#include "ostats.hpp"
+#include "outils.hpp"
+#include "opalette.hpp"
+#include "osmoke.hpp"
+#include "otiles.hpp"
+#include "otraffic.hpp"
+#include "oinitengine.hpp"
 
 OInitEngine oinitengine;
 

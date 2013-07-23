@@ -14,9 +14,9 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/outils.hpp"
-#include "engine/olevelobjs.hpp"
-#include "engine/ostats.hpp"
+#include "outils.hpp"
+#include "olevelobjs.hpp"
+#include "ostats.hpp"
 
 OLevelObjs olevelobjs;
 

@@ -10,6 +10,10 @@ RenderBase::RenderBase()
     orig_height = 0;
 }
 
+RenderBase::~RenderBase()
+{
+}
+
 // Setup screen size
 bool RenderBase::sdl_screen_size()
 {

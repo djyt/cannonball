@@ -13,10 +13,10 @@
 
 #include <cstring>
 
-#include "engine/oferrari.hpp"
-#include "engine/outils.hpp"
-#include "engine/ohud.hpp"
-#include "engine/ostats.hpp"
+#include "oferrari.hpp"
+#include "outils.hpp"
+#include "ohud.hpp"
+#include "ostats.hpp"
 
 OHud ohud;
 
@@ -532,7 +532,7 @@ void OHud::blit_text2(uint32_t src_addr)
     uint32_t dst_addr = 0x110000 + roms.rom0.read16(&src_addr); // Text RAM destination address
 
     uint16_t pal = roms.rom0.read8(&src_addr); 
-    pal = 0x80A0 | ((pal << 9) | (pal >> 7) & 1);
+    pal = 0x80A0 | ((pal << 9) | ((pal >> 7) & 1));
     // same as ror 7 and extending to word
     uint16_t counter = roms.rom0.read8(&src_addr); // Number of tiles to blit
 
@@ -646,8 +646,9 @@ void OHud::blit_text_new(uint16_t x, uint16_t y, const char* text, uint16_t pal)
         // Convert lowercase characters to uppercase
         if (c >= 'a' && c <= 'z')
             c -= 0x20;
-        else if (c == '©')
-            c = 0x10;
+        // HACKED OUT
+        //else if (c == '©')
+        //    c = 0x10;
         else if (c == '-')
             c = 0x2d;
         else if (c == '.')

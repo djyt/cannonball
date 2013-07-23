@@ -13,10 +13,10 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/obonus.hpp"
-#include "engine/oferrari.hpp"
-#include "engine/oinputs.hpp"
-#include "engine/oanimseq.hpp"
+#include "obonus.hpp"
+#include "oferrari.hpp"
+#include "oinputs.hpp"
+#include "oanimseq.hpp"
 
 // ----------------------------------------------------------------------------
 // Animation Data Format.

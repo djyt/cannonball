@@ -8,7 +8,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/osprite.hpp"
+#include "osprite.hpp"
 
 //  Out Run/X-Board-style sprites
 //

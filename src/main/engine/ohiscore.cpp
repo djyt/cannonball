@@ -6,12 +6,12 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "main.hpp"
-#include "engine/ohud.hpp"
-#include "engine/oinputs.hpp"
-#include "engine/ostats.hpp"
-#include "engine/outils.hpp"
-#include "engine/ohiscore.hpp"
+#include "../main.hpp"
+#include "ohud.hpp"
+#include "oinputs.hpp"
+#include "ostats.hpp"
+#include "outils.hpp"
+#include "ohiscore.hpp"
 
 OHiScore ohiscore;
 

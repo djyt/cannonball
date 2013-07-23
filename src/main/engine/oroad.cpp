@@ -18,17 +18,17 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "stdint.hpp"
-#include "globals.hpp"
-#include "roms.hpp"
-#include "trackloader.hpp"
+#include "../stdint.hpp"
+#include "../globals.hpp"
+#include "../roms.hpp"
+#include "../trackloader.hpp"
 
-#include "engine/oaddresses.hpp"
-#include "engine/outils.hpp"
-#include "engine/oinitengine.hpp"
+#include "oaddresses.hpp"
+#include "outils.hpp"
+#include "oinitengine.hpp"
 
-#include "engine/oroad.hpp"
-#include "engine/ostats.hpp"
+#include "oroad.hpp"
+#include "ostats.hpp"
 
 ORoad oroad;
 

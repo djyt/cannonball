@@ -14,6 +14,11 @@
 #pragma comment(lib, "SDL.lib")
 #pragma comment(lib, "glu32.lib")
 
+// Emscripten Javascript Converter
+#ifdef EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
 // SDL Specific Code
 #include "sdl/timer.hpp"
 #include "sdl/input.hpp"
@@ -42,7 +47,7 @@ int cannonball::frame       = 0;
 bool cannonball::tick_frame = true;
 
 #ifdef COMPILE_SOUND_CODE
-Audio cannonball::audio;
+    Audio cannonball::audio;
 #endif
 
 Menu menu;
@@ -58,6 +63,36 @@ static void quit_func(int code)
     SDL_Quit();
     exit(code);
 }
+
+#ifdef EMSCRIPTEN
+extern "C" void emscripten_setfps(int) __attribute__((used));
+void emscripten_setfps(int fps)
+{
+    frame = 0;
+    config.set_fps(fps);
+}
+
+extern "C" void emscripten_set_framesize(int) __attribute__((used));
+void emscripten_set_framesize(int size)
+{
+    if (!size)
+    {
+        config.sound.enabled = false;
+    }
+    else
+    {
+        config.sound.enabled = true;
+        osoundint.set_frame_size(size);
+    }
+}
+
+extern "C" void emscripten_audio(float*, float*) __attribute__((used));
+void emscripten_audio(float* mix_buffer_l, float* mix_buffer_r)
+{
+    audio.tick(mix_buffer_l, mix_buffer_r);
+}
+
+#endif
 
 static void process_events(void)
 {
@@ -103,7 +138,12 @@ static void process_events(void)
 // Pause Engine
 bool pause_engine;
 
+#ifdef EMSCRIPTEN
+extern "C" void emscripten_tick() __attribute__((used));
+void emscripten_tick()
+#else
 static void tick()
+#endif
 {
     frame++;
 
@@ -138,10 +178,11 @@ static void tick()
                 input.frame_done(); // Denote keys read
 
                 #ifdef COMPILE_SOUND_CODE
-                // Tick audio program code
-                osoundint.tick();
-                // Tick SDL Audio
-                audio.tick();
+                if (config.sound.enabled)
+                {
+                    // Tick audio program code
+                    osoundint.tick();
+                }
                 #endif
             }
             else
@@ -168,10 +209,11 @@ static void tick()
             menu.tick();
             input.frame_done();
             #ifdef COMPILE_SOUND_CODE
-            // Tick audio program code
-            osoundint.tick();
-            // Tick SDL Audio
-            audio.tick();
+            if (config.sound.enabled)
+            {
+                // Tick audio program code
+                osoundint.tick();
+            }
             #endif
         }
         break;
@@ -188,7 +230,7 @@ static void tick()
     // Draw SDL Video
     video.draw_frame();  
 }
-
+#ifndef EMSCRIPTEN
 static void main_loop()
 {
     Timer fps;
@@ -202,9 +244,9 @@ static void main_loop()
         fps.start();
         tick();
         #ifdef COMPILE_SOUND_CODE
-        deltatime = (int) (frame_ms * audio.adjust_speed());
+            deltatime = (int) (frame_ms * audio.adjust_speed());
         #else
-        deltatime = frame_ms;
+            deltatime = frame_ms;
         #endif
         t = fps.get_ticks();
 
@@ -218,8 +260,14 @@ static void main_loop()
 
     quit_func(0);
 }
+#endif
 
-int main(int argc, char* argv[])
+#ifdef EMSCRIPTEN
+extern "C" int emscripten_init(void) __attribute__((used));
+int emscripten_init(void)
+#else
+static int init(void)
+#endif
 {
     // Initialize timer and video systems
     if( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1 ) 
@@ -244,9 +292,9 @@ int main(int argc, char* argv[])
         if (!video.init(&roms, &config.video))
             quit_func(1);
 
-#ifdef COMPILE_SOUND_CODE
-        audio.init();
-#endif
+        #ifdef COMPILE_SOUND_CODE
+            audio.init();
+        #endif
         state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
         //state = STATE_TRACKED;
 
@@ -259,13 +307,25 @@ int main(int argc, char* argv[])
         
         // Populate menus
         menu.populate();
-        main_loop();  // Loop until we quit the app
+        
+        // Emscripten requires Javascript to finish it's turn, and not execute in an infinite loop
+        #ifndef EMSCRIPTEN
+            main_loop();  // Loop until we quit the app
+        #endif
     }
     else
     {
         quit_func(1);
     }
-
-    // Never Reached
+    
     return 0;
+}
+
+int main(int argc, char* argv[])
+{
+    #ifndef EMSCRIPTEN
+        return init();
+    #else
+        return 0;
+    #endif
 }

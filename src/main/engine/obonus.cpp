@@ -7,10 +7,10 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/ostats.hpp"
-#include "engine/ohud.hpp"
-#include "engine/outils.hpp"
-#include "engine/obonus.hpp"
+#include "ostats.hpp"
+#include "ohud.hpp"
+#include "outils.hpp"
+#include "obonus.hpp"
 
 OBonus obonus;
 

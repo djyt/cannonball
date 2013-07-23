@@ -1,0 +1,129 @@
+Snes9X - good reference!
+- Emscripten
+- Sound is ok
+http://tjwei.github.io/xnes/
+
+Amiga UAE
+- Native Javascript
+- Sound is iffy
+https://github.com/naTmeg/ScriptedAmigaEmulator
+
+JNES
+- Native Javascript
+- Sound is delayed
+- Src: https://github.com/bfirsh/jsnes/
+- Uses dynamic audio library: - https://github.com/bfirsh/dynamicaudio.js
+http://fir.sh/projects/jsnes/
+
+Useful presentation, high-level overview:
+http://de.slideshare.net/andreweissflog3/quovadis2013-cpp-ontheweb
+
+Another good practical guide:
+http://forums.tigsource.com/index.php?topic=33268.0
+
+Main Site:
+https://github.com/kripken/emscripten
+
+WebGL Experiences:
+http://www.sea-of-memes.com/LetsCode80/LetsCode80.html
+
+1/ Followed instructions here, including Visual Studio 2010 setup:
+https://github.com/kripken/emscripten/wiki/Using-Emscripten-on-Windows
+
+2/ Then continued with the examples from here:
+https://github.com/kripken/emscripten/wiki/Tutorial
+
+Needed to ammend paths to contain forward-slashes rather than back-slashes in the .emscripten config file
+
+3/ Build for Visual Studio 2010 with modified cmake file
+"cmake -G "Visual Studio 10" -DTARGET=emscripten ../cmake" 
+
+4/ Goto configuration manager and change the cannonball project to build with Emscripten.
+   Uncheck the option to copy the Win32 options.
+   
+   Add Boost to the Configuration Properties -> Toolchain Directories -> Library Directories
+   C:\coding\lib\boost_1_51_0
+
+- Remove boost stuff
+- Fix the 3 million Clang compilation warnings and errors
+
+
+Build with CMake:
+https://github.com/kripken/emscripten/blob/master/cmake/Platform/Emscripten.cmake
+
+To use this toolchain file with CMake, invoke CMake with the following command line parameters
+cmake -DEMSCRIPTEN=1 -DCMAKE_TOOLCHAIN_FILE=/emscripten/cmake/Platform/Emscripten.cmake -DCMAKE_MODULE_PATH=/emscripten/cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" -DTARGET=emscripten ../cmake
+
+Mingw:
+
+1/ Run CMake as follows:
+cmake -DEMSCRIPTEN=1 -DCMAKE_TOOLCHAIN_FILE=c:/utils/emscripten/emscripten/cmake/Platform/Emscripten.cmake -DCMAKE_MODULE_PATH=c:/utils/emscripten/emscripten/cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" -DTARGET=emscripten ../cmake
+
+2/ Then Run Make:
+mingw32-make
+
+3/ Rename file to .bc
+
+4/ Then convert to javascript
+emcc cannonball.bc -o cannonball.js
+
+---------------------------------------------------------------------------------------------------
+WEB AUDIO API
+---------------------------------------------------------------------------------------------------
+
+http://www.w3.org/TR/webaudio/
+https://developer.mozilla.org/en-US/docs/Web_Audio_API
+http://www.html5rocks.com/en/tutorials/webaudio/intro/
+
+
+Create an AudioBuffer?
+
+AudioContext.createBuffer()
+https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer
+
+***http://developer.apple.com/library/safari/#documentation/AudioVideo/Conceptual/Using_HTML5_Audio_Video/PlayingandSynthesizingSounds/PlayingandSynthesizingSounds.html
+
+
+Good speccy sound reference:
+https://github.com/gasman/jsspeccy2/blob/master/core/sound.js
+
+
+
+
+Use
+1/ 
+ScriptProcessorNode createScriptProcessor(unsigned long bufferSize, // 8192
+                                          optional unsigned long numberOfInputChannels = 2,
+                                          optional unsigned long numberOfOutputChannels = 2);
+   
+2/ The buffer size value controls how frequently onaudioprocess is called    
+Setup onaudioprocess to fill the buffer as necessary
+
+Create the buffer. Extend the buffer in size 
+
+---------------------------------------------------------------------------------------------------
+ARRAYS
+---------------------------------------------------------------------------------------------------
+
+// See: https://groups.google.com/forum/#!topic/emscripten-discuss/oeEg6WrZ7rg
+// http://comments.gmane.org/gmane.comp.compilers.emscripten/302
+
+---------------------------------------------------------------------------------------------------
+TODO
+---------------------------------------------------------------------------------------------------
+
+- Load Roms from zip
+- Add more html based options (widescreen on/off)
+- Fix Sound support
+- Add mouse controls for phone
+- Add Surrounding graphics
+
+
+---------------------------------------------------------------------------------------------------
+DONE
+---------------------------------------------------------------------------------------------------
+1/ Implement the replacement main loop defined here:
+https://github.com/kripken/emscripten/wiki/Emscripten-browser-environment
+
+2/ Implement the replacement file system defined here:
+https://github.com/kripken/emscripten/wiki/Filesystem-Guide

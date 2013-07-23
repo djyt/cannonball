@@ -8,7 +8,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "stdint.hpp" 
+#include "../stdint.hpp" 
 
 class osprite
 {

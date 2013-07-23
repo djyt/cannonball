@@ -11,9 +11,9 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "engine/opalette.hpp"
-#include "engine/ostats.hpp"
-#include "engine/otiles.hpp"
+#include "opalette.hpp"
+#include "ostats.hpp"
+#include "otiles.hpp"
 
 OTiles otiles;
 

@@ -1,6 +1,6 @@
-#include "globals.hpp"
-#include "hwvideo/hwtiles.hpp"
-#include "frontend/config.hpp"
+#include "../globals.hpp"
+#include "hwtiles.hpp"
+#include "../frontend/config.hpp"
 
 /***************************************************************************
     Video Emulation: OutRun Tilemap Hardware.

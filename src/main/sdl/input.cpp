@@ -8,8 +8,10 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include <cstdlib> // abs
-#include "sdl/input.hpp"
+#include <iostream> // debug
+#include <cstdlib>  // abs
+#include <cstring>  // memcpy
+#include "input.hpp"
 
 Input input;
 
@@ -129,9 +131,6 @@ void Input::handle_key(const int key, const bool is_pressed)
             break;
     }
 }
-
-#include <iostream>
-
 void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
 {
     int16_t value = evt->value;

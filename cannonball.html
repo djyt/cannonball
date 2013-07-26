@@ -14,6 +14,7 @@
     </style>
   </head>
   <body>
+    <center><img src="cannonball_logo.png"></center>
     <hr/>
     <div class="emscripten" id="status">Downloading...</div>
     <div class="emscripten">
@@ -25,6 +26,9 @@
     <hr/>
 
     <!-- Additional Controls -->
+    Select OutRun Rev. B Romset (ZIPPED) 
+    <input type="file" onchange="read_roms(this)" />
+    <hr/>
     <input type="button" id="start" value="Start CannonBall!" onclick="cannonball_main()" />
     Current fps: 
     <input type="text" id="fps" size="5"/>
@@ -33,8 +37,6 @@
     <input type="button" id="framerate_button" value="+" onclick="inc_fps = true" />
     Sound:
     <input type="checkbox" id="sound" onclick="audio_enabled = !audio_enabled; set_audio(audio_enabled)">
-    <hr/>
-    <input type="file" onchange="snes_readfile(this)" />
     <hr/>
     <input type="button" value="Fullscreen" onclick="cannonball_set_screen_mode(0)">
     <textarea class="emscripten" id="output" rows="8"></textarea>
@@ -51,6 +53,10 @@
     cpp_audio     = Module.cwrap('emscripten_audio', 'number', ['number', 'number']) // funcname, return, params
     cpp_setfps    = Module._emscripten_setfps
     cpp_framesize = Module._emscripten_set_framesize
+    cpp_loadzip   = Module.cwrap('emscripten_loadzip', 'number', ['string'])
+  
+    // Disable Start Button
+    document.getElementById("start").disabled=true;
   
     // Default to 30fps
     inc_fps = false
@@ -69,7 +75,7 @@
     audio_enabled = false;  
     audio_freq   = 44100;
     audio_chan   = 2;
-    buffer_size  = 512;  // Must be a multiple of 2
+    buffer_size  = 1024;  // Must be a multiple of 2
           
     // Initialize Web Audio
     var AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -94,13 +100,12 @@
 			var left  = e.outputBuffer.getChannelData(0);
             var right = e.outputBuffer.getChannelData(1);
 			fillBuffer(left, right);
-		}; 
-        set_audio(audio_enabled);      
+		};   
     }
     else
     {
         audio_supported = false;
-        alert('Web Audio API is not supported in this browser');
+        Module.print('Web Audio API is not supported in this browser. Sound not available.');
     }
     
     // Toggle Audio On/Off
@@ -180,31 +185,6 @@
         fps_text=document.getElementById("fps")
         frameskipped=0
     }
-    
-    function set_sound(n)
-    {
-        var MIN = 256;
-        var MAX = 4096;
-    
-        if (n > 0)
-        {
-            buffer_size *= 2;
-        }
-        else if (n < 0)
-        {
-            buffer_size /= 2;
-        }
-            
-        /*if (buffer_size > MAX)
-            buffer_size = 0;
-        else if (buffer_size < MIN)
-            buffer_size = MAX;*/
-            
-        sound_text.value = buffer_size;
-            
-        cpp_framesize(buffer_size);
-        update_sound = 0;
-    }
 
     function set_framerate(n)
     {
@@ -236,31 +216,6 @@
         inc_fps = false
     }
 
-    function snes_readfile(controller)
-    {
-          if (window.File && window.FileReader && window.FileList && window.Blob) {
-        } else {
-        alert('The File APIs are not fully supported in this browser.');
-        }
-        var f=controller.files[0]
-        cout_print(f.name)
-        var reader= new FileReader()
-        reader.onprogress = function(e){
-        if (e.lengthComputable){
-        cout_print(Math.round((e.loaded / e.total) * 100)+"%")
-        }
-        else
-        count_print(e.loaded+"bytes")
-        document.getElementById("start").disabled=false
-
-        }
-        reader.onload = function(e) {
-        cout_print("_.smc loaded")
-        Module.FS_createDataFile("/", "_.smc", new Uint8Array(this.result) , true, true)
-        }
-          reader.readAsArrayBuffer(f)
-    }
-
     function cannonball_main()
     {
         document.getElementById("start").disabled=true
@@ -268,6 +223,7 @@
         cpp_init()
         cpp_framesize(buffer_size);
         frames = 0;
+        set_audio(audio_enabled);
         last_time = new Date().getTime()
         cannonball_mainloop();
     }
@@ -281,6 +237,41 @@
             var notify_sdl_resize = false
             Module.requestFullScreen(hide_cursor, notify_sdl_resize)
         }
+    }
+    
+    function read_roms(controller)
+    {
+        if (window.File && window.FileReader && window.FileList && window.Blob);
+        else 
+        {
+            alert('The File APIs are not fully supported in this browser.');
+        }
+        
+        var f=controller.files[0]
+        //Module.print(f.name)
+        var reader= new FileReader()
+        reader.onprogress = function(e)
+        {
+            if (e.lengthComputable)
+                Module.print(Math.round((e.loaded / e.total) * 100)+"%")
+            else
+                Module.print(e.loaded+"bytes")
+            
+            // Enable Start Button
+            document.getElementById("start").disabled = false; 
+        }
+        reader.onload = function(e) 
+        {
+            Module.print("File Loaded");
+            // FS.createDataFile(parent, name, data, canRead, canWrite)
+            Module.FS_createDataFile("/", "roms.zip", new Uint8Array(this.result), true, false);
+            
+            // Call C++ Code to Handle The Zip File
+            cpp_loadzip("roms.zip");
+            
+            document.getElementById("start").disabled=false
+        }
+        reader.readAsArrayBuffer(f);
     }
 
     </script>

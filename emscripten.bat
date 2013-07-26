@@ -34,7 +34,7 @@ goto end
 :convertslow
 cd %WORKING_DIR%
 echo Converting .bc to .js (Not Optimized)
-call emcc -s EXPORTED_FUNCTIONS="['_emscripten_init', '_emscripten_tick', '_emscripten_setfps', '_emscripten_audio']" ^
+call emcc -s EXPORTED_FUNCTIONS="['_emscripten_init', '_emscripten_tick', '_emscripten_setfps', '_emscripten_audio', '_emscripten_set_framesize', '_emscripten_loadzip']" ^
 cannonball.bc -o cannonball.html --preload-file C:\coding\cannonball\roms@roms
 
 cd..
@@ -46,8 +46,9 @@ echo Converting with new html... (OPTIMIZED)
 
 rem call emcc -O2 --llvm-lto 1 -closure 1 -s DOUBLE_MODE=0 ^
 call emcc -O2 -s DOUBLE_MODE=0 -closure 1 ^
-call emcc -s EXPORTED_FUNCTIONS="['_emscripten_init', '_emscripten_tick', '_emscripten_setfps', '_emscripten_audio', '_emscripten_set_framesize']" ^
-cannonball.bc -o cannonball.html --preload-file C:\coding\cannonball\roms@roms
+-s EXPORTED_FUNCTIONS="['_emscripten_init', '_emscripten_tick', '_emscripten_setfps', '_emscripten_audio', '_emscripten_set_framesize', '_emscripten_loadzip']" ^
+cannonball.bc ../libz.bc -o cannonball.html
+rem --preload-file C:\coding\cannonball\roms@roms
 
 echo Extracting Javascript from HTML
 cd..

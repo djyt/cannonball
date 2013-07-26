@@ -200,6 +200,13 @@ set(src_engine_audio
     "${main_cpp_base}/engine/audio/osoundint.cpp"
     )
 
+set(src_unzip
+    "${main_cpp_base}/unzip/ioapi.h"
+    "${main_cpp_base}/unzip/ioapi.c"
+    "${main_cpp_base}/unzip/unzip.h"
+    "${main_cpp_base}/unzip/unzip.c"
+    )
+    
 # Group files into relevant filters for Visual Studio build
 SOURCE_GROUP(src FILES ${src_main})
 SOURCE_GROUP(src\\frontend FILES ${src_frontend})
@@ -221,6 +228,7 @@ set(SRCS
     ${src_engine}
     ${src_engine_audio}
     ${src_tracked}
+    ${src_unzip}
 )
 
 # Add Icon For Windows Builds

@@ -53,6 +53,8 @@ bool cannonball::tick_frame = true;
 Menu menu;
 //Tracked tracked;
 
+bool roms_loaded;
+
 static void quit_func(int code)
 {
 #ifdef COMPILE_SOUND_CODE
@@ -90,6 +92,21 @@ extern "C" void emscripten_audio(float*, float*) __attribute__((used));
 void emscripten_audio(float* mix_buffer_l, float* mix_buffer_r)
 {
     audio.tick(mix_buffer_l, mix_buffer_r);
+}
+
+extern "C" void emscripten_loadzip(char *) __attribute__((used));
+void emscripten_loadzip(char *filename)
+{
+    bool success = roms.open_zip(filename);
+    
+    if (success)
+    {
+        roms_loaded = roms.load_revb_roms();
+        if (roms_loaded)
+            roms.close_zip();
+    }
+    else
+        roms_loaded = false;
 }
 
 #endif
@@ -167,10 +184,13 @@ static void tick()
                 outrun.freeze_timer = !outrun.freeze_timer;
 
             if (input.has_pressed(Input::PAUSE))
+            {
                 pause_engine = !pause_engine;
+            }
 
-            if (input.has_pressed(Input::MENU))
-                state = STATE_INIT_MENU;
+            // No menu for Emscripten
+            //if (input.has_pressed(Input::MENU))
+            //    state = STATE_INIT_MENU;
 
             if (!pause_engine || input.has_pressed(Input::STEP))
             {
@@ -277,7 +297,7 @@ static int init(void)
     } 
 
     // Load Roms
-    bool roms_loaded = roms.load_revb_roms();
+    //roms_loaded = roms.load_revb_roms();
     //trackloader.load_level("output.bin");
 
     if (roms_loaded)
@@ -315,6 +335,7 @@ static int init(void)
     }
     else
     {
+        std::cout << "Roms not loaded. Please use OutRun Revision B. Roms and try again." << std::endl;
         quit_func(1);
     }
     

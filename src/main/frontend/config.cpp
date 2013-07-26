@@ -349,13 +349,13 @@ void Config::set_fps(int fps)
 
     cannonball::frame_ms = (1000 / this->fps);
 
-    #ifdef COMPILE_SOUND_CODE
+    /*#ifdef COMPILE_SOUND_CODE
     if (config.sound.enabled)
         cannonball::audio.stop_audio();
     osoundint.init();
     if (config.sound.enabled)
         cannonball::audio.start_audio();
-    #endif
+    #endif*/
 }
 
 // Convert value to string

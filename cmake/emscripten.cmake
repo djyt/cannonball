@@ -6,6 +6,7 @@ set(OPENGL 0)
 
 # Supress useless compiler warnings
 set(CMAKE_CXX_FLAGS "-Qunused-arguments")
+set(CMAKE_C_FLAGS "-Qunused-arguments")
 
 # XML Config not used by Emscripten
 set(xml_directory ./)

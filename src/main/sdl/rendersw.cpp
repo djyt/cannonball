@@ -78,7 +78,9 @@ bool RenderSW::init(int src_width, int src_height,
             }
         }
         flags |= SDL_FULLSCREEN; // Set SDL flag
-        SDL_ShowCursor(false);   // Don't show mouse cursor in full-screen mode
+        
+        // Cursor was causing problems with Emscripten
+        //SDL_ShowCursor(false);   // Don't show mouse cursor in full-screen mode
     }
     // --------------------------------------------------------------------------------------------
     // Windowed Mode
@@ -96,7 +98,8 @@ bool RenderSW::init(int src_width, int src_height,
         dst_width  = scn_width;
         dst_height = scn_height;
         
-        SDL_ShowCursor(true);
+        // Was causing problems with emscripten
+        //SDL_ShowCursor(true);
     }
 
     // If we're not stretching the screen, centre the image

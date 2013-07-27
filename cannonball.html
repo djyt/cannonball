@@ -14,8 +14,7 @@
     </style>
   </head>
   <body>
-    <center><img src="cannonball_logo.png"></center>
-    <hr/>
+    <center><a href="http://reassembler.blogspot.com"><img src="cannonball_logo.png"></a></center>
     <div class="emscripten" id="status">Downloading...</div>
     <div class="emscripten">
       <progress value="0" max="100" id="progress" hidden=1></progress>
@@ -29,17 +28,37 @@
     Select OutRun Rev. B Romset (ZIPPED) 
     <input type="file" onchange="read_roms(this)" />
     <hr/>
-    <input type="button" id="start" value="Start CannonBall!" onclick="cannonball_main()" />
+    <input type="button" id="start" value="Start CannonBall!" disabled="true" onclick="cannonball_main()" />
+    <input type="button" value="Fullscreen" onclick="cannonball_set_screen_mode(0)">
     Current fps: 
     <input type="text" id="fps" size="5"/>
     Target fps:
     <input type="text" id="framerate" size="20"/>
     <input type="button" id="framerate_button" value="+" onclick="inc_fps = true" />
     Sound:
-    <input type="checkbox" id="sound" onclick="audio_enabled = !audio_enabled; set_audio(audio_enabled)">
+    <input type="checkbox" id="sound" disabled="true" onclick="audio_enabled = !audio_enabled; set_audio(audio_enabled)">
+     (Best to enable sound before inserting coin)
     <hr/>
-    <input type="button" value="Fullscreen" onclick="cannonball_set_screen_mode(0)">
     <textarea class="emscripten" id="output" rows="8"></textarea>
+    
+    <hr>
+    <p>
+    This is a Javascript port of CannonBall, the open source OutRun engine.
+    <p>
+    You may need to click in the top panel to gain keyboard focus.<br>
+    Best results can be achieved with the latest Firefox Nightly browser, or Firefox Beta on Android. This is very very BETA!<br>
+    <p>
+    <b>Keys:</b>
+    <ul>
+        <li>Cursor Left/Right = Steering
+        <li>Z = Accelerate
+        <li>X = Brake
+        <li>Space = Gear
+        <li>5 = Coin
+        <li>1 = Start
+    </ul>
+    <p>
+    You will need to provide the OutRun Rev. B Romset from MAME.
 
     <!-- Converted CannonBall C++ Code -->
     <script type="text/javascript" src="cannonball.html.js" > </script>
@@ -57,6 +76,7 @@
   
     // Disable Start Button
     document.getElementById("start").disabled=true;
+    document.getElementById("sound").disabled=true;
   
     // Default to 30fps
     inc_fps = false
@@ -95,12 +115,12 @@
         audio_node    = audio_context.createScriptProcessor(buffer_size, audio_chan, audio_chan);
 
         // Setup Callback
-		audio_process = function(e) 
+        audio_process = function(e) 
         {
-			var left  = e.outputBuffer.getChannelData(0);
+            var left  = e.outputBuffer.getChannelData(0);
             var right = e.outputBuffer.getChannelData(1);
-			fillBuffer(left, right);
-		};   
+            fillBuffer(left, right);
+        };   
     }
     else
     {
@@ -223,6 +243,7 @@
         cpp_init()
         cpp_framesize(buffer_size);
         frames = 0;
+        document.getElementById("sound").disabled = false; 
         set_audio(audio_enabled);
         last_time = new Date().getTime()
         cannonball_mainloop();

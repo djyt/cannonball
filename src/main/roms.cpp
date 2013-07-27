@@ -76,7 +76,6 @@ char* Roms::read_file(const char* filename, int length)
         if (unzLocateFile(zip_file, filename, 2) != UNZ_OK)
         {
             std::cout << "cant locate zipped rom: " << filename << std::endl;
-            close_zip();
             return NULL;
         }
         

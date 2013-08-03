@@ -44,6 +44,8 @@ void OHud::draw_main_hud()
     {
         blit_text1(HUD_TIME1);
         blit_text1(HUD_TIME2);
+        blit_text1(HUD_SCORE1);
+        blit_text1(HUD_SCORE2);
         blit_text1(HUD_STAGE1);
         blit_text1(HUD_STAGE2);
         blit_text1(HUD_ONE);

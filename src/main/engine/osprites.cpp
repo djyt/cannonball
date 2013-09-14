@@ -726,7 +726,7 @@ void OSprites::do_sprite(oentry* input)
         {
             road_y_index -= 2;
         }
-        while (--height_entry < 0);
+        while (--height_entry > 0 && input->road_priority > oroad.road_y[road_y_index + 0]);
 
         // Sprite has higher priority, draw sprite
         if (input->road_priority > oroad.road_y[road_y_index])

@@ -657,6 +657,15 @@ void Outrun::controls()
         oinputs.simulate_analog();
     else
         oinputs.analog();
+
+    if (input.is_pressed(Input::HORIZON_DOWN))
+    {
+        oroad.horizon_base += -20;
+    }
+    else if (input.is_pressed(Input::HORIZON_UP))
+    {
+        oroad.horizon_base += 20;
+    }
 }
 
 // -------------------------------------------------------------------------------

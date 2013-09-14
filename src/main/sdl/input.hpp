@@ -32,10 +32,13 @@ public:
         STEP  = 10,
         TIMER = 11,
         MENU = 12,
+
+        HORIZON_DOWN = 13,
+        HORIZON_UP = 14
     };
 
-    bool keys[13];
-    bool keys_old[13];
+    bool keys[15];
+    bool keys_old[15];
 
     // Has gamepad been found?
     bool gamepad;

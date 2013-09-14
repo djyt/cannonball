@@ -127,10 +127,16 @@ void Input::handle_key(const int key, const bool is_pressed)
         case SDLK_F5:
             keys[MENU] = is_pressed;
             break;
+
+        case SDLK_F7:
+            keys[HORIZON_DOWN] = is_pressed;
+            break;
+
+        case SDLK_F8:
+            keys[HORIZON_UP] = is_pressed;
+            break;
     }
 }
-
-#include <iostream>
 
 void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
 {

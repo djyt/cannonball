@@ -74,7 +74,8 @@ void OInitEngine::init(int8_t level)
 
     // Road Renderer: Setup correct stage address 
     if (level)
-        trackloader.setup_path(stage_data[oroad.stage_lookup_off] << 2);
+        //trackloader.setup_path(stage_data[oroad.stage_lookup_off] << 2);
+        trackloader.init_path(oroad.stage_lookup_off);
 	    //oroad.stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + (stage_data[oroad.stage_lookup_off] << 2));
 
 	opalette.setup_sky_palette();
@@ -125,15 +126,16 @@ void OInitEngine::setup_stage1()
 
 void OInitEngine::init_road_seg_master()
 {
-    uint16_t stage_offset = stage_data[oroad.stage_lookup_off] << 2; // convert to long
-    road_seg_master = roms.rom0p->read32(outrun.adr.road_seg_table + stage_offset);
+    //uint16_t stage_offset = stage_data[oroad.stage_lookup_off] << 2; // convert to long
+    //road_seg_master = roms.rom0p->read32(outrun.adr.road_seg_table + stage_offset);
 
     // Rolled the following lines in from elsewhere
 	//road_seg_addr3 = roms.rom0p->read32(0x18 + road_seg_master); // Type of curve and unknown
 	//road_seg_addr2 = roms.rom0p->read32(0x1C + road_seg_master); // Width/Height Lookup
-	road_seg_addr1 = roms.rom0p->read32(0x20 + road_seg_master); // Sprite information
+	//road_seg_addr1 = roms.rom0p->read32(0x20 + road_seg_master); // Sprite information
 
-    trackloader.setup_track(road_seg_master + 0x18, outrun.adr.road_height_lookup);
+    //trackloader.setup_track(road_seg_master + 0x18, outrun.adr.road_height_lookup);
+    trackloader.init_track(oroad.stage_lookup_off);
 }
 
 //
@@ -535,8 +537,9 @@ void OInitEngine::init_split1()
     oroad.tilemap_h_target = 0;
     //road_seg_addr3 = roms.rom0p->read32(outrun.adr.road_seg_split);
     //road_seg_addr2 = roms.rom0p->read32(outrun.adr.road_seg_split + 4);
-    trackloader.setup_track(outrun.adr.road_seg_split, outrun.adr.road_height_lookup);
-    road_seg_addr1 = roms.rom0p->read32(outrun.adr.road_seg_split + 8);
+    //trackloader.setup_track(outrun.adr.road_seg_split, outrun.adr.road_height_lookup);
+    //road_seg_addr1 = roms.rom0p->read32(outrun.adr.road_seg_split + 8);
+    trackloader.init_track_split();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -733,8 +736,9 @@ void OInitEngine::init_bonus()
     uint32_t adr   = roms.rom0p->read32(outrun.adr.road_seg_end + (oanimseq.end_seq << 2)); // Road Data Addr
     //road_seg_addr3 = roms.rom0p->read32(&adr);
     //road_seg_addr2 = roms.rom0p->read32(&adr);
-    trackloader.setup_track(adr, outrun.adr.road_height_lookup);
-    road_seg_addr1 = roms.rom0p->read32(adr + 8);
+    //trackloader.setup_track(adr, outrun.adr.road_height_lookup);
+    //road_seg_addr1 = roms.rom0p->read32(adr + 8);
+    trackloader.init_track_bonus(oanimseq.end_seq);
     outrun.game_state = GS_INIT_BONUS;
     rd_split_state = 0x11;
     bonus1();
@@ -948,33 +952,3 @@ void OInitEngine::test_bonus_mode(bool do_bonus_check)
    if (!ocrash.skid_counter)
        otraffic.collision_traffic = 0;
 }
-
-// Stage Data
-//
-// This effectively is the master table that controls the order of the stages.
-//
-// You can change the stage order by editing this table.
-// Bear in mind that the double lanes are hard coded in Stage 1.
-//
-// For USA there are unused tracks:
-// 0x3A = Unused Coconut Beach
-// 0x25 = Original Gateway track from Japanese edition
-// 0x19 = Devils Canyon Variant
-
-uint8_t OInitEngine::stage_data_usa[] = 
-{ 
-    0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 1
-    0x1E, 0x3B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 2
-    0x20, 0x2F, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 3
-    0x2D, 0x35, 0x33, 0x21, 0x00, 0x00, 0x00, 0x00,  // Stage 4
-    0x32, 0x23, 0x38, 0x22, 0x26, 0x00, 0x00, 0x00,  // Stage 5
-};
-
-uint8_t OInitEngine::stage_data_jap[] = 
-{ 
-    0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 1
-    0x20, 0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 2
-    0x1E, 0x2F, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 3
-    0x2D, 0x25, 0x33, 0x21, 0x00, 0x00, 0x00, 0x00,  // Stage 4
-    0x32, 0x23, 0x38, 0x22, 0x26, 0x00, 0x00, 0x00,  // Stage 5
-};

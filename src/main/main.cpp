@@ -27,7 +27,7 @@
 #include "engine/outrun.hpp"
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
-//#include "tracked/tracked.hpp"
+#include "tracked/tracked.hpp"
 
 // Direct X Haptic Support.
 // Fine to include on non-windows builds as dummy functions used.
@@ -46,7 +46,7 @@ Audio cannonball::audio;
 #endif
 
 Menu menu;
-//Tracked tracked;
+Tracked tracked;
 
 static void quit_func(int code)
 {
@@ -181,9 +181,9 @@ static void tick()
             state = STATE_MENU;
             break;
 
-        //case STATE_TRACKED:
-        //    tracked.tick();
-        //    break;
+        case STATE_TRACKED:
+            tracked.tick();
+            break;
     }
     // Draw SDL Video
     video.draw_frame();  
@@ -226,13 +226,26 @@ int main(int argc, char* argv[])
     { 
         std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
         return 1; 
-    } 
+    }
 
-    // Load Roms
-    bool roms_loaded = roms.load_revb_roms();
-    //trackloader.load_level("output.bin");
+    bool loaded = false;
 
-    if (roms_loaded)
+    // Load LayOut File
+    if (argc == 3 && strcmp(argv[1], "-file") == 0)
+    {
+        if (trackloader.set_layout_track(argv[2]))
+            loaded = roms.load_revb_roms(); 
+    }
+    // Load Roms Only
+    else
+    {
+        loaded = roms.load_revb_roms();
+    }
+
+    //trackloader.set_layout_track("d:/temp.bin");
+    //loaded = roms.load_revb_roms();
+
+    if (loaded)
     {
         // Load XML Config
         config.load(FILENAME_CONFIG);

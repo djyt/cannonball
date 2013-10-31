@@ -29,6 +29,15 @@ const uint16_t S16_WIDTH_WIDE = 398;
 
 const uint16_t S16_PALETTE_ENTRIES = 0x1000;
 
+// Number of stages
+const uint16_t STAGES = 15;
+
+// Hard Coded End Point of every level
+const static uint16_t ROAD_END      = 0x79C;
+
+// End Point of level for CPU1, including horizon
+const static uint16_t ROAD_END_CPU1 = 0x904;
+
 enum
 {
     BIT_0 = 0x01,

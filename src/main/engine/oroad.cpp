@@ -203,9 +203,9 @@ void ORoad::init_stage1()
 {
     // Sets to 0x3c [Stage 1] - First Entry Of Stage Master Table In RAM
     // Multiply by 4, as table contains longs
-    const uint16_t stage1 = oinitengine.stage_data[0] << 2; 
+    //const uint16_t stage1 = oinitengine.stage_data[0] << 2; 
     //stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage1);
-    trackloader.setup_path(stage1);
+    trackloader.init_path(0);
     
     road_pos = 0;
     road_ctrl = ROAD_BOTH_P0;
@@ -246,8 +246,9 @@ void ORoad::check_load_road()
         stage_loaded = ostats.cur_stage; // Denote loaded
 
         // Table contains longs, so multiply by 4
-        const uint16_t stage_index = oinitengine.stage_data[stage_lookup_off] << 2;
-        trackloader.setup_path(stage_index);
+        //const uint16_t stage_index = oinitengine.stage_data[stage_lookup_off] << 2;
+        //trackloader.setup_path(stage_index);
+        trackloader.init_path(stage_lookup_off);
         //stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage_index);
         return;
     }
@@ -255,7 +256,7 @@ void ORoad::check_load_road()
     // Check Split
     if (road_load_split)
     {
-        trackloader.set_split();
+        trackloader.init_path_split();
         //stage_addr = ROAD_DATA_SPLIT;
         road_load_split = 0;
     }
@@ -263,7 +264,7 @@ void ORoad::check_load_road()
     // Check Bonus
     else if (road_load_bonus)
     {
-        trackloader.set_bonus();
+        trackloader.init_path_bonus();
         //stage_addr = ROAD_DATA_BONUS;
         road_load_bonus = 0;
     }

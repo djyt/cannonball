@@ -634,7 +634,8 @@ void Outrun::init_jump_table()
     if (!ttrial.enabled) 
     {
         otraffic.init_stage1_traffic();      // Hard coded traffic in right hand lane
-        olevelobjs.init_startline_sprites(); // Hard coded start line sprites (not part of level data)
+        if (trackloader.display_start_line)
+            olevelobjs.init_startline_sprites(); // Hard coded start line sprites (not part of level data)
     }
     else
         olevelobjs.init_timetrial_sprites();
@@ -703,7 +704,7 @@ void Outrun::select_course(bool jap, bool prototype)
         roms.rom0p = &roms.j_rom0;
         roms.rom1p = &roms.j_rom1;
 
-        oinitengine.stage_data    = oinitengine.stage_data_jap;
+        //oinitengine.stage_data    = oinitengine.stage_data_jap;
 
         // Main CPU
         adr.tiles_def_lookup      = TILES_DEF_LOOKUP_J;
@@ -804,7 +805,7 @@ void Outrun::select_course(bool jap, bool prototype)
         roms.rom0p = &roms.rom0;
         roms.rom1p = &roms.rom1;
 
-        oinitengine.stage_data    = oinitengine.stage_data_usa;
+        //oinitengine.stage_data    = oinitengine.stage_data_usa;
 
         // Main CPU
         adr.tiles_def_lookup      = TILES_DEF_LOOKUP;
@@ -904,6 +905,9 @@ void Outrun::select_course(bool jap, bool prototype)
         adr.road_height_lookup    = ROAD_HEIGHT_LOOKUP;
     }
 
+    //trackloader.init_original_tracks();
+    trackloader.init();
+
     // Use Prototype Coconut Beach Track
-    oinitengine.stage_data[0] = prototype ? 0x3A : 0x3C; 
+    trackloader.stage_data[0] = prototype ? 0x3A : 0x3C;
 }

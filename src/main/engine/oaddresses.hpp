@@ -173,10 +173,10 @@ const uint32_t PAL_MUSIC_SELECT = 0x175CC;
 const uint32_t PAL_DATA = 0x14ED8;
 
 // Table of long addresses of ground colours
-const uint32_t PAL_GROUND_TABLE = 0x17350;
+const uint32_t PAL_GND_TABLE = 0x17350;
 
 // Table of palette addresses
-const uint32_t PAL_TABLE = 0x17590;
+const uint32_t PAL_SKY_TABLE = 0x17590;
 
 // Palette Data: Best Outrunners Name Entry
 const uint32_t PAL_BESTOR = 0x17DCC;

@@ -10,7 +10,7 @@ if (NOT DEFINED ENV{DXSDK})
 endif()
 
 # Use OpenGL for rendering.
-set(OPENGL 1)
+set(OPENGL 0)
 
 include_directories(
     "${sdl_root}/include"
@@ -19,8 +19,8 @@ include_directories(
 link_libraries(cannonball 
     SDL
     SDLmain
-    opengl32 # For OpenGL
-    glu32    # For OpenGL
+    #opengl32 # For OpenGL
+    #glu32    # For OpenGL
     dxguid
     dinput8
 )

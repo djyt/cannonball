@@ -54,8 +54,8 @@ void Tracked::tick()
             if (cannonball::tick_frame) controls();
             tick_track();
             video.clear_text_ram();
-            display_sprite_info();
-            //display_path_info();
+            //display_sprite_info();
+            display_path_info();
             //display_height_info();
             break;
     }
@@ -137,25 +137,25 @@ void Tracked::tick_track()
 
 }*/
 
-/*void Tracked::display_path_info()
+void Tracked::display_path_info()
 {
     static const int TX = 16; // Text X Offset
-    uint32_t addr = oroad.stage_addr + oroad.road_data_offset;
+    //uint32_t addr = oroad.stage_addr + oroad.road_data_offset;
 
-    const int16_t x1 = (int16_t) roms.rom1p->read16(addr);
-    const int16_t x2 = (int16_t) roms.rom1p->read16(addr + 2);
+    //const int16_t x1 = (int16_t) roms.rom1p->read16(addr);
+    //const int16_t x2 = (int16_t) roms.rom1p->read16(addr + 2);
     const uint16_t road_pos    = oroad.road_pos >> 16;
 
     ohud.blit_text_new(0,  0, "ROAD POS", OHud::GREEN);
     ohud.blit_text_new(TX, 0, config.to_string(road_pos).c_str(), OHud::GREEN);
 
-    ohud.blit_text_new(0,  3, "X1     ", OHud::GREEN);
+    /*ohud.blit_text_new(0,  3, "X1     ", OHud::GREEN);
     ohud.blit_text_new(TX, 3, config.to_string(x1).c_str(), OHud::GREEN);
     ohud.blit_text_new(0,  4, "X2     ", OHud::GREEN);
-    ohud.blit_text_new(TX, 4, config.to_string(x2).c_str(), OHud::GREEN);
-}*/
+    ohud.blit_text_new(TX, 4, config.to_string(x2).c_str(), OHud::GREEN);*/
+}
 
-void Tracked::display_sprite_info()
+/*void Tracked::display_sprite_info()
 {
     static const int TX = 16; // Text X Offset
 
@@ -225,7 +225,7 @@ void Tracked::display_sprite_info()
     ohud.blit_text_new(TX, 16, config.to_hex_string(sprite_t).c_str());
     ohud.blit_text_new(0,  17, "PALETTE");
     ohud.blit_text_new(TX, 17, config.to_hex_string(sprite_p).c_str());
-}
+}*/
 
 
 

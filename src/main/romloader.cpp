@@ -93,3 +93,55 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     src.close();
     return 0; // success
 }
+
+// Load LayOut Level As Binary File
+int RomLoader::load_level(const char* filename)
+{
+#ifdef __APPLE__    
+    CFBundleRef mainBundle = CFBundleGetMainBundle();
+    CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
+    char bundlepath[PATH_MAX];
+
+    if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)bundlepath, PATH_MAX))
+    {
+        // error!
+    }
+
+    CFRelease(resourcesURL);
+    chdir(bundlepath);
+#endif
+
+    //std::string path = "levels/";
+    //path += std::string(filename);
+
+    // --------------------------------------------------------------------------------------------
+    // Read LayOut Data File
+    // --------------------------------------------------------------------------------------------
+    std::ifstream src(filename, std::ios::in | std::ios::binary);
+    if (!src)
+    {
+        std::cout << "cannot open level: " << filename << std::endl;
+        return 1; // fail
+    }
+
+    int length = filesize(filename);
+
+    // Read file
+    char* buffer = new char[length];
+    src.read(buffer, length);
+    rom = (uint8_t*) buffer;
+
+    // Clean Up
+    src.close();
+
+    return 0; // success
+}
+
+int RomLoader::filesize(const char* filename)
+{
+    std::ifstream in(filename, std::ifstream::in | std::ifstream::binary);
+    in.seekg(0, std::ifstream::end);
+    int size = (int) in.tellg();
+    in.close();
+    return size; 
+}

@@ -11,6 +11,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "../trackloader.hpp"
 #include "engine/opalette.hpp"
 #include "engine/ostats.hpp"
 #include "engine/otiles.hpp"
@@ -611,7 +612,7 @@ void OTiles::init_next_tilemap()
 void OTiles::init_tilemap_palette(uint16_t stage_id)
 {
     // Get internal level number
-    uint8_t level = oinitengine.stage_data[stage_id];
+    uint8_t level = trackloader.stage_data[stage_id];
 
     switch (level)
     {

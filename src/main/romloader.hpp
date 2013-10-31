@@ -25,6 +25,7 @@ public:
     ~RomLoader();
     void init(uint32_t);
     int load(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t mode = NORMAL);
+    int load_level(const char* filename);
     void unload(void);
 
     // ----------------------------------------------------------------------------
@@ -92,5 +93,6 @@ public:
         return rom[addr];
     }
 
-private:    
+private:
+    int filesize(const char* filename);
 };

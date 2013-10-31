@@ -18,9 +18,6 @@
 class OInitEngine
 {
 public:
-    // Hard Coded End Point of every level
-    const static uint16_t ROAD_END = 0x79C;
-
     // Debug: Camera X Offset
     int16_t camera_x_off;
 
@@ -29,32 +26,6 @@ public:
 
     // Time to wait before enabling ingame_engine after crash
     int16_t ingame_counter;
-
-	// Road Segment Master.
-	// Points to location in ROM used to setup road_seg_addrx and other variables
-	uint32_t road_seg_master;
-
-	// road_seg_addr1 Format: [4 byte boundaries]
-
-	// [+0] Segment Position [Word]
-	// [+2] Number Of Sprites In Segment [Byte]
-	// [+3] Sprite Data Entry Number From Lookup Table * 4 [Byte]
-	uint32_t road_seg_addr1;
-
-	// road_seg_addr2 Format: [8 byte boundaries]
-	//
-	// [+0] Segment Position
-	// [+2] Set = Denotes Road Height Info. Unset = Denotes Road Width
-	// [+4] Segment Road Width / Segment Road Height Index
-	// [+6] Segment Width Adjustment SIGNED (Speed at which width is adjusted)
-	//uint32_t road_seg_addr2;
-
-	// road_seg_addr3 [6 byte boundaries]
-	//
-	// [+0] Segment Position
-	// [+2] Unknown data
-	// [+4] Segment Road type (1 = Straight, 2 = Slight Bend, 3 = Severe Bend)
-	//uint32_t road_seg_addr3;
 
     // Road Split State
     // 0 = No Road Split
@@ -132,11 +103,6 @@ public:
     // 0 = No
     // -1 = In Progress
     int16_t change_width;
-
-    // Stage Order Tables
-    static uint8_t stage_data_usa[];
-    static uint8_t stage_data_jap[];
-    uint8_t* stage_data;
 
 	OInitEngine();
 	~OInitEngine();

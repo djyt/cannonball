@@ -1,74 +1,335 @@
-#include "stdint.hpp"
+#include <iostream>
+
 #include "trackloader.hpp"
 #include "roms.hpp"
 
 #include "engine/oaddresses.hpp"
 
-#include <fstream>
-#include <iostream>
+// TODO: Make Japanese Tracks Work!
+
+
+// Stage Mapping Data
+//
+// This effectively is the master table that controls the order of the stages.
+//
+// You can change the stage order by editing this table.
+// Bear in mind that the double lanes are hard coded in Stage 1.
+//
+// For USA there are unused tracks:
+// 0x3A = Unused Coconut Beach
+// 0x25 = Original Gateway track from Japanese edition
+// 0x19 = Devils Canyon Variant
+
+static uint8_t STAGE_MAPPING_USA[] = 
+{ 
+    0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 1
+    0x1E, 0x3B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 2
+    0x20, 0x2F, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 3
+    0x2D, 0x35, 0x33, 0x21, 0x00, 0x00, 0x00, 0x00,  // Stage 4
+    0x32, 0x23, 0x38, 0x22, 0x26, 0x00, 0x00, 0x00,  // Stage 5
+};
+
+static uint8_t STAGE_MAPPING_JAP[] = 
+{ 
+    0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 1
+    0x20, 0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 2
+    0x1E, 0x2F, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00,  // Stage 3
+    0x2D, 0x25, 0x33, 0x21, 0x00, 0x00, 0x00, 0x00,  // Stage 4
+    0x32, 0x23, 0x38, 0x22, 0x26, 0x00, 0x00, 0x00,  // Stage 5
+};
 
 TrackLoader trackloader;
 
 TrackLoader::TrackLoader()
 {
+    layout        = NULL;
+    levels        = new Level[STAGES];
+    levels_bonus  = new Level[5];
+    level_split   = new Level();
+    current_level = &levels[0];
+   
     track_data = NULL;
+
     mode       = MODE_ORIGINAL;
 }
 
 TrackLoader::~TrackLoader()
 {
+    if (layout != NULL)
+        delete layout;
+
     if (track_data != NULL)
         delete[] track_data;
+
+    delete[] levels_bonus;
+    delete[] levels;
+    delete level_split;
 }
 
-void TrackLoader::init(const int mode)
-{
-    this->mode = mode;
-}
-
-void TrackLoader::setup_track(const uint32_t road_seg_master, const uint32_t road_height_lookup)
-{
-    if (mode == MODE_ORIGINAL)
-    {
-        curve_offset = roms.rom0p->read32(0 + road_seg_master); // Type of curve and unknown
-	    wh_offset    = roms.rom0p->read32(4 + road_seg_master); // Width/Height Lookup
-	    //road_seg_addr1 = roms.rom0p->read32(8 + road_seg_master); // Sprite information
-
-        curve_data     = &roms.rom0p->rom[curve_offset];
-        wh_data        = &roms.rom0p->rom[wh_offset];
-        heightmap_data = roms.rom1p->rom;
-        
-        curve_offset     = 0;
-        wh_offset        = 0;
-        heightmap_offset = road_height_lookup;
-    }
-    else if (mode == MODE_CUSTOM)
-    {
-        wh_offset    = 0;
-        curve_offset = 0;
-    }
-}
-
-void TrackLoader::setup_path(const uint32_t stage_index)
+void TrackLoader::init()
 {
     if (mode == MODE_ORIGINAL)
-    {
-        const uint32_t path_offset = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage_index);
-        path_data  = &roms.rom1p->rom[path_offset];
-    }
-    else if (mode == MODE_CUSTOM)
-    {
-    }
+        init_original_tracks();
+    else
+        init_layout_tracks();
 }
 
-void TrackLoader::set_split()
+bool TrackLoader::set_layout_track(const char* filename)
 {
-    path_data  = &roms.rom1p->rom[ROAD_DATA_SPLIT];
+    if (layout == NULL)
+        delete layout;
+
+    layout = new RomLoader();
+    
+    if (layout->load_level(filename))
+        return false;
+
+    mode = MODE_LAYOUT;
+
+    return true;
 }
 
-void TrackLoader::set_bonus()
+void TrackLoader::init_original_tracks()
 {
-    path_data  = &roms.rom1p->rom[ROAD_DATA_BONUS];
+    stage_data = STAGE_MAPPING_USA; // todo: Convert to also work with jap
+
+    display_start_line = true;
+
+    // --------------------------------------------------------------------------------------------
+    // Setup Shared Data
+    // --------------------------------------------------------------------------------------------
+
+    // Height Map Entries
+    heightmap_offset  = ROAD_HEIGHT_LOOKUP; // todo: replace with outrun.adr.height_lookup
+    heightmap_data    = &roms.rom1p->rom[0];  
+
+    // Scenery Map Entries
+    scenerymap_offset = SPRITE_MASTER_TABLE; // todo: replace with outrun.adr equivalent
+    scenerymap_data   = &roms.rom0p->rom[0]; 
+
+    // Palette Entries
+    pal_sky_offset    = PAL_SKY_TABLE;
+    pal_sky_data      = &roms.rom0.rom[0];
+
+    pal_gnd_offset    = PAL_GND_TABLE;
+    pal_gnd_data      = &roms.rom0.rom[0];
+
+    // --------------------------------------------------------------------------------------------
+    // Iterate and setup 15 stages
+    // --------------------------------------------------------------------------------------------
+
+    static const uint32_t STAGE_ORDER[] = { 0, 
+                                            0x8, 0x9, 
+                                            0x10, 0x11, 0x12, 
+                                            0x18, 0x19, 0x1A, 0x1B, 
+                                            0x20, 0x21, 0x22, 0x23, 0x24};
+
+    for (int i = 0; i < STAGES; i++)
+    {
+        const uint16_t STAGE_OFFSET = stage_data[STAGE_ORDER[i]] << 2;
+
+        // CPU 0 Data
+        const uint32_t STAGE_ADR = roms.rom0p->read32(ROAD_SEG_TABLE + STAGE_OFFSET); // todo: replace road seg table
+        setup_level(&levels[i], roms.rom0p, STAGE_ADR);
+
+        // CPU 1 Data
+        const uint32_t PATH_ADR = roms.rom1p->read32(ROAD_DATA_LOOKUP + STAGE_OFFSET);
+        levels[i].path = &roms.rom1p->rom[PATH_ADR];        
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // Setup Bonus & Split Stages
+    // --------------------------------------------------------------------------------------------
+
+    // Split stages don't contain palette information
+    level_split->curve        = &roms.rom0p->rom[roms.rom0p->read32(ROAD_SEG_TABLE_SPLIT + 0)];
+    level_split->width_height = &roms.rom0p->rom[roms.rom0p->read32(ROAD_SEG_TABLE_SPLIT + 4)];
+    level_split->scenery      = &roms.rom0p->rom[roms.rom0p->read32(ROAD_SEG_TABLE_SPLIT + 8)];
+    level_split->path         = &roms.rom1p->rom[ROAD_DATA_SPLIT];
+
+    for (int i = 0; i < 5; i++)
+        setup_level(&levels_bonus[i], roms.rom0p, ROAD_SEG_TABLE_END + (i << 2));   // todo: replace with outrun.adr equivalent
+}
+
+void TrackLoader::init_layout_tracks()
+{
+    // --------------------------------------------------------------------------------------------
+    // Check Version is Correct
+    // --------------------------------------------------------------------------------------------
+    if (layout->read32(LayOut::HEADER) != LayOut::EXPECTED_VERSION)
+    {
+        std::cout << "Incompatible LayOut Version Detected. Try upgrading CannonBall to the latest version" << std::endl;
+        init_original_tracks();
+        return;
+    }
+
+    stage_data = STAGE_MAPPING_USA; // This should be replaced
+
+    display_start_line = layout->read8(LayOut::HEADER + sizeof(uint32_t));
+
+    // --------------------------------------------------------------------------------------------
+    // Setup Shared Data
+    // --------------------------------------------------------------------------------------------
+
+    // Height Map Entries
+    heightmap_offset  = layout->read32(LayOut::HEIGHT_MAPS);
+    heightmap_data    = &layout->rom[0];  
+
+    // Scenery Map Entries
+    scenerymap_offset = layout->read32(LayOut::SPRITE_MAPS);
+    scenerymap_data   = &layout->rom[0]; 
+
+    // Palette Entries
+    pal_sky_offset    = layout->read32(LayOut::PAL_SKY);
+    pal_sky_data      = &layout->rom[0];
+
+    pal_gnd_offset    = layout->read32(LayOut::PAL_GND);
+    pal_gnd_data      = &layout->rom[0];
+
+    // --------------------------------------------------------------------------------------------
+    // Iterate and setup 15 stages
+    // --------------------------------------------------------------------------------------------
+    for (int i = 0; i < STAGES; i++)
+    {
+        // CPU 0 Data
+        const uint32_t STAGE_ADR = layout->read32(LayOut::LEVELS + (i * sizeof(uint32_t)));
+        setup_level(&levels[i], layout, STAGE_ADR);
+
+        // CPU 1 Data
+        const uint32_t PATH_ADR = layout->read32(LayOut::PATH);
+        levels[i].path = &layout->rom[ PATH_ADR + ((ROAD_END_CPU1 * sizeof(uint32_t)) * i) ];
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // Setup Bonus & Split Stages
+    // --------------------------------------------------------------------------------------------
+
+    // Split stages don't contain palette information
+    setup_split(level_split, layout, layout->read32(LayOut::SPLIT_LEVEL));
+    level_split->path = &layout->rom[ layout->read32(LayOut::SPLIT_PATH) ];
+
+    for (int i = 0; i < 5; i++)
+        setup_level(&levels_bonus[i], roms.rom0p, ROAD_SEG_TABLE_END + (i << 2));   // todo: replace with outrun.adr equivalent
+}
+
+void TrackLoader::setup_level(Level* l, RomLoader* data, const int STAGE_ADR)
+{
+    // Sky Palette
+    uint32_t adr = data->read32(STAGE_ADR + 0);
+    l->pal_sky   = data->read16(adr);
+
+    // Load Road Pallete
+    adr = data->read32(STAGE_ADR + 4);
+    l->palr1.stripe_centre = data->read32(&adr);
+    l->palr2.stripe_centre = data->read32(adr);
+
+    adr = data->read32(STAGE_ADR + 8);
+    l->palr1.stripe = data->read32(&adr);
+    l->palr2.stripe = data->read32(adr);
+
+    adr = data->read32(STAGE_ADR + 12);
+    l->palr1.side = data->read32(&adr);
+    l->palr2.side = data->read32(adr);
+
+    adr = data->read32(STAGE_ADR + 16);
+    l->palr1.road = data->read32(&adr);
+    l->palr2.road = data->read32(adr);
+
+    // Ground Palette
+    adr = data->read32(STAGE_ADR + 20);
+    l->pal_gnd = data->read16(adr);
+
+    // Curve Data
+    curve_offset = data->read32(STAGE_ADR + 24);
+    l->curve = &data->rom[curve_offset];
+
+    // Width / Height Lookup
+    wh_offset = data->read32(STAGE_ADR + 28);
+    l->width_height = &data->rom[wh_offset];
+
+    // Sprite Information
+    scenery_offset = data->read32(STAGE_ADR + 32);
+    l->scenery = &data->rom[scenery_offset];
+}
+
+void TrackLoader::setup_split(Level* l, RomLoader* data, const int STAGE_ADR)
+{
+    // Curve Data
+    curve_offset = data->read32(STAGE_ADR + 0);
+    l->curve = &data->rom[curve_offset];
+
+    // Width / Height Lookup
+    wh_offset = data->read32(STAGE_ADR + 4);
+    l->width_height = &data->rom[wh_offset];
+
+    // Sprite Information
+    scenery_offset = data->read32(STAGE_ADR + 8);
+    l->scenery = &data->rom[scenery_offset];
+}
+
+// ------------------------------------------------------------------------------------------------
+//                                 CPU 0: Track Data (Scenery, Width, Height)
+// ------------------------------------------------------------------------------------------------
+
+void TrackLoader::init_track(const uint32_t offset)
+{
+    curve_offset   = 0;
+    wh_offset      = 0;
+    scenery_offset = 0;
+
+    current_level = &levels[stage_offset_to_level(offset)];
+}
+
+int8_t TrackLoader::stage_offset_to_level(uint32_t id)
+{
+    static const uint8_t ID_OFFSET[] = {0, 1, 3, 6, 10};
+    return (ID_OFFSET[id / 8]) + (id & 7);
+}
+
+
+void TrackLoader::init_track_split()
+{
+    curve_offset   = 0;
+    wh_offset      = 0;
+    scenery_offset = 0;
+    current_level = level_split;
+}
+
+void TrackLoader::init_track_bonus(const uint32_t id)
+{
+    curve_offset   = 0;
+    wh_offset      = 0;
+    scenery_offset = 0;
+    current_level = &levels_bonus[id];
+}
+
+// ------------------------------------------------------------------------------------------------
+//                                    CPU 1: Initialize Road Path
+// ------------------------------------------------------------------------------------------------
+
+void TrackLoader::init_path(const uint32_t offset)
+{
+    current_path = levels[stage_offset_to_level(offset)].path;
+}
+
+void TrackLoader::init_path_split()
+{
+    current_path = level_split->path;
+}
+
+void TrackLoader::init_path_bonus()
+{
+    current_path  = &roms.rom1p->rom[ROAD_DATA_BONUS];
+}
+
+uint32_t TrackLoader::read_pal_sky_table(uint16_t entry)
+{
+    return read32(pal_sky_data, pal_sky_offset + (entry * 4));
+}
+
+uint32_t TrackLoader::read_pal_gnd_table(uint16_t entry)
+{
+    return read32(pal_gnd_data, pal_gnd_offset + (entry * 4));
 }
 
 uint32_t TrackLoader::read_heightmap_table(uint16_t entry)
@@ -76,48 +337,55 @@ uint32_t TrackLoader::read_heightmap_table(uint16_t entry)
     return read32(heightmap_data, heightmap_offset + (entry * 4));
 }
 
-int TrackLoader::load_level(const char* filename)
+uint32_t TrackLoader::read_scenerymap_table(uint16_t entry)
 {
-    std::string path = "roms/";
-    path += std::string(filename);
-
-    // Open rom file
-    std::ifstream src(path.c_str(), std::ios::in | std::ios::binary);
-    if (!src)
-    {
-        std::cout << "cannot open level: " << filename << std::endl;
-        return 1; // fail
-    }
-
-    int length = filesize(path.c_str());
-
-    // Read file
-    char* buffer = new char[length];
-    src.read(buffer, length);
-
-    track_data = (uint8_t*) buffer;
-
-    // Clean Up
-    src.close();
-
-    // Setup Data Blocks
-    uint32_t addr = 0;
-    path_data      = &track_data[read32(track_data, &addr)];
-    curve_data     = &track_data[read32(track_data, &addr)];
-    wh_data        = &track_data[read32(track_data, &addr)];
-    heightmap_offset = read32(track_data, &addr);
-    heightmap_data = track_data;
-
-    mode       = MODE_CUSTOM;
-
-    return 0; // success
+    return read32(scenerymap_data, scenerymap_offset + (entry * 4));
 }
 
-int TrackLoader::filesize(const char* filename)
+// ------------------------------------------------------------------------------------------------
+//                                        HELPER FUNCTIONS TO READ DATA
+// ------------------------------------------------------------------------------------------------
+
+int16_t TrackLoader::readPath(uint32_t addr)
 {
-    std::ifstream in(filename, std::ifstream::in | std::ifstream::binary);
-    in.seekg(0, std::ifstream::end);
-    int size = (int) in.tellg();
-    in.close();
-    return size; 
+    return (current_path[addr] << 8) | current_path[addr+1];
+}
+
+int16_t TrackLoader::readPath(uint32_t* addr)
+{
+    int16_t value = (current_path[*addr] << 8) | (current_path[*addr+1]);
+    *addr += 2;
+    return value;
+}
+
+int16_t TrackLoader::read_width_height(uint32_t* addr)
+{
+    int16_t value = (current_level->width_height[*addr + wh_offset] << 8) | (current_level->width_height[*addr+1 + wh_offset]);
+    *addr += 2;
+    return value;
+}
+
+int16_t TrackLoader::read_curve(uint32_t addr)
+{
+    return (current_level->curve[addr + curve_offset] << 8) | current_level->curve[addr+1 + curve_offset];
+}
+
+uint16_t TrackLoader::read_scenery_pos()
+{
+    return (current_level->scenery[scenery_offset] << 8) | current_level->scenery[scenery_offset + 1];
+}
+
+uint8_t TrackLoader::read_total_sprites()
+{
+    return current_level->scenery[scenery_offset + 2];
+}
+
+uint8_t TrackLoader::read_sprite_pattern_index()
+{
+    return current_level->scenery[scenery_offset + 3];
+}
+
+Level* TrackLoader::get_level(uint32_t id)
+{
+    return &levels[stage_offset_to_level(id)];
 }

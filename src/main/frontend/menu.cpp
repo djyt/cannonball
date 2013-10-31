@@ -308,7 +308,7 @@ void Menu::tick_ui()
         uint32_t result = 0x12F * (oinitengine.car_increment >> 16);
         oroad.road_pos_change = result;
         oroad.road_pos += result;
-        if (oroad.road_pos >> 16 > oinitengine.ROAD_END) // loop to beginning of track data
+        if (oroad.road_pos >> 16 > ROAD_END) // loop to beginning of track data
             oroad.road_pos = 0;
         oinitengine.update_road();
         oinitengine.set_granular_position();

@@ -12,6 +12,8 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "../trackloader.hpp"
+
 #include "engine/oanimseq.hpp"
 #include "engine/ocrash.hpp"
 #include "engine/oferrari.hpp"
@@ -205,23 +207,26 @@ void OSprites::tick()
 // The entire sequence can repeat, until the max sprites counter expires.
 //
 // So the above example would draw 3 sprites in succession, then break for three attempts, then three again etc.
-
+#include <iostream>
 void OSprites::sprite_control()
 {
-    uint32_t a0 = oinitengine.road_seg_addr1;
-    uint16_t d0 = roms.rom0p->read16(a0); // memory location stored in 60a00 (e.g.0x1de3e)
+    uint16_t d0 = trackloader.read_scenery_pos();
 
     // Populate next road segment
     if (d0 <= oroad.road_pos >> 16)
     {
-        oinitengine.road_seg_addr1 += 4;                              // Increment to next long
-        seg_pos = roms.rom0p->read16(&a0);                            // Position In Level Data [Word]
-        seg_total_sprites = roms.rom0p->read8(&a0);                   // Number Of Sprites In Segment [byte]
-        d0 = roms.rom0p->read8(a0) * 4;                               // Block of Sprites [Byte]
+        seg_pos = d0;                                                 // Position In Level Data [Word]
+        seg_total_sprites = trackloader.read_total_sprites();         // Number of Sprites In Segment
+        d0 = trackloader.read_sprite_pattern_index();                 // Block Of Sprites
+
+        trackloader.scenery_offset += 4;                              // Advance to next scenery point
         
-        a0 = roms.rom0p->read32(outrun.adr.sprite_master_table + d0); // Set a0 to new address from master table of addresses
-        seg_sprite_freq = roms.rom0p->read16(&a0);                    // Set Sprite Frequency Value
-        seg_spr_offset2 = roms.rom0p->read16(&a0);                    // Set Reload value for sprite info offset
+        uint32_t a0 = trackloader.read_scenerymap_table(d0);          // Get Address of Scenery Pattern
+        seg_sprite_freq = trackloader.read16(trackloader.scenerymap_data, &a0);
+        seg_spr_offset2 = trackloader.read16(trackloader.scenerymap_data, &a0);
+        //uint32_t a0 = roms.rom0p->read32(outrun.adr.sprite_master_table + d0); // Set a0 to new address from master table of addresses
+        //seg_sprite_freq = roms.rom0p->read16(&a0);                    // Set Sprite Frequency Value
+        //seg_spr_offset2 = roms.rom0p->read16(&a0);                    // Set Reload value for sprite info offset
         seg_spr_addr = a0;                                            // Set ROM address for sprite info lookup (x, y, type)
                                                                       // NOTE: Sets to value of a0 itself, not memory location
         seg_spr_offset1 = 0;                                          // And Clear the offset into the above table

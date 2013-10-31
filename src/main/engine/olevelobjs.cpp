@@ -14,6 +14,9 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <iostream>
+
+#include "../trackloader.hpp"
 #include "engine/outils.hpp"
 #include "engine/olevelobjs.hpp"
 #include "engine/ostats.hpp"
@@ -150,16 +153,27 @@ void OLevelObjs::setup_sprites(uint32_t z)
 // +7: [Byte] Sprite Palette
 void OLevelObjs::setup_sprite(oentry* sprite, uint32_t z)
 {
+    #define READ8(x)  trackloader.read8(trackloader.scenerymap_data, x)
+    #define READ16(x) trackloader.read16(trackloader.scenerymap_data, x)
+    #define READ32(x) trackloader.read32(trackloader.scenerymap_data, x)
+
     sprite->control |= OSprites::ENABLE; // Turn sprite on
     uint32_t addr = osprites.seg_spr_addr + osprites.seg_spr_offset1;
 
     // Set sprite x,y (world coordinates)
+    //sprite->xw1     = 
+    //sprite->xw2     = ((int8_t) roms.rom0p->read8(addr + 1)) << 4;
+    //sprite->yw      = roms.rom0p->read16(addr + 2) << 7;
+    //sprite->type    = roms.rom0p->read8(addr + 5) << 2;
+    //sprite->addr    = roms.rom0p->read32(outrun.adr.sprite_type_table + sprite->type);
+    //sprite->pal_src = roms.rom0p->read8(addr + 7);
     sprite->xw1     = 
-    sprite->xw2     = ((int8_t) roms.rom0p->read8(addr + 1)) << 4;
-    sprite->yw      = roms.rom0p->read16(addr + 2) << 7;
-    sprite->type    = roms.rom0p->read8(addr + 5) << 2;
+    sprite->xw2     = READ8(addr + 1) << 4;
+    sprite->yw      = READ16(addr + 2) << 7;
+    sprite->type    = ((uint8_t) READ8 (addr + 5)) << 2;
     sprite->addr    = roms.rom0p->read32(outrun.adr.sprite_type_table + sprite->type);
-    sprite->pal_src = roms.rom0p->read8(addr + 7);
+
+    sprite->pal_src = READ8 (addr + 7);
     
     osprites.map_palette(sprite);
 
@@ -167,12 +181,12 @@ void OLevelObjs::setup_sprite(oentry* sprite, uint32_t z)
     sprite->reload = 0;
     sprite->z = z; // Set default zoom
     
-    if (roms.rom0p->read8(addr + 0) & 1)
+    if (READ8(addr + 0) & 1)
         sprite->control |= OSprites::HFLIP;
     else
         sprite->control &=~ OSprites::HFLIP;
 
-    if (roms.rom0p->read8(addr + 0) & 2)
+    if (READ8(addr + 0) & 2)
         sprite->control |= OSprites::SHADOW;
     else
         sprite->control &=~ OSprites::SHADOW;
@@ -182,7 +196,7 @@ void OLevelObjs::setup_sprite(oentry* sprite, uint32_t z)
     else
         sprite->control &=~ OSprites::WIDE_ROAD;
 
-    sprite->draw_props = roms.rom0p->read8(addr + 0) & 0xF0;
+    sprite->draw_props = READ8(addr + 0) & 0xF0;
     sprite->function_holder = sprite->draw_props >> 4; // set sprite type
 
     setup_sprite_routine(sprite);

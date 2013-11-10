@@ -72,12 +72,6 @@ set(src_frontend
     "${main_cpp_base}/frontend/menu.cpp"
     "${main_cpp_base}/frontend/ttrial.cpp"
     )
-    
-set(src_tracked
-    "${main_cpp_base}/tracked/tracked.hpp"
-
-    "${main_cpp_base}/tracked/tracked.cpp"
-    )
 
 set(src_hwvideo
     "${main_cpp_base}/hwvideo/hwroad.hpp"
@@ -209,7 +203,6 @@ SOURCE_GROUP(src\\sdl FILES ${src_sdl})
 SOURCE_GROUP(src\\directx FILES ${src_directx})
 SOURCE_GROUP(src\\engine FILES ${src_engine})
 SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
-SOURCE_GROUP(src\\tracked FILES ${src_tracked})
 
 set(SRCS
     ${src_main}
@@ -220,7 +213,6 @@ set(SRCS
     ${src_directx}
     ${src_engine}
     ${src_engine_audio}
-    ${src_tracked}
 )
 
 # Add Icon For Windows Builds

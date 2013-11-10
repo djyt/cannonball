@@ -63,8 +63,8 @@ public:
     // 0x6C: Change in road position
     int32_t road_pos_change; 
 	
-	// 0x5E: Instruct CPU 1 to load bonus road. Set Bit 1.
-	uint8_t road_load_bonus;
+	// 0x5E: Instruct CPU 1 to load end section road. Set Bit 1.
+	uint8_t road_load_end;
 
 	// 0x306: Road Control
 	uint8_t road_ctrl;

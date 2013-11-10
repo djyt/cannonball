@@ -161,12 +161,6 @@ void OLevelObjs::setup_sprite(oentry* sprite, uint32_t z)
     uint32_t addr = osprites.seg_spr_addr + osprites.seg_spr_offset1;
 
     // Set sprite x,y (world coordinates)
-    //sprite->xw1     = 
-    //sprite->xw2     = ((int8_t) roms.rom0p->read8(addr + 1)) << 4;
-    //sprite->yw      = roms.rom0p->read16(addr + 2) << 7;
-    //sprite->type    = roms.rom0p->read8(addr + 5) << 2;
-    //sprite->addr    = roms.rom0p->read32(outrun.adr.sprite_type_table + sprite->type);
-    //sprite->pal_src = roms.rom0p->read8(addr + 7);
     sprite->xw1     = 
     sprite->xw2     = READ8(addr + 1) << 4;
     sprite->yw      = READ16(addr + 2) << 7;

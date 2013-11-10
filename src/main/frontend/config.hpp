@@ -88,6 +88,7 @@ struct engine_settings_t
     int randomgen;
     int level_objects;
     bool fix_bugs;
+    bool layout_debug;
 };
 
 class Config

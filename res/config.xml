@@ -222,6 +222,9 @@
     <!-- Fix minor bugs present in the original engine. -->
     <!-- Tile on music select screen, ms value at checkpoint etc. -->
     <fix_bugs>1</fix_bugs>
+    
+    <!-- Display debug info that's useful for LayOut track editing -->
+    <layout_debug>0</layout_debug>
 </engine>
 
 <!-- Settings for Time Trial Mode -->

@@ -147,6 +147,7 @@ void Config::load(const std::string &filename)
     engine.level_objects = pt_config.get("engine.levelobjects", 1);
     engine.randomgen     = pt_config.get("engine.randomgen",    1);
     engine.fix_bugs      = pt_config.get("engine.fix_bugs",     1) != 0;
+    engine.layout_debug  = pt_config.get("engine.layout_debug", 0) != 0;
 
     // ------------------------------------------------------------------------
     // Time Trial Mode

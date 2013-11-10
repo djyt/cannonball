@@ -74,9 +74,7 @@ void OInitEngine::init(int8_t level)
 
     // Road Renderer: Setup correct stage address 
     if (level)
-        //trackloader.setup_path(stage_data[oroad.stage_lookup_off] << 2);
         trackloader.init_path(oroad.stage_lookup_off);
-	    //oroad.stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + (stage_data[oroad.stage_lookup_off] << 2));
 
 	opalette.setup_sky_palette();
 	opalette.setup_ground_color();
@@ -126,15 +124,6 @@ void OInitEngine::setup_stage1()
 
 void OInitEngine::init_road_seg_master()
 {
-    //uint16_t stage_offset = stage_data[oroad.stage_lookup_off] << 2; // convert to long
-    //road_seg_master = roms.rom0p->read32(outrun.adr.road_seg_table + stage_offset);
-
-    // Rolled the following lines in from elsewhere
-	//road_seg_addr3 = roms.rom0p->read32(0x18 + road_seg_master); // Type of curve and unknown
-	//road_seg_addr2 = roms.rom0p->read32(0x1C + road_seg_master); // Width/Height Lookup
-	//road_seg_addr1 = roms.rom0p->read32(0x20 + road_seg_master); // Sprite information
-
-    //trackloader.setup_track(road_seg_master + 0x18, outrun.adr.road_height_lookup);
     trackloader.init_track(oroad.stage_lookup_off);
 }
 
@@ -154,8 +143,8 @@ void OInitEngine::init_road_seg_master()
 void OInitEngine::update_road()
 {
     check_road_split(); // Check/Process road split if necessary
-    uint32_t addr = 0;//road_seg_addr2;
-    uint16_t d0 = trackloader.read_width_height(&addr);//roms.rom0p->read16(&addr);
+    uint32_t addr = 0;
+    uint16_t d0 = trackloader.read_width_height(&addr);
     // Update next road section
     if (d0 <= oroad.road_pos >> 16)
     {
@@ -182,7 +171,6 @@ void OInitEngine::update_road()
                 change_width = -1; // Denote road width is changing
             }
         }
-        //road_seg_addr2 += 8;
         trackloader.wh_offset += 8;
     }
 
@@ -226,7 +214,7 @@ void OInitEngine::update_road()
 
     // ROM:0000B91C set_road_type: 
 
-    int16_t segment_pos = trackloader.read_curve(0);//roms.rom0p->read16(road_seg_addr3);
+    int16_t segment_pos = trackloader.read_curve(0);
 
     if (segment_pos != -1)
     {
@@ -234,15 +222,14 @@ void OInitEngine::update_road()
 
         if (d1 <= (int16_t) (oroad.road_pos >> 16))
         {
-            road_curve_next = trackloader.read_curve(2);//roms.rom0p->read16(2 + road_seg_addr3);
-            road_type_next  = trackloader.read_curve(4);//roms.rom0p->read16(4 + road_seg_addr3);
+            road_curve_next = trackloader.read_curve(2);
+            road_type_next  = trackloader.read_curve(4);
         }
 
         if (segment_pos <= (int16_t) (oroad.road_pos >> 16))
         {
-            road_curve = trackloader.read_curve(2);//roms.rom0p->read16(2 + road_seg_addr3);
-            road_type  = trackloader.read_curve(4);//roms.rom0p->read16(4 + road_seg_addr3);
-            //road_seg_addr3 += 6;
+            road_curve = trackloader.read_curve(2);
+            road_type  = trackloader.read_curve(4);
             trackloader.curve_offset += 6;
             road_type_next = 0;
             road_curve_next = 0;
@@ -300,6 +287,9 @@ void OInitEngine::update_engine()
             else
                 ohud.blit_text_new(9, 26, "L");
         }
+
+        if (config.engine.layout_debug)
+            ohud.draw_debug_info(oroad.road_pos, oroad.height_lookup_wrk, trackloader.read_sprite_pattern_index());
     }
 
     if (olevelobjs.spray_counter > 0)
@@ -530,15 +520,11 @@ void OInitEngine::init_split1()
 {
     rd_split_state = SPLIT_CHOICE1;
 
-    oroad.road_load_split = -1;
-    oroad.road_ctrl = ORoad::ROAD_BOTH_P0_INV; // Both Roads (Road 0 Priority) (Road Split. Invert Road 0)
-    road_width_orig = oroad.road_width >> 16;
-    oroad.road_pos = 0;
+    oroad.road_load_split  = -1;
+    oroad.road_ctrl        = ORoad::ROAD_BOTH_P0_INV; // Both Roads (Road 0 Priority) (Road Split. Invert Road 0)
+    road_width_orig        = oroad.road_width >> 16;
+    oroad.road_pos         = 0;
     oroad.tilemap_h_target = 0;
-    //road_seg_addr3 = roms.rom0p->read32(outrun.adr.road_seg_split);
-    //road_seg_addr2 = roms.rom0p->read32(outrun.adr.road_seg_split + 4);
-    //trackloader.setup_track(outrun.adr.road_seg_split, outrun.adr.road_height_lookup);
-    //road_seg_addr1 = roms.rom0p->read32(outrun.adr.road_seg_split + 8);
     trackloader.init_track_split();
 }
 
@@ -733,11 +719,6 @@ void OInitEngine::init_bonus()
     oroad.road_pos  = 0;
     oroad.tilemap_h_target = 0;
     oanimseq.end_seq = oroad.stage_lookup_off - 0x20; // Set End Sequence (0 - 4)
-    uint32_t adr   = roms.rom0p->read32(outrun.adr.road_seg_end + (oanimseq.end_seq << 2)); // Road Data Addr
-    //road_seg_addr3 = roms.rom0p->read32(&adr);
-    //road_seg_addr2 = roms.rom0p->read32(&adr);
-    //trackloader.setup_track(adr, outrun.adr.road_height_lookup);
-    //road_seg_addr1 = roms.rom0p->read32(adr + 8);
     trackloader.init_track_bonus(oanimseq.end_seq);
     outrun.game_state = GS_INIT_BONUS;
     rd_split_state = 0x11;

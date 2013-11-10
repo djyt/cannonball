@@ -431,7 +431,7 @@ void Outrun::main_switch()
         case GS_INIT_BONUS:
             ostats.frame_counter = ostats.frame_reset;
             obonus.bonus_control = OBonus::BONUS_INIT;  // Initialize Bonus Mode Logic
-            oroad.road_load_bonus |= BIT_0;             // Instruct CPU 1 to load bonus road section
+            oroad.road_load_end   |= BIT_0;             // Instruct CPU 1 to load end road section
             ostats.game_completed |= BIT_0;             // Denote game completed
             obonus.bonus_timer = 3600;                  // Safety Timer Added in Rev. A Roms
             game_state = GS_BONUS;
@@ -637,7 +637,7 @@ void Outrun::init_jump_table()
         if (trackloader.display_start_line)
             olevelobjs.init_startline_sprites(); // Hard coded start line sprites (not part of level data)
     }
-    else
+    else if (trackloader.display_start_line)
         olevelobjs.init_timetrial_sprites();
 
     otraffic.init();
@@ -905,8 +905,7 @@ void Outrun::select_course(bool jap, bool prototype)
         adr.road_height_lookup    = ROAD_HEIGHT_LOOKUP;
     }
 
-    //trackloader.init_original_tracks();
-    trackloader.init();
+    trackloader.init(jap);
 
     // Use Prototype Coconut Beach Track
     trackloader.stage_data[0] = prototype ? 0x3A : 0x3C;

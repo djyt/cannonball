@@ -27,7 +27,6 @@
 #include "engine/outrun.hpp"
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
-#include "tracked/tracked.hpp"
 
 // Direct X Haptic Support.
 // Fine to include on non-windows builds as dummy functions used.
@@ -46,7 +45,6 @@ Audio cannonball::audio;
 #endif
 
 Menu menu;
-Tracked tracked;
 
 static void quit_func(int code)
 {
@@ -179,10 +177,6 @@ static void tick()
         case STATE_INIT_MENU:
             menu.init();
             state = STATE_MENU;
-            break;
-
-        case STATE_TRACKED:
-            tracked.tick();
             break;
     }
     // Draw SDL Video

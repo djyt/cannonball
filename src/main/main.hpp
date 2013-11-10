@@ -31,7 +31,6 @@ namespace cannonball
         STATE_MENU,
         STATE_INIT_GAME,
         STATE_GAME,
-        STATE_TRACKED,
         STATE_QUIT
     };
 }

@@ -396,53 +396,28 @@ void OPalette::write_next_pal_to_ram()
     oinitengine.end_stage_props &= ~BIT_1; 
 
     // Lookup palette entry from the road seg table based on route chosen
-    //uint32_t src_pal_addr = outrun.adr.road_seg_table + (oinitengine.stage_data[stage_offset] << 2);
-    //uint32_t road_seg_addr = roms.rom0p->read32(src_pal_addr);
     Level *next_level = trackloader.get_level(stage_offset);
 
     // road palette
-    //uint32_t pal_entries = roms.rom0p->read32(road_seg_addr + 0x10);
-    //pal_fade[dst] = roms.rom0p->read16(pal_entries);
-    pal_fade[dst] = next_level->palr1.road >> 16;
-    dst += 9;
+    pal_fade[dst] = next_level->palr1.road >> 16;             dst += 9;
     // sky palette
-    //pal_fade[dst] = roms.rom0p->read16(pal_entries + 2);
-    pal_fade[dst] = next_level->palr1.road & 0xFFFF;
-    dst += 9;
+    pal_fade[dst] = next_level->palr1.road & 0xFFFF;          dst += 9;
     // Road Stripe Palette Entries
-    //pal_entries = roms.rom0p->read32(road_seg_addr + 0x8);
-    //pal_fade[dst] = roms.rom0p->read16(pal_entries); // first word
-    pal_fade[dst] = next_level->palr1.stripe >> 16;
-    dst += 9;
-    //pal_fade[dst] = roms.rom0p->read16(pal_entries + 2); // second word
-    pal_fade[dst] = next_level->palr1.stripe & 0xFFFF;
-    dst += 9;
+    pal_fade[dst] = next_level->palr1.stripe >> 16;           dst += 9;
+    pal_fade[dst] = next_level->palr1.stripe & 0xFFFF;        dst += 9;
     // Road Side Palette Entries
-    //pal_entries = roms.rom0p->read32(road_seg_addr + 0xC);
-    //pal_fade[dst] = roms.rom0p->read16(pal_entries); // first word
-    pal_fade[dst] = next_level->palr1.side >> 16;
-    dst += 9;
-    //pal_fade[dst] = roms.rom0p->read16(pal_entries + 2); // second word
-    pal_fade[dst] = next_level->palr1.side & 0xFFFF;
-    dst += 9;
+    pal_fade[dst] = next_level->palr1.side >> 16;             dst += 9;
+    pal_fade[dst] = next_level->palr1.side & 0xFFFF;          dst += 9;
     // Road Stripe Centre Palette Entries
-    //pal_entries = roms.rom0p->read32(road_seg_addr + 0x4);
-    //pal_fade[dst] = roms.rom0p->read16(pal_entries); // first word
-    pal_fade[dst] = next_level->palr1.stripe_centre >> 16;
-    dst += 9;
-    //pal_fade[dst] = roms.rom0p->read16(pal_entries + 2); // second word
-    pal_fade[dst] = next_level->palr1.stripe_centre & 0xFFFF;
-    dst += 9;
+    pal_fade[dst] = next_level->palr1.stripe_centre >> 16;    dst += 9;
+    pal_fade[dst] = next_level->palr1.stripe_centre & 0xFFFF; dst += 9;
+    
     // Ground Palette Entries (Index to table below)
-    //pal_entries = roms.rom0p->read32(road_seg_addr + 0x14);
-    //uint16_t d0 = roms.rom0p->read16(pal_entries) << 2;
-
-    //uint32_t ground_pal_addr = roms.rom0.read32(PAL_GND_TABLE + d0);
     uint32_t ground_pal_addr = trackloader.read_pal_gnd_table(next_level->pal_gnd);
 
     for (int16_t i = 0; i <= 15; i++)
     {
-        pal_fade[dst] = trackloader.read16(trackloader.pal_gnd_data, &ground_pal_addr);//roms.rom0.read16(&ground_pal_addr);
+        pal_fade[dst] = trackloader.read16(trackloader.pal_gnd_data, &ground_pal_addr);
         dst += 9;
     }
 }

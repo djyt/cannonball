@@ -68,7 +68,7 @@ void ORoad::init()
     car_x_bak        = 0;
     height_lookup    = 0;
     road_pos_change  = 0;
-    road_load_bonus  = 0;
+    road_load_end    = 0;
     road_ctrl        = ROAD_OFF;
     road_load_split  = 0;
     road_width       = 0;  
@@ -201,12 +201,7 @@ void ORoad::clear_road_ram()
 
 void ORoad::init_stage1()
 {
-    // Sets to 0x3c [Stage 1] - First Entry Of Stage Master Table In RAM
-    // Multiply by 4, as table contains longs
-    //const uint16_t stage1 = oinitengine.stage_data[0] << 2; 
-    //stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage1);
-    trackloader.init_path(0);
-    
+    trackloader.init_path(0); 
     road_pos = 0;
     road_ctrl = ROAD_BOTH_P0;
     // ignore init counter stuff (move.b  #$A,$49(a5))
@@ -244,12 +239,7 @@ void ORoad::check_load_road()
     if (ostats.cur_stage != stage_loaded)
     {
         stage_loaded = ostats.cur_stage; // Denote loaded
-
-        // Table contains longs, so multiply by 4
-        //const uint16_t stage_index = oinitengine.stage_data[stage_lookup_off] << 2;
-        //trackloader.setup_path(stage_index);
         trackloader.init_path(stage_lookup_off);
-        //stage_addr = roms.rom1p->read32(ROAD_DATA_LOOKUP + stage_index);
         return;
     }
 
@@ -257,16 +247,14 @@ void ORoad::check_load_road()
     if (road_load_split)
     {
         trackloader.init_path_split();
-        //stage_addr = ROAD_DATA_SPLIT;
         road_load_split = 0;
     }
 
-    // Check Bonus
-    else if (road_load_bonus)
+    // Check End Section
+    else if (road_load_end)
     {
-        trackloader.init_path_bonus();
-        //stage_addr = ROAD_DATA_BONUS;
-        road_load_bonus = 0;
+        trackloader.init_path_end();
+        road_load_end = 0;
     }
 }
 

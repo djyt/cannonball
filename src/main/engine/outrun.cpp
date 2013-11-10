@@ -67,7 +67,7 @@ void Outrun::init()
 {    
     freeze_timer = ttrial.enabled ? true : config.engine.freeze_timer;
 
-    game_state = GS_INIT;
+    game_state = config.engine.layout_debug ? GS_INIT_GAME : GS_INIT;
     video.enabled = false;
     select_course(config.engine.jap != 0, config.engine.prototype != 0);
     video.clear_text_ram();

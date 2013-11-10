@@ -255,7 +255,6 @@ int main(int argc, char* argv[])
         audio.init();
 #endif
         state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
-        //state = STATE_TRACKED;
 
         // Initalize controls
         input.init(config.controls.keyconfig, config.controls.padconfig, 

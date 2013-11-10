@@ -29,14 +29,11 @@ OHud::~OHud(void)
 {
 }
 
-int mask = -1;
-
 // Draw Text Labels For HUD
 // 
 // Source: 0xB462
 void OHud::draw_main_hud()
 {
-    mask += 2;
     blit_text1(HUD_LAP1);
     blit_text1(HUD_LAP2);
 
@@ -565,6 +562,19 @@ void OHud::blit_text2(uint32_t src_addr)
 // ------------------------------------------------------------------------------------------------
 // Enhanced Cannonball Routines Below
 // ------------------------------------------------------------------------------------------------
+
+void OHud::draw_debug_info(uint32_t pos, uint16_t height_pat, uint8_t sprite_pat)
+{
+    ohud.blit_text_new(0,  4, "LEVEL POS", OHud::GREEN);
+    ohud.blit_text_new(16, 4, "    ");
+    ohud.blit_text_new(16, 4, config.to_string((int)(pos >> 16)).c_str(), OHud::PINK);
+    ohud.blit_text_new(0,  5, "HEIGHT PATTERN", OHud::GREEN);
+    ohud.blit_text_new(16, 5, "    ");
+    ohud.blit_text_new(16, 5, config.to_string((int)height_pat).c_str(), OHud::PINK);
+    ohud.blit_text_new(0,  6, "SPRITE PATTERN", OHud::GREEN);
+    ohud.blit_text_new(16, 6, "    ");
+    ohud.blit_text_new(16, 6, config.to_string((int)sprite_pat).c_str(), OHud::PINK);
+}
 
 // Big Yellow Text. Always Centered. 
 void OHud::blit_text_big(const uint8_t Y, const char* text, bool do_notes)

@@ -1,7 +1,22 @@
+/***************************************************************************
+    Track Loading Code.
+
+    Abstracts the level format, so that the original ROMs as well as
+    in conjunction with track data from the LayOut editor.
+
+    - Handles levels (path, width, height, scenery)
+    - Handles additional level sections (road split, end section)
+    - Handles road/level related palettes
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "globals.hpp"
 
+// Road Generator Palette Representation
 struct RoadPalette
 {
     uint32_t stripe_centre;   // Centre Stripe Colour
@@ -10,6 +25,7 @@ struct RoadPalette
     uint32_t road;            // Main Road Colour
 };
 
+// OutRun Level Representation
 struct Level
 {
     uint8_t* path;            // CPU 1 Path Data
@@ -24,20 +40,7 @@ struct Level
     RoadPalette palr2;        // Road 2 Generator Palette
 };
 
-// LayOut Header Format
-/*struct LayOut
-{
-    static const uint32_t EXPECTED_VERSION = 1;
-
-    static const uint32_t HEADER      = 0;
-    static const uint32_t PATH        = HEADER      + sizeof(uint32_t) + sizeof(uint8_t);
-    static const uint32_t LEVELS      = PATH        + sizeof(uint32_t);
-    static const uint32_t PAL_SKY     = LEVELS      + (STAGES * sizeof(uint32_t));
-    static const uint32_t PAL_GND     = PAL_SKY     + sizeof(uint32_t);
-    static const uint32_t SPRITE_MAPS = PAL_GND     + sizeof(uint32_t);
-    static const uint32_t HEIGHT_MAPS = SPRITE_MAPS + sizeof(uint32_t);
-};*/
-
+// LayOut Binary Header Format
 struct LayOut
 {
     static const uint32_t EXPECTED_VERSION = 1;
@@ -45,7 +48,9 @@ struct LayOut
     static const uint32_t HEADER      = 0;
     static const uint32_t PATH        = HEADER      + sizeof(uint32_t) + sizeof(uint8_t);
     static const uint32_t LEVELS      = PATH        + sizeof(uint32_t);
-    static const uint32_t SPLIT_PATH  = LEVELS      + (STAGES * sizeof(uint32_t));
+    static const uint32_t END_PATH    = LEVELS      + (STAGES * sizeof(uint32_t));
+    static const uint32_t END_LEVELS  = END_PATH    + sizeof(uint32_t);
+    static const uint32_t SPLIT_PATH  = END_LEVELS  + (5 * sizeof(uint32_t));
     static const uint32_t SPLIT_LEVEL = SPLIT_PATH  + sizeof(uint32_t);
     static const uint32_t PAL_SKY     = SPLIT_LEVEL + sizeof(uint32_t);
     static const uint32_t PAL_GND     = PAL_SKY     + sizeof(uint32_t);
@@ -67,6 +72,7 @@ public:
     const static int MODE_ORIGINAL = 0;
     const static int MODE_LAYOUT   = 1;
 
+    // Display start line on Stage 1
     uint8_t display_start_line;
 
     uint32_t curve_offset;
@@ -87,17 +93,17 @@ public:
     TrackLoader();
     ~TrackLoader();
 
-    void init();
+    void init(bool jap);
     bool set_layout_track(const char* filename);
-    void init_original_tracks();
-    void init_layout_tracks();
+    void init_original_tracks(bool jap);
+    void init_layout_tracks(bool jap);
     void init_track(const uint32_t);
     void init_track_split();
     void init_track_bonus(const uint32_t);
 
     void init_path(const uint32_t);
     void init_path_split();
-    void init_path_bonus();
+    void init_path_end();
 
     uint32_t read_pal_sky_table(uint16_t entry);
     uint32_t read_pal_gnd_table(uint16_t entry);    
@@ -155,16 +161,14 @@ private:
 
     int mode;
 
-    Level* levels;
-    Level* level_split;
-    Level* levels_bonus;
+    Level* levels;         // Normal Stages 
+    Level* level_split;    // Split Section
+    Level* levels_end;     // End Section
 
-    uint8_t* track_data; // Custom track data
-
-    uint8_t* current_path; // CPU 1 
+    uint8_t* current_path; // CPU 1 Road Path
     
     void setup_level(Level* l, RomLoader* data, const int STAGE_ADR);
-    void setup_split(Level* l, RomLoader* data, const int STAGE_ADR);
+    void setup_section(Level* l, RomLoader* data, const int STAGE_ADR);
 };
 
 extern TrackLoader trackloader;

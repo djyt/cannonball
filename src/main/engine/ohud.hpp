@@ -44,6 +44,7 @@ public:
     void draw_score_tile(uint32_t, const uint32_t, const uint8_t);
     void draw_digits(uint32_t, uint8_t, uint16_t col = GREEN);
     void draw_rev_counter();
+    void draw_debug_info(uint32_t pos, uint16_t height_pat, uint8_t sprite_pat);
 	void blit_text1(uint32_t);
     void blit_text1(uint8_t x, uint8_t y, uint32_t src_addr);
 	void blit_text2(uint32_t);

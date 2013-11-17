@@ -10,7 +10,7 @@ if (NOT DEFINED ENV{DXSDK})
 endif()
 
 # Use OpenGL for rendering.
-set(OPENGL 0)
+set(OPENGL 1)
 
 include_directories(
     "${sdl_root}/include"
@@ -19,10 +19,10 @@ include_directories(
 link_libraries(cannonball 
     SDL
     SDLmain
-    #opengl32 # For OpenGL
-    #glu32    # For OpenGL
-    dxguid
-    dinput8
+    opengl32 # For OpenGL
+    glu32    # For OpenGL
+    dxguid   # Direct X Haptic Support
+    dinput8  # Direct X Haptic Support
 )
 
 # Linking

@@ -994,7 +994,7 @@ void ORoad::set_y_interpolate()
 
     // Address of next entry in road height table data [rom so no need to scale]
     a1_lookup = (height_index * 2) + height_addr;
-    //std::cout << std::hex << (road_pos >> 16) << " : " << a1_lookup << std::endl;
+
     // Road Y Positions (references to this decrement) [Destination]    
     y_addr = 0x200 + road_p1;
 

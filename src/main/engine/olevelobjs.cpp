@@ -14,8 +14,6 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include <iostream>
-
 #include "../trackloader.hpp"
 #include "engine/outils.hpp"
 #include "engine/olevelobjs.hpp"

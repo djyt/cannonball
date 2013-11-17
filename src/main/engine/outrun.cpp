@@ -704,8 +704,6 @@ void Outrun::select_course(bool jap, bool prototype)
         roms.rom0p = &roms.j_rom0;
         roms.rom1p = &roms.j_rom1;
 
-        //oinitengine.stage_data    = oinitengine.stage_data_jap;
-
         // Main CPU
         adr.tiles_def_lookup      = TILES_DEF_LOOKUP_J;
         adr.tiles_table           = TILES_TABLE_J;
@@ -804,8 +802,6 @@ void Outrun::select_course(bool jap, bool prototype)
     {
         roms.rom0p = &roms.rom0;
         roms.rom1p = &roms.rom1;
-
-        //oinitengine.stage_data    = oinitengine.stage_data_usa;
 
         // Main CPU
         adr.tiles_def_lookup      = TILES_DEF_LOOKUP;

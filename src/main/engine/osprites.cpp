@@ -370,6 +370,10 @@ void OSprites::map_palette(oentry* spr)
 
 void OSprites::do_spr_order_shadows(oentry* input)
 {
+    // LayOut specific fix to avoid memory crash on over populated scenery segments
+    if (spr_cnt_main + spr_cnt_shadow >= JUMP_ENTRIES_TOTAL)
+        return;
+
     // Use priority as lookup into table. Assume we're on boundaries of 0x10
     uint16_t priority = (input->priority & 0x1FF) << 4;
     uint8_t bytes_to_copy = sprite_order[priority];
@@ -386,6 +390,10 @@ void OSprites::do_spr_order_shadows(oentry* input)
     // Code to handle shadows under sprites
     // test_shadow: 
     if (!(input->control & SHADOW)) return;
+
+    // LayOut specific fix to avoid memory crash on over populated scenery segments
+    if (spr_cnt_main + spr_cnt_shadow >= JUMP_ENTRIES_TOTAL)
+        return;
 
     input->dst_index = spr_cnt_shadow;
     spr_cnt_shadow++;                       // Increment total shadow count

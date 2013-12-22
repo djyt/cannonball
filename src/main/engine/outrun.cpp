@@ -28,6 +28,7 @@
 #include "engine/otiles.hpp"
 #include "engine/otraffic.hpp"
 #include "engine/outils.hpp"
+#include "cannonboard/interface.hpp"
 
 Outrun outrun;
 
@@ -55,11 +56,13 @@ Outrun outrun;
 
 Outrun::Outrun()
 {
+    cannonboard = new Interface();
     outputs = new OOutputs();
 }
 
 Outrun::~Outrun()
 {
+    delete cannonboard;
     delete outputs;
 }
 
@@ -80,6 +83,9 @@ void Outrun::init()
     oinitengine.init(ttrial.enabled ? ttrial.level : 0);
     osoundint.init();
     outils::reset_random_seed(); // Ensure we match the genuine boot up of the original game each time
+
+    cannonboard->init();
+    cannonboard->start();
 }
 
 
@@ -250,13 +256,13 @@ void Outrun::main_switch()
     switch (game_state)
     {
         case GS_INIT:  
-            osoundint.has_booted = true;
-            oferrari.car_inc_old = car_inc_bak >> 16;
+            osoundint.has_booted      = true;
+            oferrari.car_inc_old      = car_inc_bak >> 16;
             oinitengine.car_increment = car_inc_bak;
-            oferrari.car_ctrl_active = true;
-            ostats.time_counter = 0x15;
-            ostats.frame_counter = ostats.frame_reset;
-            video.enabled = true;
+            oferrari.car_ctrl_active  = true;
+            ostats.time_counter       = 0x15;
+            ostats.frame_counter      = ostats.frame_reset;
+            video.enabled             = true;
             game_state = ttrial.enabled ? GS_INIT_MUSIC : GS_ATTRACT;
             // fall through
             
@@ -654,10 +660,7 @@ void Outrun::init_jump_table()
 
 void Outrun::controls()
 {
-    if (!input.analog || !input.gamepad)
-        oinputs.simulate_analog();
-    else
-        oinputs.analog();
+    oinputs.tick(&cannonboard->get_packet());
 
     if (input.is_pressed(Input::HORIZON_DOWN))
     {

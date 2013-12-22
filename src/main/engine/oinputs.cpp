@@ -12,6 +12,8 @@
 #include "engine/oinputs.hpp"
 #include "engine/ostats.hpp"
 
+#include "cannonboard/interface.hpp"
+
 OInputs oinputs;
 
 OInputs::OInputs(void)
@@ -39,6 +41,35 @@ void OInputs::init()
     input_brake = 0;
     gear = false;
     crash_input = 0;
+}
+#include <iostream>
+void OInputs::tick(Packet* packet)
+{
+    // CannonBoard Input
+    if (config.controls.cannonboard)
+    {
+        if (packet != NULL)
+        {
+            input_acc      = packet->ai1;
+            input_brake    = packet->ai2;
+            input_steering = packet->ai3;
+            
+            if (config.controls.gear != config.controls.GEAR_AUTO)
+                gear       = (packet->di1 & 0x10) == 0;
+
+            std::cout << "acc:" << input_acc << " brake:" << input_brake << " steer:" << input_steering << " gear:" << gear << std::endl;
+        }
+    }
+    // Standard PC Keyboard/Joypad/Wheel Input
+    else
+    {
+        // Digital Controls
+        if (!input.analog || !input.gamepad)
+            simulate_analog();
+        // Analog Controls
+        else
+            analog();
+    }
 }
 
 void OInputs::analog()
@@ -135,6 +166,9 @@ void OInputs::digital_pedals()
 
 void OInputs::do_gear()
 {
+    if (config.controls.cannonboard)
+        return;
+
     // ------------------------------------------------------------------------
     // GEAR SHIFT
     // ------------------------------------------------------------------------
@@ -143,15 +177,18 @@ void OInputs::do_gear()
     if (config.controls.gear == config.controls.GEAR_AUTO)
         return;
 
-    // Manual: Cabinet Shifter
-    if (config.controls.gear == config.controls.GEAR_PRESS)
-        gear = !input.is_pressed(Input::GEAR);
-
-    // Manual: Keyboard/Digital Button
     else
     {
-        if (input.has_pressed(Input::GEAR))
-            gear = !gear;
+        // Manual: Cabinet Shifter
+        if (config.controls.gear == config.controls.GEAR_PRESS)
+            gear = !input.is_pressed(Input::GEAR);
+
+        // Manual: Keyboard/Digital Button
+        else
+        {
+            if (input.has_pressed(Input::GEAR))
+                gear = !gear;
+        }
     }
 }
 

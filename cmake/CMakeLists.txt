@@ -25,7 +25,7 @@ else()
     include(${DCMAKE})
 endif(TARGET)
 
-set(BOOST_INCLUDEDIR ${lib_base}/boost_1_51_0)
+set(BOOST_INCLUDEDIR ${lib_base}/boost_1_54_0)
 find_package(Boost REQUIRED)
 
 # Include
@@ -128,6 +128,13 @@ set(src_directx
     "${main_cpp_base}/directx/ffeedback.cpp"
 )
 
+set(src_cannonboard
+    "${main_cpp_base}/cannonboard/asyncserial.hpp"
+    "${main_cpp_base}/cannonboard/interface.hpp"
+    "${main_cpp_base}/cannonboard/asyncserial.cpp"
+    "${main_cpp_base}/cannonboard/interface.cpp"
+)
+
 set(src_engine
     "${main_cpp_base}/engine/oaddresses.hpp"
     "${main_cpp_base}/engine/oanimseq.hpp"
@@ -201,6 +208,7 @@ SOURCE_GROUP(src\\hwvideo FILES ${src_hwvideo})
 SOURCE_GROUP(src\\hwaudio FILES ${src_hwaudio})
 SOURCE_GROUP(src\\sdl FILES ${src_sdl})
 SOURCE_GROUP(src\\directx FILES ${src_directx})
+SOURCE_GROUP(src\\cannonboard FILES ${src_cannonboard})
 SOURCE_GROUP(src\\engine FILES ${src_engine})
 SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
 
@@ -211,6 +219,7 @@ set(SRCS
     ${src_hwaudio}
     ${src_sdl}
     ${src_directx}
+    ${src_cannonboard}
     ${src_engine}
     ${src_engine_audio}
 )

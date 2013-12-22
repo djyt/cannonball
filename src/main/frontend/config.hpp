@@ -58,6 +58,8 @@ struct sound_settings_t
 
 struct controls_settings_t
 {
+    int cannonboard;  // CannonBall used in conjunction with CannonBoard in arcade cabinet
+
     const static int GEAR_BUTTON = 0;
     const static int GEAR_PRESS  = 1; // For cabinets
     const static int GEAR_AUTO   = 2;

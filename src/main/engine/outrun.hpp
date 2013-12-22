@@ -174,6 +174,7 @@ struct adr_t
 };
 
 class OOutputs;
+class Interface;
 
 class Outrun
 {
@@ -206,6 +207,8 @@ public:
     void select_course(const bool jap, const bool prototype);
 
 private:
+    Interface* cannonboard;
+
     OOutputs* outputs;
 
     // Car Increment Backup for attract mode

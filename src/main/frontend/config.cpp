@@ -97,6 +97,7 @@ void Config::load(const std::string &filename)
     // ------------------------------------------------------------------------
     // Controls
     // ------------------------------------------------------------------------
+    controls.cannonboard   = pt_config.get("controls.<xmlattr>.mode", 0);
     controls.gear          = pt_config.get("controls.gear", 0);
     controls.steer_speed   = pt_config.get("controls.steerspeed", 3);
     controls.pedal_speed   = pt_config.get("controls.pedalspeed", 4);

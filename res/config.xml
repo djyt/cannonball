@@ -87,8 +87,14 @@
 
 <!-- 
     Controls Settings
+    
+    There are two high level modes
+    
+    0 = Standard PC Input (keyboard/joypad/wheel)
+    1 = Original OutRun Controls (Requires CannonBoard PCB setup)
+    
 -->
-<controls>
+<controls mode = "1">
     <!-- Gears: 
         0 = Manual   (Click to shift, for normal play)
         1 = Manual   (Hold to shift, for cabinet play)

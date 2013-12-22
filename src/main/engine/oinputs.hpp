@@ -13,6 +13,8 @@
 #include "sdl/input.hpp"
 #include "outrun.hpp"
 
+struct Packet;
+
 class OInputs
 {
 public:
@@ -42,8 +44,7 @@ public:
     ~OInputs(void);
 
     void init();
-    void simulate_analog();
-    void analog();
+    void tick(Packet* packet);
     void adjust_inputs();
     void do_gear();
     void do_credits();
@@ -80,6 +81,8 @@ private:
     // Brake Input
     int16_t input_brake;
 
+    void simulate_analog();
+    void analog();
     void digital_pedals();
 };
 

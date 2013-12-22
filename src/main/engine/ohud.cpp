@@ -13,6 +13,7 @@
 
 #include <cstring>
 
+#include "../utils.hpp"
 #include "engine/oferrari.hpp"
 #include "engine/outils.hpp"
 #include "engine/ohud.hpp"
@@ -62,6 +63,12 @@ void OHud::clear_timetrial_text()
 {
     blit_text_big(4,     "            ");
     blit_text_new(16, 7, "            ");
+}
+
+void OHud::draw_fps_counter(int16_t fps)
+{
+    std::string str = "FPS " + Utils::to_string(fps);
+    blit_text_new(30, 0, str.c_str());
 }
 
 
@@ -567,13 +574,13 @@ void OHud::draw_debug_info(uint32_t pos, uint16_t height_pat, uint8_t sprite_pat
 {
     ohud.blit_text_new(0,  4, "LEVEL POS", OHud::GREEN);
     ohud.blit_text_new(16, 4, "    ");
-    ohud.blit_text_new(16, 4, config.to_string((int)(pos >> 16)).c_str(), OHud::PINK);
+    ohud.blit_text_new(16, 4, Utils::to_string((int)(pos >> 16)).c_str(), OHud::PINK);
     ohud.blit_text_new(0,  5, "HEIGHT PATTERN", OHud::GREEN);
     ohud.blit_text_new(16, 5, "    ");
-    ohud.blit_text_new(16, 5, config.to_string((int)height_pat).c_str(), OHud::PINK);
+    ohud.blit_text_new(16, 5, Utils::to_string((int)height_pat).c_str(), OHud::PINK);
     ohud.blit_text_new(0,  6, "SPRITE PATTERN", OHud::GREEN);
     ohud.blit_text_new(16, 6, "    ");
-    ohud.blit_text_new(16, 6, config.to_string((int)sprite_pat).c_str(), OHud::PINK);
+    ohud.blit_text_new(16, 6, Utils::to_string((int)sprite_pat).c_str(), OHud::PINK);
 }
 
 // Big Yellow Text. Always Centered. 

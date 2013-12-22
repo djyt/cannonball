@@ -25,7 +25,7 @@ else()
     include(${DCMAKE})
 endif(TARGET)
 
-set(BOOST_INCLUDEDIR ${lib_base}/boost_1_51_0)
+set(BOOST_INCLUDEDIR ${lib_base}/boost_1_54_0)
 find_package(Boost REQUIRED)
 
 # Include
@@ -55,12 +55,14 @@ set(src_main
     "${main_cpp_base}/stdint.hpp"
     "${main_cpp_base}/main.hpp"
     "${main_cpp_base}/video.hpp"
+    "${main_cpp_base}/utils.hpp"
 
     "${main_cpp_base}/main.cpp"
     "${main_cpp_base}/romloader.cpp"
     "${main_cpp_base}/trackloader.cpp"
     "${main_cpp_base}/roms.cpp"
     "${main_cpp_base}/video.cpp"
+    "${main_cpp_base}/utils.cpp"
     )
 
 set(src_frontend

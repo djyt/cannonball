@@ -40,6 +40,9 @@
     -->
     <fps>2</fps>
     
+    <!-- Enable FPS Counter -->
+    <fps_counter>1</fps_counter>
+    
     <!-- Enhanced Widescreen Mode -->
     <widescreen>1</widescreen>
     
@@ -60,6 +63,9 @@
     
     <!-- Advertise Sound In Attract Mode -->
     <advertise>1</advertise>
+    
+    <!-- Preview Sound On Music Selection Screen (Enhancement, Off in original game) -->
+    <preview>1</preview>
     
     <!-- Custom Music: Play a WAV file instead of the inbuilt music -->
     <custom_music>

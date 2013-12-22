@@ -45,6 +45,7 @@ struct video_settings_t
     int scanlines;
     int widescreen;
     int fps;
+    int fps_count;
     int hires;
     int filtering;
 };
@@ -53,6 +54,7 @@ struct sound_settings_t
 {
     int enabled;
     int advertise;
+    int preview;
     custom_music_t custom_music[4];
 };
 
@@ -123,13 +125,8 @@ public:
     void save_scores();
     bool clear_scores();
     void set_fps(int fps);
-    std::string to_string(int i);
-    std::string to_string(char c);
-    std::string to_hex_string(int i);
    
 private:
-    // Conversions
-    uint32_t from_hex_string(std::string s);
 };
 
 extern Config config;

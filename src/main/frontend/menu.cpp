@@ -12,6 +12,7 @@
 #include "main.hpp"
 #include "menu.hpp"
 #include "setup.hpp"
+#include "../utils.hpp"
 
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
@@ -71,6 +72,7 @@ const static char* ENTRY_MUTE       = "SOUND ";
 const static char* ENTRY_BGM        = "BGM VOL ";
 const static char* ENTRY_SFX        = "SFX VOL ";
 const static char* ENTRY_ADVERTISE  = "ADVERTISE SOUND ";
+const static char* ENTRY_PREVIEWSND = "PREVIEW SOUND ";
 const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 
 // Controls Menu
@@ -140,6 +142,7 @@ void Menu::populate()
     //menu_sound.push_back(ENTRY_BGM);
     //menu_sound.push_back(ENTRY_SFX);
     menu_sound.push_back(ENTRY_ADVERTISE);
+    menu_sound.push_back(ENTRY_PREVIEWSND);
     menu_sound.push_back(ENTRY_MUSICTEST);
     menu_sound.push_back(ENTRY_BACK);
 
@@ -324,6 +327,10 @@ void Menu::tick_ui()
         osprites.sprite_copy();
         osprites.update_sprites();
     }
+
+    // Draw FPS
+    if (config.video.fps_count)
+        ohud.draw_fps_counter(cannonball::fps_counter);
 
     oroad.tick();
 }
@@ -535,6 +542,8 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_ADVERTISE))
                 config.sound.advertise = !config.sound.advertise;
+            else if (SELECTED(ENTRY_PREVIEWSND))
+                config.sound.preview = !config.sound.preview;
             else if (SELECTED(ENTRY_MUSICTEST))
                 set_menu(&menu_musictest);
             else if (SELECTED(ENTRY_BACK))
@@ -669,9 +678,9 @@ void Menu::refresh_menu()
         if (menu_selected == &menu_timetrial)
         {
             if (SELECTED(ENTRY_LAPS))
-                set_menu_text(ENTRY_LAPS, config.to_string(config.ttrial.laps));
+                set_menu_text(ENTRY_LAPS, Utils::to_string(config.ttrial.laps));
             else if (SELECTED(ENTRY_TRAFFIC))
-                set_menu_text(ENTRY_TRAFFIC, config.ttrial.traffic == 0 ? "DISABLED" : config.to_string(config.ttrial.traffic));
+                set_menu_text(ENTRY_TRAFFIC, config.ttrial.traffic == 0 ? "DISABLED" : Utils::to_string(config.ttrial.traffic));
         }
         else if (menu_selected == &menu_video)
         {
@@ -685,7 +694,7 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_WIDESCREEN))
                 set_menu_text(ENTRY_WIDESCREEN, config.video.widescreen ? "ON" : "OFF");
             else if (SELECTED(ENTRY_SCALE))
-                set_menu_text(ENTRY_SCALE, config.to_string(config.video.scale) + "X");
+                set_menu_text(ENTRY_SCALE, Utils::to_string(config.video.scale) + "X");
             else if (SELECTED(ENTRY_HIRES))
                 set_menu_text(ENTRY_HIRES, config.video.hires ? "ON" : "OFF");
             else if (SELECTED(ENTRY_FPS))
@@ -696,7 +705,7 @@ void Menu::refresh_menu()
                 set_menu_text(ENTRY_FPS, s);
             }
             else if (SELECTED(ENTRY_SCANLINES))
-                set_menu_text(ENTRY_SCANLINES, config.video.scanlines ? config.to_string(config.video.scanlines) +"%": "OFF");
+                set_menu_text(ENTRY_SCANLINES, config.video.scanlines ? Utils::to_string(config.video.scanlines) +"%": "OFF");
         }
         else if (menu_selected == &menu_sound)
         {
@@ -704,6 +713,8 @@ void Menu::refresh_menu()
                 set_menu_text(ENTRY_MUTE, config.sound.enabled ? "ON" : "OFF");
             else if (SELECTED(ENTRY_ADVERTISE))
                 set_menu_text(ENTRY_ADVERTISE, config.sound.advertise ? "ON" : "OFF");
+            else if (SELECTED(ENTRY_PREVIEWSND))
+                set_menu_text(ENTRY_PREVIEWSND, config.sound.preview ? "ON" : "OFF");
         }
         else if (menu_selected == &menu_controls)
         {
@@ -722,9 +733,9 @@ void Menu::refresh_menu()
                 set_menu_text(ENTRY_ANALOG, s);
             }
             else if (SELECTED(ENTRY_DSTEER))
-                set_menu_text(ENTRY_DSTEER, config.to_string(config.controls.steer_speed));
+                set_menu_text(ENTRY_DSTEER, Utils::to_string(config.controls.steer_speed));
             else if (SELECTED(ENTRY_DPEDAL))
-                set_menu_text(ENTRY_DPEDAL, config.to_string(config.controls.pedal_speed));
+                set_menu_text(ENTRY_DPEDAL, Utils::to_string(config.controls.pedal_speed));
         }
         else if (menu_selected == &menu_engine)
         {

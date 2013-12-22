@@ -28,6 +28,10 @@ public:
 
 private:
     uint16_t entry_start;
+
+    // Used to preview music track
+    int16_t last_music_selected;
+    int8_t preview_counter;
     
 	void setup_sprite1();
 	void setup_sprite2();

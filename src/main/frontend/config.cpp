@@ -17,6 +17,7 @@
 #include "config.hpp"
 #include "globals.hpp"
 #include "setup.hpp"
+#include "../utils.hpp"
 
 #include "engine/ohiscore.hpp"
 #include "engine/audio/osoundint.hpp"
@@ -70,7 +71,8 @@ void Config::load(const std::string &filename)
     video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed 
     video.scale      = pt_config.get("video.window.scale",       2); // Video Scale: Default is 2x    
     video.scanlines  = pt_config.get("video.scanlines",          0); // Scanlines
-    video.fps        = pt_config.get("video.fps",                2); // Default is 60 fps   
+    video.fps        = pt_config.get("video.fps",                2); // Default is 60 fps
+    video.fps_count  = pt_config.get("video.fps_counter",        0); // FPS Counter
     video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode
     video.hires      = pt_config.get("video.hires",              0); // Hi-Resolution Mode
     video.filtering  = pt_config.get("video.filtering",          0); // Open GL Filtering Mode
@@ -82,16 +84,17 @@ void Config::load(const std::string &filename)
     // ------------------------------------------------------------------------
     sound.enabled   = pt_config.get("sound.enable",    1);
     sound.advertise = pt_config.get("sound.advertise", 1);
+    sound.preview   = pt_config.get("sound.preview",   1);
 
     // Custom Music
     for (int i = 0; i < 4; i++)
     {
         std::string xmltag = "sound.custom_music.track";
-        xmltag += to_string(i+1);  
+        xmltag += Utils::to_string(i+1);  
 
         sound.custom_music[i].enabled = pt_config.get(xmltag + ".<xmlattr>.enabled", 0);
-        sound.custom_music[i].title   = pt_config.get(xmltag + ".title", "TRACK " +to_string(i+1));
-        sound.custom_music[i].filename= pt_config.get(xmltag + ".filename", "track"+to_string(i+1)+".wav");
+        sound.custom_music[i].title   = pt_config.get(xmltag + ".title", "TRACK " +Utils::to_string(i+1));
+        sound.custom_music[i].filename= pt_config.get(xmltag + ".filename", "track"+Utils::to_string(i+1)+".wav");
     }
 
     // ------------------------------------------------------------------------
@@ -169,6 +172,7 @@ bool Config::save(const std::string &filename)
 
     pt_config.put("sound.enable",    sound.enabled);
     pt_config.put("sound.advertise", sound.advertise);
+    pt_config.put("sound.preview",   sound.preview);
 
     pt_config.put("controls.gear",            controls.gear);
     pt_config.put("controls.steerspeed",      controls.steer_speed);
@@ -246,14 +250,14 @@ void Config::load_scores()
         score_entry* e = &ohiscore.scores[i];
         
         std::string xmltag = "score";
-        xmltag += to_string(i);  
+        xmltag += Utils::to_string(i);  
     
-        e->score    = from_hex_string(pt.get<std::string>(xmltag + ".score",    "0"));
+        e->score    = Utils::from_hex_string(pt.get<std::string>(xmltag + ".score",    "0"));
         e->initial1 = pt.get(xmltag + ".initial1", ".")[0];
         e->initial2 = pt.get(xmltag + ".initial2", ".")[0];
         e->initial3 = pt.get(xmltag + ".initial3", ".")[0];
-        e->maptiles = from_hex_string(pt.get<std::string>(xmltag + ".maptiles", "20202020"));
-        e->time     = from_hex_string(pt.get<std::string>(xmltag + ".time"    , "0")); 
+        e->maptiles = Utils::from_hex_string(pt.get<std::string>(xmltag + ".maptiles", "20202020"));
+        e->time     = Utils::from_hex_string(pt.get<std::string>(xmltag + ".time"    , "0")); 
 
         if (e->initial1 == '.') e->initial1 = 0x20;
         if (e->initial2 == '.') e->initial2 = 0x20;
@@ -263,7 +267,7 @@ void Config::load_scores()
     // Time Trial Scores
     for (int i = 0; i < 15; i++)
     {
-        ttrial.best_times[i] = pt.get("time_trial.score" + to_string(i), COUNTER_1M_15);
+        ttrial.best_times[i] = pt.get("time_trial.score" + Utils::to_string(i), COUNTER_1M_15);
     }
 }
 
@@ -277,20 +281,20 @@ void Config::save_scores()
         score_entry* e = &ohiscore.scores[i];
     
         std::string xmltag = "score";
-        xmltag += to_string(i);    
+        xmltag += Utils::to_string(i);    
         
-        pt.put(xmltag + ".score",    to_hex_string(e->score));
-        pt.put(xmltag + ".initial1", e->initial1 == 0x20 ? "." : to_string((char) e->initial1)); // use . to represent space
-        pt.put(xmltag + ".initial2", e->initial2 == 0x20 ? "." : to_string((char) e->initial2));
-        pt.put(xmltag + ".initial3", e->initial3 == 0x20 ? "." : to_string((char) e->initial3));
-        pt.put(xmltag + ".maptiles", to_hex_string(e->maptiles));
-        pt.put(xmltag + ".time",     to_hex_string(e->time));
+        pt.put(xmltag + ".score",    Utils::to_hex_string(e->score));
+        pt.put(xmltag + ".initial1", e->initial1 == 0x20 ? "." : Utils::to_string((char) e->initial1)); // use . to represent space
+        pt.put(xmltag + ".initial2", e->initial2 == 0x20 ? "." : Utils::to_string((char) e->initial2));
+        pt.put(xmltag + ".initial3", e->initial3 == 0x20 ? "." : Utils::to_string((char) e->initial3));
+        pt.put(xmltag + ".maptiles", Utils::to_hex_string(e->maptiles));
+        pt.put(xmltag + ".time",     Utils::to_hex_string(e->time));
     }
 
     // Time Trial Scores
     for (int i = 0; i < 15; i++)
     {
-        pt.put("time_trial.score" + to_string(i), ttrial.best_times[i]);
+        pt.put("time_trial.score" + Utils::to_string(i), ttrial.best_times[i]);
     }
     
     // Tab space 1
@@ -323,7 +327,7 @@ void Config::set_fps(int fps)
     // Original game ticks sprites at 30fps but background scroll at 60fps
     tick_fps  = video.fps < 2 ? 30 : 60;
 
-    cannonball::frame_ms = (1000 / this->fps);
+    cannonball::frame_ms = 1000.0 / this->fps;
 
     #ifdef COMPILE_SOUND_CODE
     if (config.sound.enabled)
@@ -332,40 +336,4 @@ void Config::set_fps(int fps)
     if (config.sound.enabled)
         cannonball::audio.start_audio();
     #endif
-}
-
-// Convert value to string
-std::string Config::to_string(int i)
-{
-    std::stringstream ss;
-    ss << i;
-    return ss.str();
-}
-
-// Convert value to string
-std::string Config::to_string(char c)
-{
-    std::stringstream ss;
-    ss << c;
-    return ss.str();
-}
-
-// Convert value to string
-//template<class T>
-std::string Config::to_hex_string(int i)
-{
-    std::stringstream ss;
-    ss << std::hex << i;
-    return ss.str();
-}
-
-// Convert hex string to unsigned int
-uint32_t Config::from_hex_string(std::string s)
-{
-    unsigned int x;   
-    std::stringstream ss;
-    ss << std::hex << s;
-    ss >> x;
-    // output it as a signed type
-    return static_cast<unsigned int>(x);
 }

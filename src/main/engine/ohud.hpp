@@ -34,6 +34,7 @@ public:
     ~OHud(void);
 
     void draw_main_hud();
+    void draw_fps_counter(int16_t);
     void clear_timetrial_text();
     void do_mini_map();
     void draw_timer1(uint16_t);

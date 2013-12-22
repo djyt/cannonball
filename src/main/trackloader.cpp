@@ -172,7 +172,7 @@ void TrackLoader::init_layout_tracks(bool jap)
         return;
     }
 
-    display_start_line = layout->read8(LayOut::HEADER + sizeof(uint32_t));
+    display_start_line = layout->read8((uint32_t)LayOut::HEADER + (uint32_t)sizeof(uint32_t));
 
     // --------------------------------------------------------------------------------------------
     // Setup Shared Data

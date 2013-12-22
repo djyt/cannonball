@@ -33,6 +33,7 @@ public:
     virtual void stream_update() = 0;
 
     int16_t* get_buffer();
+    void set_volume(uint8_t);
 
 protected:
     const static uint8_t MONO             = 1;
@@ -43,6 +44,9 @@ protected:
 
     //  Buffer size for one frame (excluding channel info)
     uint32_t frame_size;
+
+    // Volume of sound chip
+    float volume;
 
     void clear_buffer();
     void write_buffer(const uint8_t, uint32_t, int16_t);

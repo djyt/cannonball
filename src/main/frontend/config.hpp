@@ -91,7 +91,7 @@ struct engine_settings_t
     int level_objects;
     bool fix_bugs;
     bool layout_debug;
-    bool new_attract;
+    int new_attract;
 };
 
 class Config

@@ -64,7 +64,7 @@ void OAttractAI::init()
 // ------------------------------------------------------------------------------------------------
 //                                           ENHANCED AI CODE
 // ------------------------------------------------------------------------------------------------
-#include <iostream>
+
 void OAttractAI::tick_ai_enhanced()
 {
     // --------------------------------------------------------------------------------------------
@@ -148,9 +148,9 @@ void OAttractAI::tick_ai_enhanced()
     // Brake when traffic nearby
     if (otraffic.ai_traffic)
     {
-        otraffic.ai_traffic = 0;
         if (oinitengine.car_increment >> 16 >= 0xF0)
             oinputs.brake_adjust = OInputs::BRAKE_THRESHOLD4;
+        otraffic.ai_traffic = 0;
     }
 
     // --------------------------------------------------------------------------------------------

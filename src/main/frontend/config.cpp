@@ -205,6 +205,7 @@ bool Config::save(const std::string &filename)
     pt_config.put("engine.japanese_tracks", engine.jap);
     pt_config.put("engine.prototype", engine.prototype);
     pt_config.put("engine.levelobjects", engine.level_objects);
+    pt_config.put("engine.new_attract", engine.new_attract);
 
     pt_config.put("time_trial.laps",    ttrial.laps);
     pt_config.put("time_trial.traffic", ttrial.traffic);

@@ -41,7 +41,7 @@
     <fps>2</fps>
     
     <!-- Enable FPS Counter -->
-    <fps_counter>1</fps_counter>
+    <fps_counter>0</fps_counter>
     
     <!-- Enhanced Widescreen Mode -->
     <widescreen>1</widescreen>
@@ -230,6 +230,11 @@
     <!-- Fix minor bugs present in the original engine. -->
     <!-- Tile on music select screen, ms value at checkpoint etc. -->
     <fix_bugs>1</fix_bugs>
+    
+    <!-- Use new Attract Mode which demos different viewpoints and has improved
+         Ferrari AI when driving
+    -->
+    <new_attract>1</new_attract>
     
     <!-- Display debug info that's useful for LayOut track editing -->
     <layout_debug>0</layout_debug>

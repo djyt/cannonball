@@ -89,6 +89,7 @@ const static char* ENTRY_TIME       = "TIME ";
 const static char* ENTRY_TRAFFIC    = "TRAFFIC ";
 const static char* ENTRY_OBJECTS    = "OBJECTS ";
 const static char* ENTRY_PROTOTYPE  = "PROTOTYPE STAGE 1 ";
+const static char* ENTRY_ATTRACT    = "NEW ATTRACT ";
 
 // Music Test Menu
 const static char* ENTRY_MUSIC1     = "MAGICAL SOUND SHOWER";
@@ -159,6 +160,7 @@ void Menu::populate()
     menu_engine.push_back(ENTRY_TRAFFIC);
     menu_engine.push_back(ENTRY_OBJECTS);
     menu_engine.push_back(ENTRY_PROTOTYPE);
+    menu_engine.push_back(ENTRY_ATTRACT);
     menu_engine.push_back(ENTRY_BACK);
 
     menu_musictest.push_back(ENTRY_MUSIC1);
@@ -628,6 +630,8 @@ void Menu::tick_menu()
                 config.engine.level_objects = !config.engine.level_objects;
             else if (SELECTED(ENTRY_PROTOTYPE))
                 config.engine.prototype = !config.engine.prototype;
+            else if (SELECTED(ENTRY_ATTRACT))
+                config.engine.new_attract ^= 1;
             if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
         }
@@ -764,6 +768,8 @@ void Menu::refresh_menu()
                 set_menu_text(ENTRY_OBJECTS, config.engine.level_objects ? "ENHANCED" : "ORIGINAL");
             else if (SELECTED(ENTRY_PROTOTYPE))
                 set_menu_text(ENTRY_PROTOTYPE, config.engine.prototype ? "ON" : "OFF");
+            else if (SELECTED(ENTRY_ATTRACT))
+                set_menu_text(ENTRY_ATTRACT, config.engine.new_attract ? "ON" : "OFF");
 
         }
     }

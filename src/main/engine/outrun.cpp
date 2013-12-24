@@ -97,13 +97,16 @@ void Outrun::tick(bool tick_frame)
         oinitengine.init_bonus();
     }*/
 
-    if (input.has_pressed(Input::VIEWPOINT))
+    if (game_state >= GS_START1 && game_state <= GS_INGAME)
     {
-        int mode = oroad.get_view_mode() + 1;
-        if (mode > ORoad::VIEW_INCAR)
-            mode = ORoad::VIEW_ORIGINAL;
+        if (input.has_pressed(Input::VIEWPOINT))
+        {
+            int mode = oroad.get_view_mode() + 1;
+            if (mode > ORoad::VIEW_INCAR)
+                mode = ORoad::VIEW_ORIGINAL;
 
-        oroad.set_view_mode(mode);
+            oroad.set_view_mode(mode);
+        }
     }
 
     if (cannonball::tick_frame)
@@ -502,6 +505,7 @@ void Outrun::main_switch()
         // Best OutRunners / Score Entry
         // ----------------------------------------------------------------------------------------
         case GS_INIT_BEST2:
+            oroad.set_view_mode(ORoad::VIEW_ORIGINAL, true);
             // bsr.w   EndGame
             osprites.disable_sprites();
             otraffic.disable_traffic();
@@ -684,7 +688,7 @@ void Outrun::init_attract()
     oferrari.car_ctrl_active  = true;
     oferrari.car_inc_old      = car_inc_bak >> 16;
     oinitengine.car_increment = car_inc_bak;
-    ostats.time_counter       = config.engine.new_attract ? 0x60 : 0x15;
+    ostats.time_counter       = config.engine.new_attract ? 0x80 : 0x15;
     ostats.frame_counter      = ostats.frame_reset;
     attract_counter           = 0;
     attract_view              = 0;
@@ -702,20 +706,15 @@ void Outrun::tick_attract()
     ohud.draw_copyright_text();
     ohud.draw_insert_coin();
 
-    ostats.time_counter = 0xfff;
-
     // Enhanced Attract Mode (Switch Between Views)
     if (config.engine.new_attract)
     {
-        if (++attract_counter > 120)
+        if (++attract_counter > 240)
         {
-            const static uint8_t VIEWS[] = {ORoad::VIEW_ORIGINAL, ORoad::VIEW_ORIGINAL, 
-                                            ORoad::VIEW_ELEVATED, 
-                                            ORoad::VIEW_INCAR, 
-                                            ORoad::VIEW_ORIGINAL, ORoad::VIEW_ELEVATED};
+            const static uint8_t VIEWS[] = {ORoad::VIEW_ORIGINAL, ORoad::VIEW_ELEVATED, ORoad::VIEW_INCAR};
 
             attract_counter = 0;
-            if (++attract_view > 5)
+            if (++attract_view > 2)
                 attract_view = 0;
             bool snap = VIEWS[attract_view] == ORoad::VIEW_INCAR;
             oroad.set_view_mode(VIEWS[attract_view], snap);

@@ -302,8 +302,10 @@ void OFerrari::ferrari_normal()
         // Attract Mode: Process AI Code and fall through
         case GS_INIT:
         case GS_ATTRACT:
-            oattractai.tick_ai_enhanced();
-            //oattractai.tick_ai();
+            if (config.engine.new_attract)
+                oattractai.tick_ai_enhanced();
+            else
+                oattractai.tick_ai();
             setup_ferrari_sprite();
             break;
 

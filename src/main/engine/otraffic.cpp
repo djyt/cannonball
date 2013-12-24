@@ -270,6 +270,24 @@ void OTraffic::tick_spawned_sprite(oentry* sprite)
         // Check for collision with player's car
         check_collision(sprite);
 
+        // Denote collisions for new attract mode
+        if (config.engine.new_attract)
+        {
+            if (sprite->z >> 16 >= 0x90)
+            {
+                const int PAD = 48;
+                int16_t w  = (sprite->width >> 1) + (sprite->width >> 3) + (sprite->width >> 4) + PAD;
+                int16_t x1 = sprite->x - w; // d2
+                int16_t x2 = sprite->x + w; // d1
+
+                // Check traffic is directly in front of player's car
+                if (x1 < 0 && x2 > 0)
+                {
+                    otraffic.ai_traffic = 1;
+                }
+            }
+        }
+
         // Calculate X Difference Between Player Car & Traffic.
         // Set Relevant Bits To Denote which side player's car is on in relation to traffic
 
@@ -716,7 +734,7 @@ void OTraffic::calculate_avg_speed(uint16_t c)
 // - Adjust player's speed
 //
 // Source: 0x50DE
-#include <iostream>
+
 void OTraffic::check_collision(oentry* sprite)
 {
     int16_t d0 = 0;
@@ -750,22 +768,6 @@ void OTraffic::check_collision(oentry* sprite)
                 collision_traffic++; // denote collision with traffic
                 outrun.ttrial.vehicle_cols++;
             }
-        }
-    }
-
-    // Denote collisions for new attract mode
-    if (config.engine.new_attract)
-    {
-        if (sprite->z >> 16 >= 0x100)
-        {
-            const int PAD = 48;
-            int16_t w  = (sprite->width >> 1) + (sprite->width >> 3) + (sprite->width >> 4) + PAD;
-            int16_t x1 = sprite->x - w; // d2
-            int16_t x2 = sprite->x + w; // d1
-
-            // Check traffic is directly in front of player's car
-            if (x1 < 0 && x2 > 0)
-                otraffic.ai_traffic = 1;
         }
     }
 

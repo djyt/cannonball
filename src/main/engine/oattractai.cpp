@@ -36,6 +36,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <cstdlib> 
 #include <time.h>
 
 #include "engine/oattractai.hpp"

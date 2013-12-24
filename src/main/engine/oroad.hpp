@@ -24,8 +24,6 @@
 class ORoad
 {
 public:
-    bool debug_road;
-
     uint32_t road_pos;        // 0x6: Current Road Position (addressed as long and word)
     int16_t tilemap_h_target; // 0xA: Tilemap H target
 
@@ -59,6 +57,9 @@ public:
 
     // 0x66: Road Height Lookup 
 	uint16_t height_lookup;
+
+    // 0x722 - [word] Road Height Index. Working copy of 60066.
+	uint16_t height_lookup_wrk;
 
     // 0x6C: Change in road position
     int32_t road_pos_change; 
@@ -148,22 +149,28 @@ public:
     // This format is repeated four times, due to the way values rotate through road ram
 	int16_t road_y[0x1000];
 
+    const static uint8_t VIEW_ORIGINAL = 0;
+    const static uint8_t VIEW_ELEVATED = 1;
+    const static uint8_t VIEW_INCAR    = 2;
+
 	ORoad();
 	~ORoad();
 	void init();
 	void tick();
+    uint8_t get_view_mode();
     int16_t get_road_y(uint16_t);
+    void set_view_mode(uint8_t, bool snap = false);
 
+private:
+    // Enhancement: View Mode
+    uint8_t view_mode;
 
+    // Enhancement: Target Horizon Adjust
+    int16_t horizon_target;
 
+    // Enhancement: Horizon Offset, used for new view modes
+    int16_t horizon_offset;
 
-
-
-
-
-
-
-//private:
 	uint16_t stage_loaded; // 0x4: Current Stage Backup (So we know when to load next stage road data)
 
 	uint32_t road_pos_old; // 0x410: Road Position Backup
@@ -218,9 +225,6 @@ public:
 	int16_t elevation;
 	enum {DOWN = -1, NO_CHANGE = 0, UP = 1};
 								 
-	// 0x722 - [word] Road Height Index. Working copy of 60066.
-	uint16_t height_lookup_wrk;
-
 	// 0x724 - [word] Ascend/Descent Hold
 	int16_t height_delay;
 

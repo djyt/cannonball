@@ -282,8 +282,11 @@ void OAnimSeq::anim_seq_intro(oanimsprite* anim)
                 // In this case, to exit the routine and setup the Ferrari on the last entry for passenger 2
                 if (anim == &anim_pass2)
                 {
-                    osprites.map_palette(anim->sprite);
-                    osprites.do_spr_order_shadows(anim->sprite);
+                    if (oroad.get_view_mode() != ORoad::VIEW_INCAR)
+                    {
+                        osprites.map_palette(anim->sprite);
+                        osprites.do_spr_order_shadows(anim->sprite);
+                    }
                     oferrari.init_ingame();
                     return;
                 }
@@ -302,8 +305,11 @@ void OAnimSeq::anim_seq_intro(oanimsprite* anim)
     }
 
     // Order sprites
-    osprites.map_palette(anim->sprite);
-    osprites.do_spr_order_shadows(anim->sprite);
+    if (oroad.get_view_mode() != ORoad::VIEW_INCAR)
+    {
+        osprites.map_palette(anim->sprite);
+        osprites.do_spr_order_shadows(anim->sprite);
+    }
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -153,20 +153,14 @@ void OFerrari::tick()
                 if (outrun.tick_frame)
                     logic();
                 else
-                {
-                    osprites.map_palette(spr_ferrari);
-                    osprites.do_spr_order_shadows(spr_ferrari);
-                }
+                    draw_sprite(spr_ferrari);
             }
             if (spr_pass1->control & OSprites::ENABLE) 
             {
                 if (outrun.tick_frame)
                     set_passenger_sprite(spr_pass1);
                 else
-                {
-                    osprites.map_palette(spr_pass1);
-                    osprites.do_spr_order_shadows(spr_pass1);
-                }
+                    draw_sprite(spr_pass1);
             }
 
             if (spr_pass2->control & OSprites::ENABLE)
@@ -174,10 +168,7 @@ void OFerrari::tick()
                 if (outrun.tick_frame)
                     set_passenger_sprite(spr_pass2);
                 else
-                {
-                    osprites.map_palette(spr_pass2);
-                    osprites.do_spr_order_shadows(spr_pass2);
-                }
+                    draw_sprite(spr_pass2);
             }
             break;
 
@@ -311,7 +302,8 @@ void OFerrari::ferrari_normal()
         // Attract Mode: Process AI Code and fall through
         case GS_INIT:
         case GS_ATTRACT:
-            oattractai.tick_ai();
+            oattractai.tick_ai_enhanced();
+            //oattractai.tick_ai();
             setup_ferrari_sprite();
             break;
 
@@ -462,8 +454,7 @@ void OFerrari::setup_ferrari_sprite()
 
     shake();
     set_ferrari_palette();
-    osprites.map_palette(spr_ferrari);
-    osprites.do_spr_order_shadows(spr_ferrari);
+    draw_sprite(spr_ferrari);
 }
 
 // Bonus Mode: Setup Ferrari Sprite Details
@@ -498,8 +489,9 @@ void OFerrari::setup_ferrari_bonus_sprite()
     spr_ferrari->x = x_off;
 
     set_ferrari_palette();
-    osprites.map_palette(spr_ferrari);
-    osprites.do_spr_order_shadows(spr_ferrari);
+    //osprites.map_palette(spr_ferrari);
+    //osprites.do_spr_order_shadows(spr_ferrari);
+    draw_sprite(spr_ferrari);
 }
 
 // Source: 0xA1CE
@@ -835,7 +827,9 @@ void OFerrari::draw_shadow()
             spr_shadow->draw_props = 8;
             spr_shadow->addr = outrun.adr.shadow_data;
         }
-        osprites.do_spr_order_shadows(spr_shadow);
+
+        if (oroad.get_view_mode() != ORoad::VIEW_INCAR)
+            osprites.do_spr_order_shadows(spr_shadow);
     }
 }
 
@@ -898,8 +892,7 @@ void OFerrari::set_passenger_sprite(oentry* sprite)
     sprite->width = 0;
 
     set_passenger_frame(sprite);
-    osprites.map_palette(sprite);
-    osprites.do_spr_order_shadows(sprite);
+    draw_sprite(sprite);
 }
 
 // Set Passenger Sprite Frame
@@ -1706,6 +1699,15 @@ void OFerrari::do_skid()
     {
         ocrash.skid_counter++;
         oinitengine.car_x_pos -= OCrash::SKID_X_ADJ;
+    }
+}
+
+void OFerrari::draw_sprite(oentry* sprite)
+{
+    if (oroad.get_view_mode() != ORoad::VIEW_INCAR)
+    {
+        osprites.map_palette(sprite);
+        osprites.do_spr_order_shadows(sprite);
     }
 }
 

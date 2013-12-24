@@ -103,6 +103,7 @@ public:
     OCrash(void);
     ~OCrash(void);
     void init(oentry* f, oentry* s, oentry* p1, oentry* p1s, oentry* p2, oentry* p2s);
+    bool is_flip();
     void enable();
     void clear_crash_state();
     void tick();

@@ -113,12 +113,14 @@ void Config::load(const std::string &filename)
     controls.keyconfig[7]  = pt_config.get("controls.keyconfig.start", 49);
     controls.keyconfig[8]  = pt_config.get("controls.keyconfig.coin",  53);
     controls.keyconfig[9]  = pt_config.get("controls.keyconfig.menu",  286);
+    controls.keyconfig[10] = pt_config.get("controls.keyconfig.view",  304);
     controls.padconfig[0]  = pt_config.get("controls.padconfig.acc", 0);
     controls.padconfig[1]  = pt_config.get("controls.padconfig.brake", 1);
     controls.padconfig[2]  = pt_config.get("controls.padconfig.gear", 2);
     controls.padconfig[3]  = pt_config.get("controls.padconfig.start", 3);
     controls.padconfig[4]  = pt_config.get("controls.padconfig.coin", 4);
     controls.padconfig[5]  = pt_config.get("controls.padconfig.menu", 5);
+    controls.padconfig[6]  = pt_config.get("controls.padconfig.view", 6);
     controls.analog        = pt_config.get("controls.analog.<xmlattr>.enabled", 0);
     controls.axis[0]       = pt_config.get("controls.analog.axis.wheel", 0);
     controls.axis[1]       = pt_config.get("controls.analog.axis.accel", 2);
@@ -151,6 +153,7 @@ void Config::load(const std::string &filename)
     engine.randomgen     = pt_config.get("engine.randomgen",    1);
     engine.fix_bugs      = pt_config.get("engine.fix_bugs",     1) != 0;
     engine.layout_debug  = pt_config.get("engine.layout_debug", 0) != 0;
+    engine.new_attract   = pt_config.get("engine.new_attract", 1) != 0;
 
     // ------------------------------------------------------------------------
     // Time Trial Mode
@@ -187,12 +190,14 @@ bool Config::save(const std::string &filename)
     pt_config.put("controls.keyconfig.start", controls.keyconfig[7]);
     pt_config.put("controls.keyconfig.coin",  controls.keyconfig[8]);
     pt_config.put("controls.keyconfig.menu",  controls.keyconfig[9]);
+    pt_config.put("controls.keyconfig.view",  controls.keyconfig[10]);
     pt_config.put("controls.padconfig.acc",   controls.padconfig[0]);
     pt_config.put("controls.padconfig.brake", controls.padconfig[1]);
     pt_config.put("controls.padconfig.gear",  controls.padconfig[2]);
     pt_config.put("controls.padconfig.start", controls.padconfig[3]);
     pt_config.put("controls.padconfig.coin",  controls.padconfig[4]);
     pt_config.put("controls.padconfig.menu",  controls.padconfig[5]);
+    pt_config.put("controls.padconfig.view",  controls.padconfig[6]);
     pt_config.put("controls.analog.<xmlattr>.enabled", controls.analog);
 
     pt_config.put("engine.time", engine.freeze_timer ? 4 : engine.dip_time);

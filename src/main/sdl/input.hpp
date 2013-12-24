@@ -27,18 +27,16 @@ public:
 
         START = 7,
         COIN  = 8,
+        VIEWPOINT = 9,
         
-        PAUSE = 9,
-        STEP  = 10,
-        TIMER = 11,
-        MENU = 12,
-
-        HORIZON_DOWN = 13,
-        HORIZON_UP = 14
+        PAUSE = 10,
+        STEP  = 11,
+        TIMER = 12,
+        MENU = 13,     
     };
 
-    bool keys[15];
-    bool keys_old[15];
+    bool keys[14];
+    bool keys_old[14];
 
     // Has gamepad been found?
     bool gamepad;

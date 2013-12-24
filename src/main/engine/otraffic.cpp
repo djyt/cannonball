@@ -299,7 +299,8 @@ void OTraffic::tick_spawned_sprite(oentry* sprite)
             sprite->traffic_proximity |= BIT_1;
         // End Added block
     
-        ai_traffic |= sprite->traffic_proximity;
+        if (!config.engine.new_attract)
+            ai_traffic |= sprite->traffic_proximity;
     }
 
     move_spawned_sprite(sprite);
@@ -715,6 +716,7 @@ void OTraffic::calculate_avg_speed(uint16_t c)
 // - Adjust player's speed
 //
 // Source: 0x50DE
+#include <iostream>
 void OTraffic::check_collision(oentry* sprite)
 {
     int16_t d0 = 0;
@@ -750,6 +752,23 @@ void OTraffic::check_collision(oentry* sprite)
             }
         }
     }
+
+    // Denote collisions for new attract mode
+    if (config.engine.new_attract)
+    {
+        if (sprite->z >> 16 >= 0x100)
+        {
+            const int PAD = 48;
+            int16_t w  = (sprite->width >> 1) + (sprite->width >> 3) + (sprite->width >> 4) + PAD;
+            int16_t x1 = sprite->x - w; // d2
+            int16_t x2 = sprite->x + w; // d1
+
+            // Check traffic is directly in front of player's car
+            if (x1 < 0 && x2 > 0)
+                otraffic.ai_traffic = 1;
+        }
+    }
+
     // try_sound:
     uint8_t traffic_fx_old = sprite->traffic_fx;
     sprite->traffic_fx = d0 & 0xFF;

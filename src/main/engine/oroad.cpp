@@ -43,6 +43,23 @@ ORoad::~ORoad(void)
 
 void ORoad::tick()
 {
+    // Enhancement: Adjust View
+    if (horizon_target != horizon_offset)
+    {
+        if (horizon_offset > horizon_target)
+        {
+            horizon_offset -= 16;
+            if (horizon_offset < horizon_target)
+                horizon_offset = horizon_target;
+        }
+        else if (horizon_offset < horizon_target)
+        {
+            horizon_offset += 16;
+            if (horizon_offset > horizon_target)
+                horizon_offset = horizon_target;
+        }
+    }
+
     do_road();
 }
 
@@ -61,6 +78,7 @@ int16_t ORoad::get_road_y(uint16_t index)
 void ORoad::init()
 {
     // Extra initalization code here
+    set_view_mode(VIEW_ORIGINAL, true);
     road_pos         = 0;
     tilemap_h_target = 0;
     stage_lookup_off = 0;
@@ -133,12 +151,45 @@ void ORoad::init()
     init_stage1();
 }
 
+// ----------------------------------------------------------------------------
+// View Mode Enhancements
+//
+// Original: Same as Arcade
+// Elevated: Camera positioned further above car
+// In Car  : Lower viewpoint
+// ----------------------------------------------------------------------------
+
+uint8_t ORoad::get_view_mode()
+{
+    return view_mode;
+}
+
+void ORoad::set_view_mode(uint8_t mode, bool snap)
+{
+    view_mode = mode;
+
+    if (mode == VIEW_ORIGINAL)
+    {
+        horizon_target = 0;
+    }
+    else if (mode == VIEW_ELEVATED)
+    {
+        horizon_target = 0x280;
+    }
+    else if (mode == VIEW_INCAR)
+    {
+        horizon_target = -0x70;
+    }
+
+    if (snap)
+        horizon_offset = horizon_target;
+}
+
 // Main Loop
 // 
 // Source Address: 0x1044
 // Input:          None
 // Output:         None
-
 void ORoad::do_road()
 {
     rotate_values();
@@ -1007,7 +1058,7 @@ void ORoad::set_y_interpolate()
     height_final = (next_height_value * (height_start - 0x100)) >> 4;
 
     // 1faa 
-    int32_t horizon_copy = horizon_base << 4;
+    int32_t horizon_copy = (horizon_base + horizon_offset) << 4;
     if (height_ctrl2 == 2)  // hold state
         horizon_copy += height_final;
 
@@ -1111,7 +1162,7 @@ void ORoad::read_next_height()
     // Writing first part of interpolated data
     change_per_entry -= height_final;
 
-    int32_t horizon_shift = (horizon_base << 4);
+    int32_t horizon_shift = (horizon_base + horizon_offset) << 4;
 
     if (horizon_shift == change_per_entry)
     {
@@ -1167,7 +1218,7 @@ void ORoad::set_y_horizon()
     uint32_t a0 = 0x200 + road_p1; // a0 = Road Height Positions + Relevant Offset
     
     int32_t d1 = (horizon_mod * (height_start - 0x100)) >> 4;
-    int32_t d2 = (horizon_base << 4) + d1;
+    int32_t d2 = ((horizon_base + horizon_offset) << 4) + d1;
     
     uint32_t total_height = 0;
 
@@ -1185,7 +1236,7 @@ void ORoad::set_y_horizon()
     if (height_start != 0x1FF) return;
 
     // Read Up/Down Multiplier Word From Lookup Table and set new horizon base value
-    horizon_base = (int32_t) trackloader.read16(trackloader.heightmap_data, height_addr);
+    horizon_base = (int32_t) (trackloader.read16(trackloader.heightmap_data, height_addr));
 
     if (height_lookup == height_lookup_wrk)
         height_lookup = 0;
@@ -1208,7 +1259,7 @@ void ORoad::set_horizon_y()
     uint32_t road_y_addr = (0 + road_p1); // a1
 
     // read_next
-    while (true && !debug_road)
+    while (true)
     {
         int16_t d0 = road_unk[road_int];
         if (d0 == 0) break;

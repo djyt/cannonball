@@ -113,7 +113,8 @@
         <gear>32</gear>
         <start>49</start>
         <coin>53</coin>
-        <menu>286</menu>    
+        <menu>286</menu>
+        <view>304</view>
     </keyconfig>
     
     <!-- Gamepad / Joystick Button Configuration. Easiest to configure with inbuilt menu. -->
@@ -124,6 +125,7 @@
         <start>3</start>
         <coin>4</coin>
         <menu>5</menu>    
+        <view>6</view>
     </padconfig>
            
     <!-- Digital Controls: Steering Adjust Speed (1 to 9) -->

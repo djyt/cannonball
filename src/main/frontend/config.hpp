@@ -67,8 +67,8 @@ struct controls_settings_t
     int gear;
     int steer_speed;   // Steering Digital Speed
     int pedal_speed;   // Pedal Digital Speed
-    int padconfig[6];  // Joypad Button Config
-    int keyconfig[10]; // Keyboard Button Config
+    int padconfig[7];  // Joypad Button Config
+    int keyconfig[11]; // Keyboard Button Config
     int analog;        // Use analog controls
     int axis[3];       // Analog Axis
     int wheel[2];      // Wheel Settings
@@ -91,6 +91,7 @@ struct engine_settings_t
     int level_objects;
     bool fix_bugs;
     bool layout_debug;
+    bool new_attract;
 };
 
 class Config

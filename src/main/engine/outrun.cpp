@@ -10,6 +10,7 @@
 #include "main.hpp"
 #include "trackloader.hpp"
 #include "../utils.hpp"
+#include "engine/oattractai.hpp"
 #include "engine/oanimseq.hpp"
 #include "engine/obonus.hpp"
 #include "engine/ocrash.hpp"
@@ -31,7 +32,6 @@
 #include "engine/outils.hpp"
 
 Outrun outrun;
-
 
 /*
     Known Core Engine Issues:
@@ -83,7 +83,6 @@ void Outrun::init()
     outils::reset_random_seed(); // Ensure we match the genuine boot up of the original game each time
 }
 
-
 void Outrun::tick(bool tick_frame)
 {
     this->tick_frame = tick_frame;
@@ -97,6 +96,15 @@ void Outrun::tick(bool tick_frame)
         oinitengine.route_selected = -1;
         oinitengine.init_bonus();
     }*/
+
+    if (input.has_pressed(Input::VIEWPOINT))
+    {
+        int mode = oroad.get_view_mode() + 1;
+        if (mode > ORoad::VIEW_INCAR)
+            mode = ORoad::VIEW_ORIGINAL;
+
+        oroad.set_view_mode(mode);
+    }
 
     if (cannonball::tick_frame)
     {
@@ -255,34 +263,14 @@ void Outrun::main_switch()
     switch (game_state)
     {
         case GS_INIT:  
-            osoundint.has_booted = true;
-            oferrari.car_inc_old = car_inc_bak >> 16;
-            oinitengine.car_increment = car_inc_bak;
-            oferrari.car_ctrl_active = true;
-            ostats.time_counter = 0x15;
-            ostats.frame_counter = ostats.frame_reset;
-            video.enabled = true;
-            game_state = ttrial.enabled ? GS_INIT_MUSIC : GS_ATTRACT;
+            init_attract();
             // fall through
             
         // ----------------------------------------------------------------------------------------
         // Attract Mode
         // ----------------------------------------------------------------------------------------
         case GS_ATTRACT:
-            // Set credits to 1 if in free play mode (note display still reads Free Play)
-            if (ostats.free_play)
-                ostats.credits = 1;
-
-            ohud.draw_credits();
-            ohud.draw_copyright_text();
-            ohud.draw_insert_coin();
-            if (ostats.credits)
-                game_state = GS_INIT_MUSIC;
-            else if (decrement_timers())
-            {
-                car_inc_bak = oinitengine.car_increment;
-                game_state = GS_INIT_BEST1;
-            }
+            tick_attract();
             break;
 
         case GS_INIT_BEST1:
@@ -663,15 +651,6 @@ void Outrun::controls()
         oinputs.simulate_analog();
     else
         oinputs.analog();
-
-    if (input.is_pressed(Input::HORIZON_DOWN))
-    {
-        oroad.horizon_base += -20;
-    }
-    else if (input.is_pressed(Input::HORIZON_UP))
-    {
-        oroad.horizon_base += 20;
-    }
 }
 
 // -------------------------------------------------------------------------------
@@ -696,6 +675,61 @@ bool Outrun::decrement_timers()
     ostats.time_counter = outils::bcd_sub(1, ostats.time_counter);
     
     return (ostats.time_counter < 0);
+}
+
+void Outrun::init_attract()
+{
+    video.enabled             = true;
+    osoundint.has_booted      = true;
+    oferrari.car_ctrl_active  = true;
+    oferrari.car_inc_old      = car_inc_bak >> 16;
+    oinitengine.car_increment = car_inc_bak;
+    ostats.time_counter       = config.engine.new_attract ? 0x60 : 0x15;
+    ostats.frame_counter      = ostats.frame_reset;
+    attract_counter           = 0;
+    attract_view              = 0;
+    oattractai.init();
+    game_state = ttrial.enabled ? GS_INIT_MUSIC : GS_ATTRACT;
+}
+
+void Outrun::tick_attract()
+{
+    // Set credits to 1 if in free play mode (note display still reads Free Play)
+    if (ostats.free_play)
+        ostats.credits = 1;
+
+    ohud.draw_credits();
+    ohud.draw_copyright_text();
+    ohud.draw_insert_coin();
+
+    ostats.time_counter = 0xfff;
+
+    // Enhanced Attract Mode (Switch Between Views)
+    if (config.engine.new_attract)
+    {
+        if (++attract_counter > 120)
+        {
+            const static uint8_t VIEWS[] = {ORoad::VIEW_ORIGINAL, ORoad::VIEW_ORIGINAL, 
+                                            ORoad::VIEW_ELEVATED, 
+                                            ORoad::VIEW_INCAR, 
+                                            ORoad::VIEW_ORIGINAL, ORoad::VIEW_ELEVATED};
+
+            attract_counter = 0;
+            if (++attract_view > 5)
+                attract_view = 0;
+            bool snap = VIEWS[attract_view] == ORoad::VIEW_INCAR;
+            oroad.set_view_mode(VIEWS[attract_view], snap);
+        }
+    }
+
+    if (ostats.credits)
+        game_state = GS_INIT_MUSIC;
+
+    else if (decrement_timers())
+    {
+        car_inc_bak = oinitengine.car_increment;
+        game_state = GS_INIT_BEST1;
+    }
 }
 
 // -------------------------------------------------------------------------------

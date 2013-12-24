@@ -72,7 +72,7 @@ const static char* ENTRY_MUTE       = "SOUND ";
 const static char* ENTRY_BGM        = "BGM VOL ";
 const static char* ENTRY_SFX        = "SFX VOL ";
 const static char* ENTRY_ADVERTISE  = "ADVERTISE SOUND ";
-const static char* ENTRY_PREVIEWSND = "PREVIEW SOUND ";
+const static char* ENTRY_PREVIEWSND = "PREVIEW MUSIC ";
 const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 
 // Controls Menu
@@ -183,6 +183,7 @@ void Menu::populate()
     text_redefine.push_back("PRESS START");
     text_redefine.push_back("PRESS COIN IN");
     text_redefine.push_back("PRESS MENU");
+    text_redefine.push_back("PRESS VIEW CHANGE");
 }
 
 void Menu::init()
@@ -791,6 +792,7 @@ void Menu::redefine_keyboard()
         case 7:
         case 8:
         case 9:
+        case 10:
             draw_text(text_redefine.at(redef_state));
             if (input.key_press != -1)
             {
@@ -800,7 +802,7 @@ void Menu::redefine_keyboard()
             }
             break;
 
-        case 10:
+        case 11:
             state = STATE_MENU;
             break;
     }
@@ -816,6 +818,7 @@ void Menu::redefine_joystick()
         case 3:
         case 4:
         case 5:
+        case 6:
             draw_text(text_redefine.at(redef_state + 4));
             if (input.joy_button != -1)
             {
@@ -825,7 +828,7 @@ void Menu::redefine_joystick()
             }
             break;
 
-        case 6:
+        case 7:
             state = STATE_MENU;
             break;
     }

@@ -351,9 +351,13 @@ void OTiles::copy_bg_tiles(uint32_t dst_addr)
 void OTiles::scroll_tilemaps()
 {
     // Yes, OutRun contains a lot of crappy code. Return when car moving into start line
-    if (outrun.game_state != GS_BEST1 && outrun.game_state != GS_ATTRACT && outrun.game_state != GS_INGAME)
+    if (outrun.game_state != GS_BEST1 && 
+        outrun.game_state != GS_ATTRACT && 
+        outrun.game_state != GS_INGAME &&
+        (outrun.game_state < GS_START1 || outrun.game_state > GS_INGAME)) // Added GS_START1 - 3 here for view enhancement code
     {
-        if (outrun.game_state != GS_BONUS) return;
+        if (outrun.game_state != GS_BONUS)
+            return;
     }
 
     // Determine if we need to loop back to Stage 1
@@ -370,7 +374,7 @@ void OTiles::scroll_tilemaps()
     if (oinitengine.end_stage_props & 1)
     {
         opalette.setup_sky_change();
-        tilemap_ctrl = TILEMAP_INIT;
+        tilemap_ctrl  = TILEMAP_INIT;
         tilemap_setup = SETUP_TILES;
     }
     // update_tilemap:

@@ -75,7 +75,6 @@ void Input::handle_key_up(SDL_keysym* keysym)
 {
     handle_key(keysym->sym, false);
 }
-
 void Input::handle_key(const int key, const bool is_pressed)
 {
     // Redefinable Key Input
@@ -109,6 +108,9 @@ void Input::handle_key(const int key, const bool is_pressed)
     else if (key == key_config[9])
         keys[MENU] = is_pressed;
 
+    else if (key == key_config[10])
+        keys[VIEWPOINT] = is_pressed;
+
     // Function keys are not redefinable
     switch (key)
     {
@@ -126,14 +128,6 @@ void Input::handle_key(const int key, const bool is_pressed)
 
         case SDLK_F5:
             keys[MENU] = is_pressed;
-            break;
-
-        case SDLK_F7:
-            keys[HORIZON_DOWN] = is_pressed;
-            break;
-
-        case SDLK_F8:
-            keys[HORIZON_UP] = is_pressed;
             break;
     }
 }
@@ -327,4 +321,7 @@ void Input::handle_joy(const uint8_t button, const bool is_pressed)
 
     if (button == pad_config[5])
         keys[MENU] = is_pressed;
+
+    if (button == pad_config[6])
+        keys[VIEWPOINT] = is_pressed;
 }

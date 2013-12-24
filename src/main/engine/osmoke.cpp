@@ -66,6 +66,10 @@ void OSmoke::draw_ferrari_smoke(oentry *sprite)
         tick_smoke_anim(sprite, 1, roms.rom0p->read32(outrun.adr.spray_data + olevelobjs.spray_type));
         return;
     }
+
+    // Enhancement: When not displaying car, don't draw smoke effects
+    if (oroad.get_view_mode() == ORoad::VIEW_INCAR && !ocrash.is_flip())
+        return;
     
     // ------------------------------------------------------------------------
     // Car Slipping/Skidding
@@ -313,6 +317,10 @@ void OSmoke::tick_smoke_anim(oentry* sprite, int8_t anim_ctrl, uint32_t addr)
     // Set Sprite X
     uint8_t hflip = (roms.rom0p->read8(addr + frame + 7) & 1);
     int8_t x = ((roms.rom0p->read8(addr + frame + 6) >> 3) & 0x1E);
+
+    // Enhancement: When viewing in-car, spread the spray out
+    if (oroad.get_view_mode() == ORoad::VIEW_INCAR)
+        x += 10;
 
     if (sprite == &osprites.jump_table[OSprites::SPRITE_SMOKE1])
     {

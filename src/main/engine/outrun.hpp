@@ -206,6 +206,9 @@ public:
     void select_course(const bool jap, const bool prototype);
 
 private:
+    uint8_t attract_view;
+    int16_t attract_counter;
+
     OOutputs* outputs;
 
     // Car Increment Backup for attract mode
@@ -218,6 +221,8 @@ private:
 	void main_switch();
     void controls();
     bool decrement_timers();
+    void init_attract();
+    void tick_attract();
 };
 
 extern Outrun outrun;

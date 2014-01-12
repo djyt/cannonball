@@ -53,7 +53,7 @@ int Video::init(Roms* roms, video_settings_t* settings)
 
     // Internal pixel array. The size of this is always constant
     if (pixels) delete[] pixels;
-    pixels = new uint32_t[config.s16_width * config.s16_height];
+    pixels = new uint16_t[config.s16_width * config.s16_height];
 
     // Convert S16 tiles to a more useable format
     tile_layer->init(roms->tiles.rom, config.video.hires != 0);

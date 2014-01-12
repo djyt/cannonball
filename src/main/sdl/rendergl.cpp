@@ -243,7 +243,7 @@ bool RenderGL::finalize_frame()
     return true;
 }
 
-void RenderGL::draw_frame(uint32_t* pixels)
+void RenderGL::draw_frame(uint16_t* pixels)
 {
     uint32_t* spix = screen_pixels;
 

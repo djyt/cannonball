@@ -73,8 +73,7 @@ void OAttractAI::tick_ai_enhanced()
     // --------------------------------------------------------------------------------------------
 
     if (last_stage != ostats.cur_stage)
-    {
-        
+    {     
         last_stage           = ostats.cur_stage;
         oferrari.sprite_ai_x = std::rand() & 1;     
     }

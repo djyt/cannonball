@@ -118,8 +118,12 @@ void OFerrari::reset_car()
     oinitengine.ingame_engine = false;
     oinitengine.ingame_counter = 0x1E; // Set ingame counter (time until we hand control to user)
     slip_sound           = sound::STOP_SLIP;
-    acc_adjust1 = acc_adjust2 = acc_adjust3 = 0;
-    brake_adjust1 = brake_adjust2 = brake_adjust3 = 0;
+    acc_adjust1          = 
+    acc_adjust2          = 
+    acc_adjust3          = 0;
+    brake_adjust1        = 
+    brake_adjust2        = 
+    brake_adjust3        = 0;
     auto_brake           = false;
     counter              = 0;
     is_slipping          = 0;    // Denote not slipping/skidding

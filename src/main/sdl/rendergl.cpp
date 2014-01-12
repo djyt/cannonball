@@ -141,6 +141,9 @@ bool RenderGL::init(int src_width, int src_height,
     // Disable depth buffer
     glDisable(GL_DEPTH_TEST);
 
+    // V-Sync
+    SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
+
     glClearColor(0, 0, 0, 0); // Black background
     glShadeModel(GL_FLAT);
 
@@ -256,5 +259,6 @@ void RenderGL::draw_frame(uint32_t* pixels)
             screen_pixels);                            // pointer in image memory
 
     glCallList(dlist);
+    //glFinish();
     SDL_GL_SwapBuffers();
 }

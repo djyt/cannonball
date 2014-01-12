@@ -114,3 +114,15 @@ bool Roms::load_japanese_roms()
     // If status has been incremented, a rom has failed to load.
     return jap_rom_status == 0;
 }
+
+bool Roms::load_pcm_rom(bool fixed_rom)
+{
+    int status = 0;
+
+    if (fixed_rom)
+        status += pcm.load("opr-10188.71f", 0x50000, 0x08000, 0x37598616);
+    else
+        status += pcm.load("opr-10188.71", 0x50000, 0x08000, 0xbad30ad9);
+
+    return status == 0;
+}

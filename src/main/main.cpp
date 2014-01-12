@@ -264,6 +264,10 @@ int main(int argc, char* argv[])
         // Load XML Config
         config.load(FILENAME_CONFIG);
 
+        // Load fixed PCM ROM based on config
+        if (config.sound.fix_samples)
+            roms.load_pcm_rom(true);
+
         //Set the window caption 
         SDL_WM_SetCaption( "Cannonball", NULL ); 
 

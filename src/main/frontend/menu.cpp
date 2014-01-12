@@ -73,6 +73,7 @@ const static char* ENTRY_BGM        = "BGM VOL ";
 const static char* ENTRY_SFX        = "SFX VOL ";
 const static char* ENTRY_ADVERTISE  = "ADVERTISE SOUND ";
 const static char* ENTRY_PREVIEWSND = "PREVIEW MUSIC ";
+const static char* ENTRY_FIXSAMPLES = "FIX SAMPLES ";
 const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 
 // Controls Menu
@@ -144,6 +145,7 @@ void Menu::populate()
     //menu_sound.push_back(ENTRY_SFX);
     menu_sound.push_back(ENTRY_ADVERTISE);
     menu_sound.push_back(ENTRY_PREVIEWSND);
+    menu_sound.push_back(ENTRY_FIXSAMPLES);
     menu_sound.push_back(ENTRY_MUSICTEST);
     menu_sound.push_back(ENTRY_BACK);
 
@@ -547,6 +549,20 @@ void Menu::tick_menu()
                 config.sound.advertise = !config.sound.advertise;
             else if (SELECTED(ENTRY_PREVIEWSND))
                 config.sound.preview = !config.sound.preview;
+            else if (SELECTED(ENTRY_FIXSAMPLES))
+            {
+                int rom_type = !config.sound.fix_samples;
+                
+                if (roms.load_pcm_rom(rom_type == 1))
+                {
+                    config.sound.fix_samples = rom_type;
+                    display_message(rom_type == 1 ? "FIXED SAMPLES LOADED" : "ORIGINAL SAMPLES LOADED");
+                }
+                else
+                {
+                    display_message(rom_type == 1 ? "CANT LOAD FIXED SAMPLES" : "CANT LOAD ORIGINAL SAMPLES");
+                }
+            }
             else if (SELECTED(ENTRY_MUSICTEST))
                 set_menu(&menu_musictest);
             else if (SELECTED(ENTRY_BACK))
@@ -720,6 +736,8 @@ void Menu::refresh_menu()
                 set_menu_text(ENTRY_ADVERTISE, config.sound.advertise ? "ON" : "OFF");
             else if (SELECTED(ENTRY_PREVIEWSND))
                 set_menu_text(ENTRY_PREVIEWSND, config.sound.preview ? "ON" : "OFF");
+            else if (SELECTED(ENTRY_FIXSAMPLES))
+                set_menu_text(ENTRY_FIXSAMPLES, config.sound.fix_samples ? "ON" : "OFF");
         }
         else if (menu_selected == &menu_controls)
         {

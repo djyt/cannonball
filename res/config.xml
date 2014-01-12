@@ -67,6 +67,9 @@
     <!-- Preview Sound On Music Selection Screen (Enhancement, Off in original game) -->
     <preview>1</preview>
     
+    <!-- OutRun shipped with a corrupt PCM sample ROM. This uses the repaired ROM 'opr-10188.71f' -->
+    <fix_samples>0</fix_samples>
+    
     <!-- Custom Music: Play a WAV file instead of the inbuilt music -->
     <custom_music>
         <!-- Magical Sound Shower Replacement -->

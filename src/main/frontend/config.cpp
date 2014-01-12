@@ -82,9 +82,10 @@ void Config::load(const std::string &filename)
     // ------------------------------------------------------------------------
     // Sound Settings
     // ------------------------------------------------------------------------
-    sound.enabled   = pt_config.get("sound.enable",    1);
-    sound.advertise = pt_config.get("sound.advertise", 1);
-    sound.preview   = pt_config.get("sound.preview",   1);
+    sound.enabled     = pt_config.get("sound.enable",      1);
+    sound.advertise   = pt_config.get("sound.advertise",   1);
+    sound.preview     = pt_config.get("sound.preview",     1);
+    sound.fix_samples = pt_config.get("sound.fix_samples", 1);
 
     // Custom Music
     for (int i = 0; i < 4; i++)
@@ -173,9 +174,10 @@ bool Config::save(const std::string &filename)
     pt_config.put("video.widescreen",         video.widescreen);
     pt_config.put("video.hires",              video.hires);
 
-    pt_config.put("sound.enable",    sound.enabled);
-    pt_config.put("sound.advertise", sound.advertise);
-    pt_config.put("sound.preview",   sound.preview);
+    pt_config.put("sound.enable",      sound.enabled);
+    pt_config.put("sound.advertise",   sound.advertise);
+    pt_config.put("sound.preview",     sound.preview);
+    pt_config.put("sound.fix_samples", sound.fix_samples);
 
     pt_config.put("controls.gear",            controls.gear);
     pt_config.put("controls.steerspeed",      controls.steer_speed);

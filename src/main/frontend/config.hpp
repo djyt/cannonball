@@ -55,6 +55,7 @@ struct sound_settings_t
     int enabled;
     int advertise;
     int preview;
+    int fix_samples;
     custom_music_t custom_music[4];
 };
 

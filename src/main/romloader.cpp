@@ -111,9 +111,6 @@ int RomLoader::load_level(const char* filename)
     chdir(bundlepath);
 #endif
 
-    //std::string path = "levels/";
-    //path += std::string(filename);
-
     // --------------------------------------------------------------------------------------------
     // Read LayOut Data File
     // --------------------------------------------------------------------------------------------

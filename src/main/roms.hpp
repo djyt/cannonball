@@ -29,14 +29,11 @@ public:
     RomLoader* rom0p;
     RomLoader* rom1p;
 
-    //RomLoader* track_data;
-    //RomLoader custom_track;
-
-
     Roms();
     ~Roms();
     bool load_revb_roms();
     bool load_japanese_roms();
+    bool load_pcm_rom(bool);
 
 private:
     int jap_rom_status;

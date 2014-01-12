@@ -62,6 +62,7 @@ private:
 
     std::vector<std::string>* menu_selected;
     std::vector<std::string> menu_main;
+    std::vector<std::string> menu_gamemodes;
     std::vector<std::string> menu_timetrial;
     std::vector<std::string> menu_about;
     std::vector<std::string> menu_settings;
@@ -84,6 +85,6 @@ private:
     void redefine_joystick();
     void display_message(std::string);
     bool check_jap_roms();
-
     void restart_video();
+    void start_game(int mode = 0);
 };

@@ -42,14 +42,19 @@ const static char* ENTRY_BACK       = "BACK";
 
 // Main Menu
 const static char* ENTRY_PLAYGAME   = "PLAY GAME";
-const static char* ENTRY_TIMETRIAL  = "TIME TRIAL";
+const static char* ENTRY_GAMEMODES  = "GAME MODES";
 const static char* ENTRY_SETTINGS   = "SETTINGS";
 const static char* ENTRY_ABOUT      = "ABOUT";
 const static char* ENTRY_EXIT       = "EXIT";
 
+// Game Modes Menu
+const static char* ENTRY_ENHANCED   = "SET ENHANCED MODE";
+const static char* ENTRY_ORIGINAL   = "SET ORIGINAL MODE";
+const static char* ENTRY_TIMETRIAL  = "TIME TRIAL MODE";
+
 // Time Trial Menu
-const static char* ENTRY_START     =  "START TIME TRIAL";
-const static char* ENTRY_LAPS      =  "NO OF LAPS ";
+const static char* ENTRY_START      =  "START TIME TRIAL";
+const static char* ENTRY_LAPS       =  "NO OF LAPS ";
 
 // Settings Menu
 const static char* ENTRY_VIDEO      = "VIDEO";
@@ -113,10 +118,15 @@ void Menu::populate()
 {
     // Create Menus
     menu_main.push_back(ENTRY_PLAYGAME);
-    menu_main.push_back(ENTRY_TIMETRIAL);
+    menu_main.push_back(ENTRY_GAMEMODES);
     menu_main.push_back(ENTRY_SETTINGS);
     menu_main.push_back(ENTRY_ABOUT);
     menu_main.push_back(ENTRY_EXIT);
+
+    menu_gamemodes.push_back(ENTRY_ORIGINAL);
+    menu_gamemodes.push_back(ENTRY_ENHANCED);
+    menu_gamemodes.push_back(ENTRY_TIMETRIAL);
+    menu_gamemodes.push_back(ENTRY_BACK);
 
     menu_timetrial.push_back(ENTRY_START);
     menu_timetrial.push_back(ENTRY_LAPS);
@@ -407,22 +417,26 @@ void Menu::tick_menu()
         if (menu_selected == &menu_main)
         {
             if (SELECTED(ENTRY_PLAYGAME))
-            {
-                if (check_jap_roms())
-                {
-                    outrun.ttrial.enabled = false;
-                    cannonball::state = cannonball::STATE_INIT_GAME;
-                    osoundint.queue_clear();
-                }
-            }
-            else if (SELECTED(ENTRY_TIMETRIAL))
-                set_menu(&menu_timetrial);
+                start_game();
+            else if (SELECTED(ENTRY_GAMEMODES))
+                set_menu(&menu_gamemodes);
             else if (SELECTED(ENTRY_SETTINGS))
                 set_menu(&menu_settings);
             else if (SELECTED(ENTRY_ABOUT))
                 set_menu(&menu_about);
             else if (SELECTED(ENTRY_EXIT))
                 cannonball::state = cannonball::STATE_QUIT;
+        }
+        else if (menu_selected == &menu_gamemodes)
+        {
+            if (SELECTED(ENTRY_ENHANCED))
+                start_game(1);
+            else if (SELECTED(ENTRY_ORIGINAL))
+                start_game(2);
+            else if (SELECTED(ENTRY_TIMETRIAL))
+                set_menu(&menu_timetrial);
+            else if (SELECTED(ENTRY_BACK))
+                set_menu(&menu_main);
         }
         else if (menu_selected == &menu_timetrial)
         {
@@ -446,7 +460,7 @@ void Menu::tick_menu()
                     config.ttrial.traffic = 0;
             }
             else if (SELECTED(ENTRY_BACK))
-                set_menu(&menu_main);
+                set_menu(&menu_gamemodes);
         }
         else if (menu_selected == &menu_settings)
         {
@@ -889,4 +903,69 @@ void Menu::restart_video()
     if (config.sound.enabled)
         cannonball::audio.start_audio();
     #endif
+}
+
+void Menu::start_game(int mode)
+{
+    // Enhanced Settings
+    if (mode == 1)
+    {
+        if (!config.video.hires)
+        {
+            if (config.video.scale > 1)
+                config.video.scale >>= 1;
+        }
+
+        if (!config.sound.fix_samples)
+        {
+            if (roms.load_pcm_rom(true))
+                config.sound.fix_samples = 1;
+        }
+
+        config.set_fps(config.video.fps = 2);
+        config.video.widescreen     = 1;
+        config.video.hires          = 1;
+        config.engine.level_objects = 1;
+        config.engine.new_attract   = 1;
+        config.engine.fix_bugs      = 1;
+        config.sound.preview        = 1;
+
+        restart_video();
+    }
+    // Original Settings
+    else if (mode == 2)
+    {
+        if (config.video.hires)
+        {
+            config.video.scale <<= 1;
+        }
+
+        if (config.sound.fix_samples)
+        {
+            if (roms.load_pcm_rom(false))
+                config.sound.fix_samples = 0;
+        }
+
+        config.set_fps(config.video.fps = 1);
+        config.video.widescreen     = 0;
+        config.video.hires          = 0;
+        config.engine.level_objects = 0;
+        config.engine.new_attract   = 0;
+        config.engine.fix_bugs      = 0;
+        config.sound.preview        = 0;
+
+        restart_video();
+    }
+    // Otherwise, use whatever is already setup...
+    else
+    {
+        config.engine.fix_bugs = config.engine.fix_bugs;
+    }
+
+    if (check_jap_roms())
+    {
+        outrun.ttrial.enabled = false;
+        cannonball::state = cannonball::STATE_INIT_GAME;
+        osoundint.queue_clear();
+    }
 }

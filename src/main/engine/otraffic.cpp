@@ -469,7 +469,7 @@ void OTraffic::update_props(oentry* sprite)
     int16_t y = oroad.road_y[oroad.road_p0 - (0x10 / 2)] - oroad.road_y[oroad.road_p0];
 
     // 0 = No Incline, 10 = Flat Road/Incline
-    int8_t incline = (y >= 0x12) ? 0x10 : 0; // d1
+    int8_t incline = (y < 0x12) ? 0x10 : 0; // d1
 
     // ------------------------------------------------------------------------
     // Cap Player X Position 

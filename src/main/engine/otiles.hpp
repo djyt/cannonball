@@ -32,20 +32,28 @@ public:
 	OTiles();
 	~OTiles();
 
+    void init();
+    void set_vertical_swap();
 	void setup_palette_tilemap();
 	void setup_palette_hud();
     void reset_tiles_pal();
-    void update_tilemaps();
-    void init_tilemap(int16_t stage_id = 0);
-    void init_tilemap_props(uint16_t);
+    void update_tilemaps(int8_t);
     void init_tilemap_palette(uint16_t);
-    void copy_fg_tiles(uint32_t);
-    void copy_bg_tiles(uint32_t);
     void fill_tilemap_color(uint16_t);
 	void write_tilemap_hw();
     void reset_scroll();
 
 private:	
+    // Page to use for tilemap. Alternates between 0 and 1 dependent on stage number
+    // to handle switch between tilemaps at stage end.
+    int8_t page;
+
+    // Enhancement: Used for continuous mode
+    int16_t vswap_state;
+    enum {VSWAP_OFF, VSWAP_SCROLL_OFF, VSWAP_SCROLL_ON};
+
+    int16_t vswap_off;
+
     // -----------------------------------------------------------------------
     // TILEMAP VARIABLES 
     // -----------------------------------------------------------------------
@@ -88,8 +96,10 @@ private:
     uint16_t h_scroll_lookup;
 
     // -----------------------------------------------------------------------
-
+    
     void clear_tile_info();
+    void init_tilemap(int16_t stage_id = 0);
+    void init_tilemap_props(uint16_t);
     void scroll_tilemaps();
     void init_next_tilemap();
     void copy_to_palram(const uint8_t, uint32_t, uint32_t);
@@ -99,6 +109,8 @@ private:
     void clear_old_name_table();
     void h_scroll_tilemaps();
     void v_scroll_tilemaps();
+    void copy_fg_tiles(uint32_t);
+    void copy_bg_tiles(uint32_t);
     void update_fg_page();
     void update_bg_page();
     void update_fg_page_split();

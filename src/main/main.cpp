@@ -281,8 +281,9 @@ int main(int argc, char* argv[])
         state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
 
         // Initalize controls
-        input.init(config.controls.keyconfig, config.controls.padconfig, 
-                   config.controls.analog,    config.controls.axis, config.controls.wheel);
+        input.init(config.controls.pad_id,
+                   config.controls.keyconfig, config.controls.padconfig, 
+                   config.controls.analog,    config.controls.axis, config.controls.asettings);
 
         if (config.controls.haptic) 
             config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);

@@ -423,6 +423,9 @@ void OInitEngine::check_road_split()
     }
 }
 
+static uint8_t CONTINUOUS_LEVELS[] = {0, 0x8, 0x9, 0x10, 0x11, 0x12, 0x18, 0x19, 0x1A, 0x1B, 0x20, 0x21, 0x22, 0x23, 0x24};
+int tmp_level = 0;
+
 // ------------------------------------------------------------------------------------------------
 // Check Stage Info To Determine What To Do With Road
 //
@@ -433,7 +436,7 @@ void OInitEngine::check_road_split()
 void OInitEngine::check_stage()
 {
     // Time Trial Mode
-    if (outrun.ttrial.enabled)
+    if (outrun.cannonball_mode == Outrun::MODE_TTRIAL)
     {
         // Store laptime and reset
         uint8_t* laptimes = outrun.ttrial.laptimes[outrun.ttrial.current_lap];
@@ -482,6 +485,41 @@ void OInitEngine::check_stage()
             }
         }
     }
+    else if (outrun.cannonball_mode == Outrun::MODE_CONT)
+    {
+        tmp_level++;
+
+        oroad.road_pos         = 0;
+        oroad.tilemap_h_target = 0;
+        
+        if ((ostats.cur_stage + 1) == 15)
+        {
+            init_bonus();
+        }
+        else
+        {
+            ostats.cur_stage++;
+            oroad.stage_lookup_off = CONTINUOUS_LEVELS[tmp_level];
+            init_road_seg_master();
+
+            // Init next tilemap
+            otiles.set_vertical_swap(); // Tell tilemap to v-scroll off/on
+
+            // Reload smoke data
+            osmoke.load_smoke_data |= BIT_0;
+
+            // Update palette
+            oinitengine.end_stage_props |= BIT_1; // Don't bump stage offset when fetching next palette
+            oinitengine.end_stage_props |= BIT_2;
+            opalette.pal_manip_ctrl = 1;
+            opalette.setup_sky_change();
+
+            // Denote Checkpoint Passed
+            checkpoint_marker = -1;
+
+        }
+    }
+
     // Stages 0-4, do road split
     else if (ostats.cur_stage <= 3)
     {
@@ -916,13 +954,13 @@ void OInitEngine::test_bonus_mode(bool do_bonus_check)
     if (do_bonus_check && obonus.bonus_control)
     {
         // Do Bonus Text Display
-        if (!outrun.ttrial.enabled && obonus.bonus_state < 3)
+        if (outrun.cannonball_mode == Outrun::MODE_ORIGINAL && obonus.bonus_state < 3)
             obonus.do_bonus_text();
 
         // End Seq Animation Stage #0
         if (obonus.bonus_control == OBonus::BONUS_SEQ0)
         {
-            if (outrun.ttrial.enabled)
+            if (outrun.cannonball_mode != Outrun::MODE_ORIGINAL)
                 outrun.game_state = GS_INIT_GAMEOVER;
             else
                 oanimseq.init_end_seq();

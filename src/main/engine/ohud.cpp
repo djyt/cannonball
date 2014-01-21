@@ -38,7 +38,7 @@ void OHud::draw_main_hud()
     blit_text1(HUD_LAP1);
     blit_text1(HUD_LAP2);
 
-    if (!outrun.ttrial.enabled)
+    if (outrun.cannonball_mode == Outrun::MODE_ORIGINAL)
     {
         blit_text1(HUD_TIME1);
         blit_text1(HUD_TIME2);
@@ -49,13 +49,23 @@ void OHud::draw_main_hud()
         blit_text1(HUD_ONE);
         do_mini_map();
     }
-    else
+    else if (outrun.cannonball_mode == Outrun::MODE_TTRIAL)
     {
         draw_score(translate(3, 2), 0, 2);
         blit_text1(2, 1, HUD_SCORE1);
         blit_text1(2, 2, HUD_SCORE2);
         blit_text_big(4, "TIME TO BEAT");
         draw_lap_timer(translate(16, 7), outrun.ttrial.best_lap, outrun.ttrial.best_lap[2]);
+    }
+    else if (outrun.cannonball_mode == Outrun::MODE_CONT)
+    {
+        blit_text1(HUD_TIME1);
+        blit_text1(HUD_TIME2);
+        blit_text1(HUD_SCORE1);
+        blit_text1(HUD_SCORE2);
+        blit_text1(HUD_STAGE1);
+        blit_text1(HUD_STAGE2);
+        blit_text1(HUD_ONE);
     }
 }
 
@@ -287,12 +297,21 @@ void OHud::draw_score_tile(uint32_t addr, const uint32_t score, uint8_t font)
 }
 
 // Modified Version Of Draw Digits
-// This only draws a single digit, as the original routine is never used in the way intended
 //
 // Source: C3A0
-void OHud::draw_digits(uint32_t addr, uint8_t digit, uint16_t col)
+void OHud::draw_stage_number(uint32_t addr, uint8_t digit, uint16_t col)
 {
-    video.write_text16(addr, digit + (col << 8) + DIGIT_BASE);
+    if (digit < 10)
+    {
+        video.write_text16(addr, digit + (col << 8) + DIGIT_BASE);
+    }
+    else
+    {
+        int hex = outils::convert16_dechex(digit);
+
+        video.write_text16(addr + 2, (hex & 0xF) + (col << 8) + DIGIT_BASE);
+        video.write_text16(addr    , (hex >> 4)  + (col << 8) + DIGIT_BASE);
+    }
 }
 
 // Draw Rev Counter

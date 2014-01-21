@@ -13,7 +13,6 @@
 
 #include "../trackloader.hpp"
 #include "engine/opalette.hpp"
-#include "engine/ostats.hpp"
 #include "engine/otiles.hpp"
 
 OTiles otiles;
@@ -24,6 +23,18 @@ OTiles::OTiles(void)
 
 OTiles::~OTiles(void)
 {
+}
+
+void OTiles::init()
+{
+    vswap_off   = 0;
+    vswap_state = VSWAP_OFF;
+}
+
+void OTiles::set_vertical_swap()
+{
+    vswap_off   = 0;
+    vswap_state = VSWAP_SCROLL_OFF;
 }
 
 
@@ -107,9 +118,31 @@ void OTiles::reset_tiles_pal()
 // There can be two FG and two BG layers loaded at once.
 // This is because the previous and upcoming tilemaps are scrolled between on level switch.
 
-void OTiles::update_tilemaps()
+void OTiles::update_tilemaps(int8_t p)
 {
     if (outrun.service_mode) return;
+
+    page = p;
+
+    switch (vswap_state)
+    {
+        case VSWAP_OFF:
+            break;
+
+        case VSWAP_SCROLL_OFF:
+            if (++vswap_off > 0x50)
+            {
+                vswap_state = VSWAP_SCROLL_ON;
+                clear_tile_info();
+                init_tilemap_palette(oroad.stage_lookup_off);
+            }
+            break;
+
+        case VSWAP_SCROLL_ON:
+            if (--vswap_off == 0)
+                vswap_state = VSWAP_OFF;
+            break;
+    }
 
     switch (tilemap_ctrl & 3)
     {
@@ -195,8 +228,12 @@ void OTiles::init_tilemap(int16_t stage_id)
 
     fg_v_scroll   = v_off;
     bg_v_scroll   = v_off;
-    video.write_text16(HW_FG_VSCROLL, v_off);           // Also write values to hardware
-    video.write_text16(HW_BG_VSCROLL, v_off);
+
+    if (vswap_state == VSWAP_OFF)
+    {
+        video.write_text16(HW_FG_VSCROLL, v_off);           // Also write values to hardware
+        video.write_text16(HW_BG_VSCROLL, v_off);
+    }
     copy_fg_tiles(0x100F80);                            // Copy Foreground tiles to Tile RAM
     copy_bg_tiles(0x108F80);                            // Copy Background tiles to Tile RAM
     tilemap_ctrl = TILEMAP_SCROLL;
@@ -361,17 +398,14 @@ void OTiles::scroll_tilemaps()
     }
 
     // Determine if we need to loop back to Stage 1
-    uint8_t loop = oinitengine.end_stage_props & 0x8;
-    oinitengine.end_stage_props &= ~0x8;
-
-    if (loop)
+    if (oinitengine.end_stage_props & BIT_3)
     {
+        oinitengine.end_stage_props &= ~BIT_3;
         loop_to_stage1();
         return;
     }
-
     // Determine if road splitting
-    if (oinitengine.end_stage_props & 1)
+    else if (oinitengine.end_stage_props & BIT_0)
     {
         opalette.setup_sky_change();
         tilemap_ctrl  = TILEMAP_INIT;
@@ -411,7 +445,7 @@ void OTiles::clear_old_name_table()
     clear_name_tables = false; // Denote tilemaps have been cleared
 
     // Odd Stages
-    if (ostats.cur_stage & 1)
+    if (page & 1)
     {
         // Clear FG Tiles 2 [4 pages, (each 64x32 page table)]
         for (uint32_t i = 0x104C00; i < 0x108C00; i += 2)
@@ -446,7 +480,7 @@ void OTiles::clear_old_name_table()
 void OTiles::h_scroll_tilemaps()
 {
     // Road Splitting
-    if (oinitengine.end_stage_props & 1)
+    if (oinitengine.end_stage_props & BIT_0)
     {
         // Road position is used as an offset into the table. (Note it's reset at beginning of road split)
         h_scroll_lookup = roms.rom0.read16(H_SCROLL_TABLE + ((oroad.road_pos >> 16) << 1));
@@ -505,7 +539,7 @@ void OTiles::h_scroll_tilemaps()
 void OTiles::v_scroll_tilemaps()
 {
     oroad.horizon_y_bak = (oroad.horizon_y_bak + oroad.horizon_y2) >> 1;
-    int32_t d0 = (0x100 - oroad.horizon_y_bak - tilemap_v_off);
+    int32_t d0 = (0x100 - oroad.horizon_y_bak - tilemap_v_off - vswap_off);
     tilemap_v_scr ^= d0;
 
     if (d0 < 0)
@@ -540,10 +574,7 @@ void OTiles::update_fg_page()
     int32_t rol7 = h << 7;
     h = ((rol7 >> 16) & 3) << 1;
     
-    uint8_t cur_stage = ostats.cur_stage;
-    
-    if (page_split)
-        cur_stage++;
+    uint8_t cur_stage = page_split ? page + 1 : page;
 
     cur_stage &= 1;
     cur_stage *= 8;
@@ -567,10 +598,7 @@ void OTiles::update_bg_page()
     int32_t rol7 = h << 7;
     h = ((rol7 >> 16) & 3) << 1;
 
-    uint8_t cur_stage = ostats.cur_stage;
-
-    if (page_split)
-        cur_stage++;
+    uint8_t cur_stage = page_split ? page + 1 : page;
 
     cur_stage &= 1;
     cur_stage = ((cur_stage * 2) + cur_stage) << 1;
@@ -594,8 +622,8 @@ void OTiles::init_next_tilemap()
         // tilemap is loaded onto alternate name tables in tile ram.
         case SETUP_TILES:
             init_tilemap_props(oroad.stage_lookup_off + 8);
-            copy_fg_tiles(ostats.cur_stage & 1 ? 0x100F80 : 0x104F80);
-            copy_bg_tiles(ostats.cur_stage & 1 ? 0x108F80 : 0x10BF80);
+            copy_fg_tiles(page & 1 ? 0x100F80 : 0x104F80);
+            copy_bg_tiles(page & 1 ? 0x108F80 : 0x10BF80);
             tilemap_setup = SETUP_PAL;
             break;
 
@@ -720,7 +748,7 @@ void OTiles::split_tilemaps()
     {
         tilemap_ctrl = TILEMAP_SCROLL;
         page_split = true;
-        oinitengine.end_stage_props &= ~BIT_0; // Denote Road Split Ending
+        oinitengine.end_stage_props &= ~BIT_0; // Denote Sky Palette Change Done
         h_scroll_lookup = 0;
         clear_name_tables = true; // Erase old tile name tables
     }
@@ -732,7 +760,7 @@ void OTiles::split_tilemaps()
 void OTiles::update_fg_page_split()
 {
     fg_h_scroll = tilemap_h_scr >> 16;
-    fg_psel = roms.rom0.read16(TILES_PAGE_FG2 + ((ostats.cur_stage & 1) ? 0x6 : 0xE));
+    fg_psel = roms.rom0.read16(TILES_PAGE_FG2 + ((page & 1) ? 0x6 : 0xE));
 }
 
 // Setup Background tilemap, with relevant h-scroll and page information. Ready for forthcoming HW write.
@@ -741,7 +769,7 @@ void OTiles::update_fg_page_split()
 void OTiles::update_bg_page_split()
 {
     bg_h_scroll = (((tilemap_h_scr >> 16) & 0xFFF) * 3) >> 2;
-    bg_psel = roms.rom0.read16(TILES_PAGE_BG2 + ((ostats.cur_stage & 1) ? 0x4 : 0xA));
+    bg_psel = roms.rom0.read16(TILES_PAGE_BG2 + ((page & 1) ? 0x4 : 0xA));
 }
 
 // Fill tilemap background with a solid color

@@ -31,11 +31,13 @@ void OStats::init(bool ttrial)
 
 void OStats::clear_stage_times()
 {
-    stage_counters[0] = stage_counters[1] = stage_counters[2] = stage_counters[3] = stage_counters[4] = 0;
+    for (int i = 0; i < 15; i++)
+    {
+        stage_counters[i] = 0;
 
-    for (int i = 0; i < 5; i++)
         for (int j = 0; j < 3; j++)
             stage_times[i][j] = 0;
+    }
 }
 
 void OStats::clear_route_info()
@@ -54,17 +56,18 @@ void OStats::do_timers()
 
     inc_lap_timer();
 
-    if (outrun.ttrial.enabled)
-    {
-        stage_counters[outrun.ttrial.current_lap]++;
-        ohud.draw_digits(ohud.translate(30, 2 + outrun.ttrial.current_lap), (outrun.ttrial.current_lap + 1), OHud::GREY);
-        ohud.draw_lap_timer(ohud.translate(32, 2 + outrun.ttrial.current_lap), stage_times[cur_stage], ms_value);
-    }
-    else 
+    if (outrun.cannonball_mode == Outrun::MODE_ORIGINAL || outrun.cannonball_mode == Outrun::MODE_CONT)
     {
         // Each stage has a standard counter that just increments. Do this here.
         stage_counters[cur_stage]++;
         ohud.draw_lap_timer(0x11016C, stage_times[cur_stage], ms_value);
+    }
+
+    else if (outrun.cannonball_mode == Outrun::MODE_TTRIAL)
+    {
+        stage_counters[outrun.ttrial.current_lap]++;
+        ohud.draw_stage_number(ohud.translate(30, 2 + outrun.ttrial.current_lap), (outrun.ttrial.current_lap + 1), OHud::GREY);
+        ohud.draw_lap_timer(ohud.translate(32, 2 + outrun.ttrial.current_lap), stage_times[cur_stage], ms_value);
     }
 }
 
@@ -121,7 +124,7 @@ void OStats::convert_speed_score(uint16_t speed)
 // Source: 0x7340
 void OStats::update_score(uint32_t value)
 {
-    if (outrun.ttrial.enabled)
+    if (outrun.cannonball_mode == Outrun::MODE_TTRIAL)
         return;
 
     score = outils::bcd_add(value, score);
@@ -164,7 +167,7 @@ void OStats::init_next_level()
             {
                 if (extend_play_timer & BIT_3)
                 {
-                    if (outrun.ttrial.enabled)
+                    if (outrun.cannonball_mode == Outrun::MODE_TTRIAL)
                         ohud.blit_text_new(15, 8, "BEST LAP!", OHud::PINK);
                     else
                     {
@@ -183,23 +186,30 @@ void OStats::init_next_level()
     else if (outrun.game_state == GS_INGAME && oinitengine.checkpoint_marker)
     {
         oinitengine.checkpoint_marker = 0;
-
+        extend_play_timer             = 0x80;
+        
+        // Calculate Time To Add
         uint16_t time_lookup = (config.engine.dip_time * 40) + oroad.stage_lookup_off;
-        if (!config.engine.freeze_timer) time_counter = outils::bcd_add(time_counter, TIME[time_lookup]);
-        otraffic.set_max_traffic();
-        osoundint.queue_sound(sound::YM_CHECKPOINT);
-        osoundint.queue_sound(sound::VOICE_CHECKPOINT);
-        extend_play_timer = 0x80;
-        ohud.blit_text1(TEXT1_LAPTIME1);
-        ohud.blit_text1(TEXT1_LAPTIME2);
+        if (!config.engine.freeze_timer)
+        {
+            if (outrun.cannonball_mode == outrun.MODE_ORIGINAL)
+                time_counter = outils::bcd_add(time_counter, TIME[time_lookup]);
+            else if (outrun.cannonball_mode == outrun.MODE_CONT)
+                time_counter = outils::bcd_add(time_counter, 0x55);
+        }
 
         // Draw last laptime
         // Note there is a bug in the original code here, where the current ms value is displayed, instead of the ms value from the last lap time
+        ohud.blit_text1(TEXT1_LAPTIME1);
+        ohud.blit_text1(TEXT1_LAPTIME2);
         ohud.draw_lap_timer(0x110554, stage_times[cur_stage-1], config.engine.fix_bugs ? LAP_MS[stage_times[cur_stage-1][2]] : ms_value);
 
+        otraffic.set_max_traffic();
+        osoundint.queue_sound(sound::YM_CHECKPOINT);
+        osoundint.queue_sound(sound::VOICE_CHECKPOINT);
+        
         // Update Stage Number on HUD
-        ohud.draw_digits(0x110d76, cur_stage+1);
-
+        ohud.draw_stage_number(0x110d76, cur_stage+1);
         // No need to redraw the stage info as that was a bug in the original game
     }
 }

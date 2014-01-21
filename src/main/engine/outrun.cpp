@@ -65,8 +65,9 @@ Outrun::~Outrun()
 }
 
 void Outrun::init()
-{    
-    freeze_timer = ttrial.enabled ? true : config.engine.freeze_timer;
+{
+    cannonball_mode = MODE_CONT; // debug
+    freeze_timer = cannonball_mode == MODE_TTRIAL ? true : config.engine.freeze_timer;
 
     game_state = config.engine.layout_debug ? GS_INIT_GAME : GS_INIT;
     video.enabled = false;
@@ -76,9 +77,9 @@ void Outrun::init()
     tick_counter = 0;
     ohiscore.init_def_scores();  // Initialize default hi-score entries
     config.load_scores();        // Load saved hi-score entries
-    ostats.init(ttrial.enabled);
+    ostats.init(cannonball_mode == MODE_TTRIAL);
     init_jump_table();
-    oinitengine.init(ttrial.enabled ? ttrial.level : 0);
+    oinitengine.init(cannonball_mode == MODE_TTRIAL ? ttrial.level : 0);
     osoundint.init();
     outils::reset_random_seed(); // Ensure we match the genuine boot up of the original game each time
 }
@@ -87,7 +88,7 @@ void Outrun::tick(bool tick_frame)
 {
     this->tick_frame = tick_frame;
 
-    /*if (input.has_pressed(Input::LEFT))
+    /*if (input.has_pressed(Input::UP))
     {
         game_state = GS_INIT_BONUS;
         oroad.road_width = 0x90;
@@ -95,6 +96,9 @@ void Outrun::tick(bool tick_frame)
         oroad.stage_lookup_off = 0x23;
         oinitengine.route_selected = -1;
         oinitengine.init_bonus();
+
+        //oroad.stage_lookup_off += 8;
+        //otiles.set_vertical_swap();
     }*/
 
     if (game_state >= GS_START1 && game_state <= GS_INGAME)
@@ -163,7 +167,7 @@ void Outrun::vint()
 {
     otiles.write_tilemap_hw();
     osprites.update_sprites();
-    otiles.update_tilemaps();
+    otiles.update_tilemaps(cannonball_mode == MODE_ORIGINAL ? ostats.cur_stage : 0);
 
     if (config.fps < 120 || (cannonball::frame & 1))
     {
@@ -171,7 +175,7 @@ void Outrun::vint()
         opalette.fade_palette();
         // ... 
         ostats.do_timers();
-        if (!outrun.ttrial.enabled) ohud.draw_timer1(ostats.time_counter);
+        if (cannonball_mode != MODE_TTRIAL) ohud.draw_timer1(ostats.time_counter);
         oinputs.do_credits();
         oinitengine.set_granular_position();
     }
@@ -356,7 +360,7 @@ void Outrun::main_switch()
             video.clear_text_ram();
             oferrari.car_ctrl_active = true;
             init_jump_table();
-            oinitengine.init(ttrial.enabled ? ttrial.level : 0);
+            oinitengine.init(cannonball_mode == MODE_TTRIAL ? ttrial.level : 0);
             // Timing Hack to ensure horizon is correct
             // Note that the original code disables the screen, and waits for the second CPU's interrupt instead
             oroad.tick();
@@ -404,7 +408,7 @@ void Outrun::main_switch()
         case GS_START3:
             if (--ostats.frame_counter < 0)
             {
-                if (ttrial.enabled)
+                if (cannonball_mode == MODE_TTRIAL)
                 {
                     ohud.clear_timetrial_text();
                 }
@@ -444,7 +448,7 @@ void Outrun::main_switch()
         // Display Game Over Text
         // ----------------------------------------------------------------------------------------
         case GS_INIT_GAMEOVER:
-            if (!ttrial.enabled)
+            if (cannonball_mode != MODE_TTRIAL)
             {
                 oferrari.car_ctrl_active = false; // -1
                 oinitengine.car_increment = 0;
@@ -472,7 +476,7 @@ void Outrun::main_switch()
             game_state = GS_GAMEOVER;
 
         case GS_GAMEOVER:
-            if (!ttrial.enabled)
+            if (cannonball_mode == MODE_ORIGINAL)
             {
                 if (decrement_timers())
                     game_state = GS_INIT_MAP;
@@ -548,7 +552,7 @@ void Outrun::main_switch()
                 //ROM:0000B700                 bclr    #5,(ppi1_value).l                   ; Turn screen off (not activated until PPI written to)
                 oferrari.car_ctrl_active = true; // 0 : Allow road updates
                 init_jump_table();
-                oinitengine.init(ttrial.enabled ? ttrial.level : 0);
+                oinitengine.init(cannonball_mode == MODE_TTRIAL ? ttrial.level : 0);
                 //ROM:0000B716                 bclr    #0,(byte_260550).l
                 game_state = GS_REINIT;          // Reinit game to attract mode
             }
@@ -628,7 +632,7 @@ void Outrun::init_jump_table()
     car_inc_bak = 0;
 
     osprites.init();
-    if (!ttrial.enabled) 
+    if (cannonball_mode != MODE_TTRIAL) 
     {
         otraffic.init_stage1_traffic();      // Hard coded traffic in right hand lane
         if (trackloader.display_start_line)
@@ -640,6 +644,7 @@ void Outrun::init_jump_table()
     otraffic.init();
     osmoke.init();
     oroad.init();
+    otiles.init();
     opalette.init();
     oinputs.init();
     obonus.init();
@@ -693,7 +698,7 @@ void Outrun::init_attract()
     attract_counter           = 0;
     attract_view              = 0;
     oattractai.init();
-    game_state = ttrial.enabled ? GS_INIT_MUSIC : GS_ATTRACT;
+    game_state = cannonball_mode == MODE_TTRIAL ? GS_INIT_MUSIC : GS_ATTRACT;
 }
 
 void Outrun::tick_attract()

@@ -53,9 +53,7 @@ enum
 
 struct time_trial_t
 {
-    bool enabled;             // Time Trial Mode Enabled
     uint8_t  level;           // Time Trial Level
-    uint8_t  traffic;         // Max Traffic Level
     uint8_t  laps;            // Total laps (maximum of 5 laps total allowed)
     uint8_t  current_lap;     // Which lap are we currently on
     uint16_t overtakes;       // Number of overtakes
@@ -179,6 +177,16 @@ class Outrun
 {
 public:
     bool freeze_timer;
+
+    // CannonBall Game Mode
+    uint8_t cannonball_mode;
+
+    const static uint8_t MODE_ORIGINAL = 0; // Original OutRun Mode
+    const static uint8_t MODE_TTRIAL   = 1; // Enhanced Time Trial Mode
+    const static uint8_t MODE_CONT     = 2; // Enhanced Continuous Mode
+
+    // Max traffic level for custom modes 
+    uint8_t custom_traffic;
 
     // Time trial data
     time_trial_t ttrial;

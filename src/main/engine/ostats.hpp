@@ -70,8 +70,8 @@ public:
     static const uint8_t TIME[];
 
     // Counters that increment with each game tick.
-    // Each stage has an independent counter
-    int16_t stage_counters[5];
+    // Each stage has an independent counter (increased to 15 from 5 to support continuous mode)
+    int16_t stage_counters[15];
 
     // Set when game completed
     bool game_completed;
@@ -85,8 +85,8 @@ public:
     // Free play mode
     bool free_play;
 
-    // Each stage has an entry for minutes, seconds and MS.
-    uint8_t stage_times[5][3];
+    // Each stage has an entry for minutes, seconds and MS. (Extended to 15 from 5 to support continuous mode)
+    uint8_t stage_times[15][3];
 
     OStats(void);
     ~OStats(void);

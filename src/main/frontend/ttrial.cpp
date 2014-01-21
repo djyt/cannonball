@@ -65,7 +65,7 @@ int TTrial::tick()
             ohud.blit_text1(2, 26, TEXT1_LAPTIME2);
             osoundint.queue_sound(sound::PCM_WAVE);
             outrun.ttrial.laps    = config.ttrial.laps;
-            outrun.ttrial.traffic = config.ttrial.traffic;
+            outrun.custom_traffic = config.ttrial.traffic;
             state = TICK_COURSEMAP;
 
         case TICK_COURSEMAP:
@@ -88,7 +88,7 @@ int TTrial::tick()
                 {
                     outils::convert_counter_to_time(best_times[level_selected], best_converted);
 
-                    outrun.ttrial.enabled          = true;
+                    outrun.cannonball_mode         = Outrun::MODE_TTRIAL;
                     outrun.ttrial.level            = STAGE_LOOKUP[level_selected];
                     outrun.ttrial.current_lap      = 0;
                     outrun.ttrial.best_lap_counter = 10000;
@@ -111,7 +111,7 @@ int TTrial::tick()
                 osprites.sprite_copy();
                 osprites.update_sprites();
                 otiles.write_tilemap_hw();
-                otiles.update_tilemaps();
+                otiles.update_tilemaps(0);
             }
             break;
     }

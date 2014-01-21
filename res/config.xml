@@ -101,9 +101,13 @@
     <!-- Gears: 
         0 = Manual   (Click to shift, for normal play)
         1 = Manual   (Hold to shift, for cabinet play)
-        2 = Automatic 
+        2 = Manual   (Separate Buttons for High/Low)
+        3 = Automatic 
     -->
     <gear>0</gear>
+    
+    <!-- Use the N'th joystick on the system. -->
+    <pad_id>0</pad_id>
     
     <!-- Keyboard Button Configuration. Easiest to configure with inbuilt menu. -->
     <keyconfig>
@@ -113,7 +117,8 @@
         <right>275</right>
         <acc>122</acc>
         <brake>120</brake>
-        <gear>32</gear>
+        <gear1>32</gear1>
+        <gear2>32</gear2>
         <start>49</start>
         <coin>53</coin>
         <menu>286</menu>
@@ -124,7 +129,8 @@
     <padconfig>
         <acc>0</acc>
         <brake>1</brake>
-        <gear>2</gear>
+        <gear1>2</gear1>
+        <gear2>2</gear2>
         <start>3</start>
         <coin>4</coin>
         <menu>5</menu>    
@@ -145,7 +151,9 @@
     <analog enabled = "0">
         <!-- Select axis for analog controls 
              You can place the accelerator and the brake on the same axis if your controller
-             has a split axis setup. This is best avoided though.
+             has a split axis setup.
+             
+             For an XBox 360 Controller, the wheel should be axis 0 and the pedals on axis 2.
           -->
         <axis>
             <wheel>0</wheel>
@@ -165,6 +173,12 @@
                  A good Logitech Racing wheel should not need this -->
             <dead>0</dead>
         </wheel>
+        
+        <!-- Analog Pedal Settings -->
+        <pedals>
+            <!-- Central Dead Zone: Only used for split axis controls -->
+            <dead>1</dead>
+        </pedals>
         
         <!-- Force Feedback / Haptic Support -->
         <haptic enabled = "0">

@@ -145,12 +145,21 @@ void OInputs::do_gear()
 
     // Manual: Cabinet Shifter
     if (config.controls.gear == config.controls.GEAR_PRESS)
-        gear = !input.is_pressed(Input::GEAR);
+        gear = !input.is_pressed(Input::GEAR1);
+
+    // Manual: Two Separate Buttons for gears
+    else if (config.controls.gear == config.controls.GEAR_SEPARATE)
+    {
+        if (input.has_pressed(Input::GEAR1))
+            gear = false;
+        else if (input.has_pressed(Input::GEAR2))
+            gear = true;
+    }
 
     // Manual: Keyboard/Digital Button
     else
     {
-        if (input.has_pressed(Input::GEAR))
+        if (input.has_pressed(Input::GEAR1))
             gear = !gear;
     }
 }

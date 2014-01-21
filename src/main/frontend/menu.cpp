@@ -181,7 +181,7 @@ void Menu::populate()
     menu_musictest.push_back(ENTRY_MUSIC4);
     menu_musictest.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL 0.21 © CHRIS WHITE 2013");
+    menu_about.push_back("CANNONBALL 0.22 © CHRIS WHITE 2014");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back(" ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");
@@ -194,6 +194,7 @@ void Menu::populate()
     text_redefine.push_back("PRESS ACCELERATE");
     text_redefine.push_back("PRESS BRAKE");
     text_redefine.push_back("PRESS GEAR");
+    text_redefine.push_back("PRESS GEAR HIGH");
     text_redefine.push_back("PRESS START");
     text_redefine.push_back("PRESS COIN IN");
     text_redefine.push_back("PRESS MENU");
@@ -586,8 +587,8 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_GEAR))
             {
-                if (++config.controls.gear > 2)
-                    config.controls.gear = 0;
+                if (++config.controls.gear > config.controls.GEAR_AUTO)
+                    config.controls.gear = config.controls.GEAR_BUTTON;
             }
             else if (SELECTED(ENTRY_ANALOG))
             {
@@ -597,12 +598,14 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_REDEFKEY))
             {
+                display_message("PRESS MENU TO END AT ANY STAGE");
                 state = STATE_REDEFINE_KEYS;
                 redef_state = 0;
                 input.key_press = -1;
             }
             else if (SELECTED(ENTRY_REDEFJOY))
             {
+                display_message("PRESS MENU TO END AT ANY STAGE");
                 state = STATE_REDEFINE_JOY;
                 redef_state = config.controls.analog == 1 ? 2 : 0; // Ignore pedals when redefining analog
                 input.joy_button = -1;
@@ -757,9 +760,10 @@ void Menu::refresh_menu()
         {
             if (SELECTED(ENTRY_GEAR))
             {
-                if (config.controls.gear == 0)      s = "MANUAL";
-                else if (config.controls.gear == 1) s = "MANUAL CABINET";
-                else if (config.controls.gear == 2) s = "AUTOMATIC";
+                if (config.controls.gear == config.controls.GEAR_BUTTON)        s = "MANUAL";
+                else if (config.controls.gear == config.controls.GEAR_PRESS)    s = "MANUAL CABINET";
+                else if (config.controls.gear == config.controls.GEAR_SEPARATE) s = "MANUAL 2 BUTTONS";
+                else if (config.controls.gear == config.controls.GEAR_AUTO)     s = "AUTOMATIC";
                 set_menu_text(ENTRY_GEAR, s);
             }
             else if (SELECTED(ENTRY_ANALOG))
@@ -818,6 +822,9 @@ void Menu::set_menu_text(std::string s1, std::string s2)
 
 void Menu::redefine_keyboard()
 {
+    if (redef_state == 7 && config.controls.gear != config.controls.GEAR_SEPARATE) // Skip redefine of second gear press
+        redef_state++;
+
     switch (redef_state)
     {
         case 0:
@@ -831,16 +838,25 @@ void Menu::redefine_keyboard()
         case 8:
         case 9:
         case 10:
-            draw_text(text_redefine.at(redef_state));
-            if (input.key_press != -1)
+        case 11:
+            if (input.has_pressed(Input::MENU))
             {
-                config.controls.keyconfig[redef_state] = input.key_press;
-                redef_state++;
-                input.key_press = -1;
+                message_counter = 0;
+                state = STATE_MENU;
+            }
+            else
+            {
+                draw_text(text_redefine.at(redef_state));
+                if (input.key_press != -1)
+                {
+                    config.controls.keyconfig[redef_state] = input.key_press;
+                    redef_state++;
+                    input.key_press = -1;
+                }
             }
             break;
 
-        case 11:
+        case 12:
             state = STATE_MENU;
             break;
     }
@@ -848,6 +864,9 @@ void Menu::redefine_keyboard()
 
 void Menu::redefine_joystick()
 {
+    if (redef_state == 3 && config.controls.gear != config.controls.GEAR_SEPARATE) // Skip redefine of second gear press
+        redef_state++;
+
     switch (redef_state)
     {
         case 0:
@@ -857,16 +876,25 @@ void Menu::redefine_joystick()
         case 4:
         case 5:
         case 6:
-            draw_text(text_redefine.at(redef_state + 4));
-            if (input.joy_button != -1)
+        case 7:
+            if (input.has_pressed(Input::MENU))
             {
-                config.controls.padconfig[redef_state] = input.joy_button;
-                redef_state++;
-                input.joy_button = -1;
+                message_counter = 0;
+                state = STATE_MENU;
+            }
+            else
+            {
+                draw_text(text_redefine.at(redef_state + 4));
+                if (input.joy_button != -1)
+                {
+                    config.controls.padconfig[redef_state] = input.joy_button;
+                    redef_state++;
+                    input.joy_button = -1;
+                }
             }
             break;
 
-        case 7:
+        case 8:
             state = STATE_MENU;
             break;
     }
@@ -964,7 +992,7 @@ void Menu::start_game(int mode)
 
     if (check_jap_roms())
     {
-        outrun.ttrial.enabled = false;
+        outrun.cannonball_mode = Outrun::MODE_ORIGINAL;
         cannonball::state = cannonball::STATE_INIT_GAME;
         osoundint.queue_clear();
     }

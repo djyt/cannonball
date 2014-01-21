@@ -8,6 +8,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <iostream>
 #include <cstdlib> // abs
 #include "sdl/input.hpp"
 
@@ -21,20 +22,21 @@ Input::~Input(void)
 {
 }
 
-void Input::init(int* key_config, int* pad_config, int analog, int* axis, int* wheel)
+void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* axis, int* analog_settings)
 {
     this->key_config  = key_config;
     this->pad_config  = pad_config;
     this->analog      = analog;
     this->axis        = axis;
-    this->wheel_zone  = wheel[0];
-    this->wheel_dead  = wheel[1];
+    this->wheel_zone  = analog_settings[0];
+    this->wheel_dead  = analog_settings[1];
+    this->pedals_dead = analog_settings[2];
 
-    gamepad = SDL_NumJoysticks() >= 1;
+    gamepad = SDL_NumJoysticks() > pad_id;
 
     if (gamepad)
     {
-        stick = SDL_JoystickOpen(0);
+        stick = SDL_JoystickOpen(pad_id);
     }
 
     a_wheel = CENTRE;
@@ -90,25 +92,28 @@ void Input::handle_key(const int key, const bool is_pressed)
     else if (key == key_config[3])
         keys[RIGHT] = is_pressed;
 
-    else if (key == key_config[4])
+    if (key == key_config[4])
         keys[ACCEL] = is_pressed;
 
-    else if (key == key_config[5])
+    if (key == key_config[5])
         keys[BRAKE] = is_pressed;
 
-    else if (key == key_config[6])
-        keys[GEAR] = is_pressed;
+    if (key == key_config[6])
+        keys[GEAR1] = is_pressed;
 
-    else if (key == key_config[7])
+    if (key == key_config[7])
+        keys[GEAR2] = is_pressed;
+
+    if (key == key_config[8])
         keys[START] = is_pressed;
 
-    else if (key == key_config[8])
+    if (key == key_config[9])
         keys[COIN] = is_pressed;
 
-    else if (key == key_config[9])
+    if (key == key_config[10])
         keys[MENU] = is_pressed;
 
-    else if (key == key_config[10])
+    if (key == key_config[11])
         keys[VIEWPOINT] = is_pressed;
 
     // Function keys are not redefinable
@@ -179,6 +184,8 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
     // Analog Controls
     else
     {
+        //std::cout << "Axis: " << (int) evt->axis << " Value: " << (int) evt->value << std::endl;
+
         // Steering
         // OutRun requires values between 0x48 and 0xb8.
         if (evt->axis == axis[0])
@@ -205,22 +212,23 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             //std::cout << "wheel zone : " << wheel_zone << " : " << std::hex << " : " << (int) adjusted << std::endl;
             a_wheel = adjusted;
         }
-        // Accelerator and Brake [Combined Axis - Best Avoided!]
-        else if (axis[1] == axis[2])
+        // Accelerator and Brake [Combined Axis]
+        else if (axis[1] == axis[2] && (evt->axis == axis[1] || evt->axis == axis[2]))
         {
             // Accelerator
-            if (value < -DIGITAL_DEAD)
+            if (value < -pedals_dead)
             {
+                // Scale input to be in the range of 0 to 0x7F
                 value = -value;
-                int adjusted = 0xBF - ((value + (1 << 15)) >> 9);           
+                int adjusted = value / 258;
                 adjusted += (adjusted >> 2);
                 a_accel = adjusted;
             }
             // Brake
-            else if (value > DIGITAL_DEAD)
+            else if (value > pedals_dead)
             {
-                value = -value;
-                int adjusted = 0xBF - ((value + (1 << 15)) >> 9);           
+                // Scale input to be in the range of 0 to 0x7F
+                int adjusted = value / 258;
                 adjusted += (adjusted >> 2);
                 a_brake = adjusted;
             }
@@ -311,17 +319,20 @@ void Input::handle_joy(const uint8_t button, const bool is_pressed)
         keys[BRAKE] = is_pressed;
 
     if (button == pad_config[2])
-        keys[GEAR] = is_pressed;
+        keys[GEAR1] = is_pressed;
 
     if (button == pad_config[3])
-        keys[START] = is_pressed;
+        keys[GEAR2] = is_pressed;
 
     if (button == pad_config[4])
-        keys[COIN] = is_pressed;
+        keys[START] = is_pressed;
 
     if (button == pad_config[5])
-        keys[MENU] = is_pressed;
+        keys[COIN] = is_pressed;
 
     if (button == pad_config[6])
+        keys[MENU] = is_pressed;
+
+    if (button == pad_config[7])
         keys[VIEWPOINT] = is_pressed;
 }

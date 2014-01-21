@@ -17,26 +17,27 @@ class Input
 public:
     enum presses
     {
-        LEFT = 0,
+        LEFT  = 0,
         RIGHT = 1,
-        UP = 2,
-        DOWN = 3,
+        UP    = 2,
+        DOWN  = 3,
         ACCEL = 4,
         BRAKE = 5,
-        GEAR = 6,
+        GEAR1 = 6,
+        GEAR2 = 7,
 
-        START = 7,
-        COIN  = 8,
-        VIEWPOINT = 9,
+        START = 8,
+        COIN  = 9,
+        VIEWPOINT = 10,
         
-        PAUSE = 10,
-        STEP  = 11,
-        TIMER = 12,
-        MENU = 13,     
+        PAUSE = 11,
+        STEP  = 12,
+        TIMER = 13,
+        MENU = 14,     
     };
 
-    bool keys[14];
-    bool keys_old[14];
+    bool keys[15];
+    bool keys_old[15];
 
     // Has gamepad been found?
     bool gamepad;
@@ -58,7 +59,7 @@ public:
     Input(void);
     ~Input(void);
 
-    void init(int*, int*, const int, int*, int*);
+    void init(int, int*, int*, const int, int*, int*);
     void close();
 
     void handle_key_up(SDL_keysym*);
@@ -89,6 +90,7 @@ private:
 
     int wheel_zone;
     int wheel_dead;
+    int pedals_dead;
 
     static const int DELAY_RESET = 60;
     int delay;

@@ -61,18 +61,20 @@ struct sound_settings_t
 
 struct controls_settings_t
 {
-    const static int GEAR_BUTTON = 0;
-    const static int GEAR_PRESS  = 1; // For cabinets
-    const static int GEAR_AUTO   = 2;
+    const static int GEAR_BUTTON   = 0;
+    const static int GEAR_PRESS    = 1; // For cabinets
+    const static int GEAR_SEPARATE = 2; // Separate button presses
+    const static int GEAR_AUTO     = 3;
 
     int gear;
     int steer_speed;   // Steering Digital Speed
     int pedal_speed;   // Pedal Digital Speed
-    int padconfig[7];  // Joypad Button Config
-    int keyconfig[11]; // Keyboard Button Config
+    int padconfig[8];  // Joypad Button Config
+    int keyconfig[12]; // Keyboard Button Config
+    int pad_id;        // Use the N'th joystick on the system.
     int analog;        // Use analog controls
     int axis[3];       // Analog Axis
-    int wheel[2];      // Wheel Settings
+    int asettings[3];  // Analog Settings
 
     int haptic;        // Force Feedback Enabled
     int max_force;

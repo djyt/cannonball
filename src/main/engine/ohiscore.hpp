@@ -40,6 +40,8 @@ public:
     void display_scores();
 
 private:
+    const static uint16_t TILE_PROPS = 0x8030;
+
     // +C : Best OutRunners State
     uint8_t best_or_state;
 
@@ -99,12 +101,13 @@ private:
     minicar_entry minicars[NO_MINICARS];
 
     // Stores Laptime conversion
-    // +0: Minutes
-    // +1: Seconds Digit 1
-    // +2: Seconds Digit 2
-    // +3: Milliseconds Digit 1
-    // +4: Milliseconds Digit 2
-    int16_t laptime[5];
+    // +0: Minutes Digit 1
+    // +1: Minutes Digit 2
+    // +2: Seconds Digit 1
+    // +3: Seconds Digit 2
+    // +4: Milliseconds Digit 1
+    // +5: Milliseconds Digit 2
+    uint16_t laptime[6];
 
     void get_score_pos();
     void insert_score();

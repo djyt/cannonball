@@ -556,18 +556,23 @@ void OHiScore::setup_minicars_pal(minicar_entry* minicar)
 {
     uint8_t pos = minicar->pos >> 8;
 
+    // Lap Time Tile Properties
     minicar->tile_props = 0x8400;
-    if (pos <= 0x1F) return;
+    if (pos <= 0x20) return; // Was 0x1F in original: Changed to handle longer times
 
+    // Route Tile Properties
     minicar->tile_props = 0x8B00;
     if (pos <= 0x2D) return;
 
+    // Initial Tile Properties
     minicar->tile_props = 0x8200;
     if (pos <= 0x39) return;
 
+    // Score Tile Properties
     minicar->tile_props = 0x8400;
     if (pos <= 0x4A) return;
 
+    // 1.2.3. Tile Properties
     minicar->tile_props = 0x8600;
 }
 
@@ -717,13 +722,18 @@ void OHiScore::blit_lap_time()
             convert_lap_time(time);
 
             // Write laptime
-            video.write_tile16(0x0 + dst, laptime[0]); // Minutes
+            if (laptime[0] != TILE_PROPS)
+            {
+                video.write_tile16(dst - 0x2, laptime[0]); // Minutes Digit 1
+            }
+            
+            video.write_tile16(0x0 + dst, laptime[1]); // Minutes Digit 2
             video.write_tile16(0x2 + dst, 0x5E);       // '
-            video.write_tile16(0x4 + dst, laptime[1]); // Seconds Digit 1
-            video.write_tile16(0x6 + dst, laptime[2]); // Seconds Digit 2
+            video.write_tile16(0x4 + dst, laptime[2]); // Seconds Digit 1
+            video.write_tile16(0x6 + dst, laptime[3]); // Seconds Digit 2
             video.write_tile16(0x8 + dst, 0x5F);       // '
-            video.write_tile16(0xA + dst, laptime[3]); // Milliseconds Digit 1
-            video.write_tile16(0xC + dst, laptime[4]); // Milliseconds Digit 2
+            video.write_tile16(0xA + dst, laptime[4]); // Milliseconds Digit 1
+            video.write_tile16(0xC + dst, laptime[5]); // Milliseconds Digit 2
         }
 
         dst += 0x100; // Advance to next text row
@@ -731,11 +741,11 @@ void OHiScore::blit_lap_time()
 }
 
 // Convert laptime to tile data and store in laptime array.
+// Enhanced routine to handle minutes > 9
 //
 // Source: 0x806C
 void OHiScore::convert_lap_time(uint16_t time)
 {
-    const uint32_t TILE_PROPS = 0x8030;
     const uint16_t MINUTE = 3600;
 
     int32_t src_time = time; // laptime copy [d0] 
@@ -750,6 +760,7 @@ void OHiScore::convert_lap_time(uint16_t time)
     while (src_time >= 0);
     
     src_time += MINUTE;
+    minutes = outils::convert16_dechex(minutes);
 
     // Store Millisecond Lookup
     uint16_t ms_lookup = src_time & 0x3F; 
@@ -770,13 +781,14 @@ void OHiScore::convert_lap_time(uint16_t time)
     seconds = outils::bcd_add(s2, seconds);
 
     // Output Milliseconds
-    laptime[4] = (OStats::LAP_MS[ms_lookup] & 0xF) | TILE_PROPS;
-    laptime[3] = ((OStats::LAP_MS[ms_lookup] & 0xF0) >> 4) | TILE_PROPS;
+    laptime[5] = (OStats::LAP_MS[ms_lookup] & 0xF) | TILE_PROPS;
+    laptime[4] = ((OStats::LAP_MS[ms_lookup] & 0xF0) >> 4) | TILE_PROPS;
 
     // Output Seconds
-    laptime[2] = (seconds & 0xF) | TILE_PROPS;
-    laptime[1] = ((seconds & 0xF0) >> 4) | TILE_PROPS;
+    laptime[3] = (seconds & 0xF) | TILE_PROPS;
+    laptime[2] = ((seconds & 0xF0) >> 4) | TILE_PROPS;
 
     // Output Minutes
-    laptime[0] = minutes | TILE_PROPS;
+    laptime[1] = (minutes & 0xF) | TILE_PROPS;
+    laptime[0] = ((minutes & 0xF0) >> 4) | TILE_PROPS;
 }

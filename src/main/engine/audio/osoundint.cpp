@@ -33,7 +33,7 @@ void OSoundInt::init()
         pcm = new SegaPCM(SOUND_CLOCK, &roms.pcm, pcm_ram, SegaPCM::BANK_512);       
 
     if (ym == NULL)
-        ym = new YM2151(0.5f, (uint32_t) (SOUND_CLOCK * 1.024));
+        ym = new YM2151(0.5f, SOUND_CLOCK);
 
     pcm->init(config.fps);
     ym->init(44100, config.fps);

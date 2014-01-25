@@ -7,6 +7,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "setup.hpp"
 #include "main.hpp"
 #include "trackloader.hpp"
 #include "../utils.hpp"
@@ -66,7 +67,6 @@ Outrun::~Outrun()
 
 void Outrun::init()
 {
-    cannonball_mode = MODE_CONT; // debug
     freeze_timer = cannonball_mode == MODE_TTRIAL ? true : config.engine.freeze_timer;
 
     game_state = config.engine.layout_debug ? GS_INIT_GAME : GS_INIT;
@@ -75,8 +75,10 @@ void Outrun::init()
     video.clear_text_ram();
 
     tick_counter = 0;
-    ohiscore.init_def_scores();  // Initialize default hi-score entries
-    config.load_scores();        // Load saved hi-score entries
+    // Initialize default hi-score entries
+    ohiscore.init_def_scores();
+    // Load saved hi-score entries
+    config.load_scores(cannonball_mode == Outrun::MODE_ORIGINAL ? FILENAME_SCORES : FILENAME_CONT);        
     ostats.init(cannonball_mode == MODE_TTRIAL);
     init_jump_table();
     oinitengine.init(cannonball_mode == MODE_TTRIAL ? ttrial.level : 0);
@@ -88,18 +90,18 @@ void Outrun::tick(bool tick_frame)
 {
     this->tick_frame = tick_frame;
 
-    /*if (input.has_pressed(Input::UP))
+    if (input.has_pressed(Input::UP))
     {
-        game_state = GS_INIT_BONUS;
-        oroad.road_width = 0x90;
-        ostats.time_counter = 2;
-        oroad.stage_lookup_off = 0x23;
-        oinitengine.route_selected = -1;
-        oinitengine.init_bonus();
+        //ostats.cur_stage = 14;
+        //ostats.score = 0x12345678;
 
-        //oroad.stage_lookup_off += 8;
-        //otiles.set_vertical_swap();
-    }*/
+        //game_state = GS_INIT_BONUS;
+        //oroad.road_width = 0x90;
+        //ostats.time_counter = 2;
+        oroad.stage_lookup_off = 0x24;
+        //oinitengine.route_selected = -1;
+        //oinitengine.init_bonus();
+    }
 
     if (game_state >= GS_START1 && game_state <= GS_INGAME)
     {
@@ -686,6 +688,10 @@ bool Outrun::decrement_timers()
     return (ostats.time_counter < 0);
 }
 
+// -------------------------------------------------------------------------------
+// Attract Mode Control
+// -------------------------------------------------------------------------------
+
 void Outrun::init_attract()
 {
     video.enabled             = true;
@@ -734,6 +740,22 @@ void Outrun::tick_attract()
         car_inc_bak = oinitengine.car_increment;
         game_state = GS_INIT_BEST1;
     }
+}
+
+// -------------------------------------------------------------------------------
+// Best OutRunners Initialization
+// -------------------------------------------------------------------------------
+
+void Outrun::init_best_outrunners()
+{
+    video.enabled = false;
+    video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
+    otiles.fill_tilemap_color(0); // Fill Tilemap Black
+    osprites.disable_sprites();
+    oroad.horizon_base = 0x154;
+    ohiscore.setup_pal_best();    // Setup Palettes
+    ohiscore.setup_road_best();
+    game_state = GS_INIT_BEST2;
 }
 
 // -------------------------------------------------------------------------------

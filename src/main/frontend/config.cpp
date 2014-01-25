@@ -167,6 +167,8 @@ void Config::load(const std::string &filename)
 
     ttrial.laps    = pt_config.get("time_trial.laps",    5);
     ttrial.traffic = pt_config.get("time_trial.traffic", 3);
+
+    cont_traffic   = pt_config.get("continuous.traffic", 3);
 }
 
 bool Config::save(const std::string &filename)
@@ -218,9 +220,11 @@ bool Config::save(const std::string &filename)
 
     pt_config.put("time_trial.laps",    ttrial.laps);
     pt_config.put("time_trial.traffic", ttrial.traffic);
+    pt_config.put("continuous.traffic", cont_traffic), 
 
     ttrial.laps    = pt_config.get("time_trial.laps",    5);
     ttrial.traffic = pt_config.get("time_trial.traffic", 3);
+    cont_traffic   = pt_config.get("continuous.traffic", 3);
 
 
     // Tab space 1
@@ -238,23 +242,17 @@ bool Config::save(const std::string &filename)
     return true;
 }
 
-void Config::load_scores()
+void Config::load_scores(const std::string &filename)
 {
-    // Counter value that represents 1m 15s 0ms
-    static const uint16_t COUNTER_1M_15 = 0x11D0;
-
     // Create empty property tree object
     ptree pt;
 
     try
     {
-        read_xml(engine.jap ? FILENAME_SCORES_JAP : FILENAME_SCORES, pt, boost::property_tree::xml_parser::trim_whitespace);
+        read_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml" , pt, boost::property_tree::xml_parser::trim_whitespace);
     }
     catch (std::exception &e)
     {
-        for (int i = 0; i < 15; i++)
-            ttrial.best_times[i] = COUNTER_1M_15;
-
         e.what();
         return;
     }
@@ -278,15 +276,9 @@ void Config::load_scores()
         if (e->initial2 == '.') e->initial2 = 0x20;
         if (e->initial3 == '.') e->initial3 = 0x20;
     }
-
-    // Time Trial Scores
-    for (int i = 0; i < 15; i++)
-    {
-        ttrial.best_times[i] = pt.get("time_trial.score" + Utils::to_string(i), COUNTER_1M_15);
-    }
 }
 
-void Config::save_scores()
+void Config::save_scores(const std::string &filename)
 {
     // Create empty property tree object
     ptree pt;
@@ -305,19 +297,69 @@ void Config::save_scores()
         pt.put(xmltag + ".maptiles", Utils::to_hex_string(e->maptiles));
         pt.put(xmltag + ".time",     Utils::to_hex_string(e->time));
     }
-
-    // Time Trial Scores
-    for (int i = 0; i < 15; i++)
-    {
-        pt.put("time_trial.score" + Utils::to_string(i), ttrial.best_times[i]);
-    }
     
     // Tab space 1
     boost::property_tree::xml_writer_settings<char> settings('\t', 1);
     
     try
     {
-        write_xml(engine.jap ? FILENAME_SCORES_JAP : FILENAME_SCORES, pt, std::locale(), settings);
+        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), settings);
+    }
+    catch (std::exception &e)
+    {
+        std::cout << "Error saving hiscores: " << e.what() << "\n";
+    }
+}
+
+void Config::load_tiletrial_scores()
+{
+    const std::string filename = FILENAME_TTRIAL;
+
+    // Counter value that represents 1m 15s 0ms
+    static const uint16_t COUNTER_1M_15 = 0x11D0;
+
+    // Create empty property tree object
+    ptree pt;
+
+    try
+    {
+        read_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml" , pt, boost::property_tree::xml_parser::trim_whitespace);
+    }
+    catch (std::exception &e)
+    {
+        for (int i = 0; i < 15; i++)
+            ttrial.best_times[i] = COUNTER_1M_15;
+
+        e.what();
+        return;
+    }
+
+    // Time Trial Scores
+    for (int i = 0; i < 15; i++)
+    {
+        ttrial.best_times[i] = pt.get("time_trial.score" + Utils::to_string(i), COUNTER_1M_15);
+    }
+}
+
+void Config::save_tiletrial_scores()
+{
+    const std::string filename = FILENAME_TTRIAL;
+
+    // Create empty property tree object
+    ptree pt;
+
+    // Time Trial Scores
+    for (int i = 0; i < 15; i++)
+    {
+        pt.put("time_trial.score" + Utils::to_string(i), ttrial.best_times[i]);
+    }
+
+    // Tab space 1
+    boost::property_tree::xml_writer_settings<char> settings('\t', 1);
+    
+    try
+    {
+        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), settings);
     }
     catch (std::exception &e)
     {
@@ -329,8 +371,18 @@ bool Config::clear_scores()
 {
     // Init Default Hiscores
     ohiscore.init_def_scores();
-    // Remove hiscore xml file if it exists
-    return remove(engine.jap ? FILENAME_SCORES_JAP : FILENAME_SCORES) == 0; 
+
+    int clear = 0;
+
+    // Remove XML files if they exist
+    clear += remove(std::string(FILENAME_SCORES).append(".xml").c_str());
+    clear += remove(std::string(FILENAME_SCORES).append("_jap.xml").c_str());
+    clear += remove(std::string(FILENAME_TTRIAL).append(".xml").c_str());
+    clear += remove(std::string(FILENAME_TTRIAL).append("_jap.xml").c_str());
+    clear += remove(std::string(FILENAME_CONT).append(".xml").c_str());
+    clear += remove(std::string(FILENAME_CONT).append("_jap.xml").c_str());
+
+    return clear == 0;
 }
 
 void Config::set_fps(int fps)

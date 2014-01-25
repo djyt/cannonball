@@ -6,6 +6,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "setup.hpp"
 #include "main.hpp"
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
@@ -182,12 +183,10 @@ void OHiScore::insert_score()
     // Calculate total time if game completed. Store result in $20
     if (ostats.game_completed)
     {
-        scores[score_pos].time = 
-            ostats.stage_counters[0] + 
-            ostats.stage_counters[1] + 
-            ostats.stage_counters[2] + 
-            ostats.stage_counters[3] +
-            ostats.stage_counters[4];
+        const uint8_t entries = outrun.cannonball_mode == Outrun::MODE_ORIGINAL ? 5 : 15;
+
+        for (int i = 0; i < entries; i++)
+            scores[score_pos].time += ostats.stage_counters[i];
     }
     else
     {
@@ -247,7 +246,7 @@ void OHiScore::check_name_entry()
         
         // Save new score info
         if (state == STATE_DONE)
-            config.save_scores();
+            config.save_scores(outrun.cannonball_mode == Outrun::MODE_ORIGINAL ? FILENAME_SCORES : FILENAME_CONT);
     }
 }
 
@@ -549,8 +548,8 @@ void OHiScore::tick_minicars()
     }
 }
 
-// Setup palette and priority data for minicar tile
-// The palette & priority used for the text depends on the position
+// Setup palette and priority data for the copied tiles behind the minicar.
+// The palette & priority used for the text depends on the position.
 // Source: 0xCFCC
 void OHiScore::setup_minicars_pal(minicar_entry* minicar)
 {
@@ -593,7 +592,8 @@ void OHiScore::blit_score_table()
     blit_digit();                     // Blit 1. 2. 3. etc.
     blit_scores();                    // Blit list of scores
     blit_initials();                  // Blit initials attached to those scores
-    blit_route_map();                 // Blit Mini Route Map
+    if (outrun.cannonball_mode != Outrun::MODE_CONT)
+        blit_route_map();            // Blit Mini Route Map
     blit_lap_time();
 }
 

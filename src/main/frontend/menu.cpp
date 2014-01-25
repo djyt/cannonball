@@ -50,11 +50,15 @@ const static char* ENTRY_EXIT       = "EXIT";
 // Game Modes Menu
 const static char* ENTRY_ENHANCED   = "SET ENHANCED MODE";
 const static char* ENTRY_ORIGINAL   = "SET ORIGINAL MODE";
+const static char* ENTRY_CONT       = "CONTINUOUS MODE";
 const static char* ENTRY_TIMETRIAL  = "TIME TRIAL MODE";
 
 // Time Trial Menu
 const static char* ENTRY_START      =  "START TIME TRIAL";
 const static char* ENTRY_LAPS       =  "NO OF LAPS ";
+
+// Continuous Menu
+const static char* ENTRY_START_CONT = "START CONTINUOUS MODE";
 
 // Settings Menu
 const static char* ENTRY_VIDEO      = "VIDEO";
@@ -123,10 +127,15 @@ void Menu::populate()
     menu_main.push_back(ENTRY_ABOUT);
     menu_main.push_back(ENTRY_EXIT);
 
-    menu_gamemodes.push_back(ENTRY_ORIGINAL);
     menu_gamemodes.push_back(ENTRY_ENHANCED);
+    menu_gamemodes.push_back(ENTRY_ORIGINAL);
+    menu_gamemodes.push_back(ENTRY_CONT);
     menu_gamemodes.push_back(ENTRY_TIMETRIAL);
     menu_gamemodes.push_back(ENTRY_BACK);
+
+    menu_cont.push_back(ENTRY_START_CONT);
+    menu_cont.push_back(ENTRY_TRAFFIC);
+    menu_cont.push_back(ENTRY_BACK);
 
     menu_timetrial.push_back(ENTRY_START);
     menu_timetrial.push_back(ENTRY_LAPS);
@@ -418,7 +427,7 @@ void Menu::tick_menu()
         if (menu_selected == &menu_main)
         {
             if (SELECTED(ENTRY_PLAYGAME))
-                start_game();
+                start_game(Outrun::MODE_ORIGINAL);
             else if (SELECTED(ENTRY_GAMEMODES))
                 set_menu(&menu_gamemodes);
             else if (SELECTED(ENTRY_SETTINGS))
@@ -431,13 +440,31 @@ void Menu::tick_menu()
         else if (menu_selected == &menu_gamemodes)
         {
             if (SELECTED(ENTRY_ENHANCED))
-                start_game(1);
+                start_game(Outrun::MODE_ORIGINAL, 1);
             else if (SELECTED(ENTRY_ORIGINAL))
-                start_game(2);
+                start_game(Outrun::MODE_ORIGINAL, 2);
+            else if (SELECTED(ENTRY_CONT))
+                set_menu(&menu_cont);
             else if (SELECTED(ENTRY_TIMETRIAL))
                 set_menu(&menu_timetrial);
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_main);
+        }
+        else if (menu_selected == &menu_cont)
+        {
+            if (SELECTED(ENTRY_START_CONT))
+            {
+                config.save(FILENAME_CONFIG);
+                outrun.custom_traffic = config.cont_traffic;
+                start_game(Outrun::MODE_CONT);
+            }
+            else if (SELECTED(ENTRY_TRAFFIC))
+            {
+                if (++config.cont_traffic > TTrial::MAX_TRAFFIC)
+                    config.cont_traffic = 0;
+            }
+            else if (SELECTED(ENTRY_BACK))
+                set_menu(&menu_gamemodes);
         }
         else if (menu_selected == &menu_timetrial)
         {
@@ -720,6 +747,11 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_TRAFFIC))
                 set_menu_text(ENTRY_TRAFFIC, config.ttrial.traffic == 0 ? "DISABLED" : Utils::to_string(config.ttrial.traffic));
         }
+        else if (menu_selected == &menu_cont)
+        {
+            if (SELECTED(ENTRY_TRAFFIC))
+                set_menu_text(ENTRY_TRAFFIC, config.cont_traffic == 0 ? "DISABLED" : Utils::to_string(config.cont_traffic));
+        }
         else if (menu_selected == &menu_video)
         {
             if (SELECTED(ENTRY_FULLSCREEN))
@@ -933,10 +965,10 @@ void Menu::restart_video()
     #endif
 }
 
-void Menu::start_game(int mode)
+void Menu::start_game(int mode, int settings)
 {
     // Enhanced Settings
-    if (mode == 1)
+    if (settings == 1)
     {
         if (!config.video.hires)
         {
@@ -961,7 +993,7 @@ void Menu::start_game(int mode)
         restart_video();
     }
     // Original Settings
-    else if (mode == 2)
+    else if (settings == 2)
     {
         if (config.video.hires)
         {
@@ -987,12 +1019,12 @@ void Menu::start_game(int mode)
     // Otherwise, use whatever is already setup...
     else
     {
-        config.engine.fix_bugs = config.engine.fix_bugs;
+        config.engine.fix_bugs = config.engine.fix_bugs_backup;
     }
 
     if (check_jap_roms())
     {
-        outrun.cannonball_mode = Outrun::MODE_ORIGINAL;
+        outrun.cannonball_mode = mode;
         cannonball::state = cannonball::STATE_INIT_GAME;
         osoundint.queue_clear();
     }

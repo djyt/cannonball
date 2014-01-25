@@ -266,6 +266,12 @@
     <traffic>3</traffic>
 </time_trial>
 
+<!-- Settings for Continuous Mode -->
+<continuous>
+    <!-- Default Amount of Traffic (0 - 8), where 0 is off -->
+    <traffic>3</traffic>
+</continuous>
+
 <!-- 
     Use the inbuilt menu system. 
     You can disable it and edit this config file instead if it makes more sense for your system.

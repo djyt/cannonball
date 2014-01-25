@@ -124,26 +124,6 @@ void OTiles::update_tilemaps(int8_t p)
 
     page = p;
 
-    switch (vswap_state)
-    {
-        case VSWAP_OFF:
-            break;
-
-        case VSWAP_SCROLL_OFF:
-            if (++vswap_off > 0x50)
-            {
-                vswap_state = VSWAP_SCROLL_ON;
-                clear_tile_info();
-                init_tilemap_palette(oroad.stage_lookup_off);
-            }
-            break;
-
-        case VSWAP_SCROLL_ON:
-            if (--vswap_off == 0)
-                vswap_state = VSWAP_OFF;
-            break;
-    }
-
     switch (tilemap_ctrl & 3)
     {
         // Clear Tile Table 1 & Init Default Tilemap (Stage 1)
@@ -411,6 +391,31 @@ void OTiles::scroll_tilemaps()
         tilemap_ctrl  = TILEMAP_INIT;
         tilemap_setup = SETUP_TILES;
     }
+
+    // Continuous Mode: Vertically scroll tilemap at end of stage
+    if (outrun.game_state != GS_BEST1) // uses tilemap so we don't want to be adjusting it
+    {
+        switch (vswap_state)
+        {
+            case VSWAP_OFF:
+                break;
+
+            case VSWAP_SCROLL_OFF:
+                if (++vswap_off > 0x50)
+                {
+                    vswap_state = VSWAP_SCROLL_ON;
+                    clear_tile_info();
+                    init_tilemap_palette(oroad.stage_lookup_off);
+                }
+                break;
+
+            case VSWAP_SCROLL_ON:
+                if (--vswap_off == 0)
+                    vswap_state = VSWAP_OFF;
+                break;
+        }
+    }
+
     // update_tilemap:
     // This block is called when we do not need to init a new tilemap
 

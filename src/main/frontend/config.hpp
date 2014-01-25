@@ -119,6 +119,9 @@ public:
 
     // Original game ticks sprites at 30fps but background scroll at 60fps
     int tick_fps;
+
+    // Continuous Mode: Traffic Setting
+    int cont_traffic;
     
     Config(void);
     ~Config(void);
@@ -126,8 +129,10 @@ public:
     void init();
     void load(const std::string &filename);
     bool save(const std::string &filename);
-    void load_scores();
-    void save_scores();
+    void load_scores(const std::string &filename);
+    void save_scores(const std::string &filename);
+    void load_tiletrial_scores();
+    void save_tiletrial_scores();
     bool clear_scores();
     void set_fps(int fps);
    

@@ -53,7 +53,7 @@ int TTrial::tick()
     {
         case INIT_COURSEMAP:
             outrun.select_course(config.engine.jap != 0, config.engine.prototype != 0); // Need to setup correct course map graphics.
-            config.load_scores();
+            config.load_tiletrial_scores();
             osprites.init();
             video.enabled = true;
             video.sprite_layer->set_x_clip(true);
@@ -122,5 +122,5 @@ int TTrial::tick()
 void TTrial::update_best_time()
 {
     best_times[level_selected] = outrun.ttrial.best_lap_counter;
-    config.save_scores();
+    config.save_tiletrial_scores();
 }

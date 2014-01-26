@@ -401,7 +401,7 @@ void OTiles::scroll_tilemaps()
                 break;
 
             case VSWAP_SCROLL_OFF:
-                if (++vswap_off > 0x50)
+                if (++vswap_off > 0x40)
                 {
                     vswap_state = VSWAP_SCROLL_ON;
                     clear_tile_info();

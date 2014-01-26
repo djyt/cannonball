@@ -811,9 +811,10 @@ void OTraffic::traffic_sound()
     int16_t sounds = traffic_count <= 4 ? traffic_count : 4;
 
     // Loop through traffic objects that are on screen
-    for (int16_t i = sounds - 1; i >= 0; i--)
+    //for (int16_t i = sounds - 1; i >= 0; i--)
+    for (int16_t i = 0; i < sounds; i++)
     {
-        oentry* t = traffic_adr[i];
+        oentry* t = traffic_adr[traffic_count - i - 1];
         // Used to set panning of sound as car moves left and right in front of the player
         int16_t pan = t->x >> 5; 
         if (pan < -3) pan = -3;
@@ -822,5 +823,6 @@ void OTraffic::traffic_sound()
         // Position into screen is used to set volume
         uint8_t vol = (t->road_priority & 0x1F0) >> 1;
         osoundint.engine_data[sound::TRAFFIC1 + i] = pan | vol;
+        //std::cout << "Traffic " << i << " Addr: " << (int) traffic_adr[i]->jump_index << " vol: " << (int) vol << " pan: " << pan << std::endl;
     }
 }

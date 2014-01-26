@@ -71,10 +71,13 @@ void OBonus::init_bonus_text()
 
     uint16_t total_time = 0;
 
-    // Add milliseconds remaining from previous stage times
-    for (int i = 0; i < 5; i++)
+    if (outrun.cannonball_mode == Outrun::MODE_ORIGINAL)
     {
-        total_time = outils::bcd_add(outils::DEC_TO_HEX[ostats.stage_times[i][2]], total_time);
+        // Add milliseconds remaining from previous stage times
+        for (int i = 0; i < 5; i++)
+        {
+            total_time = outils::bcd_add(outils::DEC_TO_HEX[ostats.stage_times[i][2]], total_time);
+        }
     }
 
     // Mask on top digit of lap milliseconds

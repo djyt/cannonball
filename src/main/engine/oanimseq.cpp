@@ -573,11 +573,11 @@ void OAnimSeq::anim_seq_outro(oanimsprite* anim)
                 anim->frame_delay = roms.rom0p->read8(0x0F + index) & 0x3F;
                 anim->anim_frame++;
             }
-        }  
+        } 
+        osprites.map_palette(anim->sprite);
     }
 
     // Order sprites
-    osprites.map_palette(anim->sprite);
     osprites.do_spr_order_shadows(anim->sprite);
 }
 
@@ -682,31 +682,25 @@ bool OAnimSeq::read_anim_data(oanimsprite* anim)
         // End Of Animation Data
         if (anim->sprite->id == 8) // Trophy person
         {
-            if (outrun.tick_frame)
-            {
-                anim->sprite->id = 11;
-                if (end_seq >= 2)
-                    anim->sprite->shadow = 7;
+            anim->sprite->id = 11;
+            if (end_seq >= 2)
+                anim->sprite->shadow = 7;
 
-                anim->anim_addr_curr = roms.rom0p->read32(outrun.adr.anim_endseq_obj8 + (end_seq << 3));
-                anim->anim_addr_next = roms.rom0p->read32(outrun.adr.anim_endseq_obj8 + (end_seq << 3) + 4);
-                anim->anim_frame = 0;
-            }
+            anim->anim_addr_curr = roms.rom0p->read32(outrun.adr.anim_endseq_obj8 + (end_seq << 3));
+            anim->anim_addr_next = roms.rom0p->read32(outrun.adr.anim_endseq_obj8 + (end_seq << 3) + 4);
+            anim->anim_frame = 0;
             return DO_NOTHING;
         }
         // 5e14
         else if (anim->sprite->id == 10)
         {
-            if (outrun.tick_frame)
-            {
-                anim->sprite->id = 12;
-                if (end_seq >= 2)
-                    anim->sprite->shadow = 7;
+            anim->sprite->id = 12;
+            if (end_seq >= 2)
+                anim->sprite->shadow = 7;
 
-                anim->anim_addr_curr = roms.rom0p->read32(outrun.adr.anim_endseq_objA + (end_seq << 3));
-                anim->anim_addr_next = roms.rom0p->read32(outrun.adr.anim_endseq_objA + (end_seq << 3) + 4);
-                anim->anim_frame = 0;
-            }
+            anim->anim_addr_curr = roms.rom0p->read32(outrun.adr.anim_endseq_objA + (end_seq << 3));
+            anim->anim_addr_next = roms.rom0p->read32(outrun.adr.anim_endseq_objA + (end_seq << 3) + 4);
+            anim->anim_frame = 0;
             return DO_NOTHING;
         }
     }

@@ -90,18 +90,10 @@ void Outrun::tick(bool tick_frame)
 {
     this->tick_frame = tick_frame;
 
-    if (input.has_pressed(Input::UP))
+    /*if (input.has_pressed(Input::UP))
     {
-        //ostats.cur_stage = 14;
-        //ostats.score = 0x12345678;
-
-        //game_state = GS_INIT_BONUS;
-        //oroad.road_width = 0x90;
-        //ostats.time_counter = 2;
-        oroad.stage_lookup_off = 0x24;
-        //oinitengine.route_selected = -1;
-        //oinitengine.init_bonus();
-    }
+        osoundint.queue_sound(sound::FM_RESET);
+    }*/
 
     if (game_state >= GS_START1 && game_state <= GS_INGAME)
     {
@@ -483,7 +475,12 @@ void Outrun::main_switch()
                 if (decrement_timers())
                     game_state = GS_INIT_MAP;
             }
-            else
+            else if (cannonball_mode == MODE_CONT)
+            {
+                if (decrement_timers())
+                    init_best_outrunners();
+            }
+            else if (cannonball_mode == MODE_TTRIAL)
             {
                 if (outrun.tick_counter & BIT_4)
                     ohud.blit_text1(10, 20, TEXT1_PRESS_START);
@@ -530,7 +527,7 @@ void Outrun::main_switch()
             ostats.frame_counter = ostats.frame_reset;
             ohiscore.init();
             osoundint.queue_sound(sound::NEW_COMMAND);
-            osoundint.queue_sound(sound::RESET);
+            osoundint.queue_sound(sound::FM_RESET);
             #ifdef COMPILE_SOUND_CODE
             cannonball::audio.clear_wav();
             #endif

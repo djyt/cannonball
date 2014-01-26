@@ -139,7 +139,7 @@ void OMap::tick()
 
         // Clear Course Map        
         case MAP_CLEAR:
-            outrun.game_state = GS_INIT_BEST2;
+            outrun.init_best_outrunners();
             return;
     }
 

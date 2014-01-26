@@ -185,6 +185,8 @@ void OHiScore::insert_score()
     {
         const uint8_t entries = outrun.cannonball_mode == Outrun::MODE_ORIGINAL ? 5 : 15;
 
+        scores[score_pos].time = 0;
+
         for (int i = 0; i < entries; i++)
             scores[score_pos].time += ostats.stage_counters[i];
     }

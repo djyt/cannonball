@@ -382,7 +382,8 @@ bool Config::clear_scores()
     clear += remove(std::string(FILENAME_CONT).append(".xml").c_str());
     clear += remove(std::string(FILENAME_CONT).append("_jap.xml").c_str());
 
-    return clear == 0;
+    // remove returns 0 on success
+    return clear == 6;
 }
 
 void Config::set_fps(int fps)

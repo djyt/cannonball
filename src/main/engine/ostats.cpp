@@ -10,6 +10,7 @@
 ***************************************************************************/
 
 #include "engine/ohud.hpp"
+#include "engine/omusic.hpp"
 #include "engine/outils.hpp"
 #include "engine/ostats.hpp"
 #include "engine/otraffic.hpp"
@@ -190,7 +191,7 @@ void OStats::init_next_level()
         
         // Calculate Time To Add
         uint16_t time_lookup = (config.engine.dip_time * 40) + oroad.stage_lookup_off;
-        if (!config.engine.freeze_timer)
+        if (!outrun.freeze_timer)
         {
             if (outrun.cannonball_mode == outrun.MODE_ORIGINAL)
                 time_counter = outils::bcd_add(time_counter, TIME[time_lookup]);

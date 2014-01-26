@@ -20,6 +20,7 @@
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
 #include "engine/olevelobjs.hpp"
+#include "engine/omusic.hpp"
 #include "engine/ostats.hpp"
 #include "engine/outils.hpp"
 #include "engine/opalette.hpp"
@@ -492,7 +493,10 @@ void OInitEngine::check_stage()
         
         if ((ostats.cur_stage + 1) == 15)
         {
-            init_bonus();
+            if (outrun.game_state == GS_INGAME)
+                init_bonus();
+            else
+                reload_stage1();
         }
         else
         {
@@ -510,9 +514,41 @@ void OInitEngine::check_stage()
             oinitengine.end_stage_props |= BIT_2;
             opalette.pal_manip_ctrl = 1;
             opalette.setup_sky_change();
+            osprites.clear_palette_data();
 
             // Denote Checkpoint Passed
             checkpoint_marker = -1;
+
+            // Cycle Music every 5 stages
+            if (outrun.game_state == GS_INGAME)
+            {
+                if (ostats.cur_stage == 5 || ostats.cur_stage == 10)
+                {
+                    switch (omusic.music_selected)
+                    {
+                        // Cycle custom sounds
+                        case 0:
+                        case 1:
+                        case 2:
+                            if (++omusic.music_selected > 2)
+                                omusic.music_selected = 0;
+                            break;
+                        // Cycle in-built sounds
+                        case sound::MUSIC_BREEZE:
+                            omusic.music_selected = sound::MUSIC_SPLASH;
+                            osoundint.queue_sound(sound::MUSIC_SPLASH2); // Play without rev effect
+                            break;
+                        case sound::MUSIC_SPLASH:
+                            omusic.music_selected = sound::MUSIC_MAGICAL;
+                            osoundint.queue_sound(sound::MUSIC_MAGICAL2); // Play without rev effect
+                            break;
+                        case sound::MUSIC_MAGICAL:
+                            omusic.music_selected = sound::MUSIC_BREEZE;
+                            osoundint.queue_sound(sound::MUSIC_BREEZE2); // Play without rev effect
+                            break;
+                    }                 
+                }
+            }              
         }
     }
 
@@ -530,19 +566,24 @@ void OInitEngine::check_stage()
     // Stage 5 Attract Mode: Reload Stage 1
     else
     {
-        oroad.road_pos = 0;
-        oroad.tilemap_h_target = 0;
-        ostats.cur_stage = -1;
-        oroad.stage_lookup_off = -8;
-
-        ostats.clear_route_info();
-
-        end_stage_props |= BIT_1; // Loop back to stage 1 (Used by tilemap code)
-        end_stage_props |= BIT_2;
-        end_stage_props |= BIT_3;
-        osmoke.setup_smoke_sprite(true);
-        init_split_next_level();
+        reload_stage1();
     }
+}
+
+void OInitEngine::reload_stage1()
+{
+    oroad.road_pos         = 0;
+    oroad.tilemap_h_target = 0;
+    ostats.cur_stage       = -1;
+    oroad.stage_lookup_off = -8;
+
+    ostats.clear_route_info();
+
+    end_stage_props |= BIT_1; // Loop back to stage 1 (Used by tilemap code)
+    end_stage_props |= BIT_2;
+    end_stage_props |= BIT_3;
+    osmoke.setup_smoke_sprite(true);
+    init_split_next_level();
 }
 
 // ------------------------------------------------------------------------------------------------

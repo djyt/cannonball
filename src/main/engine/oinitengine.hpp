@@ -165,6 +165,7 @@ private:
     void bonus4();
     void bonus5();
     void bonus6();
+    void reload_stage1();
     void init_split_next_level();
     void test_bonus_mode(bool);
 };

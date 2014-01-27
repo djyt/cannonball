@@ -640,7 +640,7 @@ void OTraffic::traffic_logic()
     uint16_t spr_index = osprites.spr_cnt_shadow;
 
     // Find First Traffic Entry. Note we use the hardware sprite list here to extract the original object.
-    for (index = 0; index < sprite_count; index++)
+    for (index = 0; index <= sprite_count; index++)
     {
         uint16_t src_index = osprites.sprite_entries[spr_index++].scratch;
 
@@ -662,7 +662,7 @@ void OTraffic::traffic_logic()
     oentry* next = 0;
 
     // Compare Current Traffic Entry With Previous One
-    for (uint8_t index2 = index + 1; index2 < sprite_count; index2++)
+    for (uint8_t index2 = index + 1; index2 <= sprite_count; index2++)
     {
         uint16_t src_index = osprites.sprite_entries[spr_index++].scratch;
         next = &osprites.jump_table[src_index];
@@ -811,6 +811,7 @@ void OTraffic::traffic_sound()
     int16_t sounds = traffic_count <= 4 ? traffic_count : 4;
 
     // Loop through traffic objects that are on screen
+    //for (int16_t i = sounds - 1; i >= 0; i--)
     for (int16_t i = 0; i < sounds; i++)
     {
         oentry* t = traffic_adr[traffic_count - i - 1];
@@ -822,5 +823,6 @@ void OTraffic::traffic_sound()
         // Position into screen is used to set volume
         uint8_t vol = (t->road_priority & 0x1F0) >> 1;
         osoundint.engine_data[sound::TRAFFIC1 + i] = pan | vol;
+        //std::cout << "Traffic " << i << " Addr: " << (int) traffic_adr[i]->jump_index << " vol: " << (int) vol << " pan: " << pan << std::endl;
     }
 }

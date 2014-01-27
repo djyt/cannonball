@@ -1294,7 +1294,7 @@ void OSound::engine_process()
     // END DEBUG
 
     // Return 1 in 2 times when this routine is called
-    if ((++engine_counter & BIT_0) == 0)
+    if ((++engine_counter & 1) == 0)
         return;
 
     uint16_t ix = 0;                    // PCM Channel RAM Address

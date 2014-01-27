@@ -57,7 +57,7 @@ private:
     };
 
     // Onscreen traffic objects
-    oentry* traffic_adr[9];
+    oentry* traffic_adr[8];
 
     // Maximum number of on-screen enemies
     uint8_t max_traffic;

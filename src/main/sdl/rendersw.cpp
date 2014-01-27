@@ -16,12 +16,16 @@
 RenderSW::RenderSW()
 {
     scan_pixels = NULL;
+    pix         = NULL;
 }
 
 RenderSW::~RenderSW()
 {
     if (scan_pixels) 
         delete[] scan_pixels;
+
+    if (pix)
+        delete[] pix;
 }
 
 bool RenderSW::init(int src_width, int src_height, 
@@ -153,6 +157,10 @@ bool RenderSW::init(int src_width, int src_height,
         scan_pixels = new uint32_t[(src_width * 2) * (src_height * 2)];
     }
 
+    if (pix)
+        delete[] pix;
+    pix = new uint32_t[src_width * src_height];
+
     return true;
 }
 
@@ -176,49 +184,48 @@ bool RenderSW::finalize_frame()
     return true;
 }
 
-void RenderSW::draw_frame(uint32_t* pixels)
+void RenderSW::draw_frame(uint16_t* pixels)
 {
     // Do Scaling
     if (scale_factor != 1)
     {
-        uint32_t* pix = pixels;
-    
+        uint32_t* pixx = pix;
+
         // Lookup real RGB value from rgb array for backbuffer
         for (int i = 0; i < (src_width * src_height); i++)
-            *(pix++) = rgb[*pix & ((S16_PALETTE_ENTRIES * 3) - 1)];
+            *(pixx++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
 
         // Scanlines: (Full Screen or Windowed). Potentially slow. 
         if (scanlines)
         {
             // Add the scanlines. Double image in the process to create space for the scanlines.
-            scanlines_32bpp(pixels, src_width, src_height, scan_pixels, scanlines);
+            scanlines_32bpp(pix, src_width, src_height, scan_pixels, scanlines);
 
             // Now scale up again
             scale(scan_pixels, src_width * 2, src_height * 2, 
-                    screen_pixels + screen_xoff + screen_yoff, dst_width, dst_height);
+                  screen_pixels + screen_xoff + screen_yoff, dst_width, dst_height);
         }
         // Windowed: Use Faster Scaling algorithm
         else if (video_mode == video_settings_t::MODE_WINDOW)
         {
-            scalex(pixels, src_width, src_height, screen_pixels, scale_factor); 
+            scalex(pix, src_width, src_height, screen_pixels, scale_factor); 
         }
         // Full Screen: Stretch screen. May not be an integer multiple of original size.
         //                              Therefore, scaling is slower.
         else
         {
-            scale(pixels, src_width, src_height, 
-                    screen_pixels + screen_xoff + screen_yoff, dst_width, dst_height);
+            scale(pix, src_width, src_height, 
+                  screen_pixels + screen_xoff + screen_yoff, dst_width, dst_height);
         }
     }
     // No Scaling
     else
     {
-        uint32_t* pix  = pixels;
         uint32_t* spix = screen_pixels;
     
         // Lookup real RGB value from rgb array for backbuffer
         for (int i = 0; i < (src_width * src_height); i++)
-            *(spix++) = rgb[*(pix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+            *(spix++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
     }
 
     // Example: Set the pixel at 10,10 to red
@@ -341,7 +348,7 @@ void RenderSW::scale( uint32_t* src, int srcwid, int srchgt,
 // doubles it up, in order to insert the scanlines.
 
 void RenderSW::scanlines_32bpp(uint32_t* src, const int width, const int height, 
-                            uint32_t* dst, int percent, bool interpolate)
+                               uint32_t* dst, int percent, bool interpolate)
 {
     const int dst_width1 = width << 1;
     const int dst_width2 = width << 2;

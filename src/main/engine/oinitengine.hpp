@@ -116,7 +116,7 @@ public:
     void set_granular_position();
     void set_fine_position();
 
-    void init_bonus(); // moved here for debugging purposes
+    void init_bonus(int16_t); // moved here for debugging purposes
 
 private:
     // Road width at merge point

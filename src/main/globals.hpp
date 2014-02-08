@@ -10,11 +10,13 @@
 #define COMPILE_SOUND_CODE 1
 
 // ------------------------------------------------------------------------------------------------
-// Settings
-// Some of these will move to the options class, once they are dynamic and controllable via a menu
+// Debug Settings
 // ------------------------------------------------------------------------------------------------
 
 const bool DEBUG_LEVEL = false;
+
+// Force AI to play the levels
+const bool FORCE_AI = false;
 
 // ------------------------------------------------------------------------------------------------
 // General useful stuff

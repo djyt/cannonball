@@ -301,6 +301,13 @@ void OFerrari::logic()
 // Source: 0x9CB4
 void OFerrari::ferrari_normal()
 {
+    if (FORCE_AI && outrun.game_state == GS_INGAME)
+    {
+        oattractai.tick_ai_enhanced();
+        setup_ferrari_sprite();
+        return;
+    }
+
     switch (outrun.game_state)
     {    
         // Attract Mode: Process AI Code and fall through
@@ -971,7 +978,8 @@ void OFerrari::move()
             oinputs.acc_adjust = 0;   
 
         // Set Gear For Demo Mode
-        if (outrun.game_state == GS_ATTRACT || outrun.game_state == GS_BONUS || 
+        if (FORCE_AI || 
+            outrun.game_state == GS_ATTRACT || outrun.game_state == GS_BONUS || 
             config.controls.gear == config.controls.GEAR_AUTO)
         {
             // demo_mode_gear

@@ -13,7 +13,6 @@
 ***************************************************************************/
 
 #include "engine/oferrari.hpp"
-#include "engine/ohiscore.hpp"
 #include "engine/omap.hpp"
 #include "engine/otiles.hpp"
 #include "engine/otraffic.hpp"
@@ -140,7 +139,7 @@ void OMap::tick()
 
         // Clear Course Map        
         case MAP_CLEAR:
-            outrun.game_state = GS_INIT_BEST2;
+            outrun.init_best_outrunners();
             return;
     }
 
@@ -297,16 +296,8 @@ void OMap::map_display()
     // Init Best OutRunners
     if (--map_delay <= 0)
     {
-        video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
-
-        osprites.disable_sprites();
-        oroad.horizon_base = 0x154;
-        ohiscore.setup_pal_best();    // Setup Palettes
-        ohiscore.setup_road_best();
-        otiles.fill_tilemap_color(0); // Fill Tilemap Black
         map_state = MAP_CLEAR;
-        outrun.game_state = GS_INIT_BEST2;
-        video.enabled = false;
+        outrun.init_best_outrunners();
     }
 }
 

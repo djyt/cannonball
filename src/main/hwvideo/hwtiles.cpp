@@ -159,7 +159,7 @@ void hwtiles::update_tile_values()
 }
 
 // A quick and dirty debug function to display the contents of tile memory.
-void hwtiles::render_all_tiles(uint32_t* buf)
+void hwtiles::render_all_tiles(uint16_t* buf)
 {
     uint32_t Code = 0, Colour = 5, x, y;
     for (y = 0; y < 224; y += 8) 
@@ -172,7 +172,7 @@ void hwtiles::render_all_tiles(uint32_t* buf)
     }
 }
 
-void hwtiles::render_tile_layer(uint32_t* buf, uint8_t page_index, uint8_t priority_draw)
+void hwtiles::render_tile_layer(uint16_t* buf, uint8_t page_index, uint8_t priority_draw)
 {
     int16_t Colour, x, y, Priority = 0;
 
@@ -248,7 +248,7 @@ void hwtiles::render_tile_layer(uint32_t* buf, uint8_t page_index, uint8_t prior
     } // end for loop
 }
 
-void hwtiles::render_text_layer(uint32_t* buf, uint8_t priority_draw)
+void hwtiles::render_text_layer(uint16_t* buf, uint8_t priority_draw)
 {
     uint16_t mx, my, Code, Colour, x, y, Priority, TileIndex = 0;
 
@@ -287,7 +287,7 @@ void hwtiles::render_text_layer(uint32_t* buf, uint8_t priority_draw)
 }
 
 void hwtiles::render8x8_tile_mask_lores(
-    uint32_t *buf,
+    uint16_t *buf,
     uint16_t nTileNumber, 
     uint16_t StartX, 
     uint16_t StartY, 
@@ -330,7 +330,7 @@ void hwtiles::render8x8_tile_mask_lores(
 }
 
 void hwtiles::render8x8_tile_mask_clip_lores(
-    uint32_t *buf,
+    uint16_t *buf,
     uint16_t nTileNumber, 
     int16_t StartX, 
     int16_t StartY, 
@@ -381,7 +381,7 @@ void hwtiles::render8x8_tile_mask_clip_lores(
 // proportional.
 // ------------------------------------------------------------------------------------------------
 void hwtiles::render8x8_tile_mask_hires(
-    uint32_t *buf,
+    uint16_t *buf,
     uint16_t nTileNumber, 
     uint16_t StartX, 
     uint16_t StartY, 
@@ -424,7 +424,7 @@ void hwtiles::render8x8_tile_mask_hires(
 }
 
 void hwtiles::render8x8_tile_mask_clip_hires(
-    uint32_t *buf,
+    uint16_t *buf,
     uint16_t nTileNumber, 
     int16_t StartX, 
     int16_t StartY, 
@@ -470,7 +470,7 @@ void hwtiles::render8x8_tile_mask_clip_hires(
 }
 
 // Hires Mode: Set 4 pixels instead of one.
-void hwtiles::set_pixel_x4(uint32_t *buf, uint32_t data)
+void hwtiles::set_pixel_x4(uint16_t *buf, uint32_t data)
 {
     buf[0] = buf[1] = buf[0  + config.s16_width] = buf[1 + config.s16_width] = data;
 }

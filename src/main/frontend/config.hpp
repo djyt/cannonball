@@ -45,6 +45,7 @@ struct video_settings_t
     int scanlines;
     int widescreen;
     int fps;
+    int fps_count;
     int hires;
     int filtering;
 };
@@ -53,6 +54,8 @@ struct sound_settings_t
 {
     int enabled;
     int advertise;
+    int preview;
+    int fix_samples;
     custom_music_t custom_music[4];
 };
 
@@ -60,18 +63,20 @@ struct controls_settings_t
 {
     int cannonboard;  // CannonBall used in conjunction with CannonBoard in arcade cabinet
 
-    const static int GEAR_BUTTON = 0;
-    const static int GEAR_PRESS  = 1; // For cabinets
-    const static int GEAR_AUTO   = 2;
+    const static int GEAR_BUTTON   = 0;
+    const static int GEAR_PRESS    = 1; // For cabinets
+    const static int GEAR_SEPARATE = 2; // Separate button presses
+    const static int GEAR_AUTO     = 3;
 
     int gear;
     int steer_speed;   // Steering Digital Speed
     int pedal_speed;   // Pedal Digital Speed
-    int padconfig[6];  // Joypad Button Config
-    int keyconfig[10]; // Keyboard Button Config
+    int padconfig[8];  // Joypad Button Config
+    int keyconfig[12]; // Keyboard Button Config
+    int pad_id;        // Use the N'th joystick on the system.
     int analog;        // Use analog controls
     int axis[3];       // Analog Axis
-    int wheel[2];      // Wheel Settings
+    int asettings[3];  // Analog Settings
 
     int haptic;        // Force Feedback Enabled
     int max_force;
@@ -90,7 +95,9 @@ struct engine_settings_t
     int randomgen;
     int level_objects;
     bool fix_bugs;
+    bool fix_bugs_backup;
     bool layout_debug;
+    int new_attract;
 };
 
 class Config
@@ -114,6 +121,9 @@ public:
 
     // Original game ticks sprites at 30fps but background scroll at 60fps
     int tick_fps;
+
+    // Continuous Mode: Traffic Setting
+    int cont_traffic;
     
     Config(void);
     ~Config(void);
@@ -121,17 +131,14 @@ public:
     void init();
     void load(const std::string &filename);
     bool save(const std::string &filename);
-    void load_scores();
-    void save_scores();
+    void load_scores(const std::string &filename);
+    void save_scores(const std::string &filename);
+    void load_tiletrial_scores();
+    void save_tiletrial_scores();
     bool clear_scores();
     void set_fps(int fps);
-    std::string to_string(int i);
-    std::string to_string(char c);
-    std::string to_hex_string(int i);
    
 private:
-    // Conversions
-    uint32_t from_hex_string(std::string s);
 };
 
 extern Config config;

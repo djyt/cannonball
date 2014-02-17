@@ -181,6 +181,16 @@ class Outrun
 public:
     bool freeze_timer;
 
+    // CannonBall Game Mode
+    uint8_t cannonball_mode;
+
+    const static uint8_t MODE_ORIGINAL = 0; // Original OutRun Mode
+    const static uint8_t MODE_TTRIAL   = 1; // Enhanced Time Trial Mode
+    const static uint8_t MODE_CONT     = 2; // Enhanced Continuous Mode
+
+    // Max traffic level for custom modes 
+    uint8_t custom_traffic;
+
     // Time trial data
     time_trial_t ttrial;
 
@@ -204,10 +214,14 @@ public:
 	void init();
 	void tick(bool tick_frame);
 	void vint();
+    void init_best_outrunners();
     void select_course(const bool jap, const bool prototype);
 
 private:
     Interface* cannonboard;
+
+    uint8_t attract_view;
+    int16_t attract_counter;
 
     OOutputs* outputs;
 
@@ -221,6 +235,8 @@ private:
 	void main_switch();
     void controls();
     bool decrement_timers();
+    void init_attract();
+    void tick_attract();
 };
 
 extern Outrun outrun;

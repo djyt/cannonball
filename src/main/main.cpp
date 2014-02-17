@@ -35,10 +35,11 @@
 // Initialize Shared Variables
 using namespace cannonball;
 
-int cannonball::state       = STATE_BOOT;
-int cannonball::frame_ms    = 0;
-int cannonball::frame       = 0;
-bool cannonball::tick_frame = true;
+int    cannonball::state       = STATE_BOOT;
+double cannonball::frame_ms    = 0;
+int    cannonball::frame       = 0;
+bool   cannonball::tick_frame  = true;
+int    cannonball::fps_counter = 0;
 
 #ifdef COMPILE_SOUND_CODE
 Audio cannonball::audio;
@@ -156,6 +157,7 @@ static void tick()
             }
             else
             {
+                pause_engine = false;
                 outrun.init();
                 state = STATE_GAME;
             }
@@ -185,28 +187,47 @@ static void tick()
 
 static void main_loop()
 {
-    Timer fps;
+    // FPS Counter (If Enabled)
+    Timer fps_count;
+    int frame = 0;
+    fps_count.start();
 
+    // General Frame Timing
+    Timer frame_time;
     int t;
-    int deltatime = 0;
+    double deltatime  = 0;
+    int deltaintegral = 0;
 
     while (state != STATE_QUIT)
     {
-        // Start the frame timer
-        fps.start();
+        frame_time.start();
         tick();
         #ifdef COMPILE_SOUND_CODE
-        deltatime = (int) (frame_ms * audio.adjust_speed());
+        deltatime += (frame_ms * audio.adjust_speed());
         #else
-        deltatime = frame_ms;
+        deltatime += frame_ms;
         #endif
-        t = fps.get_ticks();
+        deltaintegral  = (int) deltatime;
+        t = frame_time.get_ticks();
 
-        // Cap Frame Rate
+        // Cap Frame Rate: Sleep Remaining Frame Time
         if (t < deltatime)
         {
-            //Sleep the remaining frame time
-            SDL_Delay( deltatime - t );
+            SDL_Delay((Uint32) (deltatime - t));
+        }
+        
+        deltatime -= deltaintegral;
+
+        if (config.video.fps_count)
+        {
+            frame++;
+            // One second has elapsed
+            if (fps_count.get_ticks() >= 1000)
+            {
+                fps_counter = frame;
+                frame       = 0;
+                fps_count.start();
+            }
         }
     }
 
@@ -244,6 +265,10 @@ int main(int argc, char* argv[])
         // Load XML Config
         config.load(FILENAME_CONFIG);
 
+        // Load fixed PCM ROM based on config
+        if (config.sound.fix_samples)
+            roms.load_pcm_rom(true);
+
         //Set the window caption 
         SDL_WM_SetCaption( "Cannonball", NULL ); 
 
@@ -257,8 +282,9 @@ int main(int argc, char* argv[])
         state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
 
         // Initalize controls
-        input.init(config.controls.keyconfig, config.controls.padconfig, 
-                   config.controls.analog,    config.controls.axis, config.controls.wheel);
+        input.init(config.controls.pad_id,
+                   config.controls.keyconfig, config.controls.padconfig, 
+                   config.controls.analog,    config.controls.axis, config.controls.asettings);
 
         if (config.controls.haptic) 
             config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);

@@ -40,4 +40,6 @@ private:
     int32_t bankshift;
     int32_t bankmask;
     int32_t rgnmask;
+
+    double downsample;
 };

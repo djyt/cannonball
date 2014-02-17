@@ -28,7 +28,7 @@ public:
     void disable();
     bool start_frame();
     bool finalize_frame();
-    void draw_frame(uint32_t* pixels);
+    void draw_frame(uint16_t* pixels);
 
 private:
     // Texture IDs

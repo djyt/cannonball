@@ -1,7 +1,23 @@
 /***************************************************************************
     Ferrari AI and Logic Routines.
     Used by Attract Mode and the end of game Bonus Sequence. 
-    
+
+    This code contains a port of the original AI and a new enhanced AI.
+
+    Enhanced AI Bug-Fixes:
+    ----------------------
+    - AI is much better at driving tracks without crashing into scenery.
+    - No weird juddering when turning corners.
+    - No brake light flickering.
+    - Can drive any stage in the game competently. 
+    - Selects a true random route, rather than a pre-defined route. 
+    - Can handle split tracks correctly.
+
+    It still occasionally collides with scenery on the later stages, but
+    I think this is ok - as we want to demo a few collisions!
+
+    Notes on the original AI:
+    -------------------------
     The final behaviour of the AI differs from the original game.
     
     This is because the core Ferrari logic the AI relies on is in turn
@@ -30,12 +46,15 @@ public:
     OAttractAI(void);
     ~OAttractAI(void);
 
-    void tick_ai();
+    void init();
+    void tick_ai_enhanced();
 
+    void tick_ai();
     void check_road_bonus();
     void set_steering_bonus();
 
 private:
+    int8_t last_stage;
     void check_road();
     void set_steering();
 };

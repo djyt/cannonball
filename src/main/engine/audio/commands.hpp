@@ -47,8 +47,11 @@ namespace sound
         STOP_SAFETYZONE  = 0xA1,
         YM_SET_LEVELS    = 0xA2,
         // 0xA3 Unused - Should be voice 4, but isn't hooked up
-        PCM_WAVE = 0xA4,         // Wave Sample
-        MUSIC_LASTWAVE = 0xA5,   // Music: Last Wave
+        PCM_WAVE         = 0xA4, // Wave Sample
+        MUSIC_LASTWAVE   = 0xA5, // Music: Last Wave
+        MUSIC_BREEZE2    = 0xB0, // Enhancement: Play new music in-game without triggering rev effect
+        MUSIC_MAGICAL2   = 0xB1,
+        MUSIC_SPLASH2    = 0xB2,
     };
 
     // ----------------------------------------------------------------------------

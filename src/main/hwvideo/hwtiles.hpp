@@ -21,9 +21,9 @@ public:
     void init(uint8_t* src_tiles, const bool hires);
     void set_x_clamp(const uint16_t);
     void update_tile_values();
-    void render_tile_layer(uint32_t*, uint8_t, uint8_t);
-    void render_text_layer(uint32_t*, uint8_t);
-    void render_all_tiles(uint32_t*);
+    void render_tile_layer(uint16_t*, uint8_t, uint8_t);
+    void render_text_layer(uint16_t*, uint8_t);
+    void render_all_tiles(uint16_t*);
 
 private:
     int16_t x_clamp;
@@ -44,7 +44,7 @@ private:
     static const uint16_t TILEMAP_COLOUR_OFFSET = 0x1c00;
     
     void (hwtiles::*render8x8_tile_mask)(
-        uint32_t *buf,
+        uint16_t *buf,
         uint16_t nTileNumber, 
         uint16_t StartX, 
         uint16_t StartY, 
@@ -54,7 +54,7 @@ private:
         uint16_t nPaletteOffset); 
         
     void (hwtiles::*render8x8_tile_mask_clip)(
-        uint32_t *buf,
+        uint16_t *buf,
         uint16_t nTileNumber, 
         int16_t StartX, 
         int16_t StartY, 
@@ -64,7 +64,7 @@ private:
         uint16_t nPaletteOffset); 
         
     void render8x8_tile_mask_lores(
-        uint32_t *buf,
+        uint16_t *buf,
         uint16_t nTileNumber, 
         uint16_t StartX, 
         uint16_t StartY, 
@@ -74,7 +74,7 @@ private:
         uint16_t nPaletteOffset); 
 
     void render8x8_tile_mask_clip_lores(
-        uint32_t *buf,
+        uint16_t *buf,
         uint16_t nTileNumber, 
         int16_t StartX, 
         int16_t StartY, 
@@ -84,7 +84,7 @@ private:
         uint16_t nPaletteOffset);
         
     void render8x8_tile_mask_hires(
-        uint32_t *buf,
+        uint16_t *buf,
         uint16_t nTileNumber, 
         uint16_t StartX, 
         uint16_t StartY, 
@@ -94,7 +94,7 @@ private:
         uint16_t nPaletteOffset); 
         
     void render8x8_tile_mask_clip_hires(
-        uint32_t *buf,
+        uint16_t *buf,
         uint16_t nTileNumber, 
         int16_t StartX, 
         int16_t StartY, 
@@ -103,5 +103,5 @@ private:
         uint16_t nMaskColour, 
         uint16_t nPaletteOffset);
         
-    inline void set_pixel_x4(uint32_t *buf, uint32_t data);
+    inline void set_pixel_x4(uint16_t *buf, uint32_t data);
 };

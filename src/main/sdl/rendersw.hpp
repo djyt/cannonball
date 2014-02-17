@@ -24,11 +24,14 @@ public:
     void disable();
     bool start_frame();
     bool finalize_frame();
-    void draw_frame(uint32_t* pixels);
+    void draw_frame(uint16_t* pixels);
 
 private:
     // Scanline pixels
     uint32_t* scan_pixels;
+
+    // Pixel Conversion
+    uint32_t* pix;
 
     // Scale the screen
     int scale_factor;

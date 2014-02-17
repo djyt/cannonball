@@ -14,8 +14,8 @@ public:
     void write32(uint32_t* adr, const uint32_t data);
     uint16_t read_road_control();
     void write_road_control(const uint8_t);
-    void (HWRoad::*render_background)(uint32_t*);
-    void (HWRoad::*render_foreground)(uint32_t*);
+    void (HWRoad::*render_background)(uint16_t*);
+    void (HWRoad::*render_foreground)(uint16_t*);
   
 private:
     uint8_t road_control;
@@ -35,10 +35,10 @@ private:
     uint16_t ramBuff[ROAD_RAM_SIZE / 2];
 
     void decode_road(const uint8_t*);
-    void render_background_lores(uint32_t*);
-    void render_foreground_lores(uint32_t*);
-    void render_background_hires(uint32_t*);
-    void render_foreground_hires(uint32_t*);
+    void render_background_lores(uint16_t*);
+    void render_foreground_lores(uint16_t*);
+    void render_background_hires(uint16_t*);
+    void render_foreground_hires(uint16_t*);
 };
 
 extern HWRoad hwroad;

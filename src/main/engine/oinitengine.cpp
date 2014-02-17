@@ -20,6 +20,7 @@
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
 #include "engine/olevelobjs.hpp"
+#include "engine/omusic.hpp"
 #include "engine/ostats.hpp"
 #include "engine/outils.hpp"
 #include "engine/opalette.hpp"
@@ -29,6 +30,9 @@
 #include "engine/oinitengine.hpp"
 
 OInitEngine oinitengine;
+
+// Continuous Mode Level Ordering
+const static uint8_t CONTINUOUS_LEVELS[] = {0, 0x8, 0x9, 0x10, 0x11, 0x12, 0x18, 0x19, 0x1A, 0x1B, 0x20, 0x21, 0x22, 0x23, 0x24};
 
 OInitEngine::OInitEngine()
 {
@@ -392,7 +396,7 @@ void OInitEngine::check_road_split()
         
         // Init Bonus Sequence
         case 0x10:
-            init_bonus();
+            init_bonus(oroad.stage_lookup_off - 0x20);
             break;
 
         case 0x11:
@@ -433,7 +437,7 @@ void OInitEngine::check_road_split()
 void OInitEngine::check_stage()
 {
     // Time Trial Mode
-    if (outrun.ttrial.enabled)
+    if (outrun.cannonball_mode == Outrun::MODE_TTRIAL)
     {
         // Store laptime and reset
         uint8_t* laptimes = outrun.ttrial.laptimes[outrun.ttrial.current_lap];
@@ -478,10 +482,69 @@ void OInitEngine::check_stage()
                 // Set correct finish segment for final 5 stages, otherwise just default to first one.
                 oroad.stage_lookup_off = oroad.stage_lookup_off < 0x20 ? 0x20 : oroad.stage_lookup_off;
                 ostats.time_counter = 1;
-                init_bonus();
+                init_bonus(oroad.stage_lookup_off - 0x20);
             }
         }
     }
+    else if (outrun.cannonball_mode == Outrun::MODE_CONT)
+    {
+        oroad.road_pos         = 0;
+        oroad.tilemap_h_target = 0;
+        
+        if ((ostats.cur_stage + 1) == 15)
+        {
+            if (outrun.game_state == GS_INGAME)
+                init_bonus(outils::random() % 5);
+            else
+                reload_stage1();
+        }
+        else
+        {
+            oroad.stage_lookup_off = CONTINUOUS_LEVELS[++ostats.cur_stage];
+            init_road_seg_master();
+            osprites.clear_palette_data();
+
+            // Init next tilemap
+            otiles.set_vertical_swap(); // Tell tilemap to v-scroll off/on
+
+            // Reload smoke data
+            osmoke.setup_smoke_sprite(true);
+
+            // Update palette
+            oinitengine.end_stage_props |= BIT_1; // Don't bump stage offset when fetching next palette
+            oinitengine.end_stage_props |= BIT_2;
+            opalette.pal_manip_ctrl = 1;
+            opalette.setup_sky_change();
+            
+            // Denote Checkpoint Passed
+            checkpoint_marker = -1;
+
+            // Cycle Music every 5 stages
+            if (outrun.game_state == GS_INGAME)
+            {
+                if (ostats.cur_stage == 5 || ostats.cur_stage == 10)
+                {
+                    switch (omusic.music_selected)
+                    {
+                        // Cycle in-built sounds
+                        case sound::MUSIC_BREEZE:
+                            omusic.music_selected = sound::MUSIC_SPLASH;
+                            osoundint.queue_sound(sound::MUSIC_SPLASH2); // Play without rev effect
+                            break;
+                        case sound::MUSIC_SPLASH:
+                            omusic.music_selected = sound::MUSIC_MAGICAL;
+                            osoundint.queue_sound(sound::MUSIC_MAGICAL2); // Play without rev effect
+                            break;
+                        case sound::MUSIC_MAGICAL:
+                            omusic.music_selected = sound::MUSIC_BREEZE;
+                            osoundint.queue_sound(sound::MUSIC_BREEZE2); // Play without rev effect
+                            break;
+                    }                 
+                }
+            }              
+        }
+    }
+
     // Stages 0-4, do road split
     else if (ostats.cur_stage <= 3)
     {
@@ -491,24 +554,29 @@ void OInitEngine::check_stage()
     // Stage 5: Init Bonus
     else if (outrun.game_state == GS_INGAME)
     {
-        init_bonus();
+        init_bonus(oroad.stage_lookup_off - 0x20);
     }
     // Stage 5 Attract Mode: Reload Stage 1
     else
     {
-        oroad.road_pos = 0;
-        oroad.tilemap_h_target = 0;
-        ostats.cur_stage = -1;
-        oroad.stage_lookup_off = -8;
-
-        ostats.clear_route_info();
-
-        end_stage_props |= BIT_1; // Loop back to stage 1 (Used by tilemap code)
-        end_stage_props |= BIT_2;
-        end_stage_props |= BIT_3;
-        osmoke.setup_smoke_sprite(true);
-        init_split_next_level();
+        reload_stage1();
     }
+}
+
+void OInitEngine::reload_stage1()
+{
+    oroad.road_pos         = 0;
+    oroad.tilemap_h_target = 0;
+    ostats.cur_stage       = -1;
+    oroad.stage_lookup_off = -8;
+
+    ostats.clear_route_info();
+
+    end_stage_props |= BIT_1; // Loop back to stage 1 (Used by tilemap code)
+    end_stage_props |= BIT_2;
+    end_stage_props |= BIT_3;
+    osmoke.setup_smoke_sprite(true);
+    init_split_next_level();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -713,12 +781,12 @@ void OInitEngine::init_split_next_level()
 
 // Initialize new segment of road data for bonus sequence
 // Source: 0x8A04
-void OInitEngine::init_bonus()
+void OInitEngine::init_bonus(int16_t seq)
 {
     oroad.road_ctrl = ORoad::ROAD_BOTH_P0_INV;
     oroad.road_pos  = 0;
     oroad.tilemap_h_target = 0;
-    oanimseq.end_seq = oroad.stage_lookup_off - 0x20; // Set End Sequence (0 - 4)
+    oanimseq.end_seq = (uint8_t) seq; // Set End Sequence (0 - 4)
     trackloader.init_track_bonus(oanimseq.end_seq);
     outrun.game_state = GS_INIT_BONUS;
     rd_split_state = 0x11;
@@ -916,13 +984,13 @@ void OInitEngine::test_bonus_mode(bool do_bonus_check)
     if (do_bonus_check && obonus.bonus_control)
     {
         // Do Bonus Text Display
-        if (!outrun.ttrial.enabled && obonus.bonus_state < 3)
+        if (outrun.cannonball_mode != Outrun::MODE_TTRIAL && obonus.bonus_state < 3)
             obonus.do_bonus_text();
 
         // End Seq Animation Stage #0
         if (obonus.bonus_control == OBonus::BONUS_SEQ0)
         {
-            if (outrun.ttrial.enabled)
+            if (outrun.cannonball_mode == Outrun::MODE_TTRIAL)
                 outrun.game_state = GS_INIT_GAMEOVER;
             else
                 oanimseq.init_end_seq();

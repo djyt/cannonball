@@ -270,6 +270,24 @@ void OTraffic::tick_spawned_sprite(oentry* sprite)
         // Check for collision with player's car
         check_collision(sprite);
 
+        // Denote collisions for new attract mode
+        if (config.engine.new_attract)
+        {
+            if (sprite->z >> 16 >= 0x90)
+            {
+                const int PAD = 48;
+                int16_t w  = (sprite->width >> 1) + (sprite->width >> 3) + (sprite->width >> 4) + PAD;
+                int16_t x1 = sprite->x - w; // d2
+                int16_t x2 = sprite->x + w; // d1
+
+                // Check traffic is directly in front of player's car
+                if (x1 < 0 && x2 > 0)
+                {
+                    otraffic.ai_traffic = 1;
+                }
+            }
+        }
+
         // Calculate X Difference Between Player Car & Traffic.
         // Set Relevant Bits To Denote which side player's car is on in relation to traffic
 
@@ -299,7 +317,8 @@ void OTraffic::tick_spawned_sprite(oentry* sprite)
             sprite->traffic_proximity |= BIT_1;
         // End Added block
     
-        ai_traffic |= sprite->traffic_proximity;
+        if (!config.engine.new_attract)
+            ai_traffic |= sprite->traffic_proximity;
     }
 
     move_spawned_sprite(sprite);
@@ -413,7 +432,7 @@ void OTraffic::update_props(oentry* sprite)
         if (outrun.game_state == GS_INGAME)
         {
             // Update score on overtake
-            if (!outrun.ttrial.enabled)
+            if (outrun.cannonball_mode != Outrun::MODE_TTRIAL)
                 ostats.update_score(0x20000);
             else
             {
@@ -450,7 +469,7 @@ void OTraffic::update_props(oentry* sprite)
     int16_t y = oroad.road_y[oroad.road_p0 - (0x10 / 2)] - oroad.road_y[oroad.road_p0];
 
     // 0 = No Incline, 10 = Flat Road/Incline
-    int8_t incline = (y >= 0x12) ? 0x10 : 0; // d1
+    int8_t incline = (y < 0x12) ? 0x10 : 0; // d1
 
     // ------------------------------------------------------------------------
     // Cap Player X Position 
@@ -564,7 +583,7 @@ void OTraffic::set_zoom_lookup(oentry* sprite)
 // Source: 0x846E
 void OTraffic::set_max_traffic()
 {
-    if (!outrun.ttrial.enabled)
+    if (outrun.cannonball_mode == Outrun::MODE_ORIGINAL)
     {
         const static uint8_t MAX_TRAFFIC[] =
         {
@@ -580,7 +599,7 @@ void OTraffic::set_max_traffic()
     }
     else
     {
-        max_traffic = outrun.ttrial.traffic;
+        max_traffic = outrun.custom_traffic;
     }
 }
 
@@ -621,7 +640,7 @@ void OTraffic::traffic_logic()
     uint16_t spr_index = osprites.spr_cnt_shadow;
 
     // Find First Traffic Entry. Note we use the hardware sprite list here to extract the original object.
-    for (index = 0; index <= sprite_count; index++)
+    for (index = 0; index < sprite_count; index++)
     {
         uint16_t src_index = osprites.sprite_entries[spr_index++].scratch;
 
@@ -643,7 +662,7 @@ void OTraffic::traffic_logic()
     oentry* next = 0;
 
     // Compare Current Traffic Entry With Previous One
-    for (uint8_t index2 = index + 1; index2 <= sprite_count; index2++)
+    for (uint8_t index2 = index + 1; index2 < sprite_count; index2++)
     {
         uint16_t src_index = osprites.sprite_entries[spr_index++].scratch;
         next = &osprites.jump_table[src_index];
@@ -715,6 +734,7 @@ void OTraffic::calculate_avg_speed(uint16_t c)
 // - Adjust player's speed
 //
 // Source: 0x50DE
+
 void OTraffic::check_collision(oentry* sprite)
 {
     int16_t d0 = 0;
@@ -750,6 +770,7 @@ void OTraffic::check_collision(oentry* sprite)
             }
         }
     }
+
     // try_sound:
     uint8_t traffic_fx_old = sprite->traffic_fx;
     sprite->traffic_fx = d0 & 0xFF;
@@ -790,9 +811,9 @@ void OTraffic::traffic_sound()
     int16_t sounds = traffic_count <= 4 ? traffic_count : 4;
 
     // Loop through traffic objects that are on screen
-    for (int16_t i = sounds - 1; i >= 0; i--)
+    for (int16_t i = 0; i < sounds; i++)
     {
-        oentry* t = traffic_adr[i];
+        oentry* t = traffic_adr[traffic_count - i - 1];
         // Used to set panning of sound as car moves left and right in front of the player
         int16_t pan = t->x >> 5; 
         if (pan < -3) pan = -3;

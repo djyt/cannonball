@@ -282,8 +282,11 @@ void OAnimSeq::anim_seq_intro(oanimsprite* anim)
                 // In this case, to exit the routine and setup the Ferrari on the last entry for passenger 2
                 if (anim == &anim_pass2)
                 {
-                    osprites.map_palette(anim->sprite);
-                    osprites.do_spr_order_shadows(anim->sprite);
+                    if (oroad.get_view_mode() != ORoad::VIEW_INCAR)
+                    {
+                        osprites.map_palette(anim->sprite);
+                        osprites.do_spr_order_shadows(anim->sprite);
+                    }
                     oferrari.init_ingame();
                     return;
                 }
@@ -302,8 +305,11 @@ void OAnimSeq::anim_seq_intro(oanimsprite* anim)
     }
 
     // Order sprites
-    osprites.map_palette(anim->sprite);
-    osprites.do_spr_order_shadows(anim->sprite);
+    if (oroad.get_view_mode() != ORoad::VIEW_INCAR)
+    {
+        osprites.map_palette(anim->sprite);
+        osprites.do_spr_order_shadows(anim->sprite);
+    }
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -495,7 +501,7 @@ void OAnimSeq::init_end_sprites()
 // Source: 0x5B12
 void OAnimSeq::anim_seq_outro_ferrari()
 {
-    if (outrun.tick_frame && !ferrari_stopped)
+    if (/*outrun.tick_frame && */!ferrari_stopped)
     {
         // Car is moving. Turn Brake On.
         if (oinitengine.car_increment >> 16)
@@ -516,14 +522,14 @@ void OAnimSeq::anim_seq_outro_ferrari()
 // Source: 0x5B42
 void OAnimSeq::anim_seq_outro(oanimsprite* anim)
 {
+    oinputs.steering_adjust = 0;
+
     // Return if no animation data to process
     if (!read_anim_data(anim)) 
         return;
 
     if (outrun.tick_frame)
-    {
-        oinputs.steering_adjust = 0;
-    
+    {    
         // Process Animation Data
         uint32_t index = anim->anim_addr_curr + (anim->anim_frame << 3);
 
@@ -567,11 +573,7 @@ void OAnimSeq::anim_seq_outro(oanimsprite* anim)
                 anim->frame_delay = roms.rom0p->read8(0x0F + index) & 0x3F;
                 anim->anim_frame++;
             }
-        }
-
-        //if (anim == &anim_pass1)
-        //    std::cout << std::hex << "seq=" << seq_pos << " frame delay=" << (int16_t) anim->frame_delay << " addr curr=" << anim->anim_addr_curr << std::endl;
-
+        } 
         osprites.map_palette(anim->sprite);
     }
 
@@ -640,7 +642,11 @@ bool OAnimSeq::read_anim_data(oanimsprite* anim)
         {
             obonus.bonus_control = OBonus::BONUS_DISABLE;
             // we're missing all the code here to disable the animsprites, but probably not necessary?
-            outrun.game_state = GS_INIT_MAP;
+
+            if (outrun.cannonball_mode == Outrun::MODE_ORIGINAL)
+                outrun.game_state = GS_INIT_MAP;
+            else
+                outrun.init_best_outrunners();
         }
     }
 

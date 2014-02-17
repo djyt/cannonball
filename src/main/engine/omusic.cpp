@@ -38,21 +38,25 @@ void OMusic::enable()
     otraffic.disable_traffic();
     //edit jump table 3
     oinitengine.car_increment = 0;
-    oferrari.car_inc_old = 0;
-    osprites.spr_cnt_main = 0;
-    osprites.spr_cnt_shadow = 0;
-    oroad.road_ctrl = ORoad::ROAD_BOTH_P0;
-    oroad.horizon_base = -0x3FF;
+    oferrari.car_inc_old      = 0;
+    osprites.spr_cnt_main     = 0;
+    osprites.spr_cnt_shadow   = 0;
+    oroad.road_ctrl           = ORoad::ROAD_BOTH_P0;
+    oroad.horizon_base        = -0x3FF;
+    last_music_selected       = -1;
+    preview_counter           = -20; // Delay before playing music
+    ostats.time_counter       = 0x30; // Move 30 seconds to timer countdown (note on the original roms this is 15 seconds)
+    ostats.frame_counter      = ostats.frame_reset;  
+     
     blit_music_select();
     ohud.blit_text2(TEXT2_SELECT_MUSIC); // Select Music By Steering
-    ostats.time_counter = 0x30; // Move 30 seconds to timer countdown (note on the original roms this is 15 seconds)
-    ostats.frame_counter = ostats.frame_reset;  
-    
+  
     osoundint.queue_sound(sound::RESET);
-    osoundint.queue_sound(sound::PCM_WAVE); // Wave Noises
+    if (!config.sound.preview)
+        osoundint.queue_sound(sound::PCM_WAVE); // Wave Noises
 
-    entry_start = OSprites::SPRITE_ENTRIES - 0x10;
     // Enable block of sprites
+    entry_start = OSprites::SPRITE_ENTRIES - 0x10;    
     for (int i = entry_start; i < entry_start + 5; i++)
     {
         osprites.jump_table[i].init(i);
@@ -260,6 +264,24 @@ void OMusic::tick()
     osprites.do_spr_order_shadows(e);
     osprites.do_spr_order_shadows(e2);
     osprites.do_spr_order_shadows(hand);
+
+    // Enhancement: Preview Music On Sound Selection Screen
+    if (config.sound.preview)
+    {
+        if (music_selected != last_music_selected)
+        {
+            if (preview_counter == 0 && last_music_selected != -1)
+                osoundint.queue_sound(sound::FM_RESET);
+
+            if (++preview_counter >= 10)
+            {
+                preview_counter = 0;
+                osoundint.queue_sound(music_selected);
+                last_music_selected = music_selected;
+            }
+        
+        }
+    }
 }
 
 // Blit Only: Used when frame skipping

@@ -60,10 +60,10 @@ public:
 
     // End Of Stage Properties
     //
-    // Bit 0: Denotes in road-split code. Road physically splitting.
-    // Bit 1: Attract Mode: Set to loop back to Stage 1
-    // Bit 2: Attract Mode: Set to loop back to Stage 1
-    // Bit 3: Denote setup_sky_change done
+    // Bit 0: Fade Sky & Ground Palette To New Entry
+    // Bit 1: Use Current Palette (Don't Bump To Next One)
+    // Bit 2: Use Current Sky Palette For Fade (Don't Bump To Next One)
+    // Bit 3: Loop back to stage 1
     uint8_t end_stage_props;
 
     uint32_t car_increment; // NEEDS REPLACING. Implementing here as a quick hack so routine works
@@ -116,7 +116,7 @@ public:
     void set_granular_position();
     void set_fine_position();
 
-    void init_bonus(); // moved here for debugging purposes
+    void init_bonus(int16_t); // moved here for debugging purposes
 
 private:
     // Road width at merge point
@@ -165,6 +165,7 @@ private:
     void bonus4();
     void bonus5();
     void bonus6();
+    void reload_stage1();
     void init_split_next_level();
     void test_bonus_mode(bool);
 };

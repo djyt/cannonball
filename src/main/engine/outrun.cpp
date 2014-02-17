@@ -7,8 +7,11 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "setup.hpp"
 #include "main.hpp"
 #include "trackloader.hpp"
+#include "../utils.hpp"
+#include "engine/oattractai.hpp"
 #include "engine/oanimseq.hpp"
 #include "engine/obonus.hpp"
 #include "engine/ocrash.hpp"
@@ -31,7 +34,6 @@
 #include "cannonboard/interface.hpp"
 
 Outrun outrun;
-
 
 /*
     Known Core Engine Issues:
@@ -67,8 +69,8 @@ Outrun::~Outrun()
 }
 
 void Outrun::init()
-{    
-    freeze_timer = ttrial.enabled ? true : config.engine.freeze_timer;
+{
+    freeze_timer = cannonball_mode == MODE_TTRIAL ? true : config.engine.freeze_timer;
 
     game_state = config.engine.layout_debug ? GS_INIT_GAME : GS_INIT;
     video.enabled = false;
@@ -76,11 +78,13 @@ void Outrun::init()
     video.clear_text_ram();
 
     tick_counter = 0;
-    ohiscore.init_def_scores();  // Initialize default hi-score entries
-    config.load_scores();        // Load saved hi-score entries
-    ostats.init(ttrial.enabled);
+    // Initialize default hi-score entries
+    ohiscore.init_def_scores();
+    // Load saved hi-score entries
+    config.load_scores(cannonball_mode == Outrun::MODE_ORIGINAL ? FILENAME_SCORES : FILENAME_CONT);        
+    ostats.init(cannonball_mode == MODE_TTRIAL);
     init_jump_table();
-    oinitengine.init(ttrial.enabled ? ttrial.level : 0);
+    oinitengine.init(cannonball_mode == MODE_TTRIAL ? ttrial.level : 0);
     osoundint.init();
     outils::reset_random_seed(); // Ensure we match the genuine boot up of the original game each time
 
@@ -88,20 +92,26 @@ void Outrun::init()
     cannonboard->start();
 }
 
-
 void Outrun::tick(bool tick_frame)
 {
     this->tick_frame = tick_frame;
 
-    /*if (input.has_pressed(Input::LEFT))
+    /*if (input.has_pressed(Input::UP))
     {
-        game_state = GS_INIT_BONUS;
-        oroad.road_width = 0x90;
-        ostats.time_counter = 2;
-        oroad.stage_lookup_off = 0x23;
-        oinitengine.route_selected = -1;
-        oinitengine.init_bonus();
+        osoundint.queue_sound(sound::FM_RESET);
     }*/
+
+    if (game_state >= GS_START1 && game_state <= GS_INGAME)
+    {
+        if (input.has_pressed(Input::VIEWPOINT))
+        {
+            int mode = oroad.get_view_mode() + 1;
+            if (mode > ORoad::VIEW_INCAR)
+                mode = ORoad::VIEW_ORIGINAL;
+
+            oroad.set_view_mode(mode);
+        }
+    }
 
     if (cannonball::tick_frame)
     {
@@ -146,6 +156,10 @@ void Outrun::tick(bool tick_frame)
         oroad.tick();
         vint();
     }
+
+    // Draw FPS
+    if (config.video.fps_count)
+        ohud.draw_fps_counter(cannonball::fps_counter);
 }
 
 // Vertical Interrupt
@@ -153,7 +167,7 @@ void Outrun::vint()
 {
     otiles.write_tilemap_hw();
     osprites.update_sprites();
-    otiles.update_tilemaps();
+    otiles.update_tilemaps(cannonball_mode == MODE_ORIGINAL ? ostats.cur_stage : 0);
 
     if (config.fps < 120 || (cannonball::frame & 1))
     {
@@ -161,7 +175,7 @@ void Outrun::vint()
         opalette.fade_palette();
         // ... 
         ostats.do_timers();
-        if (!outrun.ttrial.enabled) ohud.draw_timer1(ostats.time_counter);
+        if (cannonball_mode != MODE_TTRIAL) ohud.draw_timer1(ostats.time_counter);
         oinputs.do_credits();
         oinitengine.set_granular_position();
     }
@@ -256,34 +270,14 @@ void Outrun::main_switch()
     switch (game_state)
     {
         case GS_INIT:  
-            osoundint.has_booted      = true;
-            oferrari.car_inc_old      = car_inc_bak >> 16;
-            oinitengine.car_increment = car_inc_bak;
-            oferrari.car_ctrl_active  = true;
-            ostats.time_counter       = 0x15;
-            ostats.frame_counter      = ostats.frame_reset;
-            video.enabled             = true;
-            game_state = ttrial.enabled ? GS_INIT_MUSIC : GS_ATTRACT;
+            init_attract();
             // fall through
             
         // ----------------------------------------------------------------------------------------
         // Attract Mode
         // ----------------------------------------------------------------------------------------
         case GS_ATTRACT:
-            // Set credits to 1 if in free play mode (note display still reads Free Play)
-            if (ostats.free_play)
-                ostats.credits = 1;
-
-            ohud.draw_credits();
-            ohud.draw_copyright_text();
-            ohud.draw_insert_coin();
-            if (ostats.credits)
-                game_state = GS_INIT_MUSIC;
-            else if (decrement_timers())
-            {
-                car_inc_bak = oinitengine.car_increment;
-                game_state = GS_INIT_BEST1;
-            }
+            tick_attract();
             break;
 
         case GS_INIT_BEST1:
@@ -366,7 +360,7 @@ void Outrun::main_switch()
             video.clear_text_ram();
             oferrari.car_ctrl_active = true;
             init_jump_table();
-            oinitengine.init(ttrial.enabled ? ttrial.level : 0);
+            oinitengine.init(cannonball_mode == MODE_TTRIAL ? ttrial.level : 0);
             // Timing Hack to ensure horizon is correct
             // Note that the original code disables the screen, and waits for the second CPU's interrupt instead
             oroad.tick();
@@ -414,7 +408,7 @@ void Outrun::main_switch()
         case GS_START3:
             if (--ostats.frame_counter < 0)
             {
-                if (ttrial.enabled)
+                if (cannonball_mode == MODE_TTRIAL)
                 {
                     ohud.clear_timetrial_text();
                 }
@@ -454,7 +448,7 @@ void Outrun::main_switch()
         // Display Game Over Text
         // ----------------------------------------------------------------------------------------
         case GS_INIT_GAMEOVER:
-            if (!ttrial.enabled)
+            if (cannonball_mode != MODE_TTRIAL)
             {
                 oferrari.car_ctrl_active = false; // -1
                 oinitengine.car_increment = 0;
@@ -472,22 +466,27 @@ void Outrun::main_switch()
                 ohud.draw_lap_timer(0x110554, ttrial.best_lap, ttrial.best_lap[2]);
 
                 ohud.blit_text_new(9,  14, "OVERTAKES          - ");
-                ohud.blit_text_new(31, 14, config.to_string((int) ttrial.overtakes).c_str(), OHud::GREEN);
+                ohud.blit_text_new(31, 14, Utils::to_string((int) ttrial.overtakes).c_str(), OHud::GREEN);
                 ohud.blit_text_new(9,  16, "VEHICLE COLLISIONS - ");
-                ohud.blit_text_new(31, 16, config.to_string((int) ttrial.vehicle_cols).c_str(), OHud::GREEN);
+                ohud.blit_text_new(31, 16, Utils::to_string((int) ttrial.vehicle_cols).c_str(), OHud::GREEN);
                 ohud.blit_text_new(9,  18, "CRASHES            - ");
-                ohud.blit_text_new(31, 18, config.to_string((int) ttrial.crashes).c_str(), OHud::GREEN);
+                ohud.blit_text_new(31, 18, Utils::to_string((int) ttrial.crashes).c_str(), OHud::GREEN);
             }
             osoundint.queue_sound(sound::NEW_COMMAND);
             game_state = GS_GAMEOVER;
 
         case GS_GAMEOVER:
-            if (!ttrial.enabled)
+            if (cannonball_mode == MODE_ORIGINAL)
             {
                 if (decrement_timers())
                     game_state = GS_INIT_MAP;
             }
-            else
+            else if (cannonball_mode == MODE_CONT)
+            {
+                if (decrement_timers())
+                    init_best_outrunners();
+            }
+            else if (cannonball_mode == MODE_TTRIAL)
             {
                 if (outrun.tick_counter & BIT_4)
                     ohud.blit_text1(10, 20, TEXT1_PRESS_START);
@@ -515,6 +514,7 @@ void Outrun::main_switch()
         // Best OutRunners / Score Entry
         // ----------------------------------------------------------------------------------------
         case GS_INIT_BEST2:
+            oroad.set_view_mode(ORoad::VIEW_ORIGINAL, true);
             // bsr.w   EndGame
             osprites.disable_sprites();
             otraffic.disable_traffic();
@@ -533,7 +533,7 @@ void Outrun::main_switch()
             ostats.frame_counter = ostats.frame_reset;
             ohiscore.init();
             osoundint.queue_sound(sound::NEW_COMMAND);
-            osoundint.queue_sound(sound::RESET);
+            osoundint.queue_sound(sound::FM_RESET);
             #ifdef COMPILE_SOUND_CODE
             cannonball::audio.clear_wav();
             #endif
@@ -557,7 +557,7 @@ void Outrun::main_switch()
                 //ROM:0000B700                 bclr    #5,(ppi1_value).l                   ; Turn screen off (not activated until PPI written to)
                 oferrari.car_ctrl_active = true; // 0 : Allow road updates
                 init_jump_table();
-                oinitengine.init(ttrial.enabled ? ttrial.level : 0);
+                oinitengine.init(cannonball_mode == MODE_TTRIAL ? ttrial.level : 0);
                 //ROM:0000B716                 bclr    #0,(byte_260550).l
                 game_state = GS_REINIT;          // Reinit game to attract mode
             }
@@ -637,7 +637,7 @@ void Outrun::init_jump_table()
     car_inc_bak = 0;
 
     osprites.init();
-    if (!ttrial.enabled) 
+    if (cannonball_mode != MODE_TTRIAL) 
     {
         otraffic.init_stage1_traffic();      // Hard coded traffic in right hand lane
         if (trackloader.display_start_line)
@@ -649,6 +649,7 @@ void Outrun::init_jump_table()
     otraffic.init();
     osmoke.init();
     oroad.init();
+    otiles.init();
     opalette.init();
     oinputs.init();
     obonus.init();
@@ -661,15 +662,6 @@ void Outrun::init_jump_table()
 void Outrun::controls()
 {
     oinputs.tick(&cannonboard->get_packet());
-
-    if (input.is_pressed(Input::HORIZON_DOWN))
-    {
-        oroad.horizon_base += -20;
-    }
-    else if (input.is_pressed(Input::HORIZON_UP))
-    {
-        oroad.horizon_base += 20;
-    }
 }
 
 // -------------------------------------------------------------------------------
@@ -694,6 +686,76 @@ bool Outrun::decrement_timers()
     ostats.time_counter = outils::bcd_sub(1, ostats.time_counter);
     
     return (ostats.time_counter < 0);
+}
+
+// -------------------------------------------------------------------------------
+// Attract Mode Control
+// -------------------------------------------------------------------------------
+
+void Outrun::init_attract()
+{
+    video.enabled             = true;
+    osoundint.has_booted      = true;
+    oferrari.car_ctrl_active  = true;
+    oferrari.car_inc_old      = car_inc_bak >> 16;
+    oinitengine.car_increment = car_inc_bak;
+    ostats.time_counter       = config.engine.new_attract ? 0x80 : 0x15;
+    ostats.frame_counter      = ostats.frame_reset;
+    attract_counter           = 0;
+    attract_view              = 0;
+    oattractai.init();
+    game_state = cannonball_mode == MODE_TTRIAL ? GS_INIT_MUSIC : GS_ATTRACT;
+}
+
+void Outrun::tick_attract()
+{
+    // Set credits to 1 if in free play mode (note display still reads Free Play)
+    if (ostats.free_play)
+        ostats.credits = 1;
+
+    ohud.draw_credits();
+    ohud.draw_copyright_text();
+    ohud.draw_insert_coin();
+
+    // Enhanced Attract Mode (Switch Between Views)
+    if (config.engine.new_attract)
+    {
+        if (++attract_counter > 240)
+        {
+            const static uint8_t VIEWS[] = {ORoad::VIEW_ORIGINAL, ORoad::VIEW_ELEVATED, ORoad::VIEW_INCAR};
+
+            attract_counter = 0;
+            if (++attract_view > 2)
+                attract_view = 0;
+            bool snap = VIEWS[attract_view] == ORoad::VIEW_INCAR;
+            oroad.set_view_mode(VIEWS[attract_view], snap);
+        }
+    }
+
+    if (ostats.credits)
+        game_state = GS_INIT_MUSIC;
+
+    else if (decrement_timers())
+    {
+        car_inc_bak = oinitengine.car_increment;
+        game_state = GS_INIT_BEST1;
+    }
+}
+
+// -------------------------------------------------------------------------------
+// Best OutRunners Initialization
+// -------------------------------------------------------------------------------
+
+void Outrun::init_best_outrunners()
+{
+    video.enabled = false;
+    video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
+    otiles.fill_tilemap_color(0); // Fill Tilemap Black
+    osprites.disable_sprites();
+    oroad.horizon_base = 0x154;
+    ohiscore.setup_pal_best();    // Setup Palettes
+    ohiscore.setup_road_best();
+    game_state = GS_INIT_BEST2;
 }
 
 // -------------------------------------------------------------------------------

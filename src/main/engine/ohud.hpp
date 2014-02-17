@@ -34,6 +34,7 @@ public:
     ~OHud(void);
 
     void draw_main_hud();
+    void draw_fps_counter(int16_t);
     void clear_timetrial_text();
     void do_mini_map();
     void draw_timer1(uint16_t);
@@ -42,7 +43,7 @@ public:
     void draw_score_ingame(uint32_t);
     void draw_score(uint32_t, const uint32_t, const uint8_t);
     void draw_score_tile(uint32_t, const uint32_t, const uint8_t);
-    void draw_digits(uint32_t, uint8_t, uint16_t col = GREEN);
+    void draw_stage_number(uint32_t, uint8_t, uint16_t col = GREEN);
     void draw_rev_counter();
     void draw_debug_info(uint32_t pos, uint16_t height_pat, uint8_t sprite_pat);
 	void blit_text1(uint32_t);

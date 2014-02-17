@@ -40,6 +40,9 @@
     -->
     <fps>2</fps>
     
+    <!-- Enable FPS Counter -->
+    <fps_counter>0</fps_counter>
+    
     <!-- Enhanced Widescreen Mode -->
     <widescreen>1</widescreen>
     
@@ -60,6 +63,12 @@
     
     <!-- Advertise Sound In Attract Mode -->
     <advertise>1</advertise>
+    
+    <!-- Preview Sound On Music Selection Screen (Enhancement, Off in original game) -->
+    <preview>1</preview>
+    
+    <!-- OutRun shipped with a corrupt PCM sample ROM. This uses the repaired ROM 'opr-10188.71f' -->
+    <fix_samples>0</fix_samples>
     
     <!-- Custom Music: Play a WAV file instead of the inbuilt music -->
     <custom_music>
@@ -98,9 +107,13 @@
     <!-- Gears: 
         0 = Manual   (Click to shift, for normal play)
         1 = Manual   (Hold to shift, for cabinet play)
-        2 = Automatic 
+        2 = Manual   (Separate Buttons for High/Low)
+        3 = Automatic 
     -->
     <gear>0</gear>
+    
+    <!-- Use the N'th joystick on the system. -->
+    <pad_id>0</pad_id>
     
     <!-- Keyboard Button Configuration. Easiest to configure with inbuilt menu. -->
     <keyconfig>
@@ -110,20 +123,24 @@
         <right>275</right>
         <acc>122</acc>
         <brake>120</brake>
-        <gear>32</gear>
+        <gear1>32</gear1>
+        <gear2>32</gear2>
         <start>49</start>
         <coin>53</coin>
-        <menu>286</menu>    
+        <menu>286</menu>
+        <view>304</view>
     </keyconfig>
     
     <!-- Gamepad / Joystick Button Configuration. Easiest to configure with inbuilt menu. -->
     <padconfig>
         <acc>0</acc>
         <brake>1</brake>
-        <gear>2</gear>
+        <gear1>2</gear1>
+        <gear2>2</gear2>
         <start>3</start>
         <coin>4</coin>
         <menu>5</menu>    
+        <view>6</view>
     </padconfig>
            
     <!-- Digital Controls: Steering Adjust Speed (1 to 9) -->
@@ -140,7 +157,9 @@
     <analog enabled = "0">
         <!-- Select axis for analog controls 
              You can place the accelerator and the brake on the same axis if your controller
-             has a split axis setup. This is best avoided though.
+             has a split axis setup.
+             
+             For an XBox 360 Controller, the wheel should be axis 0 and the pedals on axis 2.
           -->
         <axis>
             <wheel>0</wheel>
@@ -160,6 +179,12 @@
                  A good Logitech Racing wheel should not need this -->
             <dead>0</dead>
         </wheel>
+        
+        <!-- Analog Pedal Settings -->
+        <pedals>
+            <!-- Central Dead Zone: Only used for split axis controls -->
+            <dead>1</dead>
+        </pedals>
         
         <!-- Force Feedback / Haptic Support -->
         <haptic enabled = "0">
@@ -229,6 +254,11 @@
     <!-- Tile on music select screen, ms value at checkpoint etc. -->
     <fix_bugs>1</fix_bugs>
     
+    <!-- Use new Attract Mode which demos different viewpoints and has improved
+         Ferrari AI when driving
+    -->
+    <new_attract>1</new_attract>
+    
     <!-- Display debug info that's useful for LayOut track editing -->
     <layout_debug>0</layout_debug>
 </engine>
@@ -241,6 +271,12 @@
     <!-- Default Amount of Traffic (0 - 8), where 0 is off -->
     <traffic>3</traffic>
 </time_trial>
+
+<!-- Settings for Continuous Mode -->
+<continuous>
+    <!-- Default Amount of Traffic (0 - 8), where 0 is off -->
+    <traffic>3</traffic>
+</continuous>
 
 <!-- 
     Use the inbuilt menu system. 

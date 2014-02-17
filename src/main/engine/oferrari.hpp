@@ -297,6 +297,7 @@ private:
     void update_road_pos();
     int32_t tick_smoke();
     void set_wheels(uint8_t);
+    inline void draw_sprite(oentry*);
 };
 
 extern OFerrari oferrari;

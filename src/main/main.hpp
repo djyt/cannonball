@@ -19,7 +19,10 @@ namespace cannonball
     extern bool tick_frame;
 
     // Millisecond Time Per Frame
-    extern int frame_ms;
+    extern double frame_ms;
+
+    // FPS Counter
+    extern int fps_counter;
 
     // Engine Master State
     extern int state;

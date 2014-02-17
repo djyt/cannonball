@@ -52,6 +52,11 @@ void OCrash::init(oentry* f, oentry* s, oentry* p1, oentry* p1s, oentry* p2, oen
     function_pass2 = &OCrash::do_crash_passengers;
 }
 
+bool OCrash::is_flip()
+{
+    return crash_counter && crash_type == CRASH_FLIP;
+}
+
 void OCrash::enable()
 {
     // This is called multiple times, so need this check in place
@@ -99,6 +104,11 @@ void OCrash::clear_crash_state()
 
 void OCrash::tick()
 {
+    if (!outrun.tick_frame && 
+        oroad.get_view_mode() == ORoad::VIEW_INCAR &&
+        crash_type != CRASH_FLIP)
+        return;
+
     // Do Ferrari
     if (spr_ferrari->control & OSprites::ENABLE)
         if (outrun.tick_frame) do_crash();
@@ -150,7 +160,8 @@ void OCrash::do_crash()
             // In other modes render crashing ferrari if crash counter is set
             if (crash_counter)
             {
-                osprites.do_spr_order_shadows(spr_ferrari);
+                if (oroad.get_view_mode() != ORoad::VIEW_INCAR || crash_type == CRASH_FLIP)
+                    osprites.do_spr_order_shadows(spr_ferrari);
             }
             // Set Distance Into Screen from crash counter
             spr_ferrari->road_priority = spr_ferrari->counter;
@@ -1023,7 +1034,10 @@ void OCrash::collide_fast()
 void OCrash::done(oentry* sprite)
 {
     osprites.map_palette(sprite);
-    osprites.do_spr_order_shadows(sprite);
+
+    if (oroad.get_view_mode() != ORoad::VIEW_INCAR || crash_type == CRASH_FLIP)
+        osprites.do_spr_order_shadows(sprite);
+
     sprite->road_priority = sprite->counter;
 }
 
@@ -1063,7 +1077,8 @@ void OCrash::do_shadow(oentry* src_sprite, oentry* dst_sprite)
     uint16_t offset = src_sprite->counter > 0x1FF ? 0x1FF : src_sprite->counter;
     dst_sprite->y = -(oroad.road_y[oroad.road_p0 + offset] >> 4) + 223;
 
-    osprites.do_spr_order_shadows(dst_sprite);
+    if (oroad.get_view_mode() != ORoad::VIEW_INCAR || crash_type == CRASH_FLIP)
+        osprites.do_spr_order_shadows(dst_sprite);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -1101,8 +1116,11 @@ void OCrash::do_crash_passengers(oentry* sprite)
     else
         crash_pass2(sprite);
 
-    osprites.map_palette(sprite);
-    osprites.do_spr_order_shadows(sprite);
+    if (oroad.get_view_mode() != ORoad::VIEW_INCAR || crash_type == CRASH_FLIP)
+    {
+        osprites.map_palette(sprite);
+        osprites.do_spr_order_shadows(sprite);
+    }
 }
 
 // Position Passenger Sprites During Crash (But Not Flip)

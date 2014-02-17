@@ -86,7 +86,9 @@ SegaPCM::~SegaPCM()
 
 void SegaPCM::init(int32_t fps)
 {
-    SoundChip::init(STEREO, 44100, fps);
+    int FREQ = 44100;
+    downsample = (32000.0 / (double) FREQ);
+    SoundChip::init(STEREO, FREQ, fps);
 }
 
 void SegaPCM::stream_update()
@@ -136,8 +138,9 @@ void SegaPCM::stream_update()
                 write_buffer(RIGHT, i, read_buffer(RIGHT, i) + (v * regs[3]));
 
                 // Advance.
-                // Cannonball Change: Output at a fixed 44,100Hz. [Added the (regs[7] >> 2)]
-                addr = (addr + regs[7] - (regs[7] >> 2)) & 0xffffff;
+                // Cannonball Change: Output at a fixed 44,100Hz. 
+                double increment = ((double)regs[7]) * downsample;
+                addr = (addr + (int) increment) & 0xffffff;
             }
 
             // store back the updated address and info

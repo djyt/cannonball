@@ -31,12 +31,5 @@ private:
     // Two halves of RAM
     uint16_t ram[SPRITE_RAM_SIZE];
     uint16_t ramBuff[SPRITE_RAM_SIZE];
-
-    inline void draw_pixel(
-        const int32_t x, 
-        const uint16_t pix, 
-        const uint16_t colour, 
-        const uint8_t shadow, 
-        uint32_t* pPixel);
 };
 

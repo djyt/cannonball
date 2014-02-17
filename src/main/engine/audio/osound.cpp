@@ -16,7 +16,6 @@ X More cars seem to be high pitched than on MAME. (Fixed - engine channel setup)
 
 */
 
-//#include <iostream> // needed for debugging only. Can be removed.
 #include <cstring> // For memset on GCC
 #include "engine/audio/osound.hpp"
 
@@ -135,14 +134,18 @@ void OSound::process_command()
                 break;
 
             case sound::MUSIC_BREEZE:
-                fm_reset();
                 sound_props |= BIT_0; // Trigger rev effect
+            case sound::MUSIC_BREEZE2:
+                cmd = sound::MUSIC_BREEZE;
+                fm_reset();
                 init_sound(cmd, DATA_BREEZE, channel::YM1);
                 break;
 
             case sound::MUSIC_SPLASH:
-                fm_reset();
                 sound_props |= BIT_0; // Trigger rev effect
+            case sound::MUSIC_SPLASH2:
+                cmd = sound::MUSIC_SPLASH;
+                fm_reset();
                 init_sound(cmd, DATA_SPLASH, channel::YM1);
                 break;
 
@@ -151,8 +154,10 @@ void OSound::process_command()
                 break;
 
             case sound::MUSIC_MAGICAL:
-                fm_reset();
                 sound_props |= BIT_0; // Trigger rev effect
+            case sound::MUSIC_MAGICAL2:
+                cmd = sound::MUSIC_MAGICAL;
+                fm_reset();
                 init_sound(cmd, DATA_MAGICAL, channel::YM1);
                 break;
 

@@ -13,6 +13,7 @@
 
 outils::outils(void)
 {
+
 }
 
 outils::~outils(void)

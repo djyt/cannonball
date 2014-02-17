@@ -396,7 +396,7 @@ void OInitEngine::check_road_split()
         
         // Init Bonus Sequence
         case 0x10:
-            init_bonus();
+            init_bonus(oroad.stage_lookup_off - 0x20);
             break;
 
         case 0x11:
@@ -482,7 +482,7 @@ void OInitEngine::check_stage()
                 // Set correct finish segment for final 5 stages, otherwise just default to first one.
                 oroad.stage_lookup_off = oroad.stage_lookup_off < 0x20 ? 0x20 : oroad.stage_lookup_off;
                 ostats.time_counter = 1;
-                init_bonus();
+                init_bonus(oroad.stage_lookup_off - 0x20);
             }
         }
     }
@@ -494,7 +494,7 @@ void OInitEngine::check_stage()
         if ((ostats.cur_stage + 1) == 15)
         {
             if (outrun.game_state == GS_INGAME)
-                init_bonus();
+                init_bonus(outils::random() % 5);
             else
                 reload_stage1();
         }
@@ -502,20 +502,20 @@ void OInitEngine::check_stage()
         {
             oroad.stage_lookup_off = CONTINUOUS_LEVELS[++ostats.cur_stage];
             init_road_seg_master();
+            osprites.clear_palette_data();
 
             // Init next tilemap
             otiles.set_vertical_swap(); // Tell tilemap to v-scroll off/on
 
             // Reload smoke data
-            osmoke.load_smoke_data |= BIT_0;
+            osmoke.setup_smoke_sprite(true);
 
             // Update palette
             oinitengine.end_stage_props |= BIT_1; // Don't bump stage offset when fetching next palette
             oinitengine.end_stage_props |= BIT_2;
             opalette.pal_manip_ctrl = 1;
             opalette.setup_sky_change();
-            osprites.clear_palette_data();
-
+            
             // Denote Checkpoint Passed
             checkpoint_marker = -1;
 
@@ -526,13 +526,6 @@ void OInitEngine::check_stage()
                 {
                     switch (omusic.music_selected)
                     {
-                        // Cycle custom sounds
-                        case 0:
-                        case 1:
-                        case 2:
-                            if (++omusic.music_selected > 2)
-                                omusic.music_selected = 0;
-                            break;
                         // Cycle in-built sounds
                         case sound::MUSIC_BREEZE:
                             omusic.music_selected = sound::MUSIC_SPLASH;
@@ -561,7 +554,7 @@ void OInitEngine::check_stage()
     // Stage 5: Init Bonus
     else if (outrun.game_state == GS_INGAME)
     {
-        init_bonus();
+        init_bonus(oroad.stage_lookup_off - 0x20);
     }
     // Stage 5 Attract Mode: Reload Stage 1
     else
@@ -788,12 +781,12 @@ void OInitEngine::init_split_next_level()
 
 // Initialize new segment of road data for bonus sequence
 // Source: 0x8A04
-void OInitEngine::init_bonus()
+void OInitEngine::init_bonus(int16_t seq)
 {
     oroad.road_ctrl = ORoad::ROAD_BOTH_P0_INV;
     oroad.road_pos  = 0;
     oroad.tilemap_h_target = 0;
-    oanimseq.end_seq = oroad.stage_lookup_off - 0x20; // Set End Sequence (0 - 4)
+    oanimseq.end_seq = (uint8_t) seq; // Set End Sequence (0 - 4)
     trackloader.init_track_bonus(oanimseq.end_seq);
     outrun.game_state = GS_INIT_BONUS;
     rd_split_state = 0x11;

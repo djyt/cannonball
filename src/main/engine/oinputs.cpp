@@ -8,6 +8,8 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <iostream>
+
 #include "engine/ocrash.hpp"
 #include "engine/oinputs.hpp"
 #include "engine/ostats.hpp"
@@ -42,23 +44,25 @@ void OInputs::init()
     gear = false;
     crash_input = 0;
 }
-#include <iostream>
+
 void OInputs::tick(Packet* packet)
 {
     // CannonBoard Input
-    if (config.controls.cannonboard)
+    if (packet != NULL)
     {
-        if (packet != NULL)
-        {
-            input_acc      = packet->ai1;
-            input_brake    = packet->ai2;
-            input_steering = packet->ai3;
+        input_acc      = packet->ai0;
+        input_brake    = packet->ai3;
+        input_steering = packet->ai2;
             
-            if (config.controls.gear != config.controls.GEAR_AUTO)
-                gear       = (packet->di1 & 0x10) == 0;
+        if (config.controls.gear != config.controls.GEAR_AUTO)
+            gear       = (packet->di1 & 0x10) == 0;
 
-            std::cout << "acc:" << input_acc << " brake:" << input_brake << " steer:" << input_steering << " gear:" << gear << std::endl;
-        }
+        // Coin chute 1, Coin chute 2, Service
+        input.keys[Input::COIN]  = ((packet->di1 & 0x40) | (packet->di1 & 0x80) | (packet->di1 & 0x04)) != 0;
+        input.keys[Input::START] = (packet->di1 & 0x08) != 0;
+
+        //if (config.cannonboard.debug)
+        //    std::cout << "acc:" << input_acc << " brake:" << input_brake << " steer:" << input_steering << " di1:" << (int) packet->di1 << std::endl;
     }
     // Standard PC Keyboard/Joypad/Wheel Input
     else
@@ -166,7 +170,7 @@ void OInputs::digital_pedals()
 
 void OInputs::do_gear()
 {
-    if (config.controls.cannonboard)
+    if (config.cannonboard.enabled)
         return;
 
     // ------------------------------------------------------------------------

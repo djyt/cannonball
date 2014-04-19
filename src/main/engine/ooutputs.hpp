@@ -22,6 +22,9 @@ class OOutputs
 {
 public:
     
+    const static int MODE_FFEEDBACK = 0;
+    const static int MODE_MOVINGCAB = 1;
+
     // Hardware Motor Control:
     // 0 = Switch off
     // 5 = Left
@@ -33,22 +36,31 @@ public:
     ~OOutputs(void);
 
     void init();
-    void tick();
+    bool calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit);
+    void tick(const int MODE, int16_t input_motor);
 
 private:
+    // Calibration Counter
+    const static int COUNTER_RESET = 300;
+
     const static uint8_t MOTOR_OFF    = 0;
-    const static uint8_t MOTOR_CENTRE = 8;
+    const static uint8_t MOTOR_RIGHT  = 0x5;
+    const static uint8_t MOTOR_CENTRE = 0x8;
+    const static uint8_t MOTOR_LEFT   = 0xB;
+    
 
     // These are calculated during startup in the original game.
     // Here we just hardcode them, as the motor init code isn't ported.
-    const static uint8_t MOTOR_PREV    = 0x80;
+    const static uint8_t CENTRE_POS    = 0x80;
     const static uint8_t LEFT_LIMIT    = 0xC1;
     const static uint8_t RIGHT_LIMIT   = 0x3C;
 
-    // Motor Value, representing the x-position of the cabinet.
-    // We fudge this and just use the x-position of the steering wheel
-    int16_t input_motor;
-    int16_t input_motor_old;
+    // Motor Limit Values. Calibrated during startup.
+    int16_t limit_left;
+    int16_t limit_right;
+
+    // Motor Centre Position. (We Fudge this for Force Feedback wheel mode.)
+    int16_t motor_centre_pos;
 
     // Difference between input_motor and input_motor_old
     int16_t motor_x_change;
@@ -79,8 +91,13 @@ private:
     // 0x26: Adjusted movement value based on steering 3
     int16_t movement_adjust3;
 
-    void do_motors();
-    void car_moving();
+    void calibrate_left(int16_t input_motor, uint8_t hw_motor_limit);
+    void calibrate_right(int16_t input_motor, uint8_t hw_motor_limit);
+    void calibrate_centre(int16_t input_motor, uint8_t hw_motor_limit);
+    void calibrate_done();
+
+    void do_motors(const int MODE, int16_t input_motor);
+    void car_moving(const int MODE);
     void car_stationary();
     void adjust_motor();
     void do_motor_crash();

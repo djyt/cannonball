@@ -99,9 +99,17 @@ void Config::load(const std::string &filename)
     }
 
     // ------------------------------------------------------------------------
+    // CannonBoard Settings
+    // ------------------------------------------------------------------------
+    cannonboard.enabled = pt_config.get("cannonboard.<xmlattr>.enabled", 0);
+    cannonboard.port    = pt_config.get("cannonboard.port", "COM6");
+    cannonboard.baud    = pt_config.get("cannonboard.baud", 57600);
+    cannonboard.debug   = pt_config.get("cannonboard.debug", 0);
+    cannonboard.cabinet = pt_config.get("cannonboard.cabinet", 0);
+
+    // ------------------------------------------------------------------------
     // Controls
     // ------------------------------------------------------------------------
-    controls.cannonboard   = pt_config.get("controls.<xmlattr>.mode", 0);
     controls.gear          = pt_config.get("controls.gear", 0);
     controls.steer_speed   = pt_config.get("controls.steerspeed", 3);
     controls.pedal_speed   = pt_config.get("controls.pedalspeed", 4);

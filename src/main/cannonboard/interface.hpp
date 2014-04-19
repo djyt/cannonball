@@ -8,10 +8,10 @@ class CallbackAsyncSerial;
 struct Packet
 {
     // Packet Length including CBALL Header
-    const static int LENGTH = 25;
+    const static int LENGTH = 17;
 
     // Message Count
-    uint8_t msg_count;  
+    uint8_t msg_count;
 
     // Last message received
     uint8_t msg_received;
@@ -19,17 +19,13 @@ struct Packet
     uint8_t status;
     uint8_t di1;
     uint8_t di2;
-    uint8_t mci;
-    uint8_t di3;
-    uint8_t di4;
-    uint8_t ai1;
-    uint8_t ai2;
-    uint8_t ai3;
-    uint8_t ai4;
-    uint8_t ai5;
-    uint8_t ai6;
-    uint8_t ai7;
-    uint8_t ai8;  
+    uint8_t mci;     // Moving Cabinet: Motor Limit Values
+    uint8_t ai0;     // Acceleration
+    uint8_t ai1;     // Moving Cabinet: Motor Position
+    uint8_t ai2;     // Steering
+    uint8_t ai3;     // Braking
+    uint8_t dig_out;
+    uint8_t mc_out; 
 };
 
 class Interface
@@ -38,15 +34,18 @@ class Interface
 public:
     Interface();
     ~Interface();
-    void init();
+    void init(const std::string& port, unsigned int baud);
     void close();
     void start();
     void stop();
+    void write(uint8_t dig_out, uint8_t mc_out);
     bool started();
     Packet get_packet();
 
 
 private:
+    const static bool DEBUG = false;
+
     // Mutex Declaration
     boost::mutex mtx;
 
@@ -68,6 +67,9 @@ private:
     
     // Previous Message Index
     int16_t prev_msg;
+
+    // Write Message Count
+    unsigned char write_count;
 
     // Is Serial interface open and operational
     bool is_started;

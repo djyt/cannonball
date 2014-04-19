@@ -16,15 +16,15 @@
 
 #include <cstdlib> // abs
 
+#include "utils.hpp"
+
 #include "engine/outrun.hpp"
 #include "engine/ocrash.hpp"
 #include "engine/oferrari.hpp"
+#include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
 #include "engine/ooutputs.hpp"
 #include "directx/ffeedback.hpp"
-
-// Disable areas of code that cause problems when mapping motor to haptic device
-#define CHANGED_CODE 1
 
 const static uint8_t MOTOR_VALUES[] = 
 {
@@ -63,6 +63,9 @@ const static uint8_t MOTOR_VALUES_OFFROAD4[] =
 
 OOutputs::OOutputs(void)
 {
+    limit_left         = 0;
+    limit_right        = 0;
+    motor_enabled      = true;
 }
 
 OOutputs::~OOutputs(void)
@@ -75,9 +78,7 @@ OOutputs::~OOutputs(void)
 void OOutputs::init()
 {
     motor_state        = 0;
-    motor_enabled      = true;
-    hw_motor_control   = 0;
-
+    hw_motor_control   = MOTOR_OFF;
     motor_control      = 0;
     motor_movement     = 0;
     is_centered        = false;
@@ -91,24 +92,216 @@ void OOutputs::init()
     movement_adjust3   = 0;
 }
 
-void OOutputs::tick()
-{
-    do_motors();
-
-    // Finally output the info to the force feedback handling class
-    motor_output(hw_motor_control);
-}
-
-// Process Motor Code.
-// Note, that only the Deluxe Moving Motor Code is ported for now.
-// Source: 0xE644
-void OOutputs::do_motors()
+void OOutputs::tick(int MODE, int16_t input_motor)
 {
     // Simulate read to Analog Select Register (0x140031)
     // Normally this would be done on H-Blank
     // But instead we return the x-position of the wheel
-    input_motor = oinputs.input_steering;
-    motor_x_change = -(input_motor - MOTOR_PREV);
+    do_motors(MODE, input_motor);
+
+    if (MODE == MODE_FFEEDBACK)
+    {
+        // Finally output the info to the force feedback handling class
+        motor_output(hw_motor_control);
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+// Calibrate Motors
+// ------------------------------------------------------------------------------------------------
+
+bool OOutputs::calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit)
+{
+    switch (motor_state)
+    {
+        // Initalize
+        case 0:
+            ohud.blit_text_big(    2, "MOTOR CALIBRATION");
+            ohud.blit_text_new(11, 10, "MOVE LEFT   -");
+            ohud.blit_text_new(11, 12, "MOVE RIGHT  -");
+            ohud.blit_text_new(11, 14, "MOVE CENTRE -");
+            counter          = COUNTER_RESET;
+            motor_centre_pos = 0;
+            motor_enabled    = true;
+            motor_state++;
+            break;
+
+        // Calibrate Left Limit
+        case 1:
+            calibrate_left(input_motor, hw_motor_limit);
+            break;
+
+        // Calibrate Right Limit
+        case 2:
+            calibrate_right(input_motor, hw_motor_limit);
+            break;
+
+        // Return to Centre
+        case 3:
+            calibrate_centre(input_motor, hw_motor_limit);
+            break;
+
+        // Clear Screen & Exit Calibration
+        case 4:
+            calibrate_done();
+            break;
+
+        case 5:
+            return true;
+    }
+
+    return false;
+}
+
+void OOutputs::calibrate_left(int16_t input_motor, uint8_t hw_motor_limit)
+{
+    // If Right Limit Set, Move Left
+    if (hw_motor_limit & BIT_5)
+    {
+        if (--counter >= 0)
+        {
+            hw_motor_control = MOTOR_LEFT;
+            return;
+        }
+        // Counter Expired, Left Limit Still Not Reached
+        else
+        {
+            ohud.blit_text_new(25, 10, "FAIL 1");
+            motor_centre_pos = 0;
+            limit_left       = input_motor; // Set Left Limit
+            hw_motor_control = MOTOR_LEFT;  // Move Left
+            counter          = COUNTER_RESET;
+            motor_state      = 2;
+        }
+    }
+    // Left Limit Reached
+    else if (hw_motor_limit & BIT_3)
+    {
+        ohud.blit_text_new(25, 6, Utils::to_string(input_motor).c_str());
+        motor_centre_pos = 0;
+        limit_left       = input_motor; // Set Left Limit
+        hw_motor_control = MOTOR_LEFT;  // Move Left
+        counter          = COUNTER_RESET; 
+        motor_state      = 2;
+    }
+    else
+    {
+        ohud.blit_text_new(25, 10, "FAIL 2");
+        ohud.blit_text_new(25, 12, "FAIL 2");
+        motor_enabled = false; 
+        counter       = COUNTER_RESET;
+        motor_state   = 3;
+    }
+}
+
+void OOutputs::calibrate_right(int16_t input_motor, uint8_t hw_motor_limit)
+{
+    if (motor_centre_pos == 0 && ((hw_motor_limit & BIT_4) == 0))
+    {
+        motor_centre_pos = input_motor;
+    }
+   
+    // If Left Limit Set, Move Right
+    if (hw_motor_limit & BIT_3)
+    {
+        if (--counter >= 0)
+        {
+            hw_motor_control = MOTOR_RIGHT; // Move Right
+            return;
+        }
+        // Counter Expired, Right Limit Still Not Reached
+        else
+        {
+            ohud.blit_text_new(25, 18, "LIMIT FAIL");
+            limit_right  = input_motor;
+            motor_state  = 3;
+            counter      = COUNTER_RESET;
+        }
+    }
+    // Right Limit Reached
+    else if (hw_motor_limit & BIT_5)
+    {
+        ohud.blit_text_new(25, 8, Utils::to_string(input_motor).c_str());
+        limit_right   = input_motor; // Set Right Limit
+        motor_state   = 3;
+        counter       = COUNTER_RESET;
+    }
+    else
+    {
+        ohud.blit_text_new(25, 12, "FAIL 2");
+        motor_enabled = false;
+        motor_state   = 3;
+        counter       = COUNTER_RESET;
+    }
+}
+
+void OOutputs::calibrate_centre(int16_t input_motor, uint8_t hw_motor_limit)
+{
+    if (hw_motor_limit & BIT_4) 
+    {
+        if (--counter >= 0)
+        {
+            hw_motor_control = (counter <= COUNTER_RESET/2) ? MOTOR_RIGHT : MOTOR_LEFT; // Move Right
+            return;
+        }
+        else
+        {
+            ohud.blit_text_new(25, 14, "FAIL");
+            // Fall through to EEB6
+        }  
+    }
+  
+    // 0xEEB6:
+    motor_centre_pos = (input_motor + motor_centre_pos) >> 1;
+  
+    int16_t d0 = limit_right - motor_centre_pos;
+    int16_t d1 = motor_centre_pos  - limit_left;
+  
+    // set both to left limit
+    if (d0 > d1)
+        d1 = d0;
+
+    d0 = d1;
+  
+    limit_left  = d0 - 6;
+    limit_right = -d1 + 6;
+    
+    if (std::abs(motor_centre_pos - 0x80) > 0x20)
+    {
+        ohud.blit_text_new(25, 14, "FAIL DIST");
+        motor_enabled = false;
+    }
+    else
+    {
+        ohud.blit_text_new(25, 10, Utils::to_string(limit_left).c_str());
+        ohud.blit_text_new(25, 11, Utils::to_string(limit_right).c_str());
+    }
+
+    ohud.blit_text_new(13, 17, "TESTS COMPLETE!");
+
+    hw_motor_control = MOTOR_OFF; // switch off
+    counter          = 90;
+    motor_state      = 4;
+}
+
+void OOutputs::calibrate_done()
+{
+    if (counter > 0)
+        counter--;
+    else
+        motor_state = 5;
+}
+
+// ------------------------------------------------------------------------------------------------
+// Moving Cabinet Code
+// ------------------------------------------------------------------------------------------------
+
+// Process Motor Code.
+// Note, that only the Deluxe Moving Motor Code is ported for now.
+// Source: 0xE644
+void OOutputs::do_motors(int MODE, int16_t input_motor)
+{
+    motor_x_change = -(input_motor - (MODE == MODE_FFEEDBACK ? CENTRE_POS : motor_centre_pos));
 
     if (!motor_enabled)
     {
@@ -140,7 +333,7 @@ void OOutputs::do_motors()
                     car_stationary();
             }
             else
-                car_moving();
+                car_moving(MODE);
         }
     }
     // Not In-Game: Act as though car is stationary / moving slow
@@ -150,9 +343,8 @@ void OOutputs::do_motors()
     }
 }
 
-
 // Source: 0xE6DA
-void OOutputs::car_moving()
+void OOutputs::car_moving(const int MODE)
 {
     // Motor is currently moving
     if (motor_movement)
@@ -202,20 +394,25 @@ void OOutputs::car_moving()
 
         uint8_t motor_value = MOTOR_VALUES[speed + curve];
 
-        #ifndef CHANGED_CODE
-        int16_t change = motor_x_change + (motor_value << 1);
-        // Latch left movement
-        if (change >= LEFT_LIMIT)
-        {
-            hw_motor_control   = MOTOR_CENTRE;
-            motor_movement     = 1;
-            motor_control      = 7;
-            motor_change_latch = motor_x_change;
-        }
-        else
-        #endif
+        if (MODE == MODE_FFEEDBACK)
         {
             hw_motor_control = motor_value + 8;
+        }
+        else
+        {
+            int16_t change = motor_x_change + (motor_value << 1);
+            // Latch left movement
+            if (change >= limit_left)
+            {
+                hw_motor_control   = MOTOR_CENTRE;
+                motor_movement     = 1;
+                motor_control      = 7;
+                motor_change_latch = motor_x_change;
+            }
+            else
+            {
+                hw_motor_control = motor_value + 8;
+            }
         }
         
         done();
@@ -236,20 +433,25 @@ void OOutputs::car_moving()
 
         uint8_t motor_value = MOTOR_VALUES[speed + curve];
 
-        #ifndef CHANGED_CODE
-        int16_t change = motor_x_change - (motor_value << 1);
-        // Latch right movement
-        if (change <= RIGHT_LIMIT)
-        {
-            hw_motor_control   = MOTOR_CENTRE;
-            motor_movement     = -1;
-            motor_control      = 9;
-            motor_change_latch = motor_x_change;
-        }
-        else
-        #endif
+        if (MODE == MODE_FFEEDBACK)
         {
             hw_motor_control = -motor_value + 8;
+        }
+        else
+        {
+            int16_t change = motor_x_change - (motor_value << 1);
+            // Latch right movement
+            if (change <= limit_right)
+            {
+                hw_motor_control   = MOTOR_CENTRE;
+                motor_movement     = -1;
+                motor_control      = 9;
+                motor_change_latch = motor_x_change;
+            }
+            else
+            {
+                hw_motor_control = -motor_value + 8;
+            }
         }
         
         done();

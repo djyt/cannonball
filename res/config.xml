@@ -94,6 +94,24 @@
     </custom_music>
 </sound>
 
+<!--
+    CannonBoard Arduino Based Interface
+ -->
+ 
+<cannonboard enabled = "1">
+    <!-- Port Name -->
+    <port>COM6</port>
+    
+    <!-- Baud Rate -->
+    <baud>57600</baud>
+    
+    <!-- Machine Type. 0 = Moving, 1 = Up Cockpit, 2 = Mini -->
+    <cabinet>0</cabinet>
+    
+    <!-- Write Debug Information To Console-->
+    <debug>1</debug>
+</cannonboard>
+
 <!-- 
     Controls Settings
     

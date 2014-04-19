@@ -10,7 +10,7 @@ if (NOT DEFINED ENV{DXSDK})
 endif()
 
 # Use OpenGL for rendering.
-set(OPENGL 1)
+set(OPENGL 0)
 
 # Use CannonBoard Serial Support
 set(CANNONBOARD 1)

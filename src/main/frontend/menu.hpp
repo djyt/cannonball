@@ -11,19 +11,25 @@
 #include <vector>
 #include "stdint.hpp"
 
+class Interface;
+class CabDiag;
 class TTrial;
+struct Packet;
 
 class Menu
 {
 public:
-    Menu(void);
+    Menu(Interface* cannonboard);
     ~Menu(void);
 
     void populate();
     void init();
-    void tick();
+    void tick(Packet* packet);
 
 private:
+    Interface* cannonboard;
+    CabDiag* cabdiag;
+
     // Menu state
     uint8_t state;
 
@@ -33,6 +39,7 @@ private:
         STATE_REDEFINE_KEYS,
         STATE_REDEFINE_JOY,
         STATE_TTRIAL,
+        STATE_DIAGNOSTICS,
     };
 
     TTrial* ttrial;
@@ -67,6 +74,7 @@ private:
     std::vector<std::string> menu_timetrial;
     std::vector<std::string> menu_about;
     std::vector<std::string> menu_settings;
+    std::vector<std::string> menu_cannonboard;
     std::vector<std::string> menu_video;
     std::vector<std::string> menu_sound;
     std::vector<std::string> menu_controls;

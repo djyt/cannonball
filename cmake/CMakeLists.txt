@@ -67,10 +67,12 @@ set(src_main
     )
 
 set(src_frontend
+    "${main_cpp_base}/frontend/cabdiag.hpp"
     "${main_cpp_base}/frontend/config.hpp"
     "${main_cpp_base}/frontend/menu.hpp"
     "${main_cpp_base}/frontend/ttrial.hpp"
 
+    "${main_cpp_base}/frontend/cabdiag.cpp"
     "${main_cpp_base}/frontend/config.cpp"
     "${main_cpp_base}/frontend/menu.cpp"
     "${main_cpp_base}/frontend/ttrial.cpp"

@@ -58,13 +58,13 @@ Outrun outrun;
 
 Outrun::Outrun()
 {
-    cannonboard = new Interface();
+    //cannonboard = new Interface();
     outputs = new OOutputs();
 }
 
 Outrun::~Outrun()
 {
-    delete cannonboard;
+    //delete cannonboard;
     delete outputs;
 }
 
@@ -80,8 +80,8 @@ void Outrun::init()
     // CannonBoard Config: When Used in original cabinet
     if (config.cannonboard.enabled)
     {
-        cannonboard->init(config.cannonboard.port, config.cannonboard.baud);
-        cannonboard->start();
+        //cannonboard->init(config.cannonboard.port, config.cannonboard.baud);
+        //cannonboard->start();
         if (config.cannonboard.cabinet == config.cannonboard.CABINET_MOVING)
             init_motor_calibration();
     }
@@ -105,10 +105,10 @@ void Outrun::boot()
     outils::reset_random_seed(); // Ensure we match the genuine boot up of the original game each time
 }
 
-void Outrun::tick(bool tick_frame)
+void Outrun::tick(Packet* packet, bool tick_frame)
 {
     this->tick_frame = tick_frame;
-    Packet* packet = config.cannonboard.enabled ? &cannonboard->get_packet() : NULL;
+    //Packet* packet = config.cannonboard.enabled ? &cannonboard->get_packet() : NULL;
 
     if (game_state >= GS_START1 && game_state <= GS_INGAME)
     {
@@ -174,8 +174,6 @@ void Outrun::tick(bool tick_frame)
 // Vertical Interrupt
 void Outrun::vint()
 {
-    if (config.cannonboard.enabled)
-        cannonboard->write(0, outputs->hw_motor_control);
     otiles.write_tilemap_hw();
     osprites.update_sprites();
     otiles.update_tilemaps(cannonball_mode == MODE_ORIGINAL ? ostats.cur_stage : 0);
@@ -277,7 +275,7 @@ void Outrun::jump_table(Packet* packet)
     {
         if (game_state == GS_CALIBRATE_MOTOR)
         {
-            if (outputs->calibrate_motor(packet->ai1, packet->mci))
+            if (outputs->calibrate_motor(packet->ai1, packet->mci, 0))
             {
                 video.enabled     = false;
                 video.clear_text_ram();
@@ -310,8 +308,9 @@ void Outrun::jump_table(Packet* packet)
 
         x = 1;
         y = 7;
-        ohud.blit_text_new(x, y, "DI1"); ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->di1).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "DI2"); ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->di2).c_str(), OHud::PINK); x += 13;
+        ohud.blit_text_new(x, y, "DI1");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->di1).c_str(), OHud::PINK); x += 13;
+        ohud.blit_text_new(x, y, "DI2");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->di2).c_str(), OHud::PINK); x += 13;
+        ohud.blit_text_new(x, y, "DIG OUT"); ohud.blit_text_new(x + 10, y, Utils::to_hex_string(outputs->dig_out).c_str(), OHud::PINK); x += 13;
     }
 }
 
@@ -748,7 +747,7 @@ void Outrun::init_motor_calibration()
     video.tile_layer->set_x_clamp(video.tile_layer->RIGHT);
     video.sprite_layer->set_x_clip(false);
 
-    otiles.fill_tilemap_color(0xdcb); // Fill Tilemap Light Blue
+    otiles.fill_tilemap_color(0x4F60); // Fill Tilemap Light Blue
 
     video.enabled        = true;
     osoundint.has_booted = true;
@@ -757,6 +756,15 @@ void Outrun::init_motor_calibration()
     oroad.horizon_set    = 1;
     oroad.horizon_base   = -0x3FF;
     game_state           = GS_CALIBRATE_MOTOR;
+
+
+    // Write Palette To RAM
+    uint32_t dst = 0x120000;
+    const static uint32_t PAL_SERVICE[] = {0xFF, 0xFF00FF, 0xFF00FF, 0xFF0000};
+    video.write_pal32(&dst, PAL_SERVICE[0]);
+    video.write_pal32(&dst, PAL_SERVICE[1]);
+    video.write_pal32(&dst, PAL_SERVICE[2]);
+    video.write_pal32(&dst, PAL_SERVICE[3]);
 }
 
 // -------------------------------------------------------------------------------

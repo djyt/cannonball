@@ -24,6 +24,7 @@
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
 #include "engine/olevelobjs.hpp"
+#include "engine/ooutputs.hpp"
 #include "engine/ostats.hpp"
 #include "engine/outils.hpp"
 #include "engine/oferrari.hpp"
@@ -552,11 +553,19 @@ void OFerrari::do_end_seq()
 // Source: 0x9F7C
 void OFerrari::set_ferrari_palette()
 {
-    uint8_t pal = 0;
+    uint8_t pal;
 
     // Denote palette for brake light
     if (oinputs.brake_adjust >= OInputs::BRAKE_THRESHOLD1)
+    {
+        outrun.outputs->set_digital(OOutputs::D_BRAKE_LAMP);
         pal = 2;
+    }
+    else
+    {
+        outrun.outputs->clear_digital(OOutputs::D_BRAKE_LAMP);
+        pal = 0;
+    }
 
     // Car Moving
     if (oinitengine.car_increment >> 16 != 0)

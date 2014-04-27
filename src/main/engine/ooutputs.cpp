@@ -77,8 +77,9 @@ OOutputs::~OOutputs(void)
 // Source: 0xECE8
 void OOutputs::init()
 {
-    motor_state        = 0;
+    motor_state        = STATE_INIT;
     hw_motor_control   = MOTOR_OFF;
+    dig_out            = 0;
     motor_control      = 0;
     motor_movement     = 0;
     is_centered        = false;
@@ -107,15 +108,29 @@ void OOutputs::tick(int MODE, int16_t input_motor)
 }
 
 // ------------------------------------------------------------------------------------------------
+// Digital Outputs
+// ------------------------------------------------------------------------------------------------
+
+void OOutputs::set_digital(uint8_t output)
+{
+    dig_out |= output;   
+}
+
+void OOutputs::clear_digital(uint8_t output)
+{
+    dig_out &= ~output;
+}
+
+// ------------------------------------------------------------------------------------------------
 // Calibrate Motors
 // ------------------------------------------------------------------------------------------------
 
-bool OOutputs::calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit)
+bool OOutputs::calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets)
 {
     switch (motor_state)
     {
         // Initalize
-        case 0:
+        case STATE_INIT:
             ohud.blit_text_big(    2, "MOTOR CALIBRATION");
             ohud.blit_text_new(11, 10, "MOVE LEFT   -");
             ohud.blit_text_new(11, 12, "MOVE RIGHT  -");
@@ -126,27 +141,36 @@ bool OOutputs::calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit)
             motor_state++;
             break;
 
+        // Just a delay to wait for the serial for safety
+        case STATE_DELAY:
+            if (--counter == 0 || packets > 60)
+            {
+                counter = COUNTER_RESET;
+                motor_state++;
+            }
+            break;
+
         // Calibrate Left Limit
-        case 1:
+        case STATE_LEFT:
             calibrate_left(input_motor, hw_motor_limit);
             break;
 
         // Calibrate Right Limit
-        case 2:
+        case STATE_RIGHT:
             calibrate_right(input_motor, hw_motor_limit);
             break;
 
         // Return to Centre
-        case 3:
+        case STATE_CENTRE:
             calibrate_centre(input_motor, hw_motor_limit);
             break;
 
         // Clear Screen & Exit Calibration
-        case 4:
+        case STATE_DONE:
             calibrate_done();
             break;
 
-        case 5:
+        case STATE_EXIT:
             return true;
     }
 
@@ -171,7 +195,7 @@ void OOutputs::calibrate_left(int16_t input_motor, uint8_t hw_motor_limit)
             limit_left       = input_motor; // Set Left Limit
             hw_motor_control = MOTOR_LEFT;  // Move Left
             counter          = COUNTER_RESET;
-            motor_state      = 2;
+            motor_state      = STATE_RIGHT;
         }
     }
     // Left Limit Reached
@@ -182,7 +206,7 @@ void OOutputs::calibrate_left(int16_t input_motor, uint8_t hw_motor_limit)
         limit_left       = input_motor; // Set Left Limit
         hw_motor_control = MOTOR_LEFT;  // Move Left
         counter          = COUNTER_RESET; 
-        motor_state      = 2;
+        motor_state      = STATE_RIGHT;
     }
     else
     {
@@ -190,7 +214,7 @@ void OOutputs::calibrate_left(int16_t input_motor, uint8_t hw_motor_limit)
         ohud.blit_text_new(25, 12, "FAIL 2");
         motor_enabled = false; 
         counter       = COUNTER_RESET;
-        motor_state   = 3;
+        motor_state   = STATE_CENTRE;
     }
 }
 
@@ -214,7 +238,7 @@ void OOutputs::calibrate_right(int16_t input_motor, uint8_t hw_motor_limit)
         {
             ohud.blit_text_new(25, 18, "LIMIT FAIL");
             limit_right  = input_motor;
-            motor_state  = 3;
+            motor_state  = STATE_CENTRE;
             counter      = COUNTER_RESET;
         }
     }
@@ -223,14 +247,14 @@ void OOutputs::calibrate_right(int16_t input_motor, uint8_t hw_motor_limit)
     {
         ohud.blit_text_new(25, 8, Utils::to_string(input_motor).c_str());
         limit_right   = input_motor; // Set Right Limit
-        motor_state   = 3;
+        motor_state   = STATE_CENTRE;
         counter       = COUNTER_RESET;
     }
     else
     {
         ohud.blit_text_new(25, 12, "FAIL 2");
         motor_enabled = false;
-        motor_state   = 3;
+        motor_state   = STATE_CENTRE;
         counter       = COUNTER_RESET;
     }
 }
@@ -281,7 +305,7 @@ void OOutputs::calibrate_centre(int16_t input_motor, uint8_t hw_motor_limit)
 
     hw_motor_control = MOTOR_OFF; // switch off
     counter          = 90;
-    motor_state      = 4;
+    motor_state      = STATE_DONE;
 }
 
 void OOutputs::calibrate_done()
@@ -289,7 +313,7 @@ void OOutputs::calibrate_done()
     if (counter > 0)
         counter--;
     else
-        motor_state = 5;
+        motor_state = STATE_EXIT;
 }
 
 // ------------------------------------------------------------------------------------------------

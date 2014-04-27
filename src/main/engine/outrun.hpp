@@ -181,6 +181,8 @@ struct Packet;
 class Outrun
 {
 public:
+    OOutputs* outputs;
+
     bool freeze_timer;
 
     // CannonBall Game Mode
@@ -215,18 +217,16 @@ public:
 	~Outrun();
 	void init();
     void boot();
-	void tick(bool tick_frame);
+	void tick(Packet* packet, bool tick_frame);
 	void vint();
     void init_best_outrunners();
     void select_course(const bool jap, const bool prototype);
 
 private:
-    Interface* cannonboard;
+    //Interface* cannonboard;
 
     uint8_t attract_view;
     int16_t attract_counter;
-
-    OOutputs* outputs;
 
     // Car Increment Backup for attract mode
     uint32_t car_inc_bak;

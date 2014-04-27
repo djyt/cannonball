@@ -18,6 +18,10 @@ void Interface::init(const std::string& port, unsigned int baud)
     {
         close();
 
+        stats_found  = 0;
+        stats_missed = 0;
+        stats_error  = 0;
+
         // Setup Serial Port
         serial = new CallbackAsyncSerial(port, baud);
 
@@ -77,7 +81,10 @@ void Interface::stop()
 
 bool Interface::started()
 {
-    return is_started;
+    if (serial != NULL && serial->isOpen() && !serial->errorStatus())
+        return is_started;
+    else
+        return false;
 }
 
 Packet Interface::get_packet()
@@ -85,15 +92,14 @@ Packet Interface::get_packet()
     boost::lock_guard<boost::mutex> guard(mtx);
     
     Packet packet_copy;
-    packet_copy.di1 = packet.di1;
-    packet_copy.di2 = packet.di2;
-    packet_copy.mci = packet.mci;
-    packet_copy.ai0 = packet.ai0;
-    packet_copy.ai1 = packet.ai1;
-    packet_copy.ai2 = packet.ai2;
-    packet_copy.ai3 = packet.ai3;
-    packet_copy.dig_out = packet.dig_out;
-    packet_copy.mc_out  = packet.mc_out;
+    packet_copy.status = packet.status;
+    packet_copy.di1    = packet.di1;
+    packet_copy.di2    = packet.di2;
+    packet_copy.mci    = packet.mci;
+    packet_copy.ai0    = packet.ai0;
+    packet_copy.ai1    = packet.ai1;
+    packet_copy.ai2    = packet.ai2;
+    packet_copy.ai3    = packet.ai3;
 
     return packet_copy;
 }
@@ -102,11 +108,13 @@ void Interface::write(uint8_t dig_out, uint8_t mc_out)
 {
     if (serial != NULL && serial->isOpen())
     {
+        uint8_t checksum = 0x55 ^ write_count ^ dig_out ^ mc_out;
+
         const char write_bytes[] = { 'C', 'B', 'A', 'L', 'L', 
                                      write_count,
                                      dig_out,                          // digital out
                                      mc_out,                           // motor control out
-                                     (write_count + dig_out + mc_out), // checksum
+                                     checksum,                         // checksum
                                    };
         serial->write(write_bytes, sizeof(write_bytes));
 
@@ -162,17 +170,18 @@ void Interface::received(const char *data, unsigned int len)
             packet.ai1          = c_get(++packet_index);
             packet.ai2          = c_get(++packet_index);
             packet.ai3          = c_get(++packet_index);
-            packet.dig_out      = c_get(++packet_index);
-            packet.mc_out       = c_get(++packet_index);
+            stats_found++;
         }
     }
     else if (packet_index == PACKET_NOT_FOUND)
     {
         if (DEBUG) std::cout << "Packet Not Found" << std::endl;
+        stats_missed++;
     }
     else if (packet_index == CHECKSUM_ERROR)
     {
         if (DEBUG) std::cout << "Checksum Error" << std::endl;
+        stats_error++;
     }
 }
 
@@ -204,11 +213,11 @@ int Interface::find_packet()
 
 bool Interface::is_checksum_ok(int offset)
 {
-    uint8_t check = 0;
+    uint8_t check = 0x55;
 
-    for (int i = 0; i < 11; i++)
+    for (int i = 0; i < 9; i++)
     {
-        check += buffer[offset];
+        check ^= buffer[offset];
 
         if (++offset >= BUFFER_SIZE)
             offset = 0;

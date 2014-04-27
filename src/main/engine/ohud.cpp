@@ -17,6 +17,7 @@
 #include "engine/oferrari.hpp"
 #include "engine/outils.hpp"
 #include "engine/ohud.hpp"
+#include "engine/ooutputs.hpp"
 #include "engine/ostats.hpp"
 
 OHud ohud;
@@ -451,9 +452,15 @@ void OHud::draw_insert_coin()
         if (ostats.credits)
         {
             if (outrun.tick_counter & BIT_4)
+            {
                 blit_text1(TEXT1_PRESS_START);
+                outrun.outputs->set_digital(OOutputs::D_START_LAMP);
+            }
             else
+            {
                 blit_text1(TEXT1_CLEAR_START);
+                outrun.outputs->clear_digital(OOutputs::D_START_LAMP);
+            }
         }
         // Flash Insert Coins
         else

@@ -8,7 +8,7 @@ class CallbackAsyncSerial;
 struct Packet
 {
     // Packet Length including CBALL Header
-    const static int LENGTH = 17;
+    const static int LENGTH = 15;
 
     // Message Count
     uint8_t msg_count;
@@ -24,14 +24,16 @@ struct Packet
     uint8_t ai1;     // Moving Cabinet: Motor Position
     uint8_t ai2;     // Steering
     uint8_t ai3;     // Braking
-    uint8_t dig_out;
-    uint8_t mc_out; 
 };
 
 class Interface
 {
 
 public:
+    uint32_t stats_found;
+    uint32_t stats_missed;
+    uint32_t stats_error;
+
     Interface();
     ~Interface();
     void init(const std::string& port, unsigned int baud);

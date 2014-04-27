@@ -28,6 +28,9 @@
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
 
+#include "cannonboard/interface.hpp"
+#include "engine/ooutputs.hpp"
+
 // Direct X Haptic Support.
 // Fine to include on non-windows builds as dummy functions used.
 #include "directx/ffeedback.hpp"
@@ -45,7 +48,8 @@ int    cannonball::fps_counter = 0;
 Audio cannonball::audio;
 #endif
 
-Menu menu;
+Menu* menu;
+Interface cannonboard;
 
 static void quit_func(int code)
 {
@@ -54,6 +58,7 @@ static void quit_func(int code)
 #endif
     input.close();
     forcefeedback::close();
+    delete menu;
     SDL_Quit();
     exit(code);
 }
@@ -106,6 +111,9 @@ static void tick()
 {
     frame++;
 
+    // Get CannonBoard Packet Data
+    Packet* packet = config.cannonboard.enabled ? &cannonboard.get_packet() : NULL;
+
     // Non standard FPS.
     // Determine whether to tick the current frame.
     if (config.fps != 30)
@@ -133,7 +141,7 @@ static void tick()
 
             if (!pause_engine || input.has_pressed(Input::STEP))
             {
-                outrun.tick(tick_frame);
+                outrun.tick(packet, tick_frame);
                 input.frame_done(); // Denote keys read
 
                 #ifdef COMPILE_SOUND_CODE
@@ -165,7 +173,7 @@ static void tick()
 
         case STATE_MENU:
         {
-            menu.tick();
+            menu->tick(packet);
             input.frame_done();
             #ifdef COMPILE_SOUND_CODE
             // Tick audio program code
@@ -177,10 +185,14 @@ static void tick()
         break;
 
         case STATE_INIT_MENU:
-            menu.init();
+            menu->init();
             state = STATE_MENU;
             break;
     }
+    // Write CannonBoard Outputs
+    if (config.cannonboard.enabled)
+        cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
+
     // Draw SDL Video
     video.draw_frame();  
 }
@@ -243,6 +255,8 @@ int main(int argc, char* argv[])
         return 1; 
     }
 
+    menu = new Menu(&cannonboard);
+
     bool loaded = false;
 
     // Load LayOut File
@@ -289,8 +303,15 @@ int main(int argc, char* argv[])
         if (config.controls.haptic) 
             config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
         
+        // Initalize CannonBoard (For use in original cabinets)
+        if (config.cannonboard.enabled)
+        {
+            cannonboard.init(config.cannonboard.port, config.cannonboard.baud);
+            cannonboard.start();
+        }
+
         // Populate menus
-        menu.populate();
+        menu->populate();
         main_loop();  // Loop until we quit the app
     }
     else

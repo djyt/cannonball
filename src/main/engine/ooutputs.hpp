@@ -32,14 +32,38 @@ public:
     // B = Right
     uint8_t hw_motor_control;
 
+    // Digital Outputs
+    enum
+    {
+        D_EXT_MUTE   = 0x01, // bit 0 = External Amplifier Mute Control
+        D_BRAKE_LAMP = 0x02, // bit 1 = brake lamp
+        D_START_LAMP = 0x04, // bit 2 = start lamp
+        D_COIN1_SUCC = 0x08, // bit 3 = Coin successfully inserted - Chute 2
+        D_COIN2_SUCC = 0x10, // bit 4 = Coin successfully inserted - Chute 1
+        D_MOTOR      = 0x20, // bit 5 = steering wheel central vibration
+        D_UNUSED     = 0x40, // bit 6 = ?
+        D_SOUND      = 0x80, // bit 7 = sound enable
+    };
+    uint8_t dig_out;
+
     OOutputs(void);
     ~OOutputs(void);
 
     void init();
-    bool calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit);
+    bool calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets);
     void tick(const int MODE, int16_t input_motor);
+    void set_digital(uint8_t);
+    void clear_digital(uint8_t);
 
 private:
+    const static uint16_t STATE_INIT   = 0;
+    const static uint16_t STATE_DELAY  = 1;
+    const static uint16_t STATE_LEFT   = 2;
+    const static uint16_t STATE_RIGHT  = 3;
+    const static uint16_t STATE_CENTRE = 4;
+    const static uint16_t STATE_DONE   = 5;
+    const static uint16_t STATE_EXIT   = 6;
+
     // Calibration Counter
     const static int COUNTER_RESET = 300;
 

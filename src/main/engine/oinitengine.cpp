@@ -21,6 +21,7 @@
 #include "engine/oinputs.hpp"
 #include "engine/olevelobjs.hpp"
 #include "engine/omusic.hpp"
+#include "engine/ooutputs.hpp"
 #include "engine/ostats.hpp"
 #include "engine/outils.hpp"
 #include "engine/opalette.hpp"
@@ -111,6 +112,8 @@ void OInitEngine::setup_stage1()
     ostats.score = 0;
     ostats.clear_stage_times();
     oferrari.reset_car();               // Reset Car Speed/Rev Values
+    outrun.outputs->set_digital(OOutputs::D_EXT_MUTE);
+    outrun.outputs->set_digital(OOutputs::D_SOUND);
     osoundint.engine_data[sound::ENGINE_VOL] = 0x3F;
     ostats.extend_play_timer = 0;
     checkpoint_marker = 0;              // Denote not past checkpoint marker

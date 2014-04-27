@@ -58,7 +58,7 @@ private:
     // TILEMAP VARIABLES 
     // -----------------------------------------------------------------------
 
-	// Scroll values to write to foreground & background tilemaps
+    // Scroll values to write to foreground & background tilemaps
 	int16_t fg_h_scroll;
 	int16_t bg_h_scroll;
 	int16_t fg_v_scroll;

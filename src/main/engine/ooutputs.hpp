@@ -23,7 +23,7 @@ class OOutputs
 public:
     
     const static int MODE_FFEEDBACK = 0;
-    const static int MODE_MOVINGCAB = 1;
+    const static int MODE_CABINET   = 1;
 
     // Hardware Motor Control:
     // 0 = Switch off
@@ -50,8 +50,9 @@ public:
     ~OOutputs(void);
 
     void init();
+    bool diag_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets);
     bool calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets);
-    void tick(const int MODE, int16_t input_motor);
+    void tick(const int MODE, int16_t input_motor, int16_t cabinet_type = -1);
     void set_digital(uint8_t);
     void clear_digital(uint8_t);
 
@@ -105,7 +106,7 @@ private:
     // 0x1A: Road Curve
     int16_t curve;
     // 0x1E: Increment counter to index motor table for off-road/crash
-    int16_t counter;
+    int16_t vibrate_counter;
     // 0x20: Last Motor X_Change > 8. No need to adjust further.
     bool was_small_change;
     // 0x22: Adjusted movement value based on steering 1
@@ -114,6 +115,17 @@ private:
     int16_t movement_adjust2;
     // 0x26: Adjusted movement value based on steering 3
     int16_t movement_adjust3;
+
+    // Counter control for motor tests
+    int16_t counter;
+
+    // Columns for output
+    uint16_t col1, col2;
+
+    void diag_left(int16_t input_motor, uint8_t hw_motor_limit);
+    void diag_right(int16_t input_motor, uint8_t hw_motor_limit);
+    void diag_centre(int16_t input_motor, uint8_t hw_motor_limit);
+    void diag_done();
 
     void calibrate_left(int16_t input_motor, uint8_t hw_motor_limit);
     void calibrate_right(int16_t input_motor, uint8_t hw_motor_limit);
@@ -129,4 +141,7 @@ private:
     void set_value(const uint8_t*, uint8_t);
     void done();
     void motor_output(uint8_t cmd);
+
+    void do_vibrate_upright();
+    void do_vibrate_mini();
 };

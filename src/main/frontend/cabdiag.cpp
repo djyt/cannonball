@@ -55,6 +55,7 @@ bool CabDiag::tick(Packet* packet)
     if (!init)
     {
         init = true;
+        press_start_to_exit = true;
         reset();
 
         switch (state)
@@ -74,13 +75,18 @@ bool CabDiag::tick(Packet* packet)
             case STATE_CRT:
                 init_crt();
                 break;
+
+            case STATE_MOTORT:
+                init_motor_test();
+                press_start_to_exit = false; // Not skippable
+                break;
         }
     }
 
     if (counter == 60)
         ohud.blit_text_new(7, 23, "PRESS START BUTTON TO EXIT", 0x84);
 
-    if (counter >= 60 && input.is_pressed(Input::START))
+    if (press_start_to_exit && counter >= 60 && input.is_pressed(Input::START))
     {
         done = true;
     }
@@ -102,12 +108,18 @@ bool CabDiag::tick(Packet* packet)
 
         case STATE_CRT:
             break;
+
+        case STATE_MOTORT:
+            press_start_to_exit = outrun.outputs->diag_motor(packet->ai1, packet->mci, 0);
+            break;
     }
     osprites.sprite_copy();
     osprites.update_sprites();
     otiles.write_tilemap_hw();
     oroad.tick();
-    counter++;
+    
+    if (press_start_to_exit)
+        counter++;
 
     return done;
 }
@@ -118,6 +130,7 @@ bool CabDiag::tick(Packet* packet)
 
 void CabDiag::init_interface()
 {
+    //cannonboard->reset_stats();
     int x = 10;
     int y = 2;
     blit_box();
@@ -132,8 +145,9 @@ void CabDiag::init_interface()
     ohud.blit_text_new(x, y++, "NOT FOUND", 0x84); y+=2;
 
     ohud.blit_text_new(4, y++, "- OUTBOUND PACKET INFORMATION -", 0x82); y++;
-    ohud.blit_text_new(x, y++, "RECEIVED", 0x84);
-    ohud.blit_text_new(x, y++, "CHECKSUM", 0x84);
+    ohud.blit_text_new(x, y++, "GOOD", 0x84);
+    ohud.blit_text_new(x, y++, "BAD", 0x84);
+    ohud.blit_text_new(x, y++, "MISSED", 0x84);
 }
 
 void CabDiag::tick_interface(Packet* packet)
@@ -143,12 +157,13 @@ void CabDiag::tick_interface(Packet* packet)
     ohud.blit_text_new(x, y, cannonboard->started() ? "READY" : "ERROR", 0x80);
 
     y = 10;
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_found).c_str(), 0x80);
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_error).c_str(), 0x80);
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_missed).c_str(), 0x80);
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_found_in).c_str(), 0x80);
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_error_in).c_str(), 0x80);
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_notfound_in).c_str(), 0x80);
     y += 4;
-    ohud.blit_text_new(x, y++, (packet->status & 0x1) ? "YES"  : "NO ", 0x80);
-    ohud.blit_text_new(x, y++, (packet->status & 0x2) ? "OK  " : "FAIL", 0x80);
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_found_out).c_str(), 0x80);
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_error_out).c_str(), 0x80);
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_missed_out).c_str(), 0x80);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -307,4 +322,22 @@ void CabDiag::blit7_block(uint32_t* adr, uint32_t data)
         *adr += 8;
         data += 0x10001;
     }
+}
+
+// ------------------------------------------------------------------------------------------------
+// MOTOR DIAGNOSTICS TEST
+// ------------------------------------------------------------------------------------------------
+
+void CabDiag::init_motor_test()
+{
+    blit_box();
+
+    // Draw Text
+    ohud.blit_text_new(15, 2, "DIAGNOSTIC", 0x86);
+    ohud.blit_text_new(15, 4, "MOTOR TEST", 0x80);
+}
+
+void CabDiag::tick_motor_test(Packet* packet)
+{
+
 }

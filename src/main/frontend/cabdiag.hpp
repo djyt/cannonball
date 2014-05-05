@@ -14,6 +14,7 @@ public:
         STATE_CRT,
         STATE_INPUT,
         STATE_OUTPUT,
+        STATE_MOTORT,
     };
 
     CabDiag(Interface* cannonboard);
@@ -28,6 +29,9 @@ private:
     uint8_t state;
     uint8_t counter;
 
+    // Can user press start to exit mode?
+    bool press_start_to_exit;
+
     void reset();
 
     void init_interface();
@@ -40,4 +44,6 @@ private:
     void blit_box();
     void blit1_block(uint32_t adr, uint32_t data);
     void blit7_block(uint32_t* adr, uint32_t data);
+    void init_motor_test();
+    void tick_motor_test(Packet* packet);
 };

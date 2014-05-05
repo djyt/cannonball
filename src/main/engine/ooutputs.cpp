@@ -1,8 +1,10 @@
 /***************************************************************************
     Process Outputs.
+
+    - Cabinet Vibration & Hydraulic Movement
+    - Brake & Start Lamps
     
-    - Only the Deluxe Moving Motor Code is ported for now.
-    - This is used by the force-feedback haptic system.
+    The Deluxe Motor code is also used by the force-feedback haptic system.
 
     One thing to note is that this code was originally intended to drive
     a moving hydraulic cabinet, not to be mapped to a haptic device.
@@ -26,43 +28,10 @@
 #include "engine/ooutputs.hpp"
 #include "directx/ffeedback.hpp"
 
-const static uint8_t MOTOR_VALUES[] = 
-{
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
-    2, 2, 3, 3, 4, 4, 5, 5, 2, 3, 4, 5, 6, 7, 7, 7
-};
-
-const static uint8_t MOTOR_VALUES_STATIONARY[] = 
-{
-    2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4
-};
-
-const static uint8_t MOTOR_VALUES_OFFROAD1[] = 
-{
-    0x8, 0x8, 0x5, 0x5, 0x8, 0x8, 0xB, 0xB, 0x8, 0x8, 0x4, 0x4, 0x8, 0x8, 0xC, 0xC, 
-    0x8, 0x8, 0x3, 0x3, 0x8, 0x8, 0xD, 0xD, 0x8, 0x8, 0x2, 0x2, 0x8, 0x8, 0xE, 0xE,
-};
-
-const static uint8_t MOTOR_VALUES_OFFROAD2[] = 
-{
-    0x8, 0x5, 0x8, 0xB, 0x8, 0x5, 0x8, 0xB, 0x8, 0x4, 0x8, 0xC, 0x8, 0x4, 0x8, 0xC,
-    0x8, 0x3, 0x8, 0xD, 0x8, 0x3, 0x8, 0xD, 0x8, 0x2, 0x8, 0xE, 0x8, 0x2, 0x8, 0xE,
-};
-
-const static uint8_t MOTOR_VALUES_OFFROAD3[] = 
-{
-    0x8, 0x5, 0x5, 0x8, 0xB, 0x8, 0x0, 0x8, 0x8, 0x4, 0x4, 0x8, 0xC, 0x8, 0x0, 0x8,
-    0x8, 0x3, 0x3, 0x8, 0xD, 0x8, 0x0, 0x8, 0x8, 0x2, 0x2, 0x8, 0xE, 0x8, 0x0, 0x8,
-};
-
-const static uint8_t MOTOR_VALUES_OFFROAD4[] = 
-{
-    0x8, 0xB, 0xB, 0x8, 0x5, 0x8, 0x0, 0x8, 0x8, 0xC, 0xC, 0x8, 0x4, 0x8, 0x0, 0x8,
-    0x8, 0xD, 0xD, 0x8, 0x3, 0x8, 0x0, 0x8, 0x8, 0xE, 0xE, 0x8, 0x2, 0x8, 0x0, 0x8,
-};
-
 OOutputs::OOutputs(void)
 {
+    col1               = 0;
+    col2               = 0;
     limit_left         = 0;
     limit_right        = 0;
     motor_enabled      = true;
@@ -87,23 +56,35 @@ void OOutputs::init()
     speed              = 0;
     curve              = 0;
     counter            = 0;
+    vibrate_counter    = 0;
     was_small_change   = false;
     movement_adjust1   = 0;
     movement_adjust2   = 0;
     movement_adjust3   = 0;
 }
 
-void OOutputs::tick(int MODE, int16_t input_motor)
+void OOutputs::tick(int MODE, int16_t input_motor, int16_t cabinet_type)
 {
-    // Simulate read to Analog Select Register (0x140031)
-    // Normally this would be done on H-Blank
-    // But instead we return the x-position of the wheel
-    do_motors(MODE, input_motor);
-
-    if (MODE == MODE_FFEEDBACK)
+    switch (MODE)
     {
-        // Finally output the info to the force feedback handling class
-        motor_output(hw_motor_control);
+        // Force Feedback Steering Wheels
+        case MODE_FFEEDBACK:
+            do_motors(MODE, input_motor);   // Use X-Position of wheel instead of motor position
+            motor_output(hw_motor_control); // Force Feedback Handling
+            break;
+
+        // CannonBoard: Real Cabinet
+        case MODE_CABINET:
+            if (cabinet_type == config.cannonboard.CABINET_MOVING)
+            {
+                do_motors(MODE, input_motor);
+                do_vibrate_mini();
+            }
+            else if (cabinet_type == config.cannonboard.CABINET_UPRIGHT)
+                do_vibrate_upright();
+            else if (cabinet_type == config.cannonboard.CABINET_MINI)
+                do_vibrate_mini();
+            break;
     }
 }
 
@@ -122,6 +103,155 @@ void OOutputs::clear_digital(uint8_t output)
 }
 
 // ------------------------------------------------------------------------------------------------
+// Motor Diagnostics
+// Source: 0x1885E
+// ------------------------------------------------------------------------------------------------
+
+bool OOutputs::diag_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets)
+{
+    switch (motor_state)
+    {
+        // Initalize
+        case STATE_INIT:
+            col1 = 10;
+            col2 = 27;
+            ohud.blit_text_new(col1, 9, "LEFT LIMIT");
+            ohud.blit_text_new(col1, 11, "RIGHT LIMIT");
+            ohud.blit_text_new(col1, 13, "CENTRE");
+            ohud.blit_text_new(col1, 16, "MOTOR POSITION");
+            ohud.blit_text_new(col1, 18, "LIMIT B3 LEFT");
+            ohud.blit_text_new(col1, 19, "LIMIT B4 CENTRE");
+            ohud.blit_text_new(col1, 20, "LIMIT B5 RIGHT");
+            counter          = COUNTER_RESET;
+            motor_centre_pos = 0;
+            motor_enabled    = true;
+            motor_state = STATE_LEFT;
+            break;
+
+        case STATE_LEFT:
+            diag_left(input_motor, hw_motor_limit);
+            break;
+
+        case STATE_RIGHT:
+            diag_right(input_motor, hw_motor_limit);
+            break;
+
+        case STATE_CENTRE:
+            diag_centre(input_motor, hw_motor_limit);
+            break;
+
+        case STATE_DONE:
+            diag_done();
+            break;
+    }
+
+    // Print Motor Position & Limit Switch
+    ohud.blit_text_new(col2, 16, "  H", 0x80);
+    ohud.blit_text_new(col2, 16, Utils::to_string(input_motor).c_str(), 0x80);
+    ohud.blit_text_new(col2, 18, (hw_motor_limit & BIT_3) ? "ON " : "OFF ", 0x80);
+    ohud.blit_text_new(col2, 19, (hw_motor_limit & BIT_4) ? "ON " : "OFF ", 0x80);
+    ohud.blit_text_new(col2, 20, (hw_motor_limit & BIT_5) ? "ON " : "OFF ", 0x80);
+    return motor_state == STATE_DONE;
+}
+
+void OOutputs::diag_left(int16_t input_motor, uint8_t hw_motor_limit)
+{
+    // If Right Limit Set, Move Left
+    if (hw_motor_limit & BIT_5)
+    {
+        if (--counter >= 0)
+        {
+            hw_motor_control = MOTOR_LEFT;
+            return;
+        }
+        // Counter Expired, Left Limit Still Not Reached
+        else
+            ohud.blit_text_new(col2, 9, "FAIL 1", 0x80);
+    }
+    // Left Limit Reached
+    else if (hw_motor_limit & BIT_3)
+    {
+        ohud.blit_text_new(col2, 9, "  H", 0x80);
+        ohud.blit_text_new(col2, 9, Utils::to_string(input_motor).c_str(), 0x80);
+    }
+    else
+        ohud.blit_text_new(col2, 9, "FAIL 2", 0x80);
+
+    counter          = COUNTER_RESET;
+    motor_state      = STATE_RIGHT;
+}
+
+
+void OOutputs::diag_right(int16_t input_motor, uint8_t hw_motor_limit)
+{
+    if (motor_centre_pos == 0 && ((hw_motor_limit & BIT_4) == 0))
+        motor_centre_pos = input_motor;
+   
+    // If Left Limit Set, Move Right
+    if (hw_motor_limit & BIT_3)
+    {
+        if (--counter >= 0)
+        {
+            hw_motor_control = MOTOR_RIGHT; // Move Right
+            return;
+        }
+        // Counter Expired, Right Limit Still Not Reached
+        else
+            ohud.blit_text_new(col2, 11, "FAIL 1", 0x80);
+    }
+    // Right Limit Reached
+    else if (hw_motor_limit & BIT_5)
+    {
+        ohud.blit_text_new(col2, 11, "  H", 0x80);
+        ohud.blit_text_new(col2, 11, Utils::to_string(input_motor).c_str(), 0x80);
+    }
+    else
+    {
+        ohud.blit_text_new(col2, 11, "FAIL 2", 0x80);
+        motor_enabled = false;
+        motor_state   = STATE_DONE;
+        return;
+    }
+
+    motor_state  = STATE_CENTRE;
+    counter      = COUNTER_RESET;
+}
+
+
+void OOutputs::diag_centre(int16_t input_motor, uint8_t hw_motor_limit)
+{
+    if (hw_motor_limit & BIT_4) 
+    {
+        if (--counter >= 0)
+        {
+            hw_motor_control = (counter <= COUNTER_RESET/2) ? MOTOR_RIGHT : MOTOR_LEFT; // Move Right
+            return;
+        }
+        else
+        {
+            ohud.blit_text_new(col2, 13, "FAIL", 0x80);
+        }  
+    }
+    else
+    {
+        ohud.blit_text_new(col2, 13, "  H", 0x80);
+        ohud.blit_text_new(col2, 13, Utils::to_string((input_motor + motor_centre_pos) >> 1).c_str(), 0x86);
+        hw_motor_control = MOTOR_OFF; // switch off
+        counter          = 32;
+        motor_state      = STATE_DONE;
+    }
+}
+
+void OOutputs::diag_done()
+{
+    if (counter > 0)
+        counter--;
+
+    if (counter == 0)
+        hw_motor_control = MOTOR_CENTRE;
+}
+
+// ------------------------------------------------------------------------------------------------
 // Calibrate Motors
 // ------------------------------------------------------------------------------------------------
 
@@ -131,11 +261,13 @@ bool OOutputs::calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit, uint
     {
         // Initalize
         case STATE_INIT:
-            ohud.blit_text_big(    2, "MOTOR CALIBRATION");
-            ohud.blit_text_new(11, 10, "MOVE LEFT   -");
-            ohud.blit_text_new(11, 12, "MOVE RIGHT  -");
-            ohud.blit_text_new(11, 14, "MOVE CENTRE -");
-            counter          = COUNTER_RESET;
+            col1 = 11;
+            col2 = 25;
+            ohud.blit_text_big(      2,  "MOTOR CALIBRATION");
+            ohud.blit_text_new(col1, 10, "MOVE LEFT   -");
+            ohud.blit_text_new(col1, 12, "MOVE RIGHT  -");
+            ohud.blit_text_new(col1, 14, "MOVE CENTRE -");
+            counter          = 25;
             motor_centre_pos = 0;
             motor_enabled    = true;
             motor_state++;
@@ -190,7 +322,7 @@ void OOutputs::calibrate_left(int16_t input_motor, uint8_t hw_motor_limit)
         // Counter Expired, Left Limit Still Not Reached
         else
         {
-            ohud.blit_text_new(25, 10, "FAIL 1");
+            ohud.blit_text_new(col2, 10, "FAIL 1");
             motor_centre_pos = 0;
             limit_left       = input_motor; // Set Left Limit
             hw_motor_control = MOTOR_LEFT;  // Move Left
@@ -201,7 +333,7 @@ void OOutputs::calibrate_left(int16_t input_motor, uint8_t hw_motor_limit)
     // Left Limit Reached
     else if (hw_motor_limit & BIT_3)
     {
-        ohud.blit_text_new(25, 6, Utils::to_string(input_motor).c_str());
+        ohud.blit_text_new(col2, 10, Utils::to_string(input_motor).c_str(), 0x80);
         motor_centre_pos = 0;
         limit_left       = input_motor; // Set Left Limit
         hw_motor_control = MOTOR_LEFT;  // Move Left
@@ -210,8 +342,8 @@ void OOutputs::calibrate_left(int16_t input_motor, uint8_t hw_motor_limit)
     }
     else
     {
-        ohud.blit_text_new(25, 10, "FAIL 2");
-        ohud.blit_text_new(25, 12, "FAIL 2");
+        ohud.blit_text_new(col2, 10, "FAIL 2");
+        ohud.blit_text_new(col2, 12, "FAIL 2");
         motor_enabled = false; 
         counter       = COUNTER_RESET;
         motor_state   = STATE_CENTRE;
@@ -236,7 +368,7 @@ void OOutputs::calibrate_right(int16_t input_motor, uint8_t hw_motor_limit)
         // Counter Expired, Right Limit Still Not Reached
         else
         {
-            ohud.blit_text_new(25, 18, "LIMIT FAIL");
+            ohud.blit_text_new(col2, 12, "FAIL 1");
             limit_right  = input_motor;
             motor_state  = STATE_CENTRE;
             counter      = COUNTER_RESET;
@@ -245,14 +377,14 @@ void OOutputs::calibrate_right(int16_t input_motor, uint8_t hw_motor_limit)
     // Right Limit Reached
     else if (hw_motor_limit & BIT_5)
     {
-        ohud.blit_text_new(25, 8, Utils::to_string(input_motor).c_str());
+        ohud.blit_text_new(col2, 12, Utils::to_string(input_motor).c_str(), 0x80);
         limit_right   = input_motor; // Set Right Limit
         motor_state   = STATE_CENTRE;
         counter       = COUNTER_RESET;
     }
     else
     {
-        ohud.blit_text_new(25, 12, "FAIL 2");
+        ohud.blit_text_new(col2, 12, "FAIL 2");
         motor_enabled = false;
         motor_state   = STATE_CENTRE;
         counter       = COUNTER_RESET;
@@ -270,7 +402,7 @@ void OOutputs::calibrate_centre(int16_t input_motor, uint8_t hw_motor_limit)
         }
         else
         {
-            ohud.blit_text_new(25, 14, "FAIL");
+            ohud.blit_text_new(col2, 14, "FAIL");
             // Fall through to EEB6
         }  
     }
@@ -292,16 +424,15 @@ void OOutputs::calibrate_centre(int16_t input_motor, uint8_t hw_motor_limit)
     
     if (std::abs(motor_centre_pos - 0x80) > 0x20)
     {
-        ohud.blit_text_new(25, 14, "FAIL DIST");
+        ohud.blit_text_new(col2, 14, "FAIL DIST");
         motor_enabled = false;
     }
     else
     {
-        ohud.blit_text_new(25, 10, Utils::to_string(limit_left).c_str());
-        ohud.blit_text_new(25, 11, Utils::to_string(limit_right).c_str());
+        ohud.blit_text_new(col2, 14, Utils::to_string(motor_centre_pos).c_str(), 0x80);
     }
 
-    ohud.blit_text_new(13, 17, "TESTS COMPLETE!");
+    ohud.blit_text_new(13, 17, "TESTS COMPLETE!", 0x82);
 
     hw_motor_control = MOTOR_OFF; // switch off
     counter          = 90;
@@ -319,6 +450,42 @@ void OOutputs::calibrate_done()
 // ------------------------------------------------------------------------------------------------
 // Moving Cabinet Code
 // ------------------------------------------------------------------------------------------------
+
+const static uint8_t MOTOR_VALUES[] = 
+{
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
+    2, 2, 3, 3, 4, 4, 5, 5, 2, 3, 4, 5, 6, 7, 7, 7
+};
+
+const static uint8_t MOTOR_VALUES_STATIONARY[] = 
+{
+    2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4
+};
+
+const static uint8_t MOTOR_VALUES_OFFROAD1[] = 
+{
+    0x8, 0x8, 0x5, 0x5, 0x8, 0x8, 0xB, 0xB, 0x8, 0x8, 0x4, 0x4, 0x8, 0x8, 0xC, 0xC, 
+    0x8, 0x8, 0x3, 0x3, 0x8, 0x8, 0xD, 0xD, 0x8, 0x8, 0x2, 0x2, 0x8, 0x8, 0xE, 0xE,
+};
+
+const static uint8_t MOTOR_VALUES_OFFROAD2[] = 
+{
+    0x8, 0x5, 0x8, 0xB, 0x8, 0x5, 0x8, 0xB, 0x8, 0x4, 0x8, 0xC, 0x8, 0x4, 0x8, 0xC,
+    0x8, 0x3, 0x8, 0xD, 0x8, 0x3, 0x8, 0xD, 0x8, 0x2, 0x8, 0xE, 0x8, 0x2, 0x8, 0xE,
+};
+
+const static uint8_t MOTOR_VALUES_OFFROAD3[] = 
+{
+    0x8, 0x5, 0x5, 0x8, 0xB, 0x8, 0x0, 0x8, 0x8, 0x4, 0x4, 0x8, 0xC, 0x8, 0x0, 0x8,
+    0x8, 0x3, 0x3, 0x8, 0xD, 0x8, 0x0, 0x8, 0x8, 0x2, 0x2, 0x8, 0xE, 0x8, 0x0, 0x8,
+};
+
+const static uint8_t MOTOR_VALUES_OFFROAD4[] = 
+{
+    0x8, 0xB, 0xB, 0x8, 0x5, 0x8, 0x0, 0x8, 0x8, 0xC, 0xC, 0x8, 0x4, 0x8, 0x0, 0x8,
+    0x8, 0xD, 0xD, 0x8, 0x3, 0x8, 0x0, 0x8, 0x8, 0xE, 0xE, 0x8, 0x2, 0x8, 0x0, 0x8,
+};
+
 
 // Process Motor Code.
 // Note, that only the Deluxe Moving Motor Code is ported for now.
@@ -609,4 +776,153 @@ void OOutputs::motor_output(uint8_t cmd)
         force = 15 - cmd;
 
     forcefeedback::set(cmd, force);
+}
+
+// ------------------------------------------------------------------------------------------------
+// Deluxe Upright: Steering Wheel Movement
+// ------------------------------------------------------------------------------------------------
+
+// Deluxe Upright: Vibration Enable Table. 4 Groups of vibration values.
+const static uint8_t VIBRATE_LOOKUP[] = 
+{
+    // SLOW SPEED --------   // MEDIUM SPEED ------
+    1, 0, 0, 0, 1, 0, 0, 0,  1, 1, 0, 0, 1, 1, 0, 0,
+    // FAST SPEED --------   // VERY FAST SPEED ---
+    1, 1, 1, 0, 1, 1, 1, 0,  1, 1, 1, 1, 1, 1, 1, 1,
+};
+
+// Source: 0xEAAA
+void OOutputs::do_vibrate_upright()
+{
+    if (outrun.game_state != GS_INGAME)
+    {
+        clear_digital(D_MOTOR);
+        return;
+    }
+
+    const uint16_t speed = oinitengine.car_increment >> 16;
+    uint16_t index = 0;
+
+    // Car Crashing: Diable Motor once speed below 10
+    if (ocrash.crash_counter)
+    {
+        if (speed <= 10)
+        {
+            clear_digital(D_MOTOR);
+            return;
+        }
+    }
+    // Car Normal
+    else if (!ocrash.skid_counter)
+    {
+        // 0xEAE2: Disable Vibration once speed below 30 or wheels on-road
+        if (speed < 30 || oferrari.wheel_state == OFerrari::WHEELS_ON)
+        {
+            clear_digital(D_MOTOR);
+            return;
+        }
+
+        // 0xEAFC: Both wheels off-road. Faster the car speed, greater the chance of vibrating
+        if (oferrari.wheel_state == OFerrari::WHEELS_OFF)
+        {
+            if (speed > 220)      index = 3;
+            else if (speed > 170) index = 2;
+            else if (speed > 120) index = 1;
+        }
+        // 0xEB38: One wheel off-road. Faster the car speed, greater the chance of vibrating
+        else
+        {
+            if (speed > 270)      index = 3;
+            else if (speed > 210) index = 2;
+            else if (speed > 150) index = 1;
+        }
+
+        if (VIBRATE_LOOKUP[ (vibrate_counter & 7) + (index << 3) ])
+            set_digital(D_MOTOR);
+        else
+            clear_digital(D_MOTOR);
+
+        vibrate_counter++;
+        return;
+    }
+    // 0xEB68: Car Crashing or Skidding
+    if (speed > 140)      index = 3;
+    else if (speed > 100) index = 2;
+    else if (speed > 60)  index = 1;
+
+    if (VIBRATE_LOOKUP[ (vibrate_counter & 7) + (index << 3) ])
+        set_digital(D_MOTOR);
+    else
+        clear_digital(D_MOTOR);
+
+    vibrate_counter++;
+}
+
+// ------------------------------------------------------------------------------------------------
+// Mini Upright: Steering Wheel Movement
+// ------------------------------------------------------------------------------------------------
+
+void OOutputs::do_vibrate_mini()
+{
+    if (outrun.game_state != GS_INGAME)
+    {
+        clear_digital(D_MOTOR);
+        return;
+    }
+
+    const uint16_t speed = oinitengine.car_increment >> 16;
+    uint16_t index = 0;
+
+    // Car Crashing: Diable Motor once speed below 10
+    if (ocrash.crash_counter)
+    {
+        if (speed <= 10)
+        {
+            clear_digital(D_MOTOR);
+            return;
+        }
+    }
+    // Car Normal
+    else if (!ocrash.skid_counter)
+    {
+        if (speed < 10 || oferrari.wheel_state == OFerrari::WHEELS_ON)
+        {
+            clear_digital(D_MOTOR);
+            return;
+        }  
+
+        if (speed > 140)      index = 5;
+        else if (speed > 100) index = 4;
+        else if (speed > 60)  index = 3;
+        else if (speed > 20)  index = 2;
+        else                  index = 1;
+
+        if (index > vibrate_counter)
+        {
+            vibrate_counter = 0;
+            clear_digital(D_MOTOR);
+        }
+        else
+        {
+            vibrate_counter++;
+            set_digital(D_MOTOR);
+        }
+        return;
+    }
+
+    // 0xEC7A calc_crash_skid:
+    if (speed > 90)      index = 4;
+    else if (speed > 70) index = 3;
+    else if (speed > 50) index = 2;
+    else if (speed > 30) index = 1;
+    if (index > vibrate_counter)
+    {
+        vibrate_counter = 0;
+        clear_digital(D_MOTOR);
+    }
+    else
+    {
+        vibrate_counter++;
+        set_digital(D_MOTOR);
+    }
 }

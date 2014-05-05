@@ -82,9 +82,6 @@ public:
     // Number of credits inserted
     uint8_t credits;
 
-    // Free play mode
-    bool free_play;
-
     // Each stage has an entry for minutes, seconds and MS. (Extended to 15 from 5 to support continuous mode)
     uint8_t stage_times[15][3];
 

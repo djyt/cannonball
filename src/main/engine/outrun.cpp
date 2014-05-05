@@ -58,13 +58,11 @@ Outrun outrun;
 
 Outrun::Outrun()
 {
-    //cannonboard = new Interface();
     outputs = new OOutputs();
 }
 
 Outrun::~Outrun()
 {
-    //delete cannonboard;
     delete outputs;
 }
 
@@ -78,17 +76,10 @@ void Outrun::init()
     tick_counter = 0;
 
     // CannonBoard Config: When Used in original cabinet
-    if (config.cannonboard.enabled)
-    {
-        //cannonboard->init(config.cannonboard.port, config.cannonboard.baud);
-        //cannonboard->start();
-        if (config.cannonboard.cabinet == config.cannonboard.CABINET_MOVING)
-            init_motor_calibration();
-    }
+    if (config.cannonboard.enabled && config.cannonboard.cabinet == config.cannonboard.CABINET_MOVING)
+        init_motor_calibration();
     else
-    {
         boot();
-    }
 }
 
 void Outrun::boot()
@@ -218,6 +209,7 @@ void Outrun::jump_table(Packet* packet)
 
             if (!outrun.tick_frame)
             {
+                omusic.check_start();
                 omusic.blit();
             }
             break;
@@ -287,8 +279,8 @@ void Outrun::jump_table(Packet* packet)
         {
             if (config.controls.haptic && config.controls.analog)
                 outputs->tick(OOutputs::MODE_FFEEDBACK, oinputs.input_steering);
-            else if (config.cannonboard.enabled && config.cannonboard.cabinet == config.cannonboard.CABINET_MOVING)
-                outputs->tick(OOutputs::MODE_MOVINGCAB, packet->ai1);
+            else if (config.cannonboard.enabled)
+                outputs->tick(OOutputs::MODE_CABINET, packet->ai1, config.cannonboard.cabinet);
         }
     }
 
@@ -328,6 +320,7 @@ void Outrun::main_switch()
         // ----------------------------------------------------------------------------------------
         case GS_ATTRACT:
             tick_attract();
+            check_freeplay_start();
             break;
 
         case GS_INIT_BEST1:
@@ -348,6 +341,7 @@ void Outrun::main_switch()
             ohiscore.display_scores();
             ohud.draw_credits();
             ohud.draw_insert_coin();
+            check_freeplay_start();
             if (ostats.credits)
                 game_state = GS_INIT_MUSIC;
             else if (decrement_timers())
@@ -371,6 +365,7 @@ void Outrun::main_switch()
             ohud.draw_insert_coin();
             ologo.tick();
 
+            check_freeplay_start();
             if (ostats.credits)
                 game_state = GS_INIT_MUSIC;
             else if (decrement_timers())
@@ -788,10 +783,6 @@ void Outrun::init_attract()
 
 void Outrun::tick_attract()
 {
-    // Set credits to 1 if in free play mode (note display still reads Free Play)
-    if (ostats.free_play)
-        ostats.credits = 1;
-
     ohud.draw_credits();
     ohud.draw_copyright_text();
     ohud.draw_insert_coin();
@@ -818,6 +809,18 @@ void Outrun::tick_attract()
     {
         car_inc_bak = oinitengine.car_increment;
         game_state = GS_INIT_BEST1;
+    }
+}
+
+void Outrun::check_freeplay_start()
+{
+    if (config.engine.freeplay)
+    {
+        if (input.is_pressed(Input::START))
+        {
+            if (!ostats.credits)
+                ostats.credits = 1;
+        }
     }
 }
 

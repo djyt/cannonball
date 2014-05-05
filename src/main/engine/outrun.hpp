@@ -242,6 +242,7 @@ private:
     void init_motor_calibration();
     void init_attract();
     void tick_attract();
+    void check_freeplay_start();
 };
 
 extern Outrun outrun;

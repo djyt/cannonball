@@ -270,7 +270,7 @@ void OInputs::do_credits()
     if (input.has_pressed(Input::COIN))
     {
         input.keys[Input::COIN] = false; // immediately clear due to this routine being in vertical interrupt
-        if (ostats.credits < 9)
+        if (!config.engine.freeplay && ostats.credits < 9)
         {
             ostats.credits++;
             // todo: Increment credits total for bookkeeping

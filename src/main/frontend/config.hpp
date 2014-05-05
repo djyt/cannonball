@@ -99,6 +99,7 @@ struct engine_settings_t
 {
     int dip_time;
     int dip_traffic;
+    bool freeplay;
     bool freeze_timer;
     bool disable_traffic;
     int jap;

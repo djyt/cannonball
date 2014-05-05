@@ -159,6 +159,7 @@ void Config::load(const std::string &filename)
     engine.dip_time    &= 3;
     engine.dip_traffic &= 3;
 
+    engine.freeplay      = pt_config.get("engine.freeplay",        0) != 0;
     engine.jap           = pt_config.get("engine.japanese_tracks", 0);
     engine.prototype     = pt_config.get("engine.prototype",       0);
     

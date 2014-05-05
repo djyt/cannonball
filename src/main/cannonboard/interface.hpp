@@ -26,17 +26,36 @@ struct Packet
     uint8_t ai3;     // Braking
 };
 
+struct IncomingStatus
+{
+    const static uint8_t FOUND     = 0x01; // Packet Found
+    const static uint8_t CSUM      = 0x02; // Last Packet Checksum was OK
+    const static uint8_t PAST_FAIL = 0x04; // Checksum has failed at some point in the past
+    const static uint8_t RESET     = 0x08; // Interface is resetting
+    const static uint8_t MISSED    = 0x10; // Interface missed a packet (using message counter)
+};
+
 class Interface
 {
 
 public:
-    uint32_t stats_found;
-    uint32_t stats_missed;
-    uint32_t stats_error;
+    // Incoming Packets Found
+    uint32_t stats_found_in;
+    // Incoming Packets Not Found
+    uint32_t stats_notfound_in;
+    // Incoming Packets With Error
+    uint32_t stats_error_in;
+    // Outbound Packets Found
+    uint32_t stats_found_out;
+    // Outbound Packets Missed
+    uint32_t stats_missed_out;
+    // Outbound Packets With Error
+    uint32_t stats_error_out;
 
     Interface();
     ~Interface();
     void init(const std::string& port, unsigned int baud);
+    void reset_stats();
     void close();
     void start();
     void stop();
@@ -66,6 +85,10 @@ private:
         PACKET_NOT_FOUND = -1,
         CHECKSUM_ERROR   = -2,
     };
+
+    // Message Types
+    const static uint8_t MSG_RESET  = 0;
+    const static uint8_t MSG_OUTRUN = 1;
     
     // Previous Message Index
     int16_t prev_msg;
@@ -76,6 +99,7 @@ private:
     // Is Serial interface open and operational
     bool is_started;
 
+    void reset_interface();
     void received(const char *data, unsigned int len);
     int find_packet();
     bool is_checksum_ok(int offset);

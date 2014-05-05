@@ -17,10 +17,7 @@ void Interface::init(const std::string& port, unsigned int baud)
     try
     {
         close();
-
-        stats_found  = 0;
-        stats_missed = 0;
-        stats_error  = 0;
+        reset_stats();
 
         // Setup Serial Port
         serial = new CallbackAsyncSerial(port, baud);
@@ -36,6 +33,16 @@ void Interface::init(const std::string& port, unsigned int baud)
     {
         std::cerr << "Error Opening Serial Interface: " << e.what() << std::endl;
     }
+}
+
+void Interface::reset_stats()
+{
+    stats_found_in    = 0;
+    stats_notfound_in = 0;
+    stats_error_in    = 0;
+    stats_found_out   = 0;
+    stats_missed_out  = 0;
+    stats_error_out   = 0;
 }
 
 void Interface::close()
@@ -108,9 +115,10 @@ void Interface::write(uint8_t dig_out, uint8_t mc_out)
 {
     if (serial != NULL && serial->isOpen())
     {
-        uint8_t checksum = 0x55 ^ write_count ^ dig_out ^ mc_out;
+        uint8_t checksum = 0x55 ^ MSG_OUTRUN ^ write_count ^ dig_out ^ mc_out;
 
-        const char write_bytes[] = { 'C', 'B', 'A', 'L', 'L', 
+        const char write_bytes[] = { 'C', 'B', 'A', 'L', 'L',
+                                     MSG_OUTRUN,
                                      write_count,
                                      dig_out,                          // digital out
                                      mc_out,                           // motor control out
@@ -119,6 +127,26 @@ void Interface::write(uint8_t dig_out, uint8_t mc_out)
         serial->write(write_bytes, sizeof(write_bytes));
 
         write_count++;
+    }
+}
+
+// Reset Remote Interface
+void Interface::reset_interface()
+{
+    if (serial != NULL && serial->isOpen())
+    {
+        write_count = 0;
+
+        uint8_t checksum = 0x55 ^ MSG_RESET ^ 0 ^ 0 ^ 0;
+
+        const char write_bytes[] = { 'C', 'B', 'A', 'L', 'L',
+                                     MSG_RESET,
+                                     write_count,
+                                     0,
+                                     0,       
+                                     checksum,                       // checksum
+                                   };
+        serial->write(write_bytes, sizeof(write_bytes));
     }
 }
 
@@ -170,18 +198,31 @@ void Interface::received(const char *data, unsigned int len)
             packet.ai1          = c_get(++packet_index);
             packet.ai2          = c_get(++packet_index);
             packet.ai3          = c_get(++packet_index);
-            stats_found++;
+            stats_found_in++;
+
+            // If not resetting, do stats
+            if ((packet.status & IncomingStatus::RESET) == 0)
+            {
+                // Stats on previous sent packet
+                if ((packet.status & IncomingStatus::CSUM) == 0)
+                    stats_error_out++;
+                else
+                    stats_found_out++;
+
+                if (packet.status & IncomingStatus::MISSED)
+                    stats_missed_out++;
+            }
         }
     }
     else if (packet_index == PACKET_NOT_FOUND)
     {
         if (DEBUG) std::cout << "Packet Not Found" << std::endl;
-        stats_missed++;
+        stats_notfound_in++;
     }
     else if (packet_index == CHECKSUM_ERROR)
     {
         if (DEBUG) std::cout << "Checksum Error" << std::endl;
-        stats_error++;
+        stats_error_in++;
     }
 }
 

@@ -185,6 +185,7 @@ static void tick()
         break;
 
         case STATE_INIT_MENU:
+            outrun.outputs->init();
             menu->init();
             state = STATE_MENU;
             break;

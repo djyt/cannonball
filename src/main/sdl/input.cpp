@@ -40,7 +40,6 @@ void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* 
     }
 
     a_wheel = CENTRE;
-    delay   = 0;
 }
 
 void Input::close()
@@ -255,47 +254,6 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             a_brake = adjusted;
         }
     }
-}
-
-// Use analog controls for menu.
-bool Input::is_analog_l()
-{
-    if (analog && a_wheel < CENTRE - 0x10)
-    {
-        if (--delay < 0)
-        {
-            delay = DELAY_RESET;
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-bool Input::is_analog_r()
-{
-    if (analog && a_wheel > CENTRE + 0x10)
-    {
-        if (--delay < 0)
-        {
-            delay = DELAY_RESET;
-            return true;
-        }
-    }   
-    return false;
-}
-
-bool Input::is_analog_select()
-{
-    if (analog && a_accel > 0x50)
-    {
-        if (--delay < 0)
-        {
-            delay = DELAY_RESET;
-            return true;
-        }
-    }   
-    return false;
 }
 
 void Input::handle_joy_down(SDL_JoyButtonEvent* evt)

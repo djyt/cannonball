@@ -70,9 +70,6 @@ public:
     void frame_done();
     bool is_pressed(presses p);
     bool has_pressed(presses p);
-    bool is_analog_l();
-    bool is_analog_r();
-    bool is_analog_select();
 
 private:
     static const int CENTRE = 0x80;
@@ -91,9 +88,6 @@ private:
     int wheel_zone;
     int wheel_dead;
     int pedals_dead;
-
-    static const int DELAY_RESET = 60;
-    int delay;
 
     void handle_key(const int, const bool);
     void handle_joy(const uint8_t, const bool);

@@ -73,7 +73,7 @@ void OMap::tick()
     {
         // Initialise Route Info
         case MAP_INIT:
-            video.sprite_layer->set_x_clip(true); // Clip the area in wide-screen mode
+            video.sprite_layer->set_x_clip(false); // Don't clip the area in wide-screen mode
             map_route  = roms.rom0.read8(MAP_ROUTE_LOOKUP + ostats.routes[1]);
             map_pos    = 0;
             map_stage1 = 0;
@@ -208,6 +208,9 @@ void OMap::position_ferrari(uint8_t index)
 }
 
 // Initalize Course Map Sprites
+// 
+// Notes: Index 26 is start of water that needs to be changed for widescreen
+// 
 // Source: 0x33F4
 void OMap::load_sprites()
 {
@@ -227,7 +230,6 @@ void OMap::load_sprites()
     for (uint8_t i = 0; i <= MAP_PIECES; i++)
     {
         oentry* sprite     = &osprites.jump_table[i];
-
         sprite->id         = i+1;
         sprite->control    = roms.rom0p->read8(&adr);
         sprite->draw_props = roms.rom0p->read8(&adr);
@@ -243,6 +245,18 @@ void OMap::load_sprites()
         adr += 4; // throw this address away
 
         osprites.map_palette(sprite);
+    }
+
+    // Wide-screen hack to extend sea to edge of screen.
+    if (config.s16_x_off != 0 || config.engine.fix_bugs)
+    {
+        for (uint8_t i = 26; i <= 30; i++)
+        {
+            oentry* sprite = &osprites.jump_table[i];
+            sprite->addr   = osprites.jump_table[31].addr;
+            sprite->x      -= 64;
+            sprite->zoom   = 0x7F;
+        }
     }
 
     // Minicar initalization moved here

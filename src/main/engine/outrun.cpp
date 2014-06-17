@@ -99,7 +99,9 @@ void Outrun::boot()
 void Outrun::tick(Packet* packet, bool tick_frame)
 {
     this->tick_frame = tick_frame;
-    //Packet* packet = config.cannonboard.enabled ? &cannonboard->get_packet() : NULL;
+    
+    if (cannonball::tick_frame)
+        tick_counter++;
 
     if (game_state >= GS_START1 && game_state <= GS_INGAME)
     {
@@ -112,13 +114,6 @@ void Outrun::tick(Packet* packet, bool tick_frame)
             oroad.set_view_mode(mode);
         }
     }
-
-    if (cannonball::tick_frame)
-    {
-        tick_counter++;
-        oinputs.tick(packet); // Do Controls
-    }
-    oinputs.do_gear();   // Digital Gear
 
     // Only tick the road cpu twice for every time we tick the main cpu
     // The timing here isn't perfect, as normally the road CPU would run in parallel with the main CPU.
@@ -176,7 +171,9 @@ void Outrun::vint()
         // ... 
         ostats.do_timers();
         if (cannonball_mode != MODE_TTRIAL) ohud.draw_timer1(ostats.time_counter);
-        oinputs.do_credits();
+        uint8_t coin = oinputs.do_credits();
+        outputs->coin_chute_out(&outputs->chute1, coin == 1);
+        outputs->coin_chute_out(&outputs->chute2, coin == 2);
         oinitengine.set_granular_position();
     }
 }
@@ -236,6 +233,10 @@ void Outrun::jump_table(Packet* packet)
         case GS_LOGO:
             if (!cannonball::tick_frame)
                 ologo.blit();
+
+        case GS_ATTRACT:
+        case GS_BEST1:
+            check_freeplay_start();
         
         default:
             if (tick_frame) osprites.tick();                // Address #3 Jump_SetupSprites
@@ -320,7 +321,6 @@ void Outrun::main_switch()
         // ----------------------------------------------------------------------------------------
         case GS_ATTRACT:
             tick_attract();
-            check_freeplay_start();
             break;
 
         case GS_INIT_BEST1:
@@ -341,7 +341,6 @@ void Outrun::main_switch()
             ohiscore.display_scores();
             ohud.draw_credits();
             ohud.draw_insert_coin();
-            check_freeplay_start();
             if (ostats.credits)
                 game_state = GS_INIT_MUSIC;
             else if (decrement_timers())
@@ -365,7 +364,6 @@ void Outrun::main_switch()
             ohud.draw_insert_coin();
             ologo.tick();
 
-            check_freeplay_start();
             if (ostats.credits)
                 game_state = GS_INIT_MUSIC;
             else if (decrement_timers())
@@ -718,14 +716,31 @@ bool Outrun::decrement_timers()
     if (freeze_timer && game_state == GS_INGAME)
         return false;
 
-    if (--ostats.frame_counter >= 0)
-        return false;
+    // Correct count-down timer running fast at 1/29th (3%)
+    // Fix timer counting extra second
+    if (config.engine.fix_timer)
+    {
+        if (--ostats.frame_counter > 0)
+            return false;
 
-    ostats.frame_counter = ostats.frame_reset;
+        ostats.frame_counter = ostats.frame_reset;
+        ostats.time_counter  = outils::bcd_sub(1, ostats.time_counter);
 
-    ostats.time_counter = outils::bcd_sub(1, ostats.time_counter);
-    
-    return (ostats.time_counter < 0);
+        // We need to manually refresh the HUD here to display '0' seconds
+        if (ostats.time_counter == 0)
+            ohud.draw_timer1(0);
+
+        return (ostats.time_counter == 0);
+    }
+    else
+    {
+        if (--ostats.frame_counter >= 0)
+            return false;
+
+        ostats.frame_counter = ostats.frame_reset;
+        ostats.time_counter  = outils::bcd_sub(1, ostats.time_counter);
+        return (ostats.time_counter < 0);
+    }
 }
 
 // -------------------------------------------------------------------------------
@@ -816,7 +831,7 @@ void Outrun::check_freeplay_start()
 {
     if (config.engine.freeplay)
     {
-        if (input.is_pressed(Input::START))
+        if (input.has_pressed(Input::START))
         {
             if (!ostats.credits)
                 ostats.credits = 1;

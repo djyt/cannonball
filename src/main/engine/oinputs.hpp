@@ -47,7 +47,11 @@ public:
     void tick(Packet* packet);
     void adjust_inputs();
     void do_gear();
-    void do_credits();
+    uint8_t do_credits();
+
+    bool is_analog_l();
+    bool is_analog_r();
+    bool is_analog_select();
 
 private:
     // ------------------------------------------------------------------------
@@ -62,6 +66,12 @@ private:
 
     // Amount to adjust brake per tick. (0x10 is a good test value)
     uint8_t brake_inc;
+
+    static const int DELAY_RESET = 60;
+    int delay1, delay2, delay3;
+
+    // Coin Inputs (Only used by CannonBoard)
+    bool coin1, coin2;
 
     // ------------------------------------------------------------------------
     // Variables from original code
@@ -81,8 +91,7 @@ private:
     // Brake Input
     int16_t input_brake;
 
-    void simulate_analog();
-    void analog();
+    void digital_steering();
     void digital_pedals();
 };
 

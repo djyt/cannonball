@@ -210,7 +210,7 @@ void Menu::populate()
     menu_musictest.push_back(ENTRY_MUSIC4);
     menu_musictest.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL 0.22A © CHRIS WHITE 2014");
+    menu_about.push_back("CANNONBALL 0.3 © CHRIS WHITE 2014");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back(" ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");
@@ -437,21 +437,21 @@ void Menu::draw_text(std::string s)
 void Menu::tick_menu()
 {
     // Tick Controls
-    if (input.has_pressed(Input::DOWN) || input.is_analog_r())
+    if (input.has_pressed(Input::DOWN) || oinputs.is_analog_r())
     {
         osoundint.queue_sound(sound::BEEP1);
 
         if (++cursor >= (int16_t) menu_selected->size())
             cursor = 0;
     }
-    else if (input.has_pressed(Input::UP) || input.is_analog_l())
+    else if (input.has_pressed(Input::UP) || oinputs.is_analog_l())
     {
         osoundint.queue_sound(sound::BEEP1);
 
         if (--cursor < 0)
             cursor = menu_selected->size() - 1;
     }
-    else if (input.has_pressed(Input::ACCEL) || input.has_pressed(Input::START))
+    else if (input.has_pressed(Input::ACCEL) || input.has_pressed(Input::START) || oinputs.is_analog_select())
     {
         // Get option that was selected
         const char* OPTION = menu_selected->at(cursor).c_str();
@@ -461,6 +461,8 @@ void Menu::tick_menu()
             if (SELECTED(ENTRY_PLAYGAME))
             {
                 start_game(Outrun::MODE_ORIGINAL);
+                //cabdiag->set(CabDiag::STATE_MOTORT);
+                //state = STATE_DIAGNOSTICS;
                 return;
             }
             else if (SELECTED(ENTRY_GAMEMODES))

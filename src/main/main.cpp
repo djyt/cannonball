@@ -29,6 +29,7 @@
 #include "frontend/menu.hpp"
 
 #include "cannonboard/interface.hpp"
+#include "engine/oinputs.hpp"
 #include "engine/ooutputs.hpp"
 
 // Direct X Haptic Support.
@@ -126,7 +127,11 @@ static void tick()
 
     process_events();
 
-    switch(state)
+    if (tick_frame)
+        oinputs.tick(packet); // Do Controls
+    oinputs.do_gear();        // Digital Gear
+
+    switch (state)
     {
         case STATE_GAME:
         {
@@ -185,6 +190,7 @@ static void tick()
         break;
 
         case STATE_INIT_MENU:
+            oinputs.init();
             outrun.outputs->init();
             menu->init();
             state = STATE_MENU;

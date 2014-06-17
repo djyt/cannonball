@@ -828,7 +828,7 @@ void OLevelObjs::sprite_clouds(oentry* sprite)
     }
      
     sprite->road_priority = z16;
-    sprite->priority = z16;
+    sprite->priority      = z16;
     sprite->y = -((z16 * oroad.horizon_y2) >> 9) + oroad.horizon_y2; // muls (two 16 bit values, 32 bit result)
 
     uint16_t type = sprite->type; // d1

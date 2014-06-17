@@ -1,3 +1,10 @@
+/***************************************************************************
+    CannonBoard Hardware Interface. 
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "interface.hpp"
 #include "asyncserial.hpp"
 

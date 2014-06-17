@@ -1,3 +1,10 @@
+/***************************************************************************
+    CannonBoard Hardware Interface. 
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "globals.hpp"

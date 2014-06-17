@@ -76,8 +76,7 @@ public:
     // Set when game completed
     bool game_completed;
 
-    // Table to convert value to milliseconds
-    static const uint8_t LAP_MS[];
+    const uint8_t* lap_ms;
 
     // Number of credits inserted
     uint8_t credits;

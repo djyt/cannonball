@@ -168,6 +168,7 @@ void Config::load(const std::string &filename)
     engine.randomgen       = pt_config.get("engine.randomgen",    1);
     engine.fix_bugs_backup = 
     engine.fix_bugs        = pt_config.get("engine.fix_bugs",     1) != 0;
+    engine.fix_timer       = pt_config.get("engine.fix_timer",    0) != 0;
     engine.layout_debug    = pt_config.get("engine.layout_debug", 0) != 0;
     engine.new_attract     = pt_config.get("engine.new_attract", 1) != 0;
 

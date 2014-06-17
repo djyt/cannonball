@@ -783,8 +783,8 @@ void OHiScore::convert_lap_time(uint16_t time)
     seconds = outils::bcd_add(s2, seconds);
 
     // Output Milliseconds
-    laptime[5] = (OStats::LAP_MS[ms_lookup] & 0xF) | TILE_PROPS;
-    laptime[4] = ((OStats::LAP_MS[ms_lookup] & 0xF0) >> 4) | TILE_PROPS;
+    laptime[5] = (ostats.lap_ms[ms_lookup] & 0xF) | TILE_PROPS;
+    laptime[4] = ((ostats.lap_ms[ms_lookup] & 0xF0) >> 4) | TILE_PROPS;
 
     // Output Seconds
     laptime[3] = (seconds & 0xF) | TILE_PROPS;

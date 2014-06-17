@@ -203,7 +203,7 @@ void outils::convert_counter_to_time(uint16_t counter, uint8_t* converted)
 
     converted[0] = (uint8_t) minutes;
     converted[1] = seconds;
-    converted[2] = OStats::LAP_MS[ms_lookup];
+    converted[2] = ostats.lap_ms[ms_lookup];
 }
 
 // Convert 16 Bit Decimal Value To Hex.

@@ -152,6 +152,7 @@ void OHud::draw_timer1(uint16_t time)
         const uint16_t BASE_TILE = 0x8C80;
         draw_timer2(time, 0x1100BE, BASE_TILE);
 
+        // Blank out the OFF text area
         video.write_text16(0x110C2, 0);
         video.write_text16(0x110C2 + 0x80, 0);
     }
@@ -493,12 +494,12 @@ void OHud::draw_insert_coin()
                 if (outrun.tick_counter & BIT_4)
                 {                
                     // Blit each tile
-                    for (uint16_t i = 0; i <= sizeof(PRESS_START); i++)
+                    for (uint16_t i = 0; i < sizeof(PRESS_START); i++)
                         video.write_text16(&dst_addr, (0x8700 | PRESS_START[i]));
                 }
                 else
                 {
-                    for (uint16_t i = 0; i <= sizeof(PRESS_START); i++)
+                    for (uint16_t i = 0; i < sizeof(PRESS_START); i++)
                         video.write_text16(&dst_addr, (0x8700 | 0x20));
                 }
             }

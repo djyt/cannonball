@@ -108,6 +108,7 @@ struct engine_settings_t
     int level_objects;
     bool fix_bugs;
     bool fix_bugs_backup;
+    bool fix_timer;
     bool layout_debug;
     int new_attract;
 };

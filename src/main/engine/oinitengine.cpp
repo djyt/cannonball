@@ -459,13 +459,13 @@ void OInitEngine::check_stage()
             outrun.ttrial.best_lap_counter = counter;
             outrun.ttrial.best_lap[0] = laptimes[0];
             outrun.ttrial.best_lap[1] = laptimes[1];
-            outrun.ttrial.best_lap[2] = OStats::LAP_MS[laptimes[2]];
+            outrun.ttrial.best_lap[2] = ostats.lap_ms[laptimes[2]];
 
             // Draw best laptime
             ostats.extend_play_timer = 0x80;
             ohud.blit_text1(TEXT1_LAPTIME1);
             ohud.blit_text1(TEXT1_LAPTIME2);
-            ohud.draw_lap_timer(0x110554, laptimes, OStats::LAP_MS[laptimes[2]]);
+            ohud.draw_lap_timer(0x110554, laptimes, ostats.lap_ms[laptimes[2]]);
 
             outrun.ttrial.new_high_score = true;
         }

@@ -1,3 +1,19 @@
+/***************************************************************************
+    Cabinet Diagnostics.
+
+    Diagnostics Modes. Based On Original Code, with modifications.
+    Mostly of use for real cabinets.
+
+    - CRT Check
+    - CannonBoard Interface Check
+    - Motor Hardware Test
+    - Brake/Start Lamp Test
+    - Control Input Test
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #pragma once
 
 #include "../stdint.hpp"
@@ -45,5 +61,4 @@ private:
     void blit1_block(uint32_t adr, uint32_t data);
     void blit7_block(uint32_t* adr, uint32_t data);
     void init_motor_test();
-    void tick_motor_test(Packet* packet);
 };

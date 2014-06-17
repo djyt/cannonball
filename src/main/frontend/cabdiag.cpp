@@ -1,3 +1,19 @@
+/***************************************************************************
+    Cabinet Diagnostics.
+
+    Diagnostics Modes. Based On Original Code, with modifications.
+    Mostly of use for real cabinets.
+
+    - CRT Check
+    - CannonBoard Interface Check
+    - Motor Hardware Test
+    - Brake/Start Lamp Test
+    - Control Input Test
+    
+    Copyright Chris White.
+    See license.txt for more details.
+***************************************************************************/
+
 #include "cabdiag.hpp"
 
 #include "../sdl/input.hpp"
@@ -335,9 +351,4 @@ void CabDiag::init_motor_test()
     // Draw Text
     ohud.blit_text_new(15, 2, "DIAGNOSTIC", 0x86);
     ohud.blit_text_new(15, 4, "MOTOR TEST", 0x80);
-}
-
-void CabDiag::tick_motor_test(Packet* packet)
-{
-
 }

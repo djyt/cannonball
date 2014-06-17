@@ -10,6 +10,7 @@
 #include "frontend/ttrial.hpp"
 
 #include "engine/ohud.hpp"
+#include "engine/oinputs.hpp"
 #include "engine/outils.hpp"
 #include "engine/omap.hpp"
 #include "engine/ostats.hpp"
@@ -56,7 +57,7 @@ int TTrial::tick()
             config.load_tiletrial_scores();
             osprites.init();
             video.enabled = true;
-            video.sprite_layer->set_x_clip(true);
+            video.sprite_layer->set_x_clip(false);
             omap.init();
             omap.load_sprites();
             omap.position_ferrari(FERRARI_POS[level_selected = 0]);
@@ -74,17 +75,17 @@ int TTrial::tick()
                 {
                     return BACK_TO_MENU;
                 }
-                else if (input.has_pressed(Input::LEFT) || input.is_analog_l())
+                else if (input.has_pressed(Input::LEFT) || oinputs.is_analog_l())
                 {
                     if (--level_selected < 0)
                         level_selected = sizeof(FERRARI_POS) - 1;
                 }
-                else if (input.has_pressed(Input::RIGHT)|| input.is_analog_r())
+                else if (input.has_pressed(Input::RIGHT)|| oinputs.is_analog_r())
                 {
                     if (++level_selected > sizeof(FERRARI_POS) - 1)
                         level_selected = 0;
                 }
-                else if (input.has_pressed(Input::START) || input.has_pressed(Input::ACCEL))
+                else if (input.has_pressed(Input::START) || input.has_pressed(Input::ACCEL) || oinputs.is_analog_select())
                 {
                     outils::convert_counter_to_time(best_times[level_selected], best_converted);
 

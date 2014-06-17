@@ -18,6 +18,14 @@
 
 #include "stdint.hpp"
 
+struct CoinChute
+{
+    // Coin Chute Counters
+    uint8_t counter[3];
+    // Output bit
+    uint8_t output_bit;
+};
+
 class OOutputs
 {
 public:
@@ -46,6 +54,8 @@ public:
     };
     uint8_t dig_out;
 
+    CoinChute chute1, chute2;
+
     OOutputs(void);
     ~OOutputs(void);
 
@@ -55,6 +65,7 @@ public:
     void tick(const int MODE, int16_t input_motor, int16_t cabinet_type = -1);
     void set_digital(uint8_t);
     void clear_digital(uint8_t);
+    void coin_chute_out(CoinChute* chute, bool insert);
 
 private:
     const static uint16_t STATE_INIT   = 0;

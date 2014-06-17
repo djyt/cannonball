@@ -3,6 +3,7 @@
 
     - Cabinet Vibration & Hydraulic Movement
     - Brake & Start Lamps
+    - Coin Chute Outputs
     
     The Deluxe Motor code is also used by the force-feedback haptic system.
 
@@ -30,6 +31,9 @@
 
 OOutputs::OOutputs(void)
 {
+    chute1.output_bit  = D_COIN1_SUCC;
+    chute2.output_bit  = D_COIN2_SUCC;
+
     col1               = 0;
     col2               = 0;
     limit_left         = 0;
@@ -61,6 +65,12 @@ void OOutputs::init()
     movement_adjust1   = 0;
     movement_adjust2   = 0;
     movement_adjust3   = 0;
+    chute1.counter[0]  = 0;
+    chute1.counter[1]  = 0;
+    chute1.counter[2]  = 0;
+    chute2.counter[0]  = 0;
+    chute2.counter[1]  = 0;
+    chute2.counter[2]  = 0;
 }
 
 void OOutputs::tick(int MODE, int16_t input_motor, int16_t cabinet_type)
@@ -333,7 +343,7 @@ void OOutputs::calibrate_left(int16_t input_motor, uint8_t hw_motor_limit)
     // Left Limit Reached
     else if (hw_motor_limit & BIT_3)
     {
-        ohud.blit_text_new(col2, 10, Utils::to_string(input_motor).c_str(), 0x80);
+        ohud.blit_text_new(col2, 10, Utils::to_hex_string(input_motor).c_str(), 0x80);
         motor_centre_pos = 0;
         limit_left       = input_motor; // Set Left Limit
         hw_motor_control = MOTOR_LEFT;  // Move Left
@@ -377,7 +387,7 @@ void OOutputs::calibrate_right(int16_t input_motor, uint8_t hw_motor_limit)
     // Right Limit Reached
     else if (hw_motor_limit & BIT_5)
     {
-        ohud.blit_text_new(col2, 12, Utils::to_string(input_motor).c_str(), 0x80);
+        ohud.blit_text_new(col2, 12, Utils::to_hex_string(input_motor).c_str(), 0x80);
         limit_right   = input_motor; // Set Right Limit
         motor_state   = STATE_CENTRE;
         counter       = COUNTER_RESET;
@@ -393,6 +403,8 @@ void OOutputs::calibrate_right(int16_t input_motor, uint8_t hw_motor_limit)
 
 void OOutputs::calibrate_centre(int16_t input_motor, uint8_t hw_motor_limit)
 {
+    bool fail = false;
+
     if (hw_motor_limit & BIT_4) 
     {
         if (--counter >= 0)
@@ -402,7 +414,8 @@ void OOutputs::calibrate_centre(int16_t input_motor, uint8_t hw_motor_limit)
         }
         else
         {
-            ohud.blit_text_new(col2, 14, "FAIL");
+            ohud.blit_text_new(col2, 14, "FAIL SW");
+            fail = true;
             // Fall through to EEB6
         }  
     }
@@ -427,9 +440,9 @@ void OOutputs::calibrate_centre(int16_t input_motor, uint8_t hw_motor_limit)
         ohud.blit_text_new(col2, 14, "FAIL DIST");
         motor_enabled = false;
     }
-    else
+    else if (!fail)
     {
-        ohud.blit_text_new(col2, 14, Utils::to_string(motor_centre_pos).c_str(), 0x80);
+        ohud.blit_text_new(col2, 14, Utils::to_hex_string(motor_centre_pos).c_str(), 0x80);
     }
 
     ohud.blit_text_new(13, 17, "TESTS COMPLETE!", 0x82);
@@ -924,5 +937,35 @@ void OOutputs::do_vibrate_mini()
     {
         vibrate_counter++;
         set_digital(D_MOTOR);
+    }
+}
+
+// ------------------------------------------------------------------------------------------------
+// Coin Chute Output
+// Source: 0x6F8C
+// ------------------------------------------------------------------------------------------------
+
+void OOutputs::coin_chute_out(CoinChute* chute, bool insert)
+{
+    // Initalize counter if coin inserted
+    chute->counter[2] = insert ? 1 : 0;
+
+    if (chute->counter[0])
+    {
+        if (--chute->counter[0] != 0)
+            return;
+        chute->counter[1] = 6;
+        clear_digital(chute->output_bit);
+    }
+    else if (chute->counter[1])
+    {
+        chute->counter[1]--;
+    }
+    // Coin first inserted. Called Once. 
+    else if (chute->counter[2])
+    {
+        chute->counter[2]--;
+        chute->counter[0] = 6;
+        set_digital(chute->output_bit);
     }
 }

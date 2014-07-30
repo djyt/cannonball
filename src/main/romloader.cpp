@@ -94,8 +94,8 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     return 0; // success
 }
 
-// Load LayOut Level As Binary File
-int RomLoader::load_level(const char* filename)
+// Load Binary File (LayOut Levels, Tilemap Data etc.)
+int RomLoader::load_binary(const char* filename)
 {
 #ifdef __APPLE__    
     CFBundleRef mainBundle = CFBundleGetMainBundle();
@@ -121,7 +121,7 @@ int RomLoader::load_level(const char* filename)
         return 1; // fail
     }
 
-    int length = filesize(filename);
+    length = filesize(filename);
 
     // Read file
     char* buffer = new char[length];

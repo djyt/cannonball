@@ -2,6 +2,8 @@
 
 #include "stdint.hpp"
 
+class RomLoader;
+
 class hwtiles
 {
 public:
@@ -19,6 +21,8 @@ public:
     ~hwtiles(void);
 
     void init(uint8_t* src_tiles, const bool hires);
+    void patch_tiles(RomLoader* patch);
+    void restore_tiles();
     void set_x_clamp(const uint16_t);
     void update_tile_values();
     void render_tile_layer(uint16_t*, uint8_t, uint8_t);
@@ -32,7 +36,8 @@ private:
     uint16_t s16_width_noscale;
 
     static const int TILES_LENGTH = 0x10000;
-    uint32_t tiles[TILES_LENGTH]; // Converted tiles
+    uint32_t tiles[TILES_LENGTH];        // Converted tiles
+    uint32_t tiles_backup[TILES_LENGTH]; // Converted tiles (backup without patch)
 
     uint16_t page[4];
     uint16_t scroll_x[4];

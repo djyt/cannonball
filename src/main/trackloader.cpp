@@ -86,7 +86,7 @@ bool TrackLoader::set_layout_track(const char* filename)
 
     layout = new RomLoader();
     
-    if (layout->load_level(filename))
+    if (layout->load_binary(filename))
         return false;
 
     mode = MODE_LAYOUT;

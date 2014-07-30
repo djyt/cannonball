@@ -1,4 +1,5 @@
 #include "globals.hpp"
+#include "romloader.hpp"
 #include "hwvideo/hwtiles.hpp"
 #include "frontend/config.hpp"
 
@@ -107,6 +108,7 @@ void hwtiles::init(uint8_t* src_tiles, const bool hires)
             }
             tiles[i] = val; // Store converted value
         }
+        memcpy(tiles_backup, tiles, TILES_LENGTH * sizeof(uint32_t));
     }
     
     if (hires)
@@ -121,6 +123,30 @@ void hwtiles::init(uint8_t* src_tiles, const bool hires)
         render8x8_tile_mask      = &hwtiles::render8x8_tile_mask_lores;
         render8x8_tile_mask_clip = &hwtiles::render8x8_tile_mask_clip_lores;
     }
+}
+
+// Patch Tileset with new data
+void hwtiles::patch_tiles(RomLoader* patch)
+{
+    memcpy(tiles_backup, tiles, TILES_LENGTH * sizeof(uint32_t));
+
+    for (uint32_t i = 0; i < patch->length;)
+    {
+        uint32_t tile_index = patch->read16(&i) << 3;
+        tiles[tile_index++] = patch->read32(&i);
+        tiles[tile_index++] = patch->read32(&i);
+        tiles[tile_index++] = patch->read32(&i);
+        tiles[tile_index++] = patch->read32(&i);
+        tiles[tile_index++] = patch->read32(&i);
+        tiles[tile_index++] = patch->read32(&i);
+        tiles[tile_index++] = patch->read32(&i);
+        tiles[tile_index++] = patch->read32(&i);
+    }
+}
+
+void hwtiles::restore_tiles()
+{
+    memcpy(tiles, tiles_backup, TILES_LENGTH * sizeof(uint32_t));
 }
 
 // Set Tilemap X Clamp

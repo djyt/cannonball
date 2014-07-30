@@ -20,8 +20,8 @@ class video;
 
 class OTiles
 {
-public:
-	// + 0x21: Tilemap Control
+public:       
+    // + 0x21: Tilemap Control
 	// 0 = Clear Tile Table 1 & Init Default Tilemap (Stage 1)
 	// 1 = Scroll Tilemap
 	// 2 = Init Tilemap
@@ -35,13 +35,14 @@ public:
     void init();
     void set_vertical_swap();
 	void setup_palette_tilemap();
+    void setup_palette_widescreen();
 	void setup_palette_hud();
     void reset_tiles_pal();
     void update_tilemaps(int8_t);
     void init_tilemap_palette(uint16_t);
     void fill_tilemap_color(uint16_t);
 	void write_tilemap_hw();
-    void reset_scroll();
+    void set_scroll(int16_t h_scroll = 0, int16_t v_scroll = 0);
 
 private:	
     // Page to use for tilemap. Alternates between 0 and 1 dependent on stage number

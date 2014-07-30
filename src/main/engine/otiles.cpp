@@ -72,7 +72,7 @@ void OTiles::setup_palette_hud()
     }
 }
 
-// Setup default palette for tilemaps for stages 1,3,5
+// Setup default palette for tilemaps for stages 1,3,5 and music select
 // 
 // Source Address: 0x8602
 // Input:          None
@@ -81,9 +81,9 @@ void OTiles::setup_palette_hud()
 void OTiles::setup_palette_tilemap()
 {
     uint32_t src_addr = 0x16FD8;
-    uint32_t pal_addr = 0x120080;
+    uint32_t pal_addr = S16_PALETTE_BASE + (8 * 16); // Palette Entry 8
     
-    for (int i = 0; i <= 0x77; i++)
+    for (int i = 0; i < 120; i++)
     {    
         uint16_t offset = roms.rom0.read8(&src_addr) << 4;
         uint32_t tile_data_addr = 0x17050 + offset;
@@ -94,6 +94,39 @@ void OTiles::setup_palette_tilemap()
         video.write_pal32(&pal_addr, roms.rom0.read32(&tile_data_addr));
         video.write_pal32(&pal_addr, roms.rom0.read32(&tile_data_addr));
     }
+}
+
+// Palette Patch for Widescreen Music Selection Tilemap
+void OTiles::setup_palette_widescreen()
+{
+    // Duplicate 10 palette entries from index 44 onwards.
+    // This is needed due to the new tiles created for widescreen mode and the sharing of 
+    // palette / tile indexes in the data structure.
+    uint32_t src_addr = S16_PALETTE_BASE + (44 * 16);
+    uint32_t pal_addr = S16_PALETTE_BASE + ((64 + 44) * 16);
+
+    for (int i = 0; i < 10; i++)
+    {
+        video.write_pal32(&pal_addr, video.read_pal32(&src_addr));
+        video.write_pal32(&pal_addr, video.read_pal32(&src_addr));
+        video.write_pal32(&pal_addr, video.read_pal32(&src_addr));
+        video.write_pal32(&pal_addr, video.read_pal32(&src_addr));
+    }
+
+    // Create new palette (Entry 72).
+    // Use Palette 53 as a basis for this. 
+    // This is needed for some of the new Widescreen tiles
+    src_addr = S16_PALETTE_BASE + (53 * 16);
+    pal_addr = S16_PALETTE_BASE + (72 * 16);
+    video.write_pal32(&pal_addr, video.read_pal32(&src_addr));
+    video.write_pal32(&pal_addr, video.read_pal32(&src_addr));
+    video.write_pal32(&pal_addr, video.read_pal32(&src_addr));
+    video.write_pal32(&pal_addr, video.read_pal32(&src_addr));
+
+    // Copy wheel colour from Palette 50 to Palette 72, index 2.
+    src_addr = S16_PALETTE_BASE + (50 * 16) + 4;
+    pal_addr = S16_PALETTE_BASE + (72 * 16) + 4;
+    video.write_pal16(&pal_addr, video.read_pal16(&src_addr));
 }
 
 // Reset Tiles, Palette And Road Split Data
@@ -786,7 +819,7 @@ void OTiles::fill_tilemap_color(uint16_t color)
     uint32_t dst        = 0x10F000;
     const uint16_t TILE = color == 0 ? 0x20 : 0x1310;  // Default tile value for background
 
-    reset_scroll();
+    set_scroll(); // Reset scroll
 
     video.write_pal16(&pal_addr, color);
 
@@ -794,14 +827,14 @@ void OTiles::fill_tilemap_color(uint16_t color)
         video.write_tile16(&dst, TILE);
 }
 
-// Helper function to reset scroll
-void OTiles::reset_scroll()
+// Set Tilemap Scroll. Reset Pages
+void OTiles::set_scroll(int16_t h_scroll, int16_t v_scroll)
 {
     tilemap_ctrl = TILEMAP_SCROLL; // Use Palette
-    fg_h_scroll = 0;
-    bg_h_scroll = 0;
-    fg_v_scroll = 0;
-    bg_v_scroll = 0;
+    fg_h_scroll = h_scroll;
+    bg_h_scroll = h_scroll;
+    fg_v_scroll = v_scroll;
+    bg_v_scroll = v_scroll;
 
     fg_psel = 0xFFFF;
     bg_psel = 0xFFFF;

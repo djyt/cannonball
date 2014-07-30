@@ -244,6 +244,7 @@ void Menu::init()
     video.sprite_layer->set_x_clip(false); // Stop clipping in wide-screen mode.
     video.sprite_layer->reset();
     video.clear_text_ram();
+    video.tile_layer->restore_tiles();
     ologo.enable(LOGO_Y);
 
     // Setup palette, road and colours for background

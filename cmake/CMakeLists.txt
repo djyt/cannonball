@@ -238,6 +238,10 @@ if(OPENGL)
     add_definitions(-DWITH_OPENGL)
 endif()
 
+if(CANNONBOARD)
+    add_definitions(-DCANNONBOARD)
+endif()
+
 add_executable(cannonball ${SRCS})
 
 # Copy Configuration file to current build

@@ -6,8 +6,27 @@
 ***************************************************************************/
 
 #include "interface.hpp"
+#ifdef CANNONBOARD
 #include "asyncserial.hpp"
 
+// ----------------------------------------------------------------------------
+// Dummy Functions for Non-CannonBall Builds
+// ----------------------------------------------------------------------------
+#else
+Packet dummy;
+Interface::Interface()  {}
+Interface::~Interface() {}
+void Interface::init(const std::string& port, unsigned int baud) {}
+void Interface::reset_stats() {}
+void Interface::close() {}
+void Interface::start() {}
+void Interface::stop() {}
+bool Interface::started() { return false; }
+void Interface::write(uint8_t dig_out, uint8_t mc_out) {}
+Packet Interface::get_packet() { return dummy; }
+#endif
+
+#ifdef CANNONBOARD
 Interface::Interface()
 {
     serial     = NULL;
@@ -297,3 +316,4 @@ int Interface::c_sub(int a, int b)
         value += BUFFER_SIZE;
     return value;
 }
+#endif

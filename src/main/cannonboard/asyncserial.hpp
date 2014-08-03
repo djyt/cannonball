@@ -1,3 +1,4 @@
+#ifdef CANNONBOARD
 /*
  * File:   AsyncSerial.h
  * Author: Terraneo Federico
@@ -233,3 +234,4 @@ public:
 };
 
 #endif //ASYNCSERIAL_H
+#endif // CANNONBOARD

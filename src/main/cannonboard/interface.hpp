@@ -8,7 +8,11 @@
 #pragma once
 
 #include "globals.hpp"
+#include <string>
+
+#ifdef CANNONBOARD
 #include <boost/thread/mutex.hpp>
+#endif
 
 class CallbackAsyncSerial;
   
@@ -70,7 +74,7 @@ public:
     bool started();
     Packet get_packet();
 
-
+#ifdef CANNONBOARD
 private:
     const static bool DEBUG = false;
 
@@ -114,4 +118,6 @@ private:
     uint8_t c_get(int i);
     int c_add(int a, int b);
     int c_sub(int a, int b);
+#endif
 };
+

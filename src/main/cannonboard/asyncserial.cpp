@@ -1,3 +1,5 @@
+#ifdef CANNONBOARD
+
 /*
  * File:   AsyncSerial.cpp
  * Author: Terraneo Federico
@@ -570,3 +572,5 @@ CallbackAsyncSerial::~CallbackAsyncSerial()
 #if defined(_MSC_VER) && _MSC_VER >= 1400 
     #pragma warning(pop) 
 #endif
+
+#endif // CANNONBOARD

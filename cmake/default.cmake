@@ -10,7 +10,7 @@ if (NOT DEFINED ENV{DXSDK})
 endif()
 
 # Use OpenGL for rendering.
-set(OPENGL 1)
+set(OPENGL 0)
 
 # Use CannonBoard Serial Support
 set(CANNONBOARD 1)
@@ -46,7 +46,7 @@ if (CANNONBOARD)
     link_directories(
         ${Boost_LIBRARY_DIRS}
     )
-
+    
     # Windows 32 C++ Flags for Serial Port Support
     add_definitions(-D_WIN32_WINNT=0x0501)
 

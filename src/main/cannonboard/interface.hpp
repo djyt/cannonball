@@ -72,7 +72,7 @@ public:
     void stop();
     void write(uint8_t dig_out, uint8_t mc_out);
     bool started();
-    Packet get_packet();
+    Packet* get_packet();
 
 #ifdef CANNONBOARD
 private:
@@ -91,6 +91,7 @@ private:
 
     // Packet storage
     Packet packet;
+    Packet packet_copy;
     enum
     {
         PACKET_NOT_FOUND = -1,

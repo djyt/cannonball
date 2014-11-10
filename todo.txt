@@ -1,0 +1,20 @@
+CANNONBOARD:
+X Allow CannonBoard code to be completely compiled out
+- Static compile
+
+WIDESCREEN:
+- Fix clouds
+X Fix music select tilemap
+- Fix sprite entry point at end sequence so they don't pop onto screen
+
+60 FPS ENGINE BUGS:
+- Fix flickering on end sequences
+- Fix road/sprite swap on road join
+
+ENHANCEMENTS:
+X Optional Timer Enhancement
+- Fix palette on level completion
+- Record best lap times on passing checkpoints
+
+3DS ENHANCEMENTS
+- Car Handling Options/Cheats

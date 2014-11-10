@@ -98,7 +98,7 @@
     CannonBoard Arduino Based Interface
  -->
  
-<cannonboard enabled = "1">
+<cannonboard enabled = "0">
     <!-- Port Name -->
     <port>COM6</port>
     

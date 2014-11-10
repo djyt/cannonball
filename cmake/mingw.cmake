@@ -14,6 +14,9 @@ find_package(SDL REQUIRED)
 # Use OpenGL for rendering.
 set(OPENGL 1)
 
+# Use CannonBoard Serial Support
+set(CANNONBOARD 0)
+
 include_directories(
     "${SDL_INCLUDE_DIR}"
     # You may need to remove the next line based on your DirectX setup

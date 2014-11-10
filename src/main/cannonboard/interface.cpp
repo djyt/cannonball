@@ -23,7 +23,7 @@ void Interface::start() {}
 void Interface::stop() {}
 bool Interface::started() { return false; }
 void Interface::write(uint8_t dig_out, uint8_t mc_out) {}
-Packet Interface::get_packet() { return dummy; }
+Packet* Interface::get_packet() { return &dummy; }
 #endif
 
 #ifdef CANNONBOARD
@@ -120,11 +120,10 @@ bool Interface::started()
         return false;
 }
 
-Packet Interface::get_packet()
+Packet* Interface::get_packet()
 {
     boost::lock_guard<boost::mutex> guard(mtx);
     
-    Packet packet_copy;
     packet_copy.status = packet.status;
     packet_copy.di1    = packet.di1;
     packet_copy.di2    = packet.di2;
@@ -134,7 +133,7 @@ Packet Interface::get_packet()
     packet_copy.ai2    = packet.ai2;
     packet_copy.ai3    = packet.ai3;
 
-    return packet_copy;
+    return &packet_copy;
 }
 
 void Interface::write(uint8_t dig_out, uint8_t mc_out)

@@ -10,10 +10,18 @@ if (NOT DEFINED ENV{DXSDK})
 endif()
 
 # Use OpenGL for rendering.
-set(OPENGL 1)
+set(OPENGL 0)
 
 # Use CannonBoard Serial Support
-set(CANNONBOARD 0)
+set(CANNONBOARD 1)
+
+#foreach(flag_var
+        #CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+        #CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+   #if(${flag_var} MATCHES "/MD")
+      #string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+   #endif(${flag_var} MATCHES "/MD")
+#endforeach(flag_var)
 
 include_directories(
     "${sdl_root}/include"
@@ -35,6 +43,8 @@ link_directories(
 )
 
 if (CANNONBOARD)
+    set(Boost_USE_STATIC_LIBS OFF)
+
     # Search for additional boost libraries needed for CannonBoard support: Threading & System
     set(BOOST_INCLUDEDIR ${lib_base}/boost_1_54_0)
     find_package(Boost COMPONENTS thread system REQUIRED)
@@ -46,7 +56,7 @@ if (CANNONBOARD)
     link_directories(
         ${Boost_LIBRARY_DIRS}
     )
-    
+
     # Windows 32 C++ Flags for Serial Port Support
     add_definitions(-D_WIN32_WINNT=0x0501)
 

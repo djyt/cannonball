@@ -113,7 +113,7 @@ static void tick()
     frame++;
 
     // Get CannonBoard Packet Data
-    Packet* packet = config.cannonboard.enabled ? &cannonboard.get_packet() : NULL;
+    Packet* packet = config.cannonboard.enabled ? cannonboard.get_packet() : NULL;
 
     // Non standard FPS.
     // Determine whether to tick the current frame.

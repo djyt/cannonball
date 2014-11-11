@@ -246,7 +246,7 @@
     <traffic>1</traffic>
     
     <!-- Freeplay Mode -->
-    <freeplay>1</freeplay>
+    <freeplay>0</freeplay>
     
     <!-- The original Japanese release of OutRun featured slightly different
          tracks and course ordering. 
@@ -279,7 +279,7 @@
          1. The hundredths of seconds lookup table contains 64 values but there should only be 60 values
             Therefore it takes 31 frames to decrement 1 second on the countdown timer (it should be 30)
          2. Timer counts down 1 complete second AFTER timer reaches zero (it should stop at zero) -->
-    <fix_timer>1</fix_timer>
+    <fix_timer>0</fix_timer>
     
     <!-- Use new Attract Mode which demos different viewpoints and has improved
          Ferrari AI when driving

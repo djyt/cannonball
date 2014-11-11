@@ -22,6 +22,7 @@ public:
     OMusic(void);
     ~OMusic(void);
 
+    bool load_widescreen_map();
     void enable();
     void disable();
     void tick();

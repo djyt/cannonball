@@ -20,19 +20,35 @@ OMusic omusic;
 
 OMusic::OMusic(void)
 {
-    // Load Modified Widescreen version of tilemap
-    tilemap = new RomLoader();
-    tilemap->load_binary("res/tilemap.bin");
-
-    tile_patch = new RomLoader();
-    tile_patch->load_binary("res/tilepatch.bin");
+    tilemap    = NULL;
+    tile_patch = NULL;
 }
 
 
 OMusic::~OMusic(void)
 {
-    delete tilemap;
-    delete tile_patch;
+    if (tilemap)    delete tilemap;
+    if (tile_patch) delete tile_patch;
+}
+
+// Load Modified Widescreen version of tilemap
+bool OMusic::load_widescreen_map()
+{
+    int status = 0;
+
+    if (tilemap == NULL)
+    {
+        tilemap = new RomLoader();
+        status += tilemap->load_binary("res/tilemap.bin");
+    }
+
+    if (tile_patch == NULL)
+    {
+        tile_patch = new RomLoader();
+        status += tile_patch->load_binary("res/tilepatch.bin");
+    }
+
+    return status == 0;
 }
 
 // Initialize Music Selection Screen
@@ -77,7 +93,7 @@ void OMusic::enable()
     setup_sprite5();
 
     // Widescreen tiles need additional palette information copied over
-    if (config.s16_x_off > 0)
+    if (tile_patch->loaded && config.s16_x_off > 0)
     {
         video.tile_layer->patch_tiles(tile_patch);
         otiles.setup_palette_widescreen();
@@ -186,7 +202,7 @@ void OMusic::setup_sprite5()
 // Source: 0xB768
 void OMusic::check_start()
 {
-    if (ostats.credits && input.has_pressed(Input::START))
+    if (ostats.credits && input.is_pressed_clear(Input::START))
     {
         outrun.game_state = GS_INIT_GAME;
         ologo.disable();
@@ -357,7 +373,7 @@ void OMusic::blit_music_select()
     // --------------------------------------------------------------------------------------------
     // Blit to Tilemap 16: Widescreen Version. Uses Custom Tilemap. 
     // --------------------------------------------------------------------------------------------
-    if (config.s16_x_off > 0)
+    if (tilemap->loaded && config.s16_x_off > 0)
     {
         uint32_t tilemap16 = TILEMAP_RAM_16 - 20;
         src_addr = 0;

@@ -21,6 +21,9 @@ public:
     // Size of rom
     uint32_t length;
 
+    // Successfully loaded
+    bool loaded;
+
     RomLoader();
     ~RomLoader();
     void init(uint32_t);

@@ -248,3 +248,10 @@ add_executable(cannonball ${SRCS})
 configure_file(../res/config.xml ./config.xml
     COPYONLY 
 )
+# Copy Resource files
+configure_file(../res/tilemap.bin ./res/tilemap.bin
+    COPYONLY 
+)
+configure_file(../res/tilepatch.bin ./res/tilepatch.bin
+    COPYONLY 
+)

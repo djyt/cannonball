@@ -60,6 +60,14 @@ bool Input::is_pressed(presses p)
     return keys[p];
 }
 
+// Detect whether pressed and clear the press
+bool Input::is_pressed_clear(presses p)
+{
+    bool pressed = keys[p];
+    keys[p] = false;
+    return pressed;
+}
+
 // Denote that a frame has been done by copying key presses into previous array
 void Input::frame_done()
 {

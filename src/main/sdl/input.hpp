@@ -69,6 +69,7 @@ public:
     void handle_joy_up(SDL_JoyButtonEvent*);
     void frame_done();
     bool is_pressed(presses p);
+    bool is_pressed_clear(presses p);
     bool has_pressed(presses p);
 
 private:

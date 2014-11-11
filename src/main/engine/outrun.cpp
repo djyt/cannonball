@@ -206,7 +206,6 @@ void Outrun::jump_table(Packet* packet)
 
             if (!outrun.tick_frame)
             {
-                omusic.check_start();
                 omusic.blit();
             }
             break;
@@ -219,10 +218,10 @@ void Outrun::jump_table(Packet* packet)
             osprites.tick();
             olevelobjs.do_sprite_routine();
 
-            if (!outrun.tick_frame)
+            if (!tick_frame)
             {
                 // Check for start button if credits are remaining and set state to Music Selection
-                if (ostats.credits && input.has_pressed(Input::START))
+                if (ostats.credits && input.is_pressed_clear(Input::START))
                     game_state = GS_INIT_MUSIC;
             }
             break;
@@ -236,7 +235,8 @@ void Outrun::jump_table(Packet* packet)
 
         case GS_ATTRACT:
         case GS_BEST1:
-            check_freeplay_start();
+            if (tick_frame)
+                check_freeplay_start();
         
         default:
             if (tick_frame) osprites.tick();                // Address #3 Jump_SetupSprites
@@ -585,13 +585,6 @@ void Outrun::main_switch()
 
         case GS_BEST2:
             ohiscore.tick(); // Do High Score Logic
-
-            // Check for start button if credits are remaining and set state to Music Selection
-            if (ostats.credits && input.has_pressed(Input::START))
-            {
-                game_state = GS_INIT_MUSIC;
-            }
-
             ohud.draw_credits();
 
             // If countdown has expired
@@ -831,7 +824,7 @@ void Outrun::check_freeplay_start()
 {
     if (config.engine.freeplay)
     {
-        if (input.has_pressed(Input::START))
+        if (input.is_pressed_clear(Input::START))
         {
             if (!ostats.credits)
                 ostats.credits = 1;

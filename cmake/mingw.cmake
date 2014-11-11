@@ -1,5 +1,5 @@
 # MinGW Compiler
-# SDL Setup is different
+# You can use the MAME Toolchain, but copy the 'i686-w64-mingw32' subdirectory over the main MinGW directory.
 
 set(lib_base c:/coding/lib)
 set(sdl_root ${lib_base}/SDL-1.2.15)
@@ -14,7 +14,7 @@ find_package(SDL REQUIRED)
 # Use OpenGL for rendering.
 set(OPENGL 1)
 
-# Use CannonBoard Serial Support
+# Use CannonBoard Serial Support (Not yet tested on MINGW build)
 set(CANNONBOARD 0)
 
 include_directories(

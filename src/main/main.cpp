@@ -31,6 +31,7 @@
 #include "cannonboard/interface.hpp"
 #include "engine/oinputs.hpp"
 #include "engine/ooutputs.hpp"
+#include "engine/omusic.hpp"
 
 // Direct X Haptic Support.
 // Fine to include on non-windows builds as dummy functions used.
@@ -289,6 +290,10 @@ int main(int argc, char* argv[])
         // Load fixed PCM ROM based on config
         if (config.sound.fix_samples)
             roms.load_pcm_rom(true);
+
+        // Load patched widescreen tilemaps
+        if (!omusic.load_widescreen_map())
+            std::cout << "Unable to load widescreen tilemaps" << std::endl;
 
         //Set the window caption 
         SDL_WM_SetCaption( "Cannonball", NULL ); 

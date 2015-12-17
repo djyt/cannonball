@@ -10,7 +10,12 @@
 
 #pragma once
 
+#ifdef SDL2
+#include "sdl2/input.hpp"
+#else
 #include "sdl/input.hpp"
+#endif
+
 #include "outrun.hpp"
 
 struct Packet;

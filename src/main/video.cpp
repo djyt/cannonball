@@ -17,17 +17,42 @@
 #include "frontend/config.hpp"
 
 #ifdef WITH_OPENGL
+
+#if defined SDL2
+#include "sdl2/rendergl.hpp"
+#else
 #include "sdl/rendergl.hpp"
+#endif
+
+#endif
+
+#if defined SDL2
+
+#if defined WITH_OPENGLES
+#include "sdl2/rendergles.hpp"
+#else
+#include "sdl2/rendersurface.hpp"
+#endif
+
 #else
 #include "sdl/rendersw.hpp"
-#endif
-    
+#endif //SDL2
+
 Video video;
 
 Video::Video(void)
 {
     #ifdef WITH_OPENGL
     renderer     = new RenderGL();
+    
+    #elif defined SDL2
+
+    #ifdef WITH_OPENGLES
+    renderer	 = new RenderGLES();
+    #else
+    renderer     = new RenderSurface();
+    #endif
+
     #else
     renderer     = new RenderSW();
     #endif

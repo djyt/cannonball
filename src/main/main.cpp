@@ -10,13 +10,21 @@
 
 // SDL Library
 #include <SDL.h>
+#ifndef SDL2
 #pragma comment(lib, "SDLmain.lib") // Replace main with SDL_main
+#endif
 #pragma comment(lib, "SDL.lib")
 #pragma comment(lib, "glu32.lib")
 
 // SDL Specific Code
+#if defined SDL2
+#include "sdl2/timer.hpp"
+#include "sdl2/input.hpp"
+#else
 #include "sdl/timer.hpp"
 #include "sdl/input.hpp"
+#endif
+
 #include "video.hpp"
 
 #include "romloader.hpp"
@@ -295,8 +303,10 @@ int main(int argc, char* argv[])
         if (!omusic.load_widescreen_map())
             std::cout << "Unable to load widescreen tilemaps" << std::endl;
 
+#ifndef SDL2
         //Set the window caption 
         SDL_WM_SetCaption( "Cannonball", NULL ); 
+#endif
 
         // Initialize SDL Video
         if (!video.init(&roms, &config.video))

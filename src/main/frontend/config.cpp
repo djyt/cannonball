@@ -22,6 +22,14 @@
 #include "engine/ohiscore.hpp"
 #include "engine/audio/osoundint.hpp"
 
+// api change in boost 1.56
+#include <boost/version.hpp>
+#if (BOOST_VERSION >= 105600)
+typedef boost::property_tree::xml_writer_settings<std::string> xml_writer_settings;
+#else
+typedef boost::property_tree::xml_writer_settings<char> xml_writer_settings;
+#endif
+
 Config config;
 
 Config::Config(void)
@@ -237,13 +245,9 @@ bool Config::save(const std::string &filename)
     ttrial.traffic = pt_config.get("time_trial.traffic", 3);
     cont_traffic   = pt_config.get("continuous.traffic", 3);
 
-
-    // Tab space 1
-    boost::property_tree::xml_writer_settings<char> settings('\t', 1);
-
     try
     {
-        write_xml(filename, pt_config, std::locale(), settings);
+        write_xml(filename, pt_config, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
     }
     catch (std::exception &e)
     {
@@ -309,12 +313,9 @@ void Config::save_scores(const std::string &filename)
         pt.put(xmltag + ".time",     Utils::to_hex_string(e->time));
     }
     
-    // Tab space 1
-    boost::property_tree::xml_writer_settings<char> settings('\t', 1);
-    
     try
     {
-        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), settings);
+        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
     }
     catch (std::exception &e)
     {
@@ -365,12 +366,9 @@ void Config::save_tiletrial_scores()
         pt.put("time_trial.score" + Utils::to_string(i), ttrial.best_times[i]);
     }
 
-    // Tab space 1
-    boost::property_tree::xml_writer_settings<char> settings('\t', 1);
-    
     try
     {
-        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), settings);
+        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
     }
     catch (std::exception &e)
     {

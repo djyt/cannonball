@@ -2,6 +2,7 @@
 #include "romloader.hpp"
 #include "hwvideo/hwtiles.hpp"
 #include "frontend/config.hpp"
+#include <cstring>
 
 /***************************************************************************
     Video Emulation: OutRun Tilemap Hardware.

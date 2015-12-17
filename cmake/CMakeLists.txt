@@ -98,34 +98,80 @@ set(src_hwaudio
     "${main_cpp_base}/hwaudio/ym2151.cpp"
     )
    
-if(OPENGL)
-    set(src_sdl
-        "${main_cpp_base}/sdl/audio.hpp"
-        "${main_cpp_base}/sdl/timer.hpp"
-        "${main_cpp_base}/sdl/input.hpp"
-        "${main_cpp_base}/sdl/renderbase.hpp"
-        "${main_cpp_base}/sdl/rendergl.hpp"
+if(SDL2)
+	if(OPENGL)
+	    set(src_sdl
+		"${main_cpp_base}/sdl2/audio.hpp"
+		"${main_cpp_base}/sdl2/timer.hpp"
+		"${main_cpp_base}/sdl2/input.hpp"
+		"${main_cpp_base}/sdl2/renderbase.hpp"
+		"${main_cpp_base}/sdl2/rendergl.hpp"
 
-        "${main_cpp_base}/sdl/audio.cpp"
-        "${main_cpp_base}/sdl/timer.cpp"
-        "${main_cpp_base}/sdl/input.cpp"
-        "${main_cpp_base}/sdl/renderbase.cpp"
-        "${main_cpp_base}/sdl/rendergl.cpp"
-        )   
-else()
-    set(src_sdl
-        "${main_cpp_base}/sdl/audio.hpp"
-        "${main_cpp_base}/sdl/timer.hpp"
-        "${main_cpp_base}/sdl/input.hpp"
-        "${main_cpp_base}/sdl/renderbase.hpp"
-        "${main_cpp_base}/sdl/rendersw.hpp"
+		"${main_cpp_base}/sdl2/audio.cpp"
+		"${main_cpp_base}/sdl2/timer.cpp"
+		"${main_cpp_base}/sdl2/input.cpp"
+		"${main_cpp_base}/sdl2/renderbase.cpp"
+		"${main_cpp_base}/sdl2/rendergl.cpp"
+		)
+	elseif(OPENGLES)
+	    set(src_sdl
+		"${main_cpp_base}/sdl2/audio.hpp"
+		"${main_cpp_base}/sdl2/timer.hpp"
+		"${main_cpp_base}/sdl2/input.hpp"
+		"${main_cpp_base}/sdl2/renderbase.hpp"
+		"${main_cpp_base}/sdl2/rendergles.hpp"
 
-        "${main_cpp_base}/sdl/audio.cpp"
-        "${main_cpp_base}/sdl/timer.cpp"
-        "${main_cpp_base}/sdl/input.cpp"
-        "${main_cpp_base}/sdl/renderbase.cpp"
-        "${main_cpp_base}/sdl/rendersw.cpp"
-        )
+		"${main_cpp_base}/sdl2/audio.cpp"
+		"${main_cpp_base}/sdl2/timer.cpp"
+		"${main_cpp_base}/sdl2/input.cpp"
+		"${main_cpp_base}/sdl2/renderbase.cpp"
+		"${main_cpp_base}/sdl2/rendergles.cpp"
+		)   
+	else()
+	    set(src_sdl
+		"${main_cpp_base}/sdl2/audio.hpp"
+		"${main_cpp_base}/sdl2/timer.hpp"
+		"${main_cpp_base}/sdl2/input.hpp"
+		"${main_cpp_base}/sdl2/renderbase.hpp"
+		"${main_cpp_base}/sdl2/rendersurface.hpp"
+
+		"${main_cpp_base}/sdl2/audio.cpp"
+		"${main_cpp_base}/sdl2/timer.cpp"
+		"${main_cpp_base}/sdl2/input.cpp"
+		"${main_cpp_base}/sdl2/renderbase.cpp"
+		"${main_cpp_base}/sdl2/rendersurface.cpp"
+		)
+	endif()
+else()  #Using legacy, unmantained SDL1.x
+	if(OPENGL)
+	    set(src_sdl
+		"${main_cpp_base}/sdl/audio.hpp"
+		"${main_cpp_base}/sdl/timer.hpp"
+		"${main_cpp_base}/sdl/input.hpp"
+		"${main_cpp_base}/sdl/renderbase.hpp"
+		"${main_cpp_base}/sdl/rendergl.hpp"
+
+		"${main_cpp_base}/sdl/audio.cpp"
+		"${main_cpp_base}/sdl/timer.cpp"
+		"${main_cpp_base}/sdl/input.cpp"
+		"${main_cpp_base}/sdl/renderbase.cpp"
+		"${main_cpp_base}/sdl/rendergl.cpp"
+		)   
+	else()
+	    set(src_sdl
+		"${main_cpp_base}/sdl/audio.hpp"
+		"${main_cpp_base}/sdl/timer.hpp"
+		"${main_cpp_base}/sdl/input.hpp"
+		"${main_cpp_base}/sdl/renderbase.hpp"
+		"${main_cpp_base}/sdl/rendersw.hpp"
+
+		"${main_cpp_base}/sdl/audio.cpp"
+		"${main_cpp_base}/sdl/timer.cpp"
+		"${main_cpp_base}/sdl/input.cpp"
+		"${main_cpp_base}/sdl/renderbase.cpp"
+		"${main_cpp_base}/sdl/rendersw.cpp"
+		)
+	endif()
 endif()
 
 set(src_directx
@@ -238,6 +284,10 @@ if(OPENGL)
     add_definitions(-DWITH_OPENGL)
 endif()
 
+if(OPENGLES)
+    add_definitions(-DWITH_OPENGLES)
+endif()
+
 if(CANNONBOARD)
     add_definitions(-DCANNONBOARD)
 endif()
@@ -245,9 +295,17 @@ endif()
 add_executable(cannonball ${SRCS})
 
 # Copy Configuration file to current build
+
+if(SDL2)
+configure_file(../res/config_sdl2.xml ./config.xml
+    COPYONLY 
+)
+else()
 configure_file(../res/config.xml ./config.xml
     COPYONLY 
 )
+endif()
+
 # Copy Resource files
 configure_file(../res/tilemap.bin ./res/tilemap.bin
     COPYONLY 

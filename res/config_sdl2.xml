@@ -10,7 +10,7 @@
          1 is full-screen
          2 is full-screen stretched, no borders. (Aspect ratio will be lost. Scanlines will be disabled.)
     -->
-    <mode>0</mode>
+    <mode>1</mode>
 
     <!-- 
         Windowed Mode Settings 

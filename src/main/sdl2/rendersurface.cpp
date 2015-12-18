@@ -121,6 +121,12 @@ bool RenderSurface::init(int src_width, int src_height,
                                   0,
                                   0);
 
+    if (!surface)
+    {
+        std::cerr << "Surface creation failed: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear"); 
     window = SDL_CreateWindow(
         "Cannonball", 0, 0, scn_width, scn_height, 
@@ -131,11 +137,6 @@ bool RenderSurface::init(int src_width, int src_height,
                                SDL_PIXELFORMAT_ARGB8888,
                                SDL_TEXTUREACCESS_STREAMING,
                                src_width, src_height);
-    if (!surface)
-    {
-        std::cerr << "Surface creation failed: " << SDL_GetError() << std::endl;
-        return false;
-    }
 
     // Convert the SDL pixel surface to 32 bit.
     // This is potentially a larger surface area than the internal pixel array.

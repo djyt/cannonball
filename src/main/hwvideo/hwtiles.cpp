@@ -1,3 +1,4 @@
+#include <cstring> // memcpy
 #include "globals.hpp"
 #include "romloader.hpp"
 #include "hwvideo/hwtiles.hpp"

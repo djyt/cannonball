@@ -1,0 +1,315 @@
+<?xml version="1.0"?>
+
+<!-- 
+    Video Settings
+-->
+<video>
+    <!-- Set Screen Mode: 
+    
+         0 is windowed, 
+         1 is full-screen
+         2 is full-screen stretched, no borders. (Aspect ratio will be lost. Scanlines will be disabled.)
+    -->
+    <mode>1</mode>
+
+    <!-- 
+        Windowed Mode Settings 
+        Scale: Scale or zoom factor for window mode. 1 is original size. 
+    -->
+    <window>
+        <scale>2</scale>
+    </window>
+
+    <!-- 
+        Scanline intensity.
+        0   = No scanlines
+        100 = Solid black
+        
+        A value of 35 looks good on my LCD monitor.
+        
+        Note that scanlines require a scale factor of 2 or more. 
+        Scanlines do not work in full-screen stretch mode.
+        Scanlines may result in some borders around the screen in full-screen mode.
+    -->
+    <scanlines>0</scanlines>
+
+    <!-- FPS 
+         0 = 30    FPS. Optimized Mode       (Slow computers)
+         1 = 30/60 FPS. Original Game Mode.  (The original experience)
+         2 = 60    FPS. Smooth Mode.         (Full 60fps)
+    -->
+    <fps>2</fps>
+    
+    <!-- Enable FPS Counter -->
+    <fps_counter>0</fps_counter>
+    
+    <!-- Enhanced Widescreen Mode -->
+    <widescreen>1</widescreen>
+    
+    <!-- Higher Internal Resolution. Better Sprite Scaling, but has a performance hit. 
+         Disable for original experience. -->
+    <hires>0</hires>
+    
+    <!-- Open GL Filtering for Scaling. 0 = Nearest Neighbour. 1 = Linear -->
+    <filtering>0</filtering>
+</video>
+
+<!-- 
+    Sound Settings
+-->
+<sound>
+    <!-- Toggle Sound -->
+    <enable>1</enable>
+    
+    <!-- Advertise Sound In Attract Mode -->
+    <advertise>1</advertise>
+    
+    <!-- Preview Sound On Music Selection Screen (Enhancement, Off in original game) -->
+    <preview>1</preview>
+    
+    <!-- OutRun shipped with a corrupt PCM sample ROM. This uses the repaired ROM 'opr-10188.71f' -->
+    <fix_samples>0</fix_samples>
+    
+    <!-- Custom Music: Play a WAV file instead of the inbuilt music -->
+    <custom_music>
+        <!-- Magical Sound Shower Replacement -->
+        <track1 enabled = "0">
+            <title>MAGICAL SOUND SHOWER REMIX</title>
+            <filename>track1.wav</filename>
+        </track1>
+        <!-- Passing Breeze Replacement -->
+        <track2 enabled = "0">
+            <title>PASSING BREEZE REMIX</title>
+            <filename>track2.wav</filename>
+        </track2>
+        <!-- Splash Wave Replacement -->
+        <track3 enabled = "0">
+            <title>SPLASH WAVE REMIX</title>
+            <filename>track3.wav</filename>
+        </track3>
+        <track4 enabled = "0">
+            <title>LAST WAVE REMIX</title>
+            <filename>track4.wav</filename>
+        </track4>
+    </custom_music>
+</sound>
+
+<!--
+    CannonBoard Arduino Based Interface
+ -->
+ 
+<cannonboard enabled = "0">
+    <!-- Port Name -->
+    <port>COM6</port>
+    
+    <!-- Baud Rate -->
+    <baud>57600</baud>
+    
+    <!-- Machine Type. 0 = Moving, 1 = Up Cockpit, 2 = Mini -->
+    <cabinet>0</cabinet>
+    
+    <!-- Write Debug Information To Console-->
+    <debug>1</debug>
+</cannonboard>
+
+<!-- 
+    Controls Settings
+    
+    There are two high level modes
+    
+    0 = Standard PC Input (keyboard/joypad/wheel)
+    1 = Original OutRun Controls (Requires CannonBoard PCB setup)
+    
+-->
+<controls mode = "1">
+    <!-- Gears: 
+        0 = Manual   (Click to shift, for normal play)
+        1 = Manual   (Hold to shift, for cabinet play)
+        2 = Manual   (Separate Buttons for High/Low)
+        3 = Automatic 
+    -->
+    <gear>0</gear>
+    
+    <!-- Use the N'th joystick on the system. -->
+    <pad_id>0</pad_id>
+    
+    <!-- Keyboard Button Configuration. Easiest to configure with inbuilt menu. -->
+    <keyconfig>
+    	<up>1073741906</up>
+	<down>1073741905</down>
+	<left>1073741904</left>
+	<right>1073741903</right>
+        <acc>122</acc>
+        <brake>120</brake>
+        <gear1>32</gear1>
+        <gear2>32</gear2>
+        <start>49</start>
+        <coin>53</coin>
+        <menu>286</menu>
+        <view>304</view>
+    </keyconfig>
+    
+    <!-- Gamepad / Joystick Button Configuration. Easiest to configure with inbuilt menu. -->
+    <padconfig>
+        <acc>0</acc>
+        <brake>1</brake>
+        <gear1>2</gear1>
+        <gear2>2</gear2>
+        <start>3</start>
+        <coin>4</coin>
+        <menu>5</menu>    
+        <view>6</view>
+    </padconfig>
+           
+    <!-- Digital Controls: Steering Adjust Speed (1 to 9) -->
+    <steerspeed>3</steerspeed>
+    
+    <!-- Digital Controls: Pedal Adjust Speed (1 to 9) -->
+    <pedalspeed>4</pedalspeed>
+    
+    <!-- Analog Controls
+         0 = Off
+         1 = On
+         2 = Wheel Only
+    -->
+    <analog enabled = "0">
+        <!-- Select axis for analog controls 
+             You can place the accelerator and the brake on the same axis if your controller
+             has a split axis setup.
+             
+             For an XBox 360 Controller, the wheel should be axis 0 and the pedals on axis 2.
+          -->
+        <axis>
+            <wheel>0</wheel>
+            <accel>2</accel>
+            <brake>3</brake>
+        </axis>
+        
+        <!-- Analog Wheel Settings -->
+        <wheel>
+            <!-- Amount of wheel turning circle to use.
+                 Example:  0 means use the entire wheel (this works best if haptic is enabled)
+                 larger values mean to progressively use less of the wheel turning circle -->
+            <zone>0</zone>
+            
+            <!-- Dead Zone In Centre Of Wheel. Total Wheel Range = 128
+                 A Dead zone is useful if the centre accuracy of your wheel is poor.
+                 A good Logitech Racing wheel should not need this -->
+            <dead>0</dead>
+        </wheel>
+        
+        <!-- Analog Pedal Settings -->
+        <pedals>
+            <!-- Central Dead Zone: Only used for split axis controls -->
+            <dead>1</dead>
+        </pedals>
+        
+        <!-- Force Feedback / Haptic Support -->
+        <haptic enabled = "0">
+        
+            <!-- Make both of the below values negative, 
+                 if force feedback is in the wrong direction -->
+        
+            <!-- Maximum Force To Apply (0 to 10000) -->
+            <max_force>8500</max_force>
+            
+            <!-- Minimum Force To Apply (0 to max_force) -->
+            <min_force>7000</min_force>
+            
+            <!-- Length of each effect. (1/x seconds) 1/20th suggested. -->
+            <force_duration>20</force_duration>
+        </haptic>
+        
+    </analog>
+</controls>
+
+<!-- 
+    Game Engine Settings
+-->
+<engine>
+    <!-- Game Time: 
+         0 = Easy      (80 seconds)
+         1 = Normal    (75 seconds) 
+         2 = Hard      (72 seconds) 
+         3 = Very Hard (70 seconds)  
+         4 = Infinite Time 
+    -->
+    <time>0</time>
+    
+    <!-- Traffic Difficulty: 
+         0 = Easy, 
+         1 = Normal, 
+         2 = Hard, 
+         3 = Very Hard 
+         4 = No Traffic
+    -->
+    <traffic>1</traffic>
+    
+    <!-- Freeplay Mode -->
+    <freeplay>0</freeplay>
+    
+    <!-- The original Japanese release of OutRun featured slightly different
+         tracks and course ordering. 
+         
+         Requires additional ROM files:
+         epr-10380.133, epr-10382.118, epr-10381.132, epr-10383.117
+         epr-10327.76,  epr-10329.58,  epr-10328.75,  epr-10330.57
+    --->
+    <japanese_tracks>0</japanese_tracks>
+    
+    <!-- Swap In Prototype Coconut Beach Track -->
+    <prototype>0</prototype>
+    
+    <!-- Increase the number of allowed level objects. 
+         This fixes the broken arches in Gateway for example.
+    --->
+    <levelobjects>1</levelobjects>
+    
+    <!-- Use the original random number generator seed to match the setup of
+         the original game. Disable to use a truly random setup.
+         This will affect initial traffic patterns in attract mode for example.
+    -->
+    <randomgen>1</randomgen>
+    
+    <!-- Fix minor bugs present in the original engine. -->
+    <!-- Tile on music select screen, ms value at checkpoint etc. -->
+    <fix_bugs>1</fix_bugs>
+    
+    <!-- Fixes two timing bugs:
+         1. The hundredths of seconds lookup table contains 64 values but there should only be 60 values
+            Therefore it takes 31 frames to decrement 1 second on the countdown timer (it should be 30)
+         2. Timer counts down 1 complete second AFTER timer reaches zero (it should stop at zero) -->
+    <fix_timer>0</fix_timer>
+    
+    <!-- Use new Attract Mode which demos different viewpoints and has improved
+         Ferrari AI when driving
+    -->
+    <new_attract>1</new_attract>
+    
+    <!-- Display debug info that's useful for LayOut track editing -->
+    <layout_debug>0</layout_debug>
+</engine>
+
+<!-- Settings for Time Trial Mode -->
+<time_trial>
+    <!-- Default Number of Laps (1 - 5) -->
+    <laps>3</laps>
+    
+    <!-- Default Amount of Traffic (0 - 8), where 0 is off -->
+    <traffic>3</traffic>
+</time_trial>
+
+<!-- Settings for Continuous Mode -->
+<continuous>
+    <!-- Default Amount of Traffic (0 - 8), where 0 is off -->
+    <traffic>3</traffic>
+</continuous>
+
+<!-- 
+    Use the inbuilt menu system. 
+    You can disable it and edit this config file instead if it makes more sense for your system.
+ -->
+<menu>
+    <enabled>1</enabled>
+    <roadspeed>25</roadspeed>
+</menu>

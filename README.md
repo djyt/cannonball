@@ -48,6 +48,11 @@ Build
 
     cmake -G "Visual Studio 10" ../cmake
 
+### Mac OSX
+
+    cmake -G "Unix Makefiles" -DTARGET:STRING=macosx ../cmake
+    make
+
 * Copy SDL.DLL and the roms subdirectory to the build directory.
 * Right click the 'cannonball' project in the IDE and choose 'Set as StartUp project'. 
 * You can then compile, debug and run from Visual Studio as expected.

@@ -347,7 +347,7 @@ void Audio::load_wav(const char* filename)
 
         // Halve Volume Of Wav File
         uint8_t* data_vol = new uint8_t[length];
-        SDL_MixAudio(data_vol, data, length, SDL_MIX_MAXVOLUME / 2);
+	SDL_MixAudioFormat(data_vol, data, wave.format, length, SDL_MIX_MAXVOLUME / 2);
 
         // WAV File Needs Conversion To Target Format
         if (wave.format != AUDIO_S16 || wave.channels != 2 || wave.freq != FREQ)

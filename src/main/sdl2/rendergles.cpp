@@ -40,80 +40,56 @@ static const char *fragment_shader =
    "}";
 
 const char* vertex_shader_scanlines =
-	"uniform mat4 MVPMatrix;"
-	"uniform mediump vec2 OutputSize;"
-	"uniform mediump vec2 TextureSize;"
-	"uniform mediump vec2 InputSize;"
+"attribute vec4 VertexCoord;\n"
+"attribute vec4 COLOR;\n"
+"attribute vec4 TexCoord;\n"
+"varying vec4 COL0;\n"
+"varying vec4 TEX0;\n"
+"varying vec2 omega;\n"
 
-	"attribute vec4 VertexCoord;"
-	"attribute vec4 TexCoord;"
-	"varying vec4 TEX0;"
-	"varying vec4 TEX2;"
-	"varying     vec2 _omega;"
+"vec4 _oPosition1;\n"
+"uniform mat4 MVPMatrix;\n"
+"uniform mediump int FrameDirection;\n"
+"uniform mediump int FrameCount;\n"
+"uniform mediump vec2 OutputSize;\n"
+"uniform mediump vec2 TextureSize;\n"
+"uniform mediump vec2 InputSize;\n"
 
-	"struct sine_coord {"
-	"    vec2 _omega;"
-	"};"
-
-	"vec4 _oPosition1;"
-	"vec4 _r0006;"
-	 
-	"void main()"
-	"{"
-	"    vec2 _oTex;"
-	"    sine_coord _coords;"
-	"    _r0006 = VertexCoord.x*MVPMatrix[0];"
-	"    _r0006 = _r0006 + VertexCoord.y*MVPMatrix[1];"
-	"    _r0006 = _r0006 + VertexCoord.z*MVPMatrix[2];"
-	"    _r0006 = _r0006 + VertexCoord.w*MVPMatrix[3];"
-	"    _oPosition1 = _r0006;"
-	"    _oTex = TexCoord.xy;"
-	"    _coords._omega = vec2((3.14150000E+00*OutputSize.x*TextureSize.x)/InputSize.x, 6.28299999E+00*TextureSize.y);"
-	"    gl_Position = _r0006;"
-	"    TEX0.xy = TexCoord.xy;"
-	"    TEX2.xy = _coords._omega;"
-	"}";
+"void main()\n"
+"{\n"
+"    gl_Position = MVPMatrix * VertexCoord;\n"
+"    COL0 = COLOR;\n"
+"    TEX0.xy = TexCoord.xy;\n"
+"	omega = vec2(3.141592654 * OutputSize.x, 2.0 * 3.141592654 * TextureSize.y);\n"
+"}"
+;
 
 const char* fragment_shader_scanlines =
-	"precision mediump float;"
 
-	"uniform mediump vec2 OutputSize;"
-	"uniform mediump vec2 TextureSize;"
-	"uniform mediump vec2 InputSize;"
-	"uniform sampler2D Texture;"
+"precision mediump float;\n"
 
-	"varying vec2 _omega;"
-	"varying vec4 TEX2;"
-	"varying vec4 TEX0;"
+"uniform mediump int FrameDirection;\n"
+"uniform mediump int FrameCount;\n"
+"uniform mediump vec2 OutputSize;\n"
+"uniform mediump vec2 TextureSize;\n"
+"uniform mediump vec2 InputSize;\n"
+"uniform sampler2D Texture;\n"
+"uniform mediump float SCANLINE_BASE_BRIGHTNESS;\n"
 
-	"struct sine_coord {"
-	"    vec2 _omega;"
-	"};"
-	"vec4 _ret_0;"
-	"float _TMP2;"
-	"vec2 _TMP1;"
-	"float _TMP4;"
-	"float _TMP3;"
-	"vec4 _TMP0;"
-	"vec2 _x0009;"
-	"vec2 _a0015;"
+"varying vec4 TEX0;\n"
+"varying vec2 omega;\n"
 
-	"void main()"
-	"{"
-	"    vec3 _scanline;"
-	"    _TMP0 = texture2D(Texture, TEX0.xy);"
-	"    _x0009 = TEX0.xy*TEX2.xy;"
-	"    _TMP3 = sin(_x0009.x);"
-	"    _TMP4 = sin(_x0009.y);"
-	"    _TMP1 = vec2(_TMP3, _TMP4);"
-	"    _a0015 = vec2( 5.00000007E-02, 1.50000006E-01)*_TMP1;"
-	"    _TMP2 = dot(_a0015, vec2( 1.00000000E+00, 1.00000000E+00));"
-	"    _scanline = _TMP0.xyz*(9.49999988E-01 + _TMP2);"
-	"    _ret_0 = vec4(_scanline.x, _scanline.y, _scanline.z, 1.00000000E+00);"
-	"    gl_FragColor = _ret_0;"
-	"    return;"
-	"}"
-;
+"mediump float SCANLINE_SINE_COMP_A = 0.0;\n"
+"mediump float SCANLINE_SINE_COMP_B = 0.10;\n"
+
+"void main()\n"
+"{\n"
+"   vec2 sine_comp = vec2(SCANLINE_SINE_COMP_A, SCANLINE_SINE_COMP_B);\n"
+"   vec3 res = texture2D(Texture, TEX0.xy).xyz;\n"
+"   vec3 scanline = res * (SCANLINE_BASE_BRIGHTNESS + dot(sine_comp * sin(TEX0.xy * omega), vec2(1.0, 1.0)));\n"
+"   gl_FragColor = vec4(scanline.x, scanline.y, scanline.z, 1.0);\n"
+"}"
+; 
 
 const GLfloat vertices[] =
 {
@@ -312,13 +288,14 @@ void gles_show_error()
 	}
 }
 
-void RenderGLES::gles2_init_shaders (unsigned texture_width, unsigned texture_height,
-	unsigned output_width, unsigned output_height, int scanlines) {
+void RenderGLES::gles2_init_shaders (unsigned input_width, unsigned input_height,
+	unsigned display_width, unsigned display_height, int scanlines) {
 	
 	memset(&shader, 0, sizeof(__ShaderInfo));
 
 	// Load custom shaders
    	float input_size[2], output_size[2], texture_size[2];
+	float scanline_bright;
 	
 	if (scanlines)
 		shader.program = CreateProgram(vertex_shader_scanlines, fragment_shader_scanlines);
@@ -332,15 +309,24 @@ void RenderGLES::gles2_init_shaders (unsigned texture_width, unsigned texture_he
 		shader.a_position    = glGetAttribLocation(shader.program, "VertexCoord");
 		
 		if (scanlines) {
-			shader.input_size    = glGetUniformLocation(shader.program, "InputSize");
-			shader.output_size   = glGetUniformLocation(shader.program, "OutputSize");
-			shader.texture_size  = glGetUniformLocation(shader.program, "TextureSize");
-			input_size [0]  = texture_width;
-			input_size [1]  = texture_height;
-			output_size[0]  = output_width;
-			output_size[1]  = output_height;
+			/* We need the texture height to be an exact divisor of the phisical videomode height
+			 * to avoid patterns on the scanlines. */
+			unsigned texture_width = input_width;
+			unsigned texture_height = display_height / (display_height / input_height);
+
+			shader.input_size      = glGetUniformLocation(shader.program, "InputSize");
+			shader.output_size     = glGetUniformLocation(shader.program, "OutputSize");
+			shader.texture_size    = glGetUniformLocation(shader.program, "TextureSize");
+			shader.scanline_bright = glGetUniformLocation(shader.program, "SCANLINE_BASE_BRIGHTNESS"); 
+
+			input_size  [0] = input_width;
+			input_size  [1] = input_height;
+			output_size [0] = display_width;
+			output_size [1] = display_height;
 			texture_size[0] = texture_width;
 			texture_size[1] = texture_height;
+
+			scanline_bright = 0.85;
 		}
 	}
 	else	
@@ -352,6 +338,7 @@ void RenderGLES::gles2_init_shaders (unsigned texture_width, unsigned texture_he
 		glUniform2fv(shader.input_size, 1, input_size);
 		glUniform2fv(shader.output_size, 1, output_size);
 		glUniform2fv(shader.texture_size, 1, texture_size);
+		glUniform1f(shader.scanline_bright, scanline_bright);
 	}
 }
 

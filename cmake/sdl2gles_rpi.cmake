@@ -9,7 +9,7 @@ include_directories("${sdl_root}")
 
 link_libraries(cannonball 
     SDL2
-    GLESv2
+    brcmGLESv2
 )
 
 # Linking

@@ -132,13 +132,20 @@
     
     <!-- Use the N'th joystick on the system. -->
     <pad_id>0</pad_id>
+
+    <!-- Digital Gamepad support: Gamepad has a digital pad for up/down/left/right
+
+        0 = Disabled   (Default Cannonball mode - gamepad doesn't allow for up/down/left/right input configuration)
+        1 = Enabled    (Allows to redefine up/down/left/right inputs on the gamepad)
+    -->
+    <digital_pad>0</digital_pad>
     
     <!-- Keyboard Button Configuration. Easiest to configure with inbuilt menu. -->
     <keyconfig>
     	<up>1073741906</up>
-	<down>1073741905</down>
-	<left>1073741904</left>
-	<right>1073741903</right>
+    	<down>1073741905</down>
+    	<left>1073741904</left>
+    	<right>1073741903</right>
         <acc>122</acc>
         <brake>120</brake>
         <gear1>32</gear1>
@@ -151,6 +158,10 @@
     
     <!-- Gamepad / Joystick Button Configuration. Easiest to configure with inbuilt menu. -->
     <padconfig>
+        <up>70</up>
+        <down>80</down>
+        <left>90</left>
+        <right>100</right>
         <acc>0</acc>
         <brake>1</brake>
         <gear1>2</gear1>

@@ -278,27 +278,40 @@ void Input::handle_joy_up(SDL_JoyButtonEvent* evt)
 
 void Input::handle_joy(const uint8_t button, const bool is_pressed)
 {
+    // Redefinable Joypad Input
     if (button == pad_config[0])
-        keys[ACCEL] = is_pressed;
+        keys[UP] = is_pressed;
 
-    if (button == pad_config[1])
-        keys[BRAKE] = is_pressed;
+    else if (button == pad_config[1])
+        keys[DOWN] = is_pressed;
 
-    if (button == pad_config[2])
-        keys[GEAR1] = is_pressed;
+    else if (button == pad_config[2])
+        keys[LEFT] = is_pressed;
 
-    if (button == pad_config[3])
-        keys[GEAR2] = is_pressed;
+    else if (button == pad_config[3])
+        keys[RIGHT] = is_pressed;
 
     if (button == pad_config[4])
-        keys[START] = is_pressed;
+        keys[ACCEL] = is_pressed;
 
     if (button == pad_config[5])
-        keys[COIN] = is_pressed;
+        keys[BRAKE] = is_pressed;
 
     if (button == pad_config[6])
-        keys[MENU] = is_pressed;
+        keys[GEAR1] = is_pressed;
 
     if (button == pad_config[7])
+        keys[GEAR2] = is_pressed;
+
+    if (button == pad_config[8])
+        keys[START] = is_pressed;
+
+    if (button == pad_config[9])
+        keys[COIN] = is_pressed;
+
+    if (button == pad_config[10])
+        keys[MENU] = is_pressed;
+
+    if (button == pad_config[11])
         keys[VIEWPOINT] = is_pressed;
 }

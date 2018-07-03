@@ -69,9 +69,10 @@ struct controls_settings_t
     int gear;
     int steer_speed;   // Steering Digital Speed
     int pedal_speed;   // Pedal Digital Speed
-    int padconfig[8];  // Joypad Button Config
+    int padconfig[12]; // Joypad Button Config
     int keyconfig[12]; // Keyboard Button Config
     int pad_id;        // Use the N'th joystick on the system.
+    int digital_pad;   // Gamepad has a digital pad for up/down/left/right
     int analog;        // Use analog controls
     int axis[3];       // Analog Axis
     int asettings[3];  // Analog Settings

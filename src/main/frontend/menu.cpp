@@ -97,6 +97,7 @@ const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 // Controls Menu
 const static char* ENTRY_GEAR       = "GEAR ";
 const static char* ENTRY_ANALOG     = "ANALOG ";
+const static char* ENTRY_DJOYPAD    = "DIGITAL GAMEPAD ";
 const static char* ENTRY_REDEFJOY   = "REDEFINE GAMEPAD";
 const static char* ENTRY_REDEFKEY   = "REDEFINE KEYS";
 const static char* ENTRY_DSTEER     = "DIGITAL STEER SPEED ";
@@ -190,6 +191,7 @@ void Menu::populate()
 
     menu_controls.push_back(ENTRY_GEAR);
     if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
+    if (input.gamepad) menu_controls.push_back(ENTRY_DJOYPAD);
     menu_controls.push_back(ENTRY_REDEFKEY);
     if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
     menu_controls.push_back(ENTRY_DSTEER);
@@ -682,6 +684,8 @@ void Menu::tick_menu()
                 if (++config.controls.gear > config.controls.GEAR_AUTO)
                     config.controls.gear = config.controls.GEAR_BUTTON;
             }
+            else if (SELECTED(ENTRY_DJOYPAD))
+                config.controls.digital_pad = !config.controls.digital_pad;
             else if (SELECTED(ENTRY_ANALOG))
             {
                 if (++config.controls.analog == 3)
@@ -699,7 +703,7 @@ void Menu::tick_menu()
             {
                 display_message("PRESS MENU TO END AT ANY STAGE");
                 state = STATE_REDEFINE_JOY;
-                redef_state = config.controls.analog == 1 ? 2 : 0; // Ignore pedals when redefining analog
+                redef_state = 0;
                 input.joy_button = -1;
             }
             else if (SELECTED(ENTRY_DSTEER))
@@ -863,6 +867,8 @@ void Menu::refresh_menu()
                 else if (config.controls.gear == config.controls.GEAR_AUTO)     s = "AUTOMATIC";
                 set_menu_text(ENTRY_GEAR, s);
             }
+            else if (SELECTED(ENTRY_DJOYPAD))
+                set_menu_text(ENTRY_DJOYPAD, config.controls.digital_pad ? "ON" : "OFF");
             else if (SELECTED(ENTRY_ANALOG))
             {
                 if (config.controls.analog == 0)      s = "OFF";
@@ -961,7 +967,11 @@ void Menu::redefine_keyboard()
 
 void Menu::redefine_joystick()
 {
-    if (redef_state == 3 && config.controls.gear != config.controls.GEAR_SEPARATE) // Skip redefine of second gear press
+    if (redef_state == 0 && config.controls.digital_pad == 0) // Ignore up/down/left/right when gamepad doesn't support it
+        redef_state = 4;
+    if (redef_state == 4 && config.controls.analog == 1) // Ignore pedals when redefining analog
+        redef_state = 6;
+    if (redef_state == 7 && config.controls.gear != config.controls.GEAR_SEPARATE) // Skip redefine of second gear press
         redef_state++;
 
     switch (redef_state)
@@ -974,6 +984,10 @@ void Menu::redefine_joystick()
         case 5:
         case 6:
         case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
             if (input.has_pressed(Input::MENU))
             {
                 message_counter = 0;
@@ -981,7 +995,7 @@ void Menu::redefine_joystick()
             }
             else
             {
-                draw_text(text_redefine.at(redef_state + 4));
+                draw_text(text_redefine.at(redef_state));
                 if (input.joy_button != -1)
                 {
                     config.controls.padconfig[redef_state] = input.joy_button;
@@ -991,7 +1005,7 @@ void Menu::redefine_joystick()
             }
             break;
 
-        case 8:
+        case 12:
             state = STATE_MENU;
             break;
     }

@@ -101,6 +101,7 @@ set(src_hwaudio
 if(SDL2)
 	if(OPENGL)
 	    set(src_sdl
+		"${sdl_src_cocoa}"
 		"${main_cpp_base}/sdl2/audio.hpp"
 		"${main_cpp_base}/sdl2/timer.hpp"
 		"${main_cpp_base}/sdl2/input.hpp"
@@ -115,6 +116,7 @@ if(SDL2)
 		)
 	elseif(OPENGLES)
 	    set(src_sdl
+		"${sdl_src_cocoa}"
 		"${main_cpp_base}/sdl2/audio.hpp"
 		"${main_cpp_base}/sdl2/timer.hpp"
 		"${main_cpp_base}/sdl2/input.hpp"
@@ -129,6 +131,7 @@ if(SDL2)
 		)   
 	else()
 	    set(src_sdl
+		"${sdl_src_cocoa}"
 		"${main_cpp_base}/sdl2/audio.hpp"
 		"${main_cpp_base}/sdl2/timer.hpp"
 		"${main_cpp_base}/sdl2/input.hpp"
@@ -145,6 +148,7 @@ if(SDL2)
 else()  #Using legacy, unmantained SDL1.x
 	if(OPENGL)
 	    set(src_sdl
+		"${sdl_src_cocoa}"
 		"${main_cpp_base}/sdl/audio.hpp"
 		"${main_cpp_base}/sdl/timer.hpp"
 		"${main_cpp_base}/sdl/input.hpp"
@@ -159,6 +163,7 @@ else()  #Using legacy, unmantained SDL1.x
 		)   
 	else()
 	    set(src_sdl
+		"${sdl_src_cocoa}"
 		"${main_cpp_base}/sdl/audio.hpp"
 		"${main_cpp_base}/sdl/timer.hpp"
 		"${main_cpp_base}/sdl/input.hpp"

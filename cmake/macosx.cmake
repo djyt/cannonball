@@ -37,3 +37,8 @@ link_directories(
 # Used to auto-generate setup.hpp with various file paths
 set(xml_directory ./)
 set(sdl_flags "SDL_DOUBLEBUF | SDL_SWSURFACE")
+set(sdl_src_cocoa
+	"${main_cpp_base}/sdl/SDLMain.h"
+	"${main_cpp_base}/sdl/SDLMain.m"
+)
+set(CMAKE_CXX_FLAGS "-stdlib=libc++")

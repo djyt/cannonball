@@ -1,12 +1,14 @@
 # Default CMake Setup. Used for Mac OS x builds
 EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
+EXECUTE_PROCESS( COMMAND xcode-select -p COMMAND tr -d '\n' OUTPUT_VARIABLE XCODE_DEV_PATH )
 message( STATUS "Architecture: ${ARCHITECTURE}" )
+message( STATUS "Using Xcode from: ${XCODE_DEV_PATH}" )
 
 # For INTeL 32bit Mac OS X 10.5+
-set(CMAKE_CXX_FLAGS " -O2 -force_cpusubtype_ALL -arch ${ARCHITECTURE} -m32 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mmacosx-version-min=10.7")
+set(CMAKE_CXX_FLAGS " -O2 -force_cpusubtype_ALL -arch ${ARCHITECTURE} -m32 -isysroot ${XCODE_DEV_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mmacosx-version-min=10.7")
 
 # # For PowerPC 32bit Mac OS X 10.5+
-# set(CMAKE_CXX_FLAGS " -std=c++11 -stdlib=libstdc++ -O2 -faltivec -force_cpusubtype_ALL -mmacosx-version-min=10.5 -arch ppc -m32 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.7")
+# set(CMAKE_CXX_FLAGS " -std=c++11 -stdlib=libstdc++ -O2 -faltivec -force_cpusubtype_ALL -mmacosx-version-min=10.5 -arch ppc -m32 -isysroot ${XCODE_DEV_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.7")
 
 # Use OpenGL for rendering
 set(OPENGL 1)
@@ -14,7 +16,7 @@ set(OPENGL 1)
 find_package(SDL REQUIRED)
 find_package(Boost REQUIRED)
 
-include_directories(${SDL_INCLUDE_DIR} "${lib_base}/include/" "~/Library/Frameworks/SDL.framework/Headers" "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/X11/include/" ${Boost_INCLUDE_DIRS})
+include_directories(${SDL_INCLUDE_DIR} "${lib_base}/include/" "~/Library/Frameworks/SDL.framework/Headers" "${XCODE_DEV_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/X11/include/" ${Boost_INCLUDE_DIRS})
 
 find_library(COCOA_LIBRARY Cocoa)
 find_library(GLUT_LIBRARY GLUT )

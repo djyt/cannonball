@@ -20,12 +20,21 @@ if(TARGET)
         message("CMake files for ${TARGET} not found, using ${DCMAKE}")
         include(${DCMAKE})
     endif()
+    if(${TARGET} STREQUAL "bsd")
+        if(NOT DEFINED BSD_PREFIX_PATH)
+            set(BSD_PREFIX_PATH /usr/local)
+        endif()
+        message("Setting ${BSD_PREFIX_PATH} as the prefix directory.")
+    endif()
 else()
     message("TARGET not passed, using ${DCMAKE}")
     include(${DCMAKE})
 endif(TARGET)
 
-set(BOOST_INCLUDEDIR ${lib_base}/boost_1_54_0)
+if(NOT(${TARGET} STREQUAL "bsd"))
+    set(BOOST_INCLUDEDIR ${lib_base}/boost_1_54_0)
+endif()
+
 find_package(Boost REQUIRED)
 
 # Include

@@ -20,12 +20,22 @@ if(TARGET)
         message("CMake files for ${TARGET} not found, using ${DCMAKE}")
         include(${DCMAKE})
     endif()
+    if(${TARGET} STREQUAL "bsd")
+        if(NOT DEFINED BSD_PREFIX_PATH)
+            message(FATAL_ERROR "Warning: BSD_PREFIX_PATH Variable Not Defined!")
+        else()
+            message("Setting ${BSD_PREFIX_PATH} as the prefix path.")
+        endif()
+    endif()
 else()
     message("TARGET not passed, using ${DCMAKE}")
     include(${DCMAKE})
 endif(TARGET)
 
-set(BOOST_INCLUDEDIR ${lib_base}/boost_1_54_0)
+if(NOT(${TARGET} STREQUAL "bsd"))
+    set(BOOST_INCLUDEDIR ${lib_base}/boost_1_54_0)
+endif()
+
 find_package(Boost REQUIRED)
 
 # Include

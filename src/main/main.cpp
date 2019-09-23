@@ -10,11 +10,13 @@
 
 // SDL Library
 #include <SDL.h>
+#ifdef _WIN32
 #ifndef SDL2
 #pragma comment(lib, "SDLmain.lib") // Replace main with SDL_main
 #endif
 #pragma comment(lib, "SDL.lib")
 #pragma comment(lib, "glu32.lib")
+#endif
 
 // SDL Specific Code
 #if defined SDL2

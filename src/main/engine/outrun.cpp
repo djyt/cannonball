@@ -278,7 +278,8 @@ void Outrun::jump_table(Packet* packet)
         }
         else
         {
-            if (config.controls.haptic && config.controls.analog)
+//            if (config.controls.haptic && config.controls.analog)
+            if (config.controls.haptic && config.controls.analog && game_state == GS_INGAME)
                 outputs->tick(OOutputs::MODE_FFEEDBACK, oinputs.input_steering);
             else if (config.cannonboard.enabled)
                 outputs->tick(OOutputs::MODE_CABINET, packet->ai1, config.cannonboard.cabinet);

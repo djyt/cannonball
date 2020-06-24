@@ -20,7 +20,9 @@ add_definitions(-O3 -DSDL2 -DWITH_OPENGL)
  
 # Location for Cannonball to create save files
 # Used to auto-generate setup.hpp with various file paths
-set(xml_directory ./)
+if(NOT DEFINED xml_directory)
+        set(xml_directory ./)
+endif()
 set(sdl_flags "SDL_WINDOW_RESIZABLE")
 
 # Set SDL2 instead of SDL1

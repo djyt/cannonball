@@ -15,6 +15,11 @@ if(NOT DEFINED roms_directory)
 	set(roms_directory roms/)
 endif()
 
+# Resources directory
+if(NOT DEFINED res_directory)
+	set(res_directory res/)
+endif()
+
 # Include relevant CMAKE file (default, mingw, pandora etc.)
 if(TARGET)
     set(TCMAKE ${TARGET}.cmake)
@@ -59,6 +64,7 @@ const static char* FILENAME_SCORES = \"${xml_directory}hiscores\";
 const static char* FILENAME_TTRIAL = \"${xml_directory}hiscores_timetrial\";
 const static char* FILENAME_CONT   = \"${xml_directory}hiscores_continuous\";
 const static char* DIRECTORY_ROMS  = \"${roms_directory}\";
+const static char* DIRECTORY_RES  = \"${res_directory}\";
 const static int SDL_FLAGS = ${sdl_flags};
     "
     )

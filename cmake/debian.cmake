@@ -14,8 +14,10 @@ link_libraries(cannonball
 link_directories(
     "${sdl_root}/lib"
 )
- 
+
 # Location for Cannonball to create save files
 # Used to auto-generate setup.hpp with various file paths
-set(xml_directory ./)
+if(NOT DEFINED xml_directory)
+        set(xml_directory ./)
+endif()
 set(sdl_flags "SDL_DOUBLEBUF | SDL_SWSURFACE")

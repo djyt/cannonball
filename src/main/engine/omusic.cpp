@@ -15,6 +15,7 @@
 #include "engine/otiles.hpp"
 #include "engine/otraffic.hpp"
 #include "engine/ostats.hpp"
+#include "setup.hpp"
 
 OMusic omusic;
 
@@ -39,13 +40,17 @@ bool OMusic::load_widescreen_map()
     if (tilemap == NULL)
     {
         tilemap = new RomLoader();
-        status += tilemap->load_binary("res/tilemap.bin");
+        std::string filename = std::string(DIRECTORY_RES);
+        filename += "tilemap.bin";
+        status += tilemap->load_binary(filename.c_str());
     }
 
     if (tile_patch == NULL)
     {
         tile_patch = new RomLoader();
-        status += tile_patch->load_binary("res/tilepatch.bin");
+        std::string filename = std::string(DIRECTORY_RES);
+        filename += "tilepatch.bin";
+        status += tile_patch->load_binary(filename.c_str());
     }
 
     return status == 0;

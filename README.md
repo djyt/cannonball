@@ -7,7 +7,6 @@ Credits
 -------
 
 * Chris White - Project creator.
-* Arun Horne  - Cross platform work.
 
 Getting Started
 ---------------

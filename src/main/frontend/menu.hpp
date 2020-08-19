@@ -76,6 +76,8 @@ private:
     std::vector<std::string> menu_settings;
     std::vector<std::string> menu_cannonboard;
     std::vector<std::string> menu_video;
+    std::vector<std::string> menu_crt_overlay;
+    std::vector<std::string> menu_blargg_filter;
     std::vector<std::string> menu_sound;
     std::vector<std::string> menu_controls;
     std::vector<std::string> menu_engine;

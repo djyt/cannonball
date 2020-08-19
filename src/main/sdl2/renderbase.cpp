@@ -36,18 +36,24 @@ void RenderBase::convert_palette(uint32_t adr, uint32_t r, uint32_t g, uint32_t 
 {
     adr >>= 1;
 
-    r = r * 255 / 31;
-    g = g * 255 / 31;
-    b = b * 255 / 31;
+    r = r << 3; //* 255 / 31;
+    g = g << 3; //* 255 / 31;
+    b = b << 3; //* 255 / 31;
 
     rgb[adr] = CURRENT_RGB();
-      
+
     // Create shadow / highlight colours at end of RGB array
+
+    r = r << 2; // * 202 / 256;
+    g = g << 2; //* 202 / 256;
+    b = b << 2; //* 202 / 256;
+    rgb[adr + (S16_PALETTE_ENTRIES << 0)] = CURRENT_RGB(); // highlight
+
     // The resultant values are the same as MAME
-    r = r * 202 / 256;
-    g = g * 202 / 256;
-    b = b * 202 / 256;
-        
-    rgb[adr + S16_PALETTE_ENTRIES] =
-    rgb[adr + (S16_PALETTE_ENTRIES * 2)] = CURRENT_RGB();
+    r = r >> 3; // * 202 / 256;
+    g = g >> 3; //* 202 / 256;
+    b = b >> 3; //* 202 / 256;
+
+    rgb[adr + (S16_PALETTE_ENTRIES << 1)] = CURRENT_RGB(); // shadow
+
 }

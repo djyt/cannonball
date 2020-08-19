@@ -40,14 +40,34 @@ struct video_settings_t
     const static int MODE_FULL    = 1;
     const static int MODE_STRETCH = 2;
 
-    int mode;
-    int scale;
-    int scanlines;
-    int widescreen;
+    // JJP - Blargg CRT filtering constants
+    const static int BLARGG_DISABLE = 0;
+    const static int BLARGG_COMPOSITE = 1;
+    const static int BLARGG_SVIDEO = 2;
+    const static int BLARGG_RGB = 3;
+    const static int BLARGG_MONO = 4;
+
     int fps;
     int fps_count;
+    int mode;              // Full screen or Windowed
+    int scale;             // now integrated into mode in UI (Fullscreen/Window1x/Windows2x/Window3x/Window4x)
+    int widescreen;
     int hires;
-    int filtering;
+    int scanlines;         // Provides
+    int mask;              // various CRT effects
+    int mask_strength;     // Blend strength of selected effect
+    int vignette;          // progressively dims screen away from centre
+    // JJP - Blargg related filtering settings
+    int blargg;            // Blargg mode - per above constants
+    int blarggthreads;     // Filter is intensive, this spreads load across cores
+    int saturation;
+    int contrast;
+    int brightness;
+    int sharpness;
+    int gamma;
+    // No UI for the following
+    int filtering;         // OpenGL blend mode, 0 or 1 on Linux
+    int flicker;           // Slightly dims alternate frames
 };
 
 struct sound_settings_t

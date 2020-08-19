@@ -64,8 +64,8 @@ protected:
     uint32_t screen_xoff, screen_yoff;
 
     // SDL Pixel Format Codes. These differ between platforms.
-    uint8_t  Rshift, Gshift, Bshift;
-    uint32_t Rmask, Gmask, Bmask;
+    uint8_t  Rshift, Gshift, Bshift, Ashift;
+    uint32_t Rmask, Gmask, Bmask, Amask;
 
     bool sdl_screen_size();
 };

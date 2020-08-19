@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <SDL.h>
+#include <time.h>
 
 #ifdef SDL2
 #include "sdl2/audio.hpp"
@@ -39,6 +40,7 @@ static int dsp_write_pos;
 static int dsp_read_pos;
 static int callbacktick;     // tick at which callback occured
 static int bytes_per_sample; // Number of bytes per sample entry (usually 4 bytes if stereo and 16-bit sound)
+static int spinlock = 0;     // used to prevent concurrent updates in tick() and fillaudio()
 
 // SDL Audio Callback Function
 extern void fill_audio(void *udata, Uint8 *stream, int len);
@@ -197,6 +199,17 @@ void Audio::tick()
 
     if (!sound_enabled) return;
 
+    // check for another thread running, and wait for it to avoid
+    // errors updating the pointers
+    struct timespec ts;
+    int res;
+    ts.tv_sec = 0; // whole seconds to sleep
+    ts.tv_nsec = 100; // 100ns sleep period, if we need to wait
+    while (spinlock==1) {
+      res = nanosleep(&ts, &ts);
+    } // wait
+    spinlock = 1; // hold the lock
+
     // Update audio streams from PCM & YM Devices
     osoundint.pcm->stream_update();
     osoundint.ym->stream_update();
@@ -277,6 +290,7 @@ void Audio::tick()
         dsp_write_pos -= dsp_buffer_bytes;
         dsp_read_pos -= dsp_buffer_bytes;
     }
+    spinlock = 0; // release the lock
     SDL_UnlockAudio();
 }
 
@@ -414,6 +428,17 @@ void fill_audio(void *udata, Uint8 *stream, int len)
 #define MAX_SAMPLE_SIZE 4
     static char last_bytes[MAX_SAMPLE_SIZE];
 
+    // check for another thread running, and wait for it to avoid
+    // errors updating the pointers
+    struct timespec ts;
+    int res;
+    ts.tv_sec = 0; // whole seconds to sleep
+    ts.tv_nsec = 100; // 100ns sleep period, if we need to wait
+    while (spinlock==1) {
+      res = nanosleep(&ts, &ts);
+    } // wait
+    spinlock = 1; // hold the lock
+
     gap = dsp_write_pos - dsp_read_pos;
     if (gap < len) 
     {
@@ -450,6 +475,7 @@ void fill_audio(void *udata, Uint8 *stream, int len)
     }
     dsp_read_pos = newpos;
 
+    spinlock = 0; // release the lock
     // Record the tick at which the callback occured.
     callbacktick = SDL_GetTicks();
 }

@@ -4,7 +4,7 @@
     Load Settings.
     Load & Save Hi-Scores.
 
-    Copyright Chris White.
+    Copyright (c) 2012 Chris White.
     See license.txt for more details.
 ***************************************************************************/
 
@@ -75,16 +75,28 @@ void Config::load(const std::string &filename)
     // ------------------------------------------------------------------------
     // Video Settings
     // ------------------------------------------------------------------------
-   
-    video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed 
-    video.scale      = pt_config.get("video.window.scale",       2); // Video Scale: Default is 2x    
-    video.scanlines  = pt_config.get("video.scanlines",          0); // Scanlines
-    video.fps        = pt_config.get("video.fps",                2); // Default is 60 fps
-    video.fps_count  = pt_config.get("video.fps_counter",        0); // FPS Counter
-    video.widescreen = pt_config.get("video.widescreen",         1); // Enable Widescreen Mode
+
+    video.mode       = pt_config.get("video.mode",               1); // Video Mode: Default is Full-screen
+    video.scale      = pt_config.get("video.window.scale",       1); // Video Scale: Default is 1x
+    video.fps        = pt_config.get("video.fps",                1); // Default is original
+    video.widescreen = pt_config.get("video.widescreen",         0); // Enable Widescreen Mode
     video.hires      = pt_config.get("video.hires",              0); // Hi-Resolution Mode
+    video.scanlines  = pt_config.get("video.scanlines",          0); // Scanlines strength
+    video.mask       = pt_config.get("video.mask",               0); // JJP - SDL blend
+    video.mask_strength = pt_config.get("video.mask_strength",   0); // JJP - SDL blend strength
+    video.vignette   = pt_config.get("video.vignette",           0); // JJP - 0-100% dim edges
+    video.blargg     = pt_config.get("video.blargg",             0); // JJP - Blargg filtering mode
+    video.blarggthreads = pt_config.get("video.blarggthreads",   1); // JJP - Blargg filter threads
+    video.saturation = pt_config.get("video.saturation",         0); // JJP - Blargg filter saturation, -1 to +1
+    video.contrast   = pt_config.get("video.contrast",           0); // JJP - Blargg filter contrast, -1 to +1
+    video.brightness = pt_config.get("video.brightness",         0); // JJP - Blargg filter brightness, -1 to +1
+    video.sharpness  = pt_config.get("video.sharpness",          0); // JJP - Blargg edge bluring
+    video.gamma      = pt_config.get("video.gamma",              0); // JJP - Blargg gamma, -1 to +1
+    // not in UI currently
     video.filtering  = pt_config.get("video.filtering",          0); // Open GL Filtering Mode
-          
+    video.flicker    = pt_config.get("video.flicker",            0); // JJP - flicker on/off
+    video.fps_count  = pt_config.get("video.fps_counter",        0); // FPS Counter on/off
+
     set_fps(video.fps);
 
     // ------------------------------------------------------------------------
@@ -193,12 +205,26 @@ void Config::load(const std::string &filename)
 bool Config::save(const std::string &filename)
 {
     // Save stuff
+    pt_config.put("video.fps",                video.fps);
     pt_config.put("video.mode",               video.mode);
     pt_config.put("video.window.scale",       video.scale);
     pt_config.put("video.scanlines",          video.scanlines);
-    pt_config.put("video.fps",                video.fps);
     pt_config.put("video.widescreen",         video.widescreen);
     pt_config.put("video.hires",              video.hires);
+    pt_config.put("video.mask",               video.mask);          // JJP CRT setup
+    pt_config.put("video.mask_strength",      video.mask_strength); // JJP CRT setup
+    pt_config.put("video.vignette",           video.vignette);      // JJP - vignette post-processing filter
+    pt_config.put("video.blargg",             video.blargg);        // JJP Blargg setting
+    pt_config.put("video.blarggthreads",      video.blarggthreads); // JJP Blargg settings
+    pt_config.put("video.saturation",         video.saturation);    // JJP Blargg settings
+    pt_config.put("video.contrast",           video.contrast);      // JJP Blargg settings
+    pt_config.put("video.brightness",         video.brightness);    // JJP Blargg settings
+    pt_config.put("video.sharpness",          video.sharpness);     // JJP Blargg settings
+    pt_config.put("video.gamma",              video.gamma);         // JJP Blargg settings
+    // not in UI currentlyy
+    pt_config.put("video.filtering",          video.filtering);       // JJP - screen flicker on/off
+    pt_config.put("video.flicker",            video.flicker);       // JJP - screen flicker on/off
+    pt_config.put("video.fps_count",          video.fps_count);
 
     pt_config.put("sound.enable",             sound.enabled);
     pt_config.put("sound.advertise",          sound.advertise);

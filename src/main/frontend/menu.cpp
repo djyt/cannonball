@@ -1,7 +1,7 @@
 /***************************************************************************
     Front End Menu System.
 
-    This file is part of Cannonball. 
+    This file is part of Cannonball.
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
@@ -78,12 +78,27 @@ const static char* ENTRY_C_OUTPUTS  = "OUTPUT TEST";
 const static char* ENTRY_C_CRT      = "CRT TEST";
 
 // Video Menu
-const static char* ENTRY_FPS        = "FRAME RATE ";
-const static char* ENTRY_FULLSCREEN = "FULL SCREEN ";
-const static char* ENTRY_WIDESCREEN = "WIDESCREEN ";
-const static char* ENTRY_HIRES      = "HIRES ";
-const static char* ENTRY_SCALE      = "WINDOW SCALE ";
-const static char* ENTRY_SCANLINES  = "SCANLINES ";
+const static char* ENTRY_FPS           = "FRAME RATE ";
+const static char* ENTRY_SCREENMODE    = "SCREEN MODE ";
+const static char* ENTRY_WIDESCREEN    = "WIDESCREEN ";
+const static char* ENTRY_HIRES         = "HIRES ";
+const static char* ENTRY_CRT_OVERLAY   = "CRT OVERLAY... "; // JJP - Submenu for the CRT mask overlays
+const static char* ENTRY_BLARGG_FILTER = "BLARGG CRT FILTER... "; // JJP - Submenu for the Blarrg CRT filter settings
+
+// CRT Overlay Menu
+const static char* ENTRY_SCANLINES     = "SCANLINES ";
+const static char* ENTRY_MASK          = "MASK  ";
+const static char* ENTRY_MASKSTRENGTH  = "MASK STRENGTH ";
+const static char* ENTRY_VIGNETTE      = "VIGNETTE ";
+
+// Blargg filter sub-menu
+const static char* ENTRY_BLARGG        = "BLARGG FILTERING "; // JJP - Enable/Disable Blarrg CRT filter
+const static char* ENTRY_BLARGGTHREADS = "BLARGG THREADS "; // JJP - Thread count for Blarrg CRT filter
+const static char* ENTRY_SATURATION    = "SATURATION ";
+const static char* ENTRY_CONTRAST      = "CONTRAST ";
+const static char* ENTRY_BRIGHTNESS    = "BRIGHTNESS ";
+const static char* ENTRY_SHARPNESS     = "SHARPNESS ";
+const static char* ENTRY_GAMMA         = "GAMMA ";
 
 // Sound Menu
 const static char* ENTRY_MUTE       = "SOUND ";
@@ -172,12 +187,28 @@ void Menu::populate()
     menu_cannonboard.push_back(ENTRY_BACK);
 
     menu_video.push_back(ENTRY_FPS);
-    menu_video.push_back(ENTRY_FULLSCREEN);
+    menu_video.push_back(ENTRY_SCREENMODE);
     menu_video.push_back(ENTRY_WIDESCREEN);
     menu_video.push_back(ENTRY_HIRES);
-    menu_video.push_back(ENTRY_SCALE);
-    menu_video.push_back(ENTRY_SCANLINES);
+    menu_video.push_back(ENTRY_CRT_OVERLAY); // JJP
+    menu_video.push_back(ENTRY_BLARGG_FILTER); // JJP
     menu_video.push_back(ENTRY_BACK);
+
+    menu_crt_overlay.push_back(ENTRY_SCANLINES);
+    menu_crt_overlay.push_back(ENTRY_MASK);
+    menu_crt_overlay.push_back(ENTRY_MASKSTRENGTH);
+    menu_crt_overlay.push_back(ENTRY_VIGNETTE);
+    menu_crt_overlay.push_back(ENTRY_BACK);
+
+    // JJP - the following settings configure the CRT filtering
+    menu_blargg_filter.push_back(ENTRY_BLARGG);
+    menu_blargg_filter.push_back(ENTRY_BLARGGTHREADS);
+    menu_blargg_filter.push_back(ENTRY_SATURATION);
+    menu_blargg_filter.push_back(ENTRY_CONTRAST);
+    menu_blargg_filter.push_back(ENTRY_BRIGHTNESS);
+    menu_blargg_filter.push_back(ENTRY_SHARPNESS);
+//    menu_blargg_filter.push_back(ENTRY_GAMMA);
+    menu_blargg_filter.push_back(ENTRY_BACK);
 
     menu_sound.push_back(ENTRY_MUTE);
     //menu_sound.push_back(ENTRY_BGM);
@@ -212,7 +243,8 @@ void Menu::populate()
 
     menu_about.push_back("CANNONBALL 0.3 © CHRIS WHITE 2014");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
-    menu_about.push_back(" ");
+    menu_about.push_back("");
+    menu_about.push_back("BLARGG INTEGRATION BY JAMES PEARCE ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");
 
     // Redefine menu text
@@ -231,7 +263,7 @@ void Menu::populate()
 }
 
 void Menu::init()
-{   
+{
     // If we got a new high score on previous time trial, then save it!
     if (outrun.ttrial.new_high_score)
     {
@@ -349,7 +381,7 @@ void Menu::tick_ui()
         message_counter--;
         ohud.blit_text_new(0, 1, msg.c_str(), ohud.GREY);
     }
-     
+
     // Shift horizon
     if (oroad.horizon_base > HORIZON_DEST)
     {
@@ -591,10 +623,27 @@ void Menu::tick_menu()
         }
         else if (menu_selected == &menu_video)
         {
-            if (SELECTED(ENTRY_FULLSCREEN))
+            if (SELECTED(ENTRY_FPS))
             {
-                if (++config.video.mode > video_settings_t::MODE_STRETCH)
+                if (++config.video.fps > 2)
+                    config.video.fps = 0;
+                config.set_fps(config.video.fps);
+            }
+            else if (SELECTED(ENTRY_SCREENMODE))
+            {
+                int max_scale = (config.video.hires ? 2 : 4);
+                if (config.video.mode == video_settings_t::MODE_FULL) {
+                    // switch to window mode with 1x scale
                     config.video.mode = video_settings_t::MODE_WINDOW;
+                    config.video.scale = 1;
+                } else if (config.video.scale < max_scale) {
+                    // increment window scalining
+                    config.video.scale++;
+                } else {
+                    // wrap back to full screen
+                    config.video.mode = video_settings_t::MODE_FULL;
+                    config.video.scale = 1;
+                }
                 restart_video();
             }
             else if (SELECTED(ENTRY_WIDESCREEN))
@@ -618,27 +667,100 @@ void Menu::tick_menu()
                 restart_video();
                 video.sprite_layer->set_x_clip(false);
             }
-            else if (SELECTED(ENTRY_SCALE))
-            {
-                if (++config.video.scale > (config.video.hires ? 2 : 4))
-                    config.video.scale = 1;
-                restart_video();
-            }
-            else if (SELECTED(ENTRY_SCANLINES))
+            else if (SELECTED(ENTRY_CRT_OVERLAY))
+                set_menu(&menu_crt_overlay);
+            else if (SELECTED(ENTRY_BLARGG_FILTER))
+                set_menu(&menu_blargg_filter);
+            else if (SELECTED(ENTRY_BACK))
+                set_menu(&menu_settings);
+        }
+        else if (menu_selected == &menu_crt_overlay)
+        {
+            // JJP - CRT mask overlay related settings and options
+            if (SELECTED(ENTRY_SCANLINES))
             {
                 config.video.scanlines += 10;
                 if (config.video.scanlines > 100)
                     config.video.scanlines = 0;
                 restart_video();
             }
-            else if (SELECTED(ENTRY_FPS))
+            else if (SELECTED(ENTRY_MASK))
             {
-                if (++config.video.fps > 2)
-                    config.video.fps = 0;
-                config.set_fps(config.video.fps);
+                // defines the type of mask shown
+                config.video.mask += 1;
+                if (config.video.mask > 7)
+                    config.video.mask = 0;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_MASKSTRENGTH))
+            {
+                // defines overlay stregth of the mask
+                config.video.mask_strength += 5;
+                if (config.video.mask_strength > 35)
+                    config.video.mask_strength = 0;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_VIGNETTE)) // JJP - simple vignette post-process filter
+            {
+                config.video.vignette += 10;
+                if (config.video.vignette > 100)
+                    config.video.vignette = 0;
+                restart_video();
             }
             else if (SELECTED(ENTRY_BACK))
-                set_menu(&menu_settings);
+                set_menu(&menu_video);
+        }
+        else if (menu_selected == &menu_blargg_filter)
+        {
+            // JJP - Blargg CRT filtering settings
+            if (SELECTED(ENTRY_BLARGG)) // off/componsite/s-video/rgb
+            {
+                if (++config.video.blargg > video_settings_t::BLARGG_RGB)
+                    config.video.blargg = video_settings_t::BLARGG_DISABLE;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_BLARGGTHREADS)) // improves performance on RPi
+            {
+                (config.video.blarggthreads==4) ? config.video.blarggthreads = 1 : config.video.blarggthreads++;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_SATURATION))
+            {
+                config.video.saturation += 10;
+                if (config.video.saturation > 50)
+                    config.video.saturation = -50;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_CONTRAST))
+            {
+                config.video.contrast += 10;
+                if (config.video.contrast > 50)
+                    config.video.contrast = -50;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_BRIGHTNESS))
+            {
+                config.video.brightness += 10;
+                if (config.video.brightness > 50)
+                    config.video.brightness = -50;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_SHARPNESS))
+            {
+                config.video.sharpness += 10;
+                if (config.video.sharpness > 50)
+                    config.video.sharpness = -50;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_GAMMA))
+            {
+                config.video.gamma += 10;
+                if (config.video.gamma > 50)
+                    config.video.gamma = -50;
+                restart_video();
+            }
+            else if (SELECTED(ENTRY_BACK))
+                set_menu(&menu_video);
         }
         else if (menu_selected == &menu_sound)
         {
@@ -649,7 +771,7 @@ void Menu::tick_menu()
                 if (config.sound.enabled)
                     cannonball::audio.start_audio();
                 else
-                    cannonball::audio.stop_audio();              
+                    cannonball::audio.stop_audio();
                 #endif
             }
             else if (SELECTED(ENTRY_ADVERTISE))
@@ -659,7 +781,6 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_FIXSAMPLES))
             {
                 int rom_type = !config.sound.fix_samples;
-                
                 if (roms.load_pcm_rom(rom_type == 1))
                 {
                     config.sound.fix_samples = rom_type;
@@ -819,28 +940,63 @@ void Menu::refresh_menu()
         }
         else if (menu_selected == &menu_video)
         {
-            if (SELECTED(ENTRY_FULLSCREEN))
+            if (SELECTED(ENTRY_FPS))
             {
-                if (config.video.mode == video_settings_t::MODE_WINDOW)       s = "OFF";
-                else if (config.video.mode == video_settings_t::MODE_FULL)    s = "ON";
-                else if (config.video.mode == video_settings_t::MODE_STRETCH) s = "STRETCH";
-                set_menu_text(ENTRY_FULLSCREEN, s);
-            }
-            else if (SELECTED(ENTRY_WIDESCREEN))
-                set_menu_text(ENTRY_WIDESCREEN, config.video.widescreen ? "ON" : "OFF");
-            else if (SELECTED(ENTRY_SCALE))
-                set_menu_text(ENTRY_SCALE, Utils::to_string(config.video.scale) + "X");
-            else if (SELECTED(ENTRY_HIRES))
-                set_menu_text(ENTRY_HIRES, config.video.hires ? "ON" : "OFF");
-            else if (SELECTED(ENTRY_FPS))
-            {               
                 if (config.video.fps == 0)      s = "30 FPS";
                 else if (config.video.fps == 1) s = "ORIGINAL";
                 else if (config.video.fps == 2) s = "60 FPS";
                 set_menu_text(ENTRY_FPS, s);
             }
+            else if (SELECTED(ENTRY_SCREENMODE))
+            {
+                if (config.video.mode == video_settings_t::MODE_FULL) s = "FULLSCREEN";
+                else s = "WINDOW " + Utils::to_string(config.video.scale) + "x";
+//                else if (config.video.mode == video_settings_t::MODE_STRETCH) s = "STRETCH ";
+                set_menu_text(ENTRY_SCREENMODE, s);
+            }
+            else if (SELECTED(ENTRY_WIDESCREEN))
+                set_menu_text(ENTRY_WIDESCREEN, config.video.widescreen ? "ON" : "OFF");
+//            else if (SELECTED(ENTRY_SCALE))
+//                set_menu_text(ENTRY_SCALE, Utils::to_string(config.video.scale) + "X");
+            else if (SELECTED(ENTRY_HIRES))
+                set_menu_text(ENTRY_HIRES, config.video.hires ? "ON" : "OFF");
+        }
+        else if (menu_selected == &menu_crt_overlay)
+        {
+            // Screen feedback for selected options for the blargg filtering
+            if (SELECTED(ENTRY_MASK))
+                set_menu_text(ENTRY_MASK, config.video.mask ? Utils::to_string(config.video.mask) : "OFF");
+            else if (SELECTED(ENTRY_MASKSTRENGTH))
+                set_menu_text(ENTRY_MASKSTRENGTH, config.video.mask_strength ? Utils::to_string(config.video.mask_strength) + "%" : "OFF");
             else if (SELECTED(ENTRY_SCANLINES))
                 set_menu_text(ENTRY_SCANLINES, config.video.scanlines ? Utils::to_string(config.video.scanlines) +"%": "OFF");
+            else if (SELECTED(ENTRY_VIGNETTE))
+                set_menu_text(ENTRY_VIGNETTE, config.video.vignette ? Utils::to_string(config.video.vignette) +"%": "OFF");
+        }
+        else if (menu_selected == &menu_blargg_filter)
+        {
+            // Screen feedback for selected options for the blargg filtering
+            if (SELECTED(ENTRY_BLARGG))
+            {
+                if (config.video.blargg == video_settings_t::BLARGG_DISABLE)        s = "OFF";
+                else if (config.video.blargg == video_settings_t::BLARGG_COMPOSITE) s = "COMPOSITE";
+                else if (config.video.blargg == video_settings_t::BLARGG_SVIDEO)    s = "S-VIDEO";
+                else if (config.video.blargg == video_settings_t::BLARGG_RGB)       s = "ARCADE RGB";
+                else if (config.video.blargg == video_settings_t::BLARGG_MONO)      s = "MONO";
+                set_menu_text(ENTRY_BLARGG, s);
+            }
+            else if (SELECTED(ENTRY_BLARGGTHREADS))
+                set_menu_text(ENTRY_BLARGGTHREADS, Utils::to_string(config.video.blarggthreads));
+            else if (SELECTED(ENTRY_SATURATION))
+                set_menu_text(ENTRY_SATURATION, Utils::to_string(config.video.saturation));
+            else if (SELECTED(ENTRY_CONTRAST))
+                set_menu_text(ENTRY_CONTRAST, Utils::to_string(config.video.contrast));
+            else if (SELECTED(ENTRY_BRIGHTNESS))
+                set_menu_text(ENTRY_BRIGHTNESS, Utils::to_string(config.video.brightness));
+            else if (SELECTED(ENTRY_SHARPNESS))
+                set_menu_text(ENTRY_SHARPNESS, Utils::to_string(config.video.sharpness));
+            else if (SELECTED(ENTRY_GAMMA))
+                set_menu_text(ENTRY_GAMMA, Utils::to_string(config.video.gamma));
         }
         else if (menu_selected == &menu_sound)
         {

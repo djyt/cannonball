@@ -11,9 +11,29 @@
 ***************************************************************************/
 
 #include <iostream>
+sdfkdf'
 
 #include "rendergl.hpp"
 #include "frontend/config.hpp"
+
+// Blargg filter for CRT processing (JJP) - with SMP support
+#include "snes_ntsc.h"
+#include <omp.h>
+
+// JJP - Blargg filtering for CRT style visuals
+static snes_ntsc_setup_t setup;
+static snes_ntsc_t* ntsc = 0;
+static int shader;
+static uint16_t *rgb_pixels = 0;            // used by Blarrg filter
+static uint16_t *filtered_rgb_pixels = 0;   // used by Blarrg filter for RGB output
+static uint32_t *filtered_pixels = 0;       // used by Blarrg filter for native output
+static int phase;
+static int phaseframe;
+static int snes_src_width;
+static int framesrendered;
+static int framesdropped;
+static uint32_t framenumber;
+static double starttime;
 
 const static uint32_t SCANLINE_TEXTURE[] = { 0x00000000, 0xff000000 }; // BGRA 8-8-8-8-REV
 
@@ -31,6 +51,45 @@ bool RenderGL::init(int src_width, int src_height,
     this->src_height = src_height;
     this->video_mode = video_mode;
     this->scanlines  = scanlines;
+
+    // JJP - Blargg filtering
+    (config.video.blargg > video_settings_t::BLARGG_DISABLE) ? shader = 1 : shader = 0; // enable Blargg based on se$    framesrendered = 0;
+    framesdropped = 0;
+    starttime = omp_get_wtime();
+    if (shader) {
+//        printf("Shader running with %i threads.\n",config.video.blarggthreads);
+        // first calculate the resultant image size.
+        snes_src_width = SNES_NTSC_OUT_WIDTH( src_width );
+        if (config.video.hires) snes_src_width = snes_src_width >> 1;
+        snes_src_width++; // not sure why!
+        if (ntsc)
+            free(ntsc); // free memory
+        ntsc = (snes_ntsc_t*) malloc( sizeof (snes_ntsc_t) );
+
+        // configure selcted filtering type
+        switch (config.video.blargg) {
+            case video_settings_t::BLARGG_COMPOSITE:
+                setup = snes_ntsc_composite;
+                break;
+            case video_settings_t::BLARGG_SVIDEO:
+                setup = snes_ntsc_svideo;
+                break;
+            case video_settings_t::BLARGG_RGB:
+                setup = snes_ntsc_rgb;
+                break;
+            case video_settings_t::BLARGG_MONO:
+                setup = snes_ntsc_monochrome;
+                break;
+        }
+
+        setup.merge_fields = 0;         // mimic interlacing
+        setup.sharpness = -0.5;         // these values are based on observation only -
+        setup.gamma     = -0.2;         //  nothing scientific!
+        phase = 0;                      // initial frame will be phase 0
+        phaseframe = 0;                 // used to track phase at 60 fps
+        snes_ntsc_init( ntsc, &setup ); // configure the library
+
+   }
 
     // Setup SDL Screen size
     if (!RenderBase::sdl_screen_size())
@@ -124,6 +183,20 @@ bool RenderGL::init(int src_width, int src_height,
         delete[] screen_pixels;
     screen_pixels = new uint32_t[src_width * src_height];
 
+    if (rgb_pixels)
+        delete[] rgb_pixels;
+    rgb_pixels = new uint32_t[src_width * src_height];
+
+    if (filtered_rgb_pixels)
+        delete[] filtered_rgb_pixels;
+    filtered_rgb_pixels = new uint32_t[(snes_src_width+1) * src_height];
+        // note - we add 1 (word) to the width, as we need to do the same in the display routine
+
+    if (filtered_pixels)
+        delete[] filtered_pixels;
+    filtered_pixels = new uint32_t[(snes_src_width+1) * src_height];
+    // note - we add 1 (word) to the width, as we need to do the same in the display routine
+
     // SDL Pixel Format Information
     Rshift = surface->format->Rshift;
     Gshift = surface->format->Gshift;
@@ -176,11 +249,20 @@ bool RenderGL::init(int src_width, int src_height,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, param);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, param);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
-                src_width, src_height, 0,                // texture width, texture height
-                GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,    // Data format in pixel array
-                NULL);
 
+    // JJP - Blargg
+    if (shader) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+                    snes_src_width, src_height, 0,            // texture width, texture height
+//                    GL_RGB, GL_UNSIGNED_SHORT_5_6_5,          // Data format in pixel array
+                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,    // Data format in pixel array
+                    NULL);
+    } else {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+                    src_width, src_height, 0,                // texture width, texture height
+                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,    // Data format in pixel array
+                    NULL);
+    }
     // Scanline Texture Setup
     if (scanlines)
     {
@@ -264,23 +346,132 @@ bool RenderGL::finalize_frame()
     return true;
 }
 
+void RenderGL::shade(int ThreadID, int TotalThreads, uint16_t* pixels)
+{
+    // designed to filter based on two threads, hence
+    // this function does half with each call
+    register uint32_t current_val;
+    register uint16_t current_rgb_val;
+    uint16_t* current_pixel = pixels;
+    uint16_t* th_rgb_pixels = rgb_pixels;
+    uint16_t* th_filtered_rgb_pixels;
+    uint32_t* th_filtered_pixels;
+    uint32_t start;
+    uint32_t end;
+
+    int block_rows = src_height / TotalThreads;
+    int first_block_rows = block_rows;
+
+    if (ThreadID==(TotalThreads-1)) {
+         // add any remainder to the last block processed
+        block_rows += (src_height % TotalThreads);
+    }
+    // calculate how much data to process in this thread
+    start = src_width * first_block_rows * ThreadID;
+    end   = start + (src_width * block_rows);
+    current_pixel += start;
+    th_rgb_pixels += start;
+
+    if (framenumber==1) {
+//        printf("src_width: %i, snes_src_width: %i, src_height: %i, threads: %i\n",
+//              src_width, snes_src_width, src_height, TotalThreads);
+//      printf("first_block_rows: %i, block_rows: %i, start: %i, end: %i\n",
+//              first_block_rows, block_rows, start, end);
+        printf("ThreadID: %i\n",ThreadID);
+    }
+    // convert pixel data to format used by Blarrg filtering code
+    for (int i = start; i < end; i++) {
+        current_val = rgb[*(current_pixel++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+        *(th_rgb_pixels++) = uint16_t( ((uint16_t((current_val & Rmask) >> Rshift) & 0x00F8) << 8) +   // red
+                                       ((uint16_t((current_val & Gmask) >> Gshift) & 0x00FC) << 3) +   // green
+                                       ((uint16_t((current_val & Bmask) >> Bshift) & 0x00F8) >> 3) );  // blue
+    }
+
+    long output_pitch = (snes_src_width * 2); // 2 bytes-per-pixel (5/6/5), +2 (not sure why)
+    th_rgb_pixels = rgb_pixels + start; // move back to start of data processed
+    start = (output_pitch >> 1) * first_block_rows * ThreadID; // start position in filtered array
+    end   = start + ((output_pitch >> 1) * block_rows);        // ..and the end position
+    th_filtered_rgb_pixels = filtered_rgb_pixels + start;
+    th_filtered_pixels = filtered_pixels + start;
+
+    // Now call the blargg code, to do the work...
+    if (config.video.hires) {
+        snes_ntsc_blit_hires( ntsc, th_rgb_pixels, src_width, phase,
+                              src_width, block_rows, th_filtered_rgb_pixels, output_pitch );
+    } else {
+        // standard res processing
+        snes_ntsc_blit( ntsc, th_rgb_pixels, src_width, phase,
+                        src_width, block_rows, th_filtered_rgb_pixels, output_pitch );
+    }
+
+    // finally, convert pixel data back to format preferred by OpenGL (it's faster to do this here)
+    for (int i = start; i < end; i++) {
+        current_rgb_val = *(th_filtered_rgb_pixels++);
+        *(th_filtered_pixels++) = uint32_t( (uint32_t((current_rgb_val >> 8) & 0x00F8) << Rshift) +   // Red
+                                            (uint32_t((current_rgb_val >> 3) & 0x00FC) << Gshift) +   // Green
+                                            (uint32_t((current_rgb_val << 3) & 0x00F8) << Bshift) +   // Blue
+                                            (uint32_t(0x0001)) );                                     // A
+    }
+
+}
+
+
+
 void RenderGL::draw_frame(uint16_t* pixels)
 {
     uint32_t* spix = screen_pixels;
+    uint16_t* sprgb = rgb_pixels; // JJP
 
-    // Lookup real RGB value from rgb array for backbuffer
-    for (int i = 0; i < (src_width * src_height); i++)
-        *(spix++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+    framesrendered++;
+    if (shader) {
+        // Blargg filtering provides more of a CRT look.
+        framenumber++;
+        // process this in specified number of threads
+        int ID;
+        if (config.video.blarggthreads>1) {
+            omp_set_num_threads(config.video.blarggthreads);
+            #pragma omp parallel
+            {
+                ID = omp_get_thread_num();
+                shade(ID,config.video.blarggthreads,pixels);
+            }
+        } else {
+            shade(0,1,pixels);
+        }
 
-    glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,            // target, LOD, xoff, yoff
-            src_width, src_height,                     // texture width, texture height
+        // update phase.  We need to consider whether we're running at 30 or 60 fps
+        if (config.fps == 60) {
+                if (++phaseframe == 2) {
+                        phase ^= 1;
+                        phaseframe = 0;
+                }
+        } else phase ^= 1; // 0 -> 1 -> 0 -> 1...
+        // display frame
+        glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,            // target, LOD, xoff, yoff
+            snes_src_width,                            // texture width (changed via Blargg filter)
+            src_height,                                // texture height
             GL_BGRA,                                   // format of pixel data
             GL_UNSIGNED_INT_8_8_8_8_REV,               // data type of pixel data
-            screen_pixels);                            // pointer in image memory
+            filtered_pixels);                          // pointer in image memory */
+/*                  GL_RGB,                                    // format of pixel data
+            GL_UNSIGNED_SHORT_5_6_5,                   // data type of pixel data
+            filtered_rgb_pixels);                      // pointer in image memory  */
+    } else {
+        // Standard unfiltered display mode
+        // Lookup real RGB value from rgb array for backbuffer
+        for (int i = 0; i < (src_width * src_height); i++)
+            *(spix++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
 
+        glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,            // target, LOD, xoff, yoff
+                src_width, src_height,                     // texture width, texture height
+                GL_BGRA,                                   // format of pixel data
+                GL_UNSIGNED_INT_8_8_8_8_REV,               // data type of pixel data
+                screen_pixels);                            // pointer in image memory
+    }
     glCallList(dlist);
     //glFinish();
-
     SDL_GL_SwapWindow(window);
 }

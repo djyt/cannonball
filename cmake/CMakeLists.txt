@@ -10,6 +10,14 @@ set(CMDIR ../cmake)
 # Source location
 set(main_cpp_base ../src/main)
 
+# OpenMP (used in CRT shading)
+FIND_PACKAGE(OpenMP)
+if(OPENMP_FOUND)
+    message("OPENMP FOUND")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+    include_directories(SYSTEM ${OpenMP_INCLUDE_PATH})
+endif()
+
 # Include relevant CMAKE file (default, mingw, pandora etc.)
 if(TARGET)
     set(TCMAKE ${TARGET}.cmake)
@@ -144,12 +152,14 @@ if(SDL2)
 		"${main_cpp_base}/sdl2/input.hpp"
 		"${main_cpp_base}/sdl2/renderbase.hpp"
 		"${main_cpp_base}/sdl2/rendersurface.hpp"
+                "${main_cpp_base}/sdl2/snes_ntsc.h"
 
 		"${main_cpp_base}/sdl2/audio.cpp"
 		"${main_cpp_base}/sdl2/timer.cpp"
 		"${main_cpp_base}/sdl2/input.cpp"
 		"${main_cpp_base}/sdl2/renderbase.cpp"
 		"${main_cpp_base}/sdl2/rendersurface.cpp"
+                "${main_cpp_base}/sdl2/snes_ntsc.c"
 		)
 	endif()
 else()  #Using legacy, unmantained SDL1.x

@@ -13,6 +13,8 @@
 #include "engine/audio/osound.hpp"
 #include "engine/audio/osoundint.hpp"
 
+int current_sound_frame = 0;
+
 OSoundInt osoundint;
 OSound osound;
 
@@ -62,23 +64,8 @@ void OSoundInt::reset()
 
 void OSoundInt::tick()
 {
-    if (config.fps == 30)
-    {
-        play_queued_sound(); // Process audio commands from main program code
-        osound.tick();
         play_queued_sound();
         osound.tick();
-        play_queued_sound();
-        osound.tick();
-        play_queued_sound();
-        osound.tick();
-    }
-    else if (config.fps == 60)
-    {
-        play_queued_sound(); // Process audio commands from main program code
-        osound.tick();
-        osound.tick();
-    }
 }
 
 // ----------------------------------------------------------------------------

@@ -68,6 +68,7 @@ struct video_settings_t
     // No UI for the following
     int filtering;         // OpenGL blend mode, 0 or 1 on Linux
     int flicker;           // Slightly dims alternate frames
+    
 };
 
 struct sound_settings_t
@@ -76,6 +77,7 @@ struct sound_settings_t
     int advertise;
     int preview;
     int fix_samples;
+    int playback_speed;
     custom_music_t custom_music[4];
 };
 

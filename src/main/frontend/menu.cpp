@@ -130,6 +130,7 @@ const static char* ENTRY_MUSIC1     = "MAGICAL SOUND SHOWER";
 const static char* ENTRY_MUSIC2     = "PASSING BREEZE";
 const static char* ENTRY_MUSIC3     = "SPLASH WAVE";
 const static char* ENTRY_MUSIC4     = "LAST WAVE";
+const static char* ENTRY_PLAYBACK_SPEED = "PLAYBACK SPEED ";
 
 Menu::Menu(Interface* cannonboard)
 {
@@ -239,9 +240,10 @@ void Menu::populate()
     menu_musictest.push_back(ENTRY_MUSIC2);
     menu_musictest.push_back(ENTRY_MUSIC3);
     menu_musictest.push_back(ENTRY_MUSIC4);
+    menu_musictest.push_back(ENTRY_PLAYBACK_SPEED);
     menu_musictest.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL 0.3 © CHRIS WHITE 2014");
+    menu_about.push_back("CANNONBALL © CHRIS WHITE 2014,2020");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back("");
     menu_about.push_back("BLARGG INTEGRATION BY JAMES PEARCE ");
@@ -891,6 +893,11 @@ void Menu::tick_menu()
                 osoundint.queue_sound(sound::MUSIC_SPLASH);
             else if (SELECTED(ENTRY_MUSIC4))
                 osoundint.queue_sound(sound::MUSIC_LASTWAVE);
+            else if (SELECTED(ENTRY_PLAYBACK_SPEED))
+            {
+                if (++config.sound.playback_speed>136)
+                    config.sound.playback_speed = 120;
+            }
 
             else if (SELECTED(ENTRY_BACK))
             {
@@ -1008,6 +1015,11 @@ void Menu::refresh_menu()
                 set_menu_text(ENTRY_PREVIEWSND, config.sound.preview ? "ON" : "OFF");
             else if (SELECTED(ENTRY_FIXSAMPLES))
                 set_menu_text(ENTRY_FIXSAMPLES, config.sound.fix_samples ? "ON" : "OFF");
+        }
+        else if (menu_selected == &menu_musictest)
+        {
+            if (SELECTED(ENTRY_PLAYBACK_SPEED))
+                set_menu_text(ENTRY_PLAYBACK_SPEED, Utils::to_string(config.sound.playback_speed));
         }
         else if (menu_selected == &menu_controls)
         {
@@ -1209,8 +1221,8 @@ void Menu::start_game(int mode, int settings)
         config.engine.level_objects = 1;
         config.engine.new_attract   = 1;
         config.engine.fix_bugs      = 1;
+        config.engine.fix_timer     = 1;
         config.sound.preview        = 1;
-
         restart_video();
     }
     // Original Settings

@@ -1,6 +1,6 @@
 /***************************************************************************
     Cannonball Main Entry Point.
-    
+
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
@@ -47,6 +47,11 @@
 // Fine to include on non-windows builds as dummy functions used.
 #include "directx/ffeedback.hpp"
 
+//Multi-threading to enable seperate audio and game threads, as on the S16 system board
+//#include <omp.h>
+#include <thread>
+#include <time.h>
+
 // Initialize Shared Variables
 using namespace cannonball;
 
@@ -56,12 +61,26 @@ int    cannonball::frame       = 0;
 bool   cannonball::tick_frame  = true;
 int    cannonball::fps_counter = 0;
 
+static int spinlock = 0;
+
 #ifdef COMPILE_SOUND_CODE
 Audio cannonball::audio;
 #endif
 
 Menu* menu;
 Interface cannonboard;
+
+
+// JJP processing stats
+uint32_t frames = 0;
+uint32_t lateframes = 0;
+uint32_t runtime = 0;
+double   targetframetime = 0;
+uint32_t enginetime = 0;
+uint32_t renderingtime = 0;
+uint32_t idletime = 0;
+
+
 
 static void quit_func(int code)
 {
@@ -162,13 +181,13 @@ static void tick()
 
                 #ifdef COMPILE_SOUND_CODE
                 // Tick audio program code
-                osoundint.tick();
+//                osoundint.tick();
                 // Tick SDL Audio
                 audio.tick();
                 #endif
             }
             else
-            {                
+            {
                 input.frame_done(); // Denote keys read
             }
         }
@@ -193,7 +212,7 @@ static void tick()
             input.frame_done();
             #ifdef COMPILE_SOUND_CODE
             // Tick audio program code
-            osoundint.tick();
+//            osoundint.tick();
             // Tick SDL Audio
             audio.tick();
             #endif
@@ -211,12 +230,48 @@ static void tick()
     if (config.cannonboard.enabled)
         cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
 
-    // Draw SDL Video
-    video.draw_frame();  
 }
 
-static void main_loop()
+static void main_sound_loop()
 {
+    // This thread basically does what the Z80 on the S16 board is responsible for: the sound.
+    // osound.tick() is called at an interval of music target BPM / 60
+    double audio_ms;
+    double targetupdatetime = double(SDL_GetTicks()); // our start point
+    int waittime;
+    struct timespec ts;
+    int res;
+
+    while (state != STATE_QUIT)
+    {
+        if ((config.sound.playback_speed>=120) &&
+            (config.sound.playback_speed<=136)) 
+            targetupdatetime += 1000.0 / double( config.sound.playback_speed );
+        else
+            targetupdatetime += 1000.0 / 125.0;
+        // check if the game another thread is running and wait if it is
+        ts.tv_sec = 0; // whole seconds to sleep
+        ts.tv_nsec = 100; // 100ns sleep period, if we need to wait
+        while (spinlock==1) {
+            res = nanosleep(&ts, &ts);
+        } // wait
+        spinlock = 1; // hold the lock
+        osoundint.tick();
+        waittime = int( targetupdatetime - double(SDL_GetTicks()) );
+        spinlock = 0; // release the lock
+//        printf("Sound loop: Waiting %i ms\n",waittime);
+        if ((waittime > 0) && (waittime < ((config.fps == 60) ? 17 : 34))) {
+            // wait a maximum of one frame
+            ts.tv_sec = 0; // whole seconds to sleep
+            ts.tv_nsec = waittime * 1000000; // ns to sleep
+            res = nanosleep(&ts, &ts);
+        }
+    }
+}
+
+static void main_game_loop()
+{
+    // This thread does the job of everything except the sound
     // FPS Counter (If Enabled)
     Timer fps_count;
     int frame = 0;
@@ -224,29 +279,59 @@ static void main_loop()
 
     // General Frame Timing
     Timer frame_time;
-    int t;
+    int t; int waittime;
     double deltatime  = 0;
     int deltaintegral = 0;
+    struct timespec ts;
+    int res;
+
+    // JJP - performance counters
+    uint32_t enginestart;
+    uint32_t renderingstart;
+//    sleep(1); // wait for system to stabalise
+    runtime = SDL_GetTicks(); // get the time the game was started; we'll take that off at the end
+    targetframetime = runtime;
+    printf("frame_ms %f; fix_bugs: %i\n",frame_ms,config.engine.fix_bugs);
 
     while (state != STATE_QUIT)
     {
+        // check if the sound thread is running, and wait for it if so
+        ts.tv_sec = 0; // whole seconds to sleep
+        ts.tv_nsec = 100; // 100ns sleep period, if we need to wait
+        while (spinlock==1) {
+            res = nanosleep(&ts, &ts);
+        } // wait
+        spinlock = 1; // hold the lock
+        // JJP - various state timers to assist with thread optimisation on different platforms
+        targetframetime += frame_ms;
         frame_time.start();
-        tick();
-        #ifdef COMPILE_SOUND_CODE
-        deltatime += (frame_ms * audio.adjust_speed());
-        #else
-        deltatime += frame_ms;
-        #endif
-        deltaintegral  = (int) deltatime;
-        t = frame_time.get_ticks();
+        frames++;
+        enginestart = SDL_GetTicks();
+        tick(); // control what's happening
+        spinlock = 0; // release the lock - Outrun engine processing is done
+        enginetime += (SDL_GetTicks() - enginestart);
+        // Draw SDL Video
+        renderingstart = SDL_GetTicks();
+        video.draw_frame();
+        renderingtime += (SDL_GetTicks() - renderingstart);
 
-        // Cap Frame Rate: Sleep Remaining Frame Time
-        if (t < deltatime)
-        {
-            SDL_Delay((Uint32) (deltatime - t));
+        waittime = int( targetframetime - double(SDL_GetTicks()) );
+
+        if ((waittime < -40) || (waittime > 40)) {
+           // something has gone wrong, just reset the reference point
+           // possibly, the screen has been reconfigured which creates a long delay
+           // or the machine is just too slow for the configured settings
+           printf("INFO: Game Loop: Resetting timing reference.\n");
+           targetframetime = double(SDL_GetTicks());
+       } else {
+//            printf("Game Loop: Waiting %ims\n",waittime);
+            if ((waittime > 0) && (waittime < ((config.fps == 60) ? 17 : 34))) {
+                // wait a maximum of one frame
+                ts.tv_sec = 0; // whole seconds to sleep
+                ts.tv_nsec = waittime * 1000000; // ns to sleep
+                res = nanosleep(&ts, &ts);
+            }
         }
-        
-        deltatime -= deltaintegral;
 
         if (config.video.fps_count)
         {
@@ -260,6 +345,22 @@ static void main_loop()
             }
         }
     }
+
+    // JJP - get overall application run time at end of game and display the runtime stats.
+    runtime = SDL_GetTicks() - runtime; // total ms the game ran
+    printf("Stats:\n");
+    printf("\n");
+    printf("Run Time                :  %5.1fs           \n",(float(runtime)/1000.0));
+    printf("Frames                  : %4i.0            \n",frames);
+    printf("Target fps              :  %3i.0            \n",config.fps);
+    printf("Actual fps              :  %5.1f            \n",((float(frames))/(float(runtime)/1000)));
+    printf("Late frames             :  %3i.0  (%4.1f%%) \n",lateframes,(float(lateframes*100)/float(frames)));
+    printf("Game engine             :  %5.1fs (%4.1f%%) - %2.1fms/frame\n",
+        (float(enginetime)/1000.0),(float(enginetime*100)/float(runtime)),(float(enginetime)/float(frames)));
+    printf("Video rendering         :  %5.1fs (%4.1f%%) - %2.1fms/frame\n",
+        (float(renderingtime)/1000.0),(float(renderingtime*100)/float(runtime)),(float(renderingtime)/float(frames)));
+    printf("Idle                    :  %5.1fs (%4.1f%%) \n",(float(idletime)/1000.0),(float(idletime*100)/float(runtime)));
+    printf("\n");
 
     quit_func(0);
 }
@@ -336,7 +437,31 @@ int main(int argc, char* argv[])
 
         // Populate menus
         menu->populate();
-        main_loop();  // Loop until we quit the app
+
+/*        int ID=0;
+        omp_set_num_threads(2); // main game and sound in different threads as per S16 hardware
+        #pragma omp parallel
+//#pragma omp nowait
+//        #pragma omp task
+        {
+            ID = omp_get_thread_num();
+            if (ID==0) {
+                printf("Starting game loop on thread ID: %i\n",ID);
+                main_game_loop();
+            } else {
+//        }
+//        #pragma omp task
+//        {
+                printf("Starting sound loop on thread ID: %i\n",ID);
+                main_sound_loop();
+        } */
+
+       std::thread game (main_game_loop);
+       std::thread sound (main_sound_loop);
+       game.join();
+       sound.join();
+
+//#pragma omp taskwait
     }
     else
     {

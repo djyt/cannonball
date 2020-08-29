@@ -38,7 +38,7 @@ void OSoundInt::init()
         ym = new YM2151(0.5f, SOUND_CLOCK);
 
     pcm->init(config.fps);
-    ym->init(44100, config.fps);
+    ym->init(31250, config.fps); // JJP - 31,250Hz to match arcade.
 
     reset();
 
@@ -64,8 +64,8 @@ void OSoundInt::reset()
 
 void OSoundInt::tick()
 {
-        play_queued_sound();
-        osound.tick();
+    play_queued_sound();
+    osound.tick();
 }
 
 // ----------------------------------------------------------------------------

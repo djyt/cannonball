@@ -2,6 +2,7 @@
 #include "hwvideo/hwroad.hpp"
 #include "globals.hpp"
 #include "frontend/config.hpp"
+#include <omp.h> // JJP threading
 
 /***************************************************************************
     Video Emulation: OutRun Road Rendering Hardware.
@@ -165,19 +166,21 @@ void HWRoad::init(const uint8_t* src_road, const bool hires)
 
 void HWRoad::decode_road(const uint8_t* src_road)
 {
-    for (int y = 0; y < 256 * 2; y++) 
+    #pragma omp parallel
     {
-        const int src = ((y & 0xff) * 0x40 + (y >> 8) * 0x8000) % rom_size; // tempGfx
-        const int dst = y * 512; // System16Roads
+        #pragma omp parallel for
+        for (int y = 0; y < 256 * 2; y++) {
+            const int src = ((y & 0xff) * 0x40 + (y >> 8) * 0x8000) % rom_size; // tempGfx
+            const int dst = y * 512; // System16Roads
 
-        // loop over columns
-        for (int x = 0; x < 512; x++) 
-        {
-            roads[dst + x] = (((src_road[src + (x / 8)] >> (~x & 7)) & 1) << 0) | (((src_road[src + (x / 8 + 0x4000)] >> (~x & 7)) & 1) << 1);
+            // loop over columns
+            for (int x = 0; x < 512; x++) {
+                roads[dst + x] = (((src_road[src + (x / 8)] >> (~x & 7)) & 1) << 0) | (((src_road[src + (x / 8 + 0x4000)] >> (~x & 7)) & 1) << 1);
 
-            // pre-mark road data in the "stripe" area with a high bit
-            if (x >= 256 - 8 && x < 256 && roads[dst + x] == 3)
-                roads[dst + x] |= 4;
+                // pre-mark road data in the "stripe" area with a high bit
+                if (x >= 256 - 8 && x < 256 && roads[dst + x] == 3)
+                    roads[dst + x] |= 4;
+            }
         }
     }
 
@@ -211,16 +214,9 @@ void HWRoad::write32(uint32_t* adr, const uint32_t data)
 
 uint16_t HWRoad::read_road_control()
 {
-    uint32_t *src = (uint32_t *)ram;
-    uint32_t *dst = (uint32_t *)ramBuff;
-
-    // swap the halves of the road RAM
-    for (uint16_t i = 0; i < ROAD_RAM_SIZE/4; i++)
-    {
-        uint32_t temp = *src;
-        *src++ = *dst;
-        *dst++ = temp;
-    }
+    memcpy(ramScratch,ram,sizeof(ram));
+    memcpy(ram,ramBuff,sizeof(ram));
+    memcpy(ramBuff,ramScratch,sizeof(ram));
 
     return 0xffff;
 }
@@ -237,63 +233,70 @@ void HWRoad::write_road_control(const uint8_t road_control)
 // Background: Look for solid fill scanlines
 void HWRoad::render_background_lores(uint16_t* pixels)
 {
-    int x, y;
-    uint16_t* roadram = ramBuff;
-
-    for (y = 0; y < S16_HEIGHT; y++) 
+    #pragma omp parallel
     {
-        int data0 = roadram[0x000 + y];
-        int data1 = roadram[0x100 + y];
+        int x, y;
+        uint16_t* roadram = ramBuff;
+        #pragma omp parallel for
+        for (y = 0; y < S16_HEIGHT; y++) {
+            int data0 = roadram[0x000 + y];
+            int data1 = roadram[0x100 + y];
+            int color = -1;
 
-        int color = -1;
+            // based on the info->control, we can figure out which sky to draw
+            switch (road_control & 3) 
+            {
+                case 0:
+                    if (data0 & 0x800)
+                        color = data0 & 0x7f;
+                    break;
 
-        // based on the info->control, we can figure out which sky to draw
-        switch (road_control & 3) 
-        {
-            case 0:
-                if (data0 & 0x800)
-                    color = data0 & 0x7f;
-                break;
+                case 1:
+                    if (data0 & 0x800)
+                        color = data0 & 0x7f;
+                    else if (data1 & 0x800)
+                        color = data1 & 0x7f;
+                    break;
 
-            case 1:
-                if (data0 & 0x800)
-                    color = data0 & 0x7f;
-                else if (data1 & 0x800)
-                    color = data1 & 0x7f;
-                break;
+                case 2:
+                    if (data1 & 0x800)
+                        color = data1 & 0x7f;
+                    else if (data0 & 0x800)
+                        color = data0 & 0x7f;
+                    break;
 
-            case 2:
-                if (data1 & 0x800)
-                    color = data1 & 0x7f;
-                else if (data0 & 0x800)
-                    color = data0 & 0x7f;
-                break;
+                case 3:
+                    if (data1 & 0x800)
+                        color = data1 & 0x7f;
+                    break;
+            }
 
-            case 3:
-                if (data1 & 0x800)
-                    color = data1 & 0x7f;
-                break;
-        }
-
-        // fill the scanline with color
-        if (color != -1) 
-        {
-            uint16_t* pPixel = pixels + (y * config.s16_width);
-            color |= color_offset3;
-            
-            for (x = 0; x < config.s16_width; x++)
-                *(pPixel)++ = color;
+            // fill the scanline with color
+            if (color != -1) {
+                uint16_t* pPixel = pixels + (y * config.s16_width);
+                color |= color_offset3;
+                for (x = 0; x < config.s16_width; x++) *(pPixel)++ = color;
+            }
         }
     }
 }
 
 // Foreground: Render From ROM
-void HWRoad::render_foreground_lores(uint16_t* pixels)
+void HWRoad::render_foreground_lores_thread(uint32_t threadID, uint32_t totalThreads, uint16_t* pixels)
 {
     int x, y;
     uint16_t* roadram = ramBuff;
-    
-    for (y = 0; y < S16_HEIGHT; y++) 
+
+    // JJP threading
+    int min, max;
+    min = threadID * (S16_HEIGHT / totalThreads);
+    max = min + (S16_HEIGHT / totalThreads);
+    if (threadID==(totalThreads-1)) {
+        // last thread - add any odd rows
+        max += (S16_HEIGHT % totalThreads);
+    }
+
+    for (y = min; y < max; y++)
     {
         uint16_t color_table[32];
 
@@ -347,13 +350,13 @@ void HWRoad::render_foreground_lores(uint16_t* pixels)
         uint16_t s16_x = 0x5f8 + config.s16_x_off;
 
         // draw the road
-        switch (control) 
+        switch (control)
         {
             case 0:
                 if (data0 & 0x800)
                     continue;
                 hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x++) 
+                for (x = 0; x < config.s16_width; x++)
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     pPixel[x] = color_table[0x00 + pix0];
@@ -364,7 +367,7 @@ void HWRoad::render_foreground_lores(uint16_t* pixels)
             case 1:
                 hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
                 hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x++) 
+                for (x = 0; x < config.s16_width; x++)
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
@@ -381,7 +384,7 @@ void HWRoad::render_foreground_lores(uint16_t* pixels)
             case 2:
                 hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
                 hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x++) 
+                for (x = 0; x < config.s16_width; x++)
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
@@ -399,72 +402,89 @@ void HWRoad::render_foreground_lores(uint16_t* pixels)
                 if (data1 & 0x800)
                     continue;
                 hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x++) 
+                for (x = 0; x < config.s16_width; x++)
                 {
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
                     pPixel[x] = color_table[0x10 + pix1];
                     hpos1 = (hpos1 + 1) & 0xfff;
                 }
                 break;
-            } // end switch
+        } // end switch
     } // end for
 }
+
+
+void HWRoad::render_foreground_lores(uint16_t* pixels)
+{
+    // JJP optimised
+    // calls render_foreground_lores_thread in required number of threads
+    int ID;
+    int threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+
+    #pragma omp parallel
+    {
+        ID = omp_get_thread_num();
+        render_foreground_lores_thread(ID,threads,pixels);
+    }
+}
+
+
 
 // ------------------------------------------------------------------------------------------------
 // High Resolution (Double Resolution) Road Rendering
 // ------------------------------------------------------------------------------------------------
 void HWRoad::render_background_hires(uint16_t* pixels)
 {
-    int x, y;
-    uint16_t* roadram = ramBuff;
-
-    for (y = 0; y < config.s16_height; y += 2) 
+    #pragma omp parallel
     {
-        int data0 = roadram[0x000 + (y >> 1)];
-        int data1 = roadram[0x100 + (y >> 1)];
-
-        int color = -1;
-
-        // based on the info->control, we can figure out which sky to draw
-        switch (road_control & 3) 
+        int x, y;
+        uint16_t* roadram = ramBuff;
+        #pragma omp parallel for
+        for (y = 0; y < config.s16_height; y += 2) 
         {
-            case 0:
-                if (data0 & 0x800)
-                    color = data0 & 0x7f;
-                break;
+            int data0 = roadram[0x000 + (y >> 1)];
+            int data1 = roadram[0x100 + (y >> 1)];
+            int color = -1;
 
-            case 1:
-                if (data0 & 0x800)
-                    color = data0 & 0x7f;
-                else if (data1 & 0x800)
-                    color = data1 & 0x7f;
-                break;
+            // based on the info->control, we can figure out which sky to draw
+            switch (road_control & 3) 
+            {
+                case 0:
+                    if (data0 & 0x800)
+                        color = data0 & 0x7f;
+                    break;
 
-            case 2:
-                if (data1 & 0x800)
-                    color = data1 & 0x7f;
-                else if (data0 & 0x800)
-                    color = data0 & 0x7f;
-                break;
+                case 1:
+                    if (data0 & 0x800)
+                        color = data0 & 0x7f;
+                    else if (data1 & 0x800)
+                        color = data1 & 0x7f;
+                    break;
 
-            case 3:
-                if (data1 & 0x800)
-                    color = data1 & 0x7f;
-                break;
+                case 2:
+                    if (data1 & 0x800)
+                        color = data1 & 0x7f;
+                    else if (data0 & 0x800)
+                        color = data0 & 0x7f;
+                    break;
+
+                case 3:
+                    if (data1 & 0x800)
+                        color = data1 & 0x7f;
+                    break;
+            }
+
+            // fill the scanline with color
+            if (color != -1) {
+                uint16_t* pPixel = pixels + (y * config.s16_width);
+                color |= color_offset3;
+                for (x = 0; x < config.s16_width; x++) *(pPixel)++ = color;
+            }
+
+            // Hi-Res Mode: Copy extra line of background
+            memcpy(pixels + ((y+1) * config.s16_width), pixels + (y * config.s16_width), sizeof(uint16_t) * config.s16_width);
         }
-
-        // fill the scanline with color
-        if (color != -1) 
-        {
-            uint16_t* pPixel = pixels + (y * config.s16_width);
-            color |= color_offset3;
-            
-            for (x = 0; x < config.s16_width; x++)
-                *(pPixel)++ = color;
-        }
-
-        // Hi-Res Mode: Copy extra line of background
-        memcpy(pixels + ((y+1) * config.s16_width), pixels + (y * config.s16_width), sizeof(uint16_t) * config.s16_width);
     }
 }
 
@@ -472,19 +492,28 @@ void HWRoad::render_background_hires(uint16_t* pixels)
 // Render Road Foreground - High Resolution Version
 // Interpolates previous scanline with next.
 // ------------------------------------------------------------------------------------------------
-void HWRoad::render_foreground_hires(uint16_t* pixels)
+void HWRoad::render_foreground_hires_thread(uint32_t threadID, uint32_t totalThreads, uint16_t* pixels)
 {
     int x, y, yy;
     uint16_t* roadram = ramBuff;
-    
+
     uint16_t color_table[32];
     int32_t color0, color1;
     int32_t bgcolor; // 8 bits
 
-    for (y = 0; y < config.s16_height; y++) 
+    // JJP threading
+    int min, max;
+    min = threadID * (config.s16_height / totalThreads);
+    max = min + (config.s16_height / totalThreads);
+    if (threadID==(totalThreads-1)) {
+        // last thread - add any odd rows
+        max += (config.s16_height % totalThreads);
+    }
+
+    for (y = min; y < max; y++)
     {
         yy = y >> 1;
-       
+
         static const uint8_t priority_map[2][8] =
         {
             { 0x80,0x81,0x81,0x87,0,0,0,0x00 },
@@ -497,18 +526,17 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
         // if both roads are low priority, skip
         if (((data0 & 0x800) != 0) && ((data1 & 0x800) != 0))
         {
-            y++; 
+            y++;
             continue;
         }
-
         uint8_t *src0 = NULL, *src1 = NULL;
 
         // get road 0 data
         int32_t hpos0  = roadram[0x200 + (((road_control & 4) != 0) ? yy : (data0 & 0x1ff))] & 0xfff;
 
-        // get road 1 data       
+        // get road 1 data
         int32_t hpos1  = roadram[0x400 + (((road_control & 4) != 0) ? (0x100 + yy) : (data1 & 0x1ff))] & 0xfff;
-        
+
         // ----------------------------------------------------------------------------------------
         // Interpolate Scanlines when in hi-resolution mode.
         // ----------------------------------------------------------------------------------------
@@ -537,16 +565,16 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
                 int32_t diff = (data1 + ((data1_next - data1) >> 1)) & 0xFF;
                 src1 = (roads + (0x100 + diff) * 512);
                 hpos1 = (hpos1 + ((hpos1_next - hpos1) >> 1)) & 0xFFF;
-            }     
+            }
         }
         // ----------------------------------------------------------------------------------------
         // Recalculate for non-interpolated scanlines
         // ----------------------------------------------------------------------------------------
         else
-        {            
+        {
             color0 = roadram[0x600 + (((road_control & 4) != 0) ? yy :           (data0 & 0x1ff))];
             color1 = roadram[0x600 + (((road_control & 4) != 0) ? (0x100 + yy) : (data1 & 0x1ff))];
-        
+
             // determine the 5 colors for road 0
             color_table[0x00] = color_offset1 ^ 0x00 ^ ((color0 >> 0) & 1);
             color_table[0x01] = color_offset1 ^ 0x02 ^ ((color0 >> 1) & 1);
@@ -561,9 +589,8 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
             color_table[0x12] = color_offset1 ^ 0x0c ^ ((color1 >> 6) & 1);
             bgcolor = (color1 >> 8) & 0xf;
             color_table[0x13] = ((data1 & 0x200) != 0) ? color_table[0x10] : (color_offset2 ^ 0x10 ^ bgcolor);
-            color_table[0x17] = color_offset1 ^ 0x0e ^ ((color1 >> 7) & 1);        
+            color_table[0x17] = color_offset1 ^ 0x0e ^ ((color1 >> 7) & 1);
         }
-        
         if (src0 == NULL)
             src0 = ((data0 & 0x800) != 0) ? roads + 256 * 2 * 512 : (roads + (0x000 + ((data0 >> 1) & 0xff)) * 512);
         if (src1 == NULL)
@@ -580,7 +607,7 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
                 if (data0 & 0x800)
                     continue;
                 hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x++) 
+                for (x = 0; x < config.s16_width; x++)
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     pPixel[x] = color_table[0x00 + pix0];
@@ -592,7 +619,7 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
             case 1:
                 hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
                 hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x++) 
+                for (x = 0; x < config.s16_width; x++)
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
@@ -612,7 +639,7 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
             case 2:
                 hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
                 hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x++) 
+                for (x = 0; x < config.s16_width; x++)
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
@@ -620,7 +647,7 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
                         pPixel[x] = color_table[0x10 + pix1];
                     else
                         pPixel[x] = color_table[0x00 + pix0];
-                      
+
                     if (x & 1)
                     {
                         hpos0 = (hpos0 + 1) & 0xfff;
@@ -633,15 +660,30 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
                 if (data1 & 0x800)
                     continue;
                 hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x++) 
+                for (x = 0; x < config.s16_width; x++)
                 {
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
-                    pPixel[x] = color_table[0x10 + pix1];                   
+                    pPixel[x] = color_table[0x10 + pix1];
                     if (x & 1)
                         hpos1 = (hpos1 + 1) & 0xfff;
                 }
                 break;
-            } // end switch
+        } // end switch
     } // end for
+}
+
+
+void HWRoad::render_foreground_hires(uint16_t* pixels)
+{
+    // calls render_foreground_hires_thread in required number of threads
+    int ID;
+    int threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+
+    #pragma omp parallel
+    {
+        ID = omp_get_thread_num();
+        render_foreground_hires_thread(ID,threads,pixels);
+    }
 }
 

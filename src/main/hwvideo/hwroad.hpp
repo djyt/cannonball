@@ -33,12 +33,22 @@ private:
     // Two halves of RAM
     uint16_t ram[ROAD_RAM_SIZE / 2];
     uint16_t ramBuff[ROAD_RAM_SIZE / 2];
+    uint16_t ramScratch[ROAD_RAM_SIZE / 2]; // JJP optimisation
 
     void decode_road(const uint8_t*);
+//    void render_background_lores(uint16_t*);
+//    void render_foreground_lores(uint16_t*);
+//    void render_background_hires(uint16_t*);
+//    void render_foreground_hires(uint16_t*);
+
+    // JJP
     void render_background_lores(uint16_t*);
     void render_foreground_lores(uint16_t*);
+    void render_foreground_lores_thread(uint32_t threadID, uint32_t totalThreads, uint16_t* pixels);
     void render_background_hires(uint16_t*);
     void render_foreground_hires(uint16_t*);
+    void render_foreground_hires_thread(uint32_t threadID, uint32_t totalThreads, uint16_t* pixels);
+
 };
 
 extern HWRoad hwroad;

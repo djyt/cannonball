@@ -28,7 +28,7 @@ void SoundChip::init(uint8_t channels, int32_t sample_freq, int32_t fps)
     this->sample_freq = sample_freq;
     this->channels    = channels;
 
-    frame_size =  sample_freq / fps;
+    frame_size =  31250 / 125; // jjpsample_freq / fps;
     buffer_size = frame_size * channels;
 
     if (initalized)

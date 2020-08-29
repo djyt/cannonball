@@ -176,11 +176,20 @@ void Video::draw_frame()
         (hwroad.*hwroad.render_foreground)(pixels);
         sprite_layer->render(8);
         tile_layer->render_text_layer(pixels, 1);
+
      }
 
+//    renderer->draw_frame(pixels);
+//    renderer->finalize_frame();
+}
+
+
+void Video::finalize_frame()
+{
     renderer->draw_frame(pixels);
     renderer->finalize_frame();
 }
+
 
 // ---------------------------------------------------------------------------
 // Text Handling Code
@@ -240,8 +249,9 @@ uint8_t Video::read_text8(uint32_t addr)
 
 void Video::clear_tile_ram()
 {
-    for (uint32_t i = 0; i <= 0xFFFF; i++)
-        tile_layer->tile_ram[i] = 0;
+//    for (uint32_t i = 0; i <= 0xFFFF; i++)
+//        tile_layer->tile_ram[i] = 0;
+    memset(tile_layer->tile_ram,0,0xFFFF); // JJP
 }
 
 void Video::write_tile8(uint32_t addr, const uint8_t data)
@@ -372,6 +382,63 @@ uint32_t Video::read_pal32(uint32_t* palAddr)
 // Convert internal System 16 RRRR GGGG BBBB format palette to renderer output format
 void Video::refresh_palette(uint32_t palAddr)
 {
+/*
+Palette format:
+        D15 : Shade hi/lo
+ 	D14 : Blue bit 0
+	D13 : Green bit 0
+	D12 : Red bit 0
+	D11 : Blue bit 4
+	D10 : Blue bit 3
+	D9  : Blue bit 2
+	D8  : Blue bit 1
+	D7  : Green bit 4
+	D6  : Green bit 3
+	D5  : Green bit 2
+	D4  : Green bit 1
+	D3  : Red bit 4
+	D2  : Red bit 3
+	D1  : Red bit 2
+	D0  : Red bit 1
+
+ Tiles from the text layer use color entries 0 to 63, divided into eight
+ 8-color palettes.
+
+ Tiles from the foreground and background layers use color entries 0-1023,
+ divided into 128 8-color palettes.
+
+ Sprites use color entries 1024-2047, divided into 64 16-color palettes.
+
+ The backdrop color is shown behind all layers in the active display area
+ and is selected from palette entry #0. The remainder of the frame (meaning
+ overscan, vertical retrace, and vertical blank) is always shown as black.
+ If the display is turned off through bit 5 of $C40001, the affected lines
+ are also shown as black.
+
+Shadow / hilight processing:
+
+ If a sprite uses palette $3F, its' pixels with values 1 to 14 change how
+ underlying pixels from the background are shown (Values 0 and 15 are
+ still treated as transparent).
+
+ For each background pixel that is obscured by the sprite in question,
+ bit 15 of its' corresponding entry from color RAM is checked. If cleared,
+ the color is shown at half intensity. If set, the color is shown at double
+ intensity (or brightness, if that's a better way to describe it). The actual
+ sprite pixel is not shown at all. Most games leave bit 15 cleared in all
+ entries, so any sprite using palette $3F will create a shadow.
+
+ Sprite priority still works in the same way: if a shadow or hilight sprite
+ is behind one layer but in front of another, only the pixels behind the
+ sprite are affected. Shadow and hilight processing affects the backdrop
+ color, text layer, and both the foreground and background layers. It has no
+ effect on other sprites.
+
+ If two sprites overlap each other and one of them uses palette $3F, the last
+ one drawn (having the highest inter-sprite priority) will select how the
+ background is affected.
+*/
+
     palAddr &= ~1;
     uint32_t a = (palette[palAddr] << 8) | palette[palAddr + 1];
     uint32_t r = (a & 0x000f) << 1; // r rrr0
@@ -383,6 +450,8 @@ void Video::refresh_palette(uint32_t palAddr)
         g |= 1; // g gggg
     if ((a & 0x4000) != 0)
         b |= 1; // b bbbb
+//    if ((a & 0x8000) != 0)
+//        hilite = 1; // highlight bit
 
     renderer->convert_palette(palAddr, r, g, b);
 }

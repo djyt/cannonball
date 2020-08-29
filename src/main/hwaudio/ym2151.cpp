@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <cmath>
 #include <cstring>  // For memset on GCC
-
+#include <cstdio> // for printf devugging JJP
 #include "hwaudio/ym2151.hpp"
 
 signed int     chanout[8];
@@ -513,7 +513,7 @@ void YM2151::init_chip_tables()
     double scaler;
     double pom;
 
-    scaler = ( (double)clock / 64.0 ) / ( (double)sampfreq );
+    scaler = ( (double)clock / 64.0 ) / ( (double)sampfreq ); // JJP - was 64
     /*logerror("scaler    = %20.15f\n", scaler);*/
 
     /* this loop calculates Hertz values for notes from c-0 to b-7 */
@@ -616,19 +616,25 @@ void YM2151::init_chip_tables()
     {
         /* ASG 980324: changed to compute both tim_A_tab and timer_A_time */
         //pom= attotime::from_hz(clock) * (64 * (1024 - i));
+        // JJP - per datasheet, time in MS that the counter will run, before generating interrupt (if
+        // enabled) will be calculated in "pom" for each possible timer valve. The timer is 10-bit,
+        // therefore there are 1024 possible start values.
         pom= ( 64.0  *  (1024.0-i) / (double)clock );
         #ifdef USE_MAME_TIMERS
             timer_A_time[i] = pom;
         #else
             //tim_A_tab[i] = pom.as_double() * (double)sampfreq * mult;  /* number of samples that timer period takes (fixed point) */
-            tim_A_tab[i] = (int)(pom * (double)sampfreq * mult); 
+            // the value stored in tim_A-tab is actually the number of samples that would be played in the period
+            // but * 1,000 and * (1<<TIMER_SH), the latter being what will be decremented on each cycle through
+            // the look later.
+            tim_A_tab[i] = (int)(pom * (double)sampfreq * mult);
         #endif
     }
     for (i=0; i<256; i++)
     {
         /* ASG 980324: changed to compute both tim_B_tab and timer_B_time */
         //pom= attotime::from_hz(clock) * (1024 * (256 - i));
-        pom= ( 1024.0 * (256.0-i)  / (double)clock );
+        pom= ( 1024.0 * (256.0-i)  / (double)clock ); //JJP
         #ifdef USE_MAME_TIMERS
             timer_B_time[i] = pom;
         #else
@@ -1294,7 +1300,7 @@ void YM2151::init(int rate, int fps)
     this->sampfreq = rate;
     init_tables();
 
-    this->sampfreq = rate ? rate : 44100;    /* avoid division by 0 in init_chip_tables() */
+    this->sampfreq = rate ? rate : 31250;  /* avoid division by 0 in init_chip_tables() */
 
     init_chip_tables();
 
@@ -1313,7 +1319,6 @@ void YM2151::init(int rate, int fps)
     tim_B      = 0;
 #endif
     ym2151_reset_chip();
-    /*logerror("YM2151[init] clock=%i sampfreq=%i\n", PSG->clock, PSG->sampfreq);*/
 }
 
 void ym2151_shutdown()
@@ -2023,6 +2028,9 @@ void YM2151::stream_update()
         if (tim_B_val<=0)
         {
             tim_B_val += tim_B_tab[ timer_B_index ];
+//        if (tim_B_val< (length << TIMER_SH))
+//        {
+            tim_B_val = tim_B_tab[ timer_B_index ];
             if ( irq_enable & 0x08 )
             {
                 int oldstate = status & 3;
@@ -2089,10 +2097,15 @@ void YM2151::stream_update()
         /* calculate timer A */
         if (tim_A)
         {
+            // JJP - each pass through this loop we decrememt (1<<TIMER_SH) from the
+            // value in the timer. The ms are multiplied up accordingly when the values
+            // in the lookup table were created.
             tim_A_val -= ( 1 << TIMER_SH );
             if (tim_A_val <= 0)
+// JJP        if (tim_A_val <= (1 << TIMER_SH)) // JJP
             {
                 tim_A_val += tim_A_tab[ timer_A_index ];
+                tim_A_val = tim_A_tab[ timer_A_index ]; // re-initialise timer
                 if (irq_enable & 0x04)
                 {
                     int oldstate = status & 3;

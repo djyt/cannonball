@@ -59,7 +59,6 @@ struct video_settings_t
     int vignette;          // progressively dims screen away from centre
     // JJP - Blargg related filtering settings
     int blargg;            // Blargg mode - per above constants
-    int blarggthreads;     // Filter is intensive, this spreads load across cores
     int saturation;
     int contrast;
     int brightness;

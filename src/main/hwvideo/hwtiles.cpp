@@ -4,6 +4,7 @@
 #include "hwvideo/hwtiles.hpp"
 #include "frontend/config.hpp"
 #include <cstring>
+#include <omp.h>
 
 /***************************************************************************
     Video Emulation: OutRun Tilemap Hardware.
@@ -202,6 +203,8 @@ void hwtiles::render_all_tiles(uint16_t* buf)
 
 void hwtiles::render_tile_layer(uint16_t* buf, uint8_t page_index, uint8_t priority_draw)
 {
+    #pragma omp parallel
+    {
     int16_t Colour, x, y, Priority = 0;
 
     uint16_t ActPage = 0;
@@ -215,6 +218,7 @@ void hwtiles::render_tile_layer(uint16_t* buf, uint8_t page_index, uint8_t prior
     if ((yScroll & 0x8000) != 0)
         yScroll = (text_ram[0xf16 + (0x40 * page_index) + 0] << 8) | text_ram[0xf16 + (0x40 * page_index) + 1];
 
+    #pragma omp parallel for
     for (int my = 0; my < 64; my++) 
     {
         for (int mx = 0; mx < 128; mx++) 
@@ -274,6 +278,7 @@ void hwtiles::render_tile_layer(uint16_t* buf, uint8_t page_index, uint8_t prior
             } // end priority check
         }
     } // end for loop
+    } // pragma parallel for
 }
 
 void hwtiles::render_text_layer(uint16_t* buf, uint8_t priority_draw)

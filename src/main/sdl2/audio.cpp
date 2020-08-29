@@ -17,6 +17,7 @@
 #include <iostream>
 #include <SDL.h>
 #include <time.h>
+#include <mutex>
 
 #ifdef SDL2
 #include "sdl2/audio.hpp"
@@ -40,10 +41,14 @@ static int dsp_write_pos;
 static int dsp_read_pos;
 static int callbacktick;     // tick at which callback occured
 static int bytes_per_sample; // Number of bytes per sample entry (usually 4 bytes if stereo and 16-bit sound)
-static int spinlock = 0;     // used to prevent concurrent updates in tick() and fillaudio()
+// audio_paused: keeps track of when audio is paused:
+// 0 - running, 1 - waiting to start when buffer has something ready, 2 - paused on command
+static int audio_paused = 1;
+std::mutex soundMutex;
 
 // SDL Audio Callback Function
 extern void fill_audio(void *udata, Uint8 *stream, int len);
+
 
 // ----------------------------------------------------------------------------
 
@@ -100,7 +105,7 @@ void Audio::start_audio()
         desired.freq     = FREQ;
         desired.format   = AUDIO_S16SYS;
         desired.channels = CHANNELS;
-        desired.samples  = SAMPLES;
+        desired.samples  = SAMPLES; // number of samples to be filled on each callback
         desired.callback = fill_audio;
         desired.userdata = NULL;
 	
@@ -120,24 +125,22 @@ void Audio::start_audio()
 
         bytes_per_sample = CHANNELS * (BITS / 8);
 
-        // Start Audio
+        // Start Generating Audio
         sound_enabled = true;
 
-        // how many fragments in the dsp buffer
-        const int DSP_BUFFER_FRAGS = 5;
         int specified_delay_samps = (FREQ * SND_DELAY) / 1000;
-        int dsp_buffer_samps = SAMPLES * DSP_BUFFER_FRAGS + specified_delay_samps;
+        int dsp_buffer_samps = SAMPLES * DSP_BUFFER_FRAGS; // + specified_delay_samps;
         dsp_buffer_bytes = CHANNELS * dsp_buffer_samps * (BITS / 8);
         dsp_buffer = new uint8_t[dsp_buffer_bytes];
 
         // Create Buffer For Mixing
-        uint16_t buffer_size = (FREQ / config.fps) * CHANNELS;
+        uint16_t buffer_size = dsp_buffer_bytes / DSP_BUFFER_FRAGS;
         mix_buffer = new uint16_t[buffer_size];
 
         clear_buffers();
         clear_wav();
 
-        SDL_PauseAudioDevice(dev,0);
+        audio_paused = 1; // flags to audio_tick() to start playing when data becomes available
     }
 }
 
@@ -145,14 +148,14 @@ void Audio::clear_buffers()
 {
     dsp_read_pos  = 0;
     int specified_delay_samps = (FREQ * SND_DELAY) / 1000;
-    dsp_write_pos = (specified_delay_samps+SAMPLES) * bytes_per_sample;
+    dsp_write_pos = (specified_delay_samps) * bytes_per_sample;
     avg_gap = 0.0;
     gap_est = 0;
 
     for (int i = 0; i < dsp_buffer_bytes; i++)
         dsp_buffer[i] = 0;
 
-    uint16_t buffer_size = (FREQ / config.fps) * CHANNELS;
+    uint16_t buffer_size = dsp_buffer_bytes / DSP_BUFFER_FRAGS;
     for (int i = 0; i < buffer_size; i++)
         mix_buffer[i] = 0;
 
@@ -166,6 +169,7 @@ void Audio::stop_audio()
         sound_enabled = false;
 
         SDL_PauseAudioDevice(dev,1);
+        audio_paused = 2;
         SDL_CloseAudioDevice(dev);
 
         delete[] dsp_buffer;
@@ -177,7 +181,10 @@ void Audio::pause_audio()
 {
     if (sound_enabled)
     {
+        soundMutex.lock();
         SDL_PauseAudioDevice(dev,1);
+        audio_paused = 2;
+        soundMutex.unlock();
     }
 }
 
@@ -186,29 +193,20 @@ void Audio::resume_audio()
     if (sound_enabled)
     {
         clear_buffers();
-        SDL_PauseAudioDevice(dev,0);
+//        SDL_PauseAudioDevice(dev,0);
+        audio_paused = 1; // audio_tick() will commence playback when there's something to play
     }
 }
 
-// Called every frame to update the audio
+// Called every audio frame
 void Audio::tick()
 {
+    int ready = 0;
     int bytes_written = 0;
-    int newpos;
+    int gap, newpos;
     double bytes_per_ms;
 
-    if (!sound_enabled) return;
-
-    // check for another thread running, and wait for it to avoid
-    // errors updating the pointers
-    struct timespec ts;
-    int res;
-    ts.tv_sec = 0; // whole seconds to sleep
-    ts.tv_nsec = 100; // 100ns sleep period, if we need to wait
-    while (spinlock==1) {
-      res = nanosleep(&ts, &ts);
-    } // wait
-    spinlock = 1; // hold the lock
+    if ((!sound_enabled) || (audio_paused==2)) return;
 
     // Update audio streams from PCM & YM Devices
     osoundint.pcm->stream_update();
@@ -226,12 +224,9 @@ void Audio::tick()
     {
         int32_t mix_data = wav_buffer[wavfile.pos] + pcm_buffer[i] + ym_buffer[i];
 
-        // Clip mix data
-        if (mix_data >= (1 << 15))
-            mix_data = (1 << 15);
-        else if (mix_data < -(1 << 15))
-            mix_data = -(1 << 15);
-
+        // JJP clipping
+        mix_data = (mix_data > 32767) ? 32767 : mix_data;
+        mix_data = (mix_data < -32768) ? -32768 : mix_data;
         mix_buffer[i] = mix_data;
 
         // Loop wav files
@@ -239,59 +234,75 @@ void Audio::tick()
             wavfile.pos = 0;
     }
 
-    // Cast mix_buffer to a byte array, to align it with internal SDL format 
+    // Cast mix_buffer to a byte array, to align it with internal SDL format
     uint8_t* mbuf8 = (uint8_t*) mix_buffer;
 
     // produce samples from the sound emulation
-    bytes_per_ms = (bytes_per_sample) * (FREQ/1000.0);
-    bytes_written = (BITS == 8 ? samples_written : samples_written*2);
-    
+    bytes_per_ms = (double(bytes_per_sample) * double(FREQ)) / 1000.0; // JJP - avoid precision error
+    bytes_written = (BITS == 8 ? samples_written : samples_written * 2);
+
+    // suspend the callback
     SDL_LockAudio();
+    // and wait for the callback to complete, to avoid errors updating the pointers (dsp_read_pos specifically)
+    soundMutex.lock();
+
+    if (audio_paused) {
+        // clear to start calling off samples; we will have data available
+        SDL_PauseAudioDevice(dev,0);
+        audio_paused = 0;
+    }
 
     // this is the gap as of the most recent callback
-    int gap = dsp_write_pos - dsp_read_pos;
-    // an estimation of the current gap, adding time since then
+    while (!ready) {
+        if (dsp_write_pos == dsp_read_pos) gap = dsp_buffer_bytes;
+        else if (dsp_write_pos > dsp_read_pos) gap = dsp_buffer_bytes - dsp_write_pos + dsp_read_pos;
+        else gap = dsp_read_pos - dsp_write_pos;
+/*    // an estimation of the current gap, adding time since then
     if (callbacktick != 0)
         gap_est = (int) (gap - (bytes_per_ms)*(SDL_GetTicks() - callbacktick));
-
+*/
     // if there isn't enough room...
-    while (gap + bytes_written > dsp_buffer_bytes) 
-    {
-        // then we allow the callback to run..
-        SDL_UnlockAudio();
-        // and delay until it runs and allows space.
-        SDL_Delay(1);
-        SDL_LockAudio();
-        //printf("sound buffer overflow:%d %d\n",gap, dsp_buffer_bytes);
-        gap = dsp_write_pos - dsp_read_pos;
+//    while ((gap + bytes_written) > dsp_buffer_bytes) {
+        if (gap < bytes_written) {
+            printf("Sound buffer overflow:%d %d %d %d %d\n",gap, dsp_buffer_bytes, bytes_written,
+                   dsp_read_pos, dsp_write_pos);
+            // then we allow the callback to run..
+            soundMutex.unlock();
+            SDL_UnlockAudio();
+            // and delay until it runs and allows space.
+            SDL_Delay(1);
+            SDL_LockAudio();
+            soundMutex.lock();
+        } else ready = 1;
     }
     // now we copy the data into the buffer and adjust the positions
     newpos = dsp_write_pos + bytes_written;
-    if (newpos/dsp_buffer_bytes == dsp_write_pos/dsp_buffer_bytes) 
+
+    if (newpos < dsp_buffer_bytes) // No wrap
+        memcpy(dsp_buffer+(dsp_write_pos), mbuf8, bytes_written);
+
+    else // Wrap around
     {
-        // no wrap
-        memcpy(dsp_buffer+(dsp_write_pos%dsp_buffer_bytes), mbuf8, bytes_written);
+        int first_part_size = dsp_buffer_bytes - dsp_write_pos;
+        memcpy(dsp_buffer+(dsp_write_pos), mbuf8, first_part_size);
+        memcpy(dsp_buffer, mbuf8+first_part_size, bytes_written - first_part_size);
+        newpos = bytes_written-first_part_size;
     }
-    else 
-    {
-        // wraps
-        int first_part_size = dsp_buffer_bytes - (dsp_write_pos%dsp_buffer_bytes);
-        memcpy(dsp_buffer+(dsp_write_pos%dsp_buffer_bytes), mbuf8, first_part_size);
-        memcpy(dsp_buffer, mbuf8+first_part_size, bytes_written-first_part_size);
-    }
+
     dsp_write_pos = newpos;
 
-    // Sound callback has not yet been called
-    if (callbacktick == 0)
-        dsp_read_pos += bytes_written;
+    // Sound callback has not yet been called, update pointer here
+//    if (callbacktick == 0) dsp_read_pos += bytes_written;
 
-    while (dsp_read_pos > dsp_buffer_bytes) 
-    {
-        dsp_write_pos -= dsp_buffer_bytes;
+    while (dsp_read_pos >= dsp_buffer_bytes)
         dsp_read_pos -= dsp_buffer_bytes;
-    }
-    spinlock = 0; // release the lock
-    SDL_UnlockAudio();
+
+//    while (dsp_write_pos > dsp_buffer_bytes)
+//        dsp_write_pos -= dsp_buffer_bytes;
+
+    soundMutex.unlock();
+    SDL_UnlockAudio;
+
 }
 
 // Adjust the speed of the emulator, based on audio streaming performance.
@@ -404,7 +415,7 @@ void Audio::clear_wav()
         if (wavfile.loaded == 1)
             free(wavfile.data);
         else
-            delete[] wavfile.data;        
+            delete[] wavfile.data;
     }
 
     wavfile.length = 1;
@@ -422,60 +433,71 @@ void Audio::clear_wav()
 
 void fill_audio(void *udata, Uint8 *stream, int len)
 {
-    int gap;
+    int available_bytes;
     int newpos;
-    int underflow_amount = 0;
-#define MAX_SAMPLE_SIZE 4
-    static char last_bytes[MAX_SAMPLE_SIZE];
+    int underflow = 0;
 
     // check for another thread running, and wait for it to avoid
     // errors updating the pointers
-    struct timespec ts;
-    int res;
-    ts.tv_sec = 0; // whole seconds to sleep
-    ts.tv_nsec = 100; // 100ns sleep period, if we need to wait
-    while (spinlock==1) {
-      res = nanosleep(&ts, &ts);
-    } // wait
-    spinlock = 1; // hold the lock
+    soundMutex.lock();
 
-    gap = dsp_write_pos - dsp_read_pos;
-    if (gap < len) 
-    {
-        underflow_amount = len - gap;
-        len = gap;
+    if (dsp_write_pos == dsp_read_pos) available_bytes = 0;
+    else if (dsp_write_pos > dsp_read_pos) available_bytes = dsp_write_pos - dsp_read_pos;
+    else available_bytes = dsp_buffer_bytes - dsp_read_pos + dsp_write_pos;
+    if (available_bytes < len) {
+        underflow = len - available_bytes;
+        printf("Underflow! (%i bytes)\n",underflow);
+        printf("DSP Buffer: %i, read_pos: %i, write_pos: %i, Available Bytes: %i\n",
+            dsp_buffer_bytes,dsp_read_pos,dsp_write_pos,available_bytes);
+        printf("audio_paused: %i\n",audio_paused);
+        len = available_bytes;
     }
     newpos = dsp_read_pos + len;
+//printf("dsp_buffer_bytes %i newpos %i dsp_read_pos %i + len %i\n",dsp_buffer_bytes,newpos,dsp_read_pos,len);
 
     // No Wrap
-    if (newpos/dsp_buffer_bytes == dsp_read_pos/dsp_buffer_bytes) 
+    if (newpos < dsp_buffer_bytes)
+        memcpy(stream, dsp_buffer + dsp_read_pos, len);
+
+/*    if (newpos/dsp_buffer_bytes == dsp_read_pos/dsp_buffer_bytes)
     {
         memcpy(stream, dsp_buffer + (dsp_read_pos%dsp_buffer_bytes), len);
-    }
+    } */
     // Wrap
-    else 
-    {
-        int first_part_size = dsp_buffer_bytes - (dsp_read_pos%dsp_buffer_bytes);
+    else {
+        int first_part_size = dsp_buffer_bytes - dsp_read_pos;
+        memcpy(stream,  dsp_buffer + dsp_read_pos, first_part_size);
+        memcpy(stream + first_part_size,  dsp_buffer, len - first_part_size);
+//        newpos = len - first_part_size;
+/*        int first_part_size = dsp_buffer_bytes - (dsp_read_pos%dsp_buffer_bytes);
         memcpy(stream,  dsp_buffer + (dsp_read_pos%dsp_buffer_bytes), first_part_size);
-        memcpy(stream + first_part_size, dsp_buffer, len - first_part_size);
-    }
-    // Save the last sample as we may need it to fill underflow
-    if (gap >= bytes_per_sample) 
-    {
-        memcpy(last_bytes, stream + len - bytes_per_sample, bytes_per_sample);
-    }
-    // Just repeat the last good sample if underflow
-    if (underflow_amount > 0 ) 
-    {
-        int i;
-        for (i = 0; i < underflow_amount/bytes_per_sample; i++) 
-        {
-            memcpy(stream + len +i*bytes_per_sample, last_bytes, bytes_per_sample);
+        if (len>0)
+            memcpy(stream + first_part_size, dsp_buffer, len - first_part_size); //error this line
+*/    }
+    if (underflow) {
+        // Just repeat the last good sample if underflow
+        for (int i = 0; i < underflow; i++) {
+            if ((newpos + i) < dsp_buffer_bytes)
+                *(stream + newpos + i) = 0; // zero fill missing samples; effectively mutes the audio
+            else // wrap
+                *(stream + newpos + i - dsp_buffer_bytes) = 0;
         }
     }
+
+/*        if (available_bytes >= bytes_per_sample)
+            memcpy(last_bytes, stream + len - bytes_per_sample, bytes_per_sample);
+        for (int i = 0; i < underflow_amount/bytes_per_sample; i++) {
+            // potential seg-fault here, if underflow wraps buffer
+            memcpy(stream + len +i*bytes_per_sample, last_bytes, bytes_per_sample);
+        }
+    }*/
     dsp_read_pos = newpos;
 
-    spinlock = 0; // release the lock
+    while (dsp_read_pos >= dsp_buffer_bytes)
+        dsp_read_pos -= dsp_buffer_bytes;
+
+    soundMutex.unlock();
+
     // Record the tick at which the callback occured.
     callbacktick = SDL_GetTicks();
 }

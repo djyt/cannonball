@@ -3,6 +3,7 @@
 #include "globals.hpp"
 #include "frontend/config.hpp"
 
+#include <cstring> // JJP - memcpy
 /***************************************************************************
     Video Emulation: OutRun Sprite Rendering Hardware.
     Based on MAME source code.
@@ -80,11 +81,14 @@ void hwsprites::init(const uint8_t* src_sprites)
 void hwsprites::reset()
 {
     // Clear Sprite RAM buffers
-    for (uint16_t i = 0; i < SPRITE_RAM_SIZE; i++)
-    {
-        ram[i] = 0;
-        ramBuff[i] = 0;
-    }
+//    for (uint16_t i = 0; i < SPRITE_RAM_SIZE; i++)
+//    {
+//        ram[i] = 0;
+//        ramBuff[i] = 0;
+//    }
+    // JJP optimised
+    memset(ram, 0, sizeof(ram));
+    memset(ramBuff, 0, sizeof(ram));
 }
 
 // Clip areas of the screen in wide-screen mode
@@ -127,23 +131,23 @@ void hwsprites::write(const uint16_t adr, const uint16_t data)
 // Copy back buffer to main ram, ready for blit
 void hwsprites::swap()
 {
-    uint16_t *src = (uint16_t *)ram;
-    uint16_t *dst = (uint16_t *)ramBuff;
-
-    // swap the halves of the road RAM
-    for (uint16_t i = 0; i < SPRITE_RAM_SIZE; i++)
-    {
-        uint16_t temp = *src;
-        *src++ = *dst;
-        *dst++ = temp;
-    }
+    memcpy(ramScratch,ram,sizeof(ram));
+    memcpy(ram,ramBuff,sizeof(ram));
+    memcpy(ramBuff,ramScratch,sizeof(ram));
 }
 
 #define draw_pixel()                                                                                  \
 {                                                                                                     \
     if (x >= x1 && x < x2 && pix != 0 && pix != 15)                                                   \
     {                                                                                                 \
-        if (shadow && pix == 0xa)                                                                     \
+        if (color == 0x3F) {                                                                          \
+            if (shadow && pix == 0xa) {                                                               \
+                pPixel[x] = 0xfff;                                                                    \
+            } else {                                                                                  \
+                pPixel[x] = 0;                                                                        \
+            }                                                                                         \
+        }                                                                                             \
+        else if (shadow && pix == 0xa)                                                                \
         {                                                                                             \
             pPixel[x] &= 0xfff;                                                                       \
             pPixel[x] += ((S16_PALETTE_ENTRIES * 2) - ((video.read_pal16(pPixel[x]) & 0x8000) >> 3)); \

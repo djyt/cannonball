@@ -83,7 +83,7 @@ const static char* ENTRY_SCREENMODE    = "SCREEN MODE ";
 const static char* ENTRY_WIDESCREEN    = "WIDESCREEN ";
 const static char* ENTRY_HIRES         = "HIRES ";
 const static char* ENTRY_CRT_OVERLAY   = "CRT OVERLAY... "; // JJP - Submenu for the CRT mask overlays
-const static char* ENTRY_BLARGG_FILTER = "BLARGG CRT FILTER... "; // JJP - Submenu for the Blarrg CRT filter settings
+const static char* ENTRY_BLARGG_FILTER = "BLARGG CRT FILTER... "; // JJP - Submenu for the Blargg CRT filter settings
 
 // CRT Overlay Menu
 const static char* ENTRY_SCANLINES     = "SCANLINES ";
@@ -92,8 +92,7 @@ const static char* ENTRY_MASKSTRENGTH  = "MASK STRENGTH ";
 const static char* ENTRY_VIGNETTE      = "VIGNETTE ";
 
 // Blargg filter sub-menu
-const static char* ENTRY_BLARGG        = "BLARGG FILTERING "; // JJP - Enable/Disable Blarrg CRT filter
-const static char* ENTRY_BLARGGTHREADS = "BLARGG THREADS "; // JJP - Thread count for Blarrg CRT filter
+const static char* ENTRY_BLARGG        = "BLARGG FILTERING ";
 const static char* ENTRY_SATURATION    = "SATURATION ";
 const static char* ENTRY_CONTRAST      = "CONTRAST ";
 const static char* ENTRY_BRIGHTNESS    = "BRIGHTNESS ";
@@ -130,7 +129,6 @@ const static char* ENTRY_MUSIC1     = "MAGICAL SOUND SHOWER";
 const static char* ENTRY_MUSIC2     = "PASSING BREEZE";
 const static char* ENTRY_MUSIC3     = "SPLASH WAVE";
 const static char* ENTRY_MUSIC4     = "LAST WAVE";
-const static char* ENTRY_PLAYBACK_SPEED = "PLAYBACK SPEED ";
 
 Menu::Menu(Interface* cannonboard)
 {
@@ -203,12 +201,11 @@ void Menu::populate()
 
     // JJP - the following settings configure the CRT filtering
     menu_blargg_filter.push_back(ENTRY_BLARGG);
-    menu_blargg_filter.push_back(ENTRY_BLARGGTHREADS);
     menu_blargg_filter.push_back(ENTRY_SATURATION);
     menu_blargg_filter.push_back(ENTRY_CONTRAST);
     menu_blargg_filter.push_back(ENTRY_BRIGHTNESS);
     menu_blargg_filter.push_back(ENTRY_SHARPNESS);
-//    menu_blargg_filter.push_back(ENTRY_GAMMA);
+    menu_blargg_filter.push_back(ENTRY_GAMMA);
     menu_blargg_filter.push_back(ENTRY_BACK);
 
     menu_sound.push_back(ENTRY_MUTE);
@@ -240,13 +237,14 @@ void Menu::populate()
     menu_musictest.push_back(ENTRY_MUSIC2);
     menu_musictest.push_back(ENTRY_MUSIC3);
     menu_musictest.push_back(ENTRY_MUSIC4);
-    menu_musictest.push_back(ENTRY_PLAYBACK_SPEED);
     menu_musictest.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL © CHRIS WHITE 2014,2020");
+    menu_about.push_back("CANNONBALL © CHRIS WHITE 2012,2020");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back("");
-    menu_about.push_back("BLARGG INTEGRATION BY JAMES PEARCE ");
+    menu_about.push_back("BLARGG INTEGRATION AND MULTI-");
+    menu_about.push_back("THREADING BY JAMES PEARCE");
+    menu_about.push_back("");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");
 
     // Redefine menu text
@@ -656,15 +654,9 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_HIRES))
             {
                 config.video.hires = !config.video.hires;
-                if (config.video.hires)
-                {
-                    if (config.video.scale > 1)
-                        config.video.scale >>= 1;
-                }
-                else
-                {
-                    config.video.scale <<= 1;
-                }
+                if (config.video.hires) {
+                    if (config.video.scale > 1) config.video.scale >>= 1;
+                } else config.video.scale <<= 1;
 
                 restart_video();
                 video.sprite_layer->set_x_clip(false);
@@ -721,11 +713,6 @@ void Menu::tick_menu()
                     config.video.blargg = video_settings_t::BLARGG_DISABLE;
                 restart_video();
             }
-            else if (SELECTED(ENTRY_BLARGGTHREADS)) // improves performance on RPi
-            {
-                (config.video.blarggthreads==4) ? config.video.blarggthreads = 1 : config.video.blarggthreads++;
-                restart_video();
-            }
             else if (SELECTED(ENTRY_SATURATION))
             {
                 config.video.saturation += 10;
@@ -756,9 +743,9 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_GAMMA))
             {
-                config.video.gamma += 10;
-                if (config.video.gamma > 50)
-                    config.video.gamma = -50;
+                config.video.gamma += 50;
+                if (config.video.gamma > 300)
+                    config.video.gamma = -300;
                 restart_video();
             }
             else if (SELECTED(ENTRY_BACK))
@@ -893,15 +880,8 @@ void Menu::tick_menu()
                 osoundint.queue_sound(sound::MUSIC_SPLASH);
             else if (SELECTED(ENTRY_MUSIC4))
                 osoundint.queue_sound(sound::MUSIC_LASTWAVE);
-            else if (SELECTED(ENTRY_PLAYBACK_SPEED))
-            {
-                if (++config.sound.playback_speed>136)
-                    config.sound.playback_speed = 120;
-            }
-
-            else if (SELECTED(ENTRY_BACK))
-            {
-                osoundint.queue_sound(sound::FM_RESET);
+            else if (SELECTED(ENTRY_BACK)) {
+//                osoundint.queue_sound(sound::FM_RESET);
                 set_menu(&menu_sound);
             }
         }
@@ -992,8 +972,6 @@ void Menu::refresh_menu()
                 else if (config.video.blargg == video_settings_t::BLARGG_MONO)      s = "MONO";
                 set_menu_text(ENTRY_BLARGG, s);
             }
-            else if (SELECTED(ENTRY_BLARGGTHREADS))
-                set_menu_text(ENTRY_BLARGGTHREADS, Utils::to_string(config.video.blarggthreads));
             else if (SELECTED(ENTRY_SATURATION))
                 set_menu_text(ENTRY_SATURATION, Utils::to_string(config.video.saturation));
             else if (SELECTED(ENTRY_CONTRAST))
@@ -1015,11 +993,6 @@ void Menu::refresh_menu()
                 set_menu_text(ENTRY_PREVIEWSND, config.sound.preview ? "ON" : "OFF");
             else if (SELECTED(ENTRY_FIXSAMPLES))
                 set_menu_text(ENTRY_FIXSAMPLES, config.sound.fix_samples ? "ON" : "OFF");
-        }
-        else if (menu_selected == &menu_musictest)
-        {
-            if (SELECTED(ENTRY_PLAYBACK_SPEED))
-                set_menu_text(ENTRY_PLAYBACK_SPEED, Utils::to_string(config.sound.playback_speed));
         }
         else if (menu_selected == &menu_controls)
         {
@@ -1186,15 +1159,16 @@ bool Menu::check_jap_roms()
 void Menu::restart_video()
 {
     #ifdef COMPILE_SOUND_CODE
-    if (config.sound.enabled)
-        cannonball::audio.stop_audio();
+    if (config.sound.enabled) cannonball::audio.pause_audio();
+//        cannonball::audio.stop_audio();
+    SDL_Delay(8); // await call-back
     #endif
     video.disable();
     video.init(&roms, &config.video);
     #ifdef COMPILE_SOUND_CODE
-    osoundint.init();
-    if (config.sound.enabled)
-        cannonball::audio.start_audio();
+//    osoundint.init();
+    if (config.sound.enabled) cannonball::audio.resume_audio();
+//        cannonball::audio.start_audio();
     #endif
 }
 

@@ -230,6 +230,12 @@ bool RenderSurface::init(int src_width, int src_height,
     else SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
     window = SDL_CreateWindow("Cannonball", 0, 0, scn_width, scn_height, flags);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);//|SDL_RENDERER_PRESENTVSYNC);
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+
+    last_game_tx = SDL_CreateTexture(renderer,
+                               SDL_PIXELFORMAT_ARGB8888,
+                               SDL_TEXTUREACCESS_STREAMING,
+                               src_rect.w, src_rect.h);
     game_tx = SDL_CreateTexture(renderer,
                                SDL_PIXELFORMAT_ARGB8888,
                                SDL_TEXTUREACCESS_STREAMING,
@@ -245,20 +251,27 @@ bool RenderSurface::init(int src_width, int src_height,
     overlay = SDL_CreateTexture(renderer,
                                SDL_PIXELFORMAT_ARGB8888,
                                SDL_TEXTUREACCESS_STREAMING,
-                               src_rect.w, src_rect.h);
+                              src_rect.w, src_rect.h);
     vignette_tx = SDL_CreateTexture(renderer,
                                SDL_PIXELFORMAT_ARGB8888,
                                SDL_TEXTUREACCESS_STATIC,
                                dst_rect.w, dst_rect.h); // hw display pixels covered by image
-//    SDL_SetTextureBlendMode(game_tx, SDL_BLENDMODE_ADD);
+//    SDL_SetTextureBlendMode(game_tx, SDL_BLENDMODE_BLEND);
     SDL_SetTextureBlendMode(rgb_tx1, SDL_BLENDMODE_MOD);
     SDL_SetTextureBlendMode(scanline_tx, SDL_BLENDMODE_MOD);
     SDL_SetTextureBlendMode(overlay, SDL_BLENDMODE_ADD);
     SDL_SetTextureBlendMode(vignette_tx, SDL_BLENDMODE_MOD);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
+    // create the last frame, as to start with that is obviously black
+    uint32_t *texture_pixels = new uint32_t[(src_rect.w * src_rect.h)];
+    memset(texture_pixels, 0x00, sizeof(uint32_t[(src_rect.w * src_rect.h)]));
+    // load into SDL
+    SDL_UpdateTexture(last_game_tx, NULL, texture_pixels, src_rect.w * sizeof(Uint32));
+    delete[] texture_pixels;
+
     // create the horizontal scanline texture and prepare it
-    uint32_t *texture_pixels = new uint32_t[(scanline_rect.w * scanline_rect.h)];
+    texture_pixels = new uint32_t[(scanline_rect.w * scanline_rect.h)];
     memset(texture_pixels, 0xff, sizeof(uint32_t[(scanline_rect.w * scanline_rect.h)])); // fill with white i.e. no dimming
     if (scanlines>0) {
         uint32_t *scnlp = texture_pixels;
@@ -449,44 +462,10 @@ bool RenderSurface::init(int src_width, int src_height,
     texture_pixels = new uint32_t[(dst_rect.w * dst_rect.h)];
     memset(texture_pixels, 0xff, sizeof(uint32_t[(dst_rect.w * dst_rect.h)])); // fill with white
     if (vignette) {
-        // vignette mask is applied to the source image. This provides a smoother dimming on 6-bit hardware
-        // (e.g. Lo-tech RPi VGA interface, Gert666 etc than straight alpha blending, maybe becuase errors are
-        // distributed across the RGB space?
-/*        delete[] vignette_mask;
-        vignette_mask = new double[src_rect.h * src_rect.w];
-        int x; int y; double d;
-        double midx = double(src_rect.w >> 1);
-        double midy = double(src_rect.h >> 1);
-        double dia = sqrt( ((midx * midx) + (midy * midy)) );
-        double outer = dia * 1.0;
-        double inner = dia * 0.15;
-        double *vm = vignette_mask;
-        double target = double(config.video.vignette) / 100.0;
-        for (y=0; y < src_rect.h; y++) {
-            for (x=0;x < src_rect.w; x++) {
-                // calculate distance to middle
-                d = sqrt( ((midx - double(x)) * (midx - double(x))) + ((midy - double(y)) * (midy - double(y))) );
-                if (d < 0.0) {
-                    d = d * -1.0; // create absolute distance
-                }
-                if (d >= outer) {
-                    *vm = target; // the most dimmed value
-                }
-                else if (d > inner) {
-                   *vm = 1.0 - (target * ((d - inner) * (d - inner)) / ((outer - inner) * (outer - inner)) ); // note 0.4 = 1 - 0.6
-                }
-                else {
-                    *vm = 1.0; // no dimming in this region
-                }
-                vm++;
-            }
-        }
-*/
         // next create a native resolution filter to create rounded corners on the screen
         // the interaction with the above game filter won't be perfect due to image ratio differences
         // and alpha blend vs value multiplication
         uint32_t vignette_target = round( ( (double(config.video.vignette) / 100.0) * 255.0 ) );
-//                                            (double(config.video.vignette) / 100.0) ) * 255.0 ); // scale 0-10 to 0-255
         uint32_t *scnlp = texture_pixels;
         double midx = double(dst_rect.w >> 1);
         double midy = double(dst_rect.h >> 1);
@@ -503,12 +482,6 @@ bool RenderSurface::init(int src_width, int src_height,
                 if (d >= outer) {
                    // black out beyond this region
                    shadeval = total_black;
-//                    shadeval = uint32_t(round( ((total_black - double(vignette_target)) * (d - outer) /
-//                                                (dia - outer)) + double(vignette_target) ));
-//                    shadeval = uint32_t(round( ((total_black - double(vignette_target)) * ((d - outer) * (d - outer)) /
-//                                                 ((dia - outer) * (dia - outer))) + double(vignette_target) ));
-//                    *scnlp = uint32_t(0xFF) << Ashift;
-//                else *scnlp = 0;
                 } else if (d >= inner) {
                     // intermediate value; increase intensity with square of distance to avoid visible edge
                     shadeval = 255 - uint32_t(round( ((vignette_target) * ((d - inner) * (d - inner)) /
@@ -522,6 +495,45 @@ bool RenderSurface::init(int src_width, int src_height,
     SDL_UpdateTexture(vignette_tx, NULL, texture_pixels, dst_rect.w * sizeof(Uint32));
     delete[] texture_pixels;
 
+/*    // create reflection filter and texture
+    texture_pixels = new uint32_t[(dst_rect.w * dst_rect.h)];
+    memset(texture_pixels, 0x00, sizeof(uint32_t[(dst_rect.w * dst_rect.h)])); // fill with black
+    if (vignette) {
+        // next create a native resolution filter to add a splodge of white
+        uint32_t *scnlp = texture_pixels;
+        double midx = double(dst_rect.w >> 1);
+        double midy = double(dst_rect.h >> 1);
+        double splodge_x = midx * 1.3;
+        double splodge_y = midy / 1.3;
+        double dia = sqrt( ((midx * midx) + (midy * midy)) );
+        double outer = dia * 0.03;
+        double inner = dia * 0.005;
+        uint32_t shadeval;
+        double d;
+        for (int y=0; y<dst_rect.h; y++) {
+            for (int x=0; x<dst_rect.w; x++) {
+//        for (int y=start_y; y < end_y; y++) {
+//            for (int x=start_x; x < end_x; x++) {
+                // calculate distance to middle of splodge
+                d = sqrt( ((splodge_x - double(x)) * (splodge_x - double(x))) +
+                          ((splodge_y - double(y)) * (splodge_y - double(y))) );
+                if (d < 0.0) d = d * -1.0; // create absolute distance
+                if (d >= outer) {
+                   // add nothing in this region - beyond the outside circle
+                   shadeval = 0x00;
+                } else if (d >= inner) {
+                    // intermediate value; increase intensity with square of distance to avoid visible edge
+                    shadeval = 0xff - uint32_t( round( (0xff * ((d - inner) * (d - inner))) /
+                                                       ((outer - inner) * (outer - inner)) ) );
+                } else shadeval = 0xff; // white out the centre itself
+                *scnlp++ = (shadeval << Rshift) + (shadeval << Bshift) + (shadeval << Gshift) + (128 << Ashift);
+            }
+        }
+    }
+    // load the texture into SDL, even if it's just blank
+    SDL_UpdateTexture(reflection_tx, NULL, texture_pixels, dst_rect.w * sizeof(Uint32));
+    delete[] texture_pixels;
+*/
     // create some other buffers
     delete[] rgb_pixels;
     rgb_pixels = new uint16_t[src_width * src_height];
@@ -572,8 +584,8 @@ bool RenderSurface::init(int src_width, int src_height,
 
 void RenderSurface::disable()
 {
+    SDL_DestroyTexture(last_game_tx);
     SDL_DestroyTexture(game_tx);
-    SDL_DestroyTexture(game_tx2);
     SDL_DestroyTexture(scanline_tx);
     SDL_DestroyTexture(rgb_tx1);
     SDL_DestroyTexture(vignette_tx);
@@ -643,59 +655,76 @@ bool RenderSurface::finalize_frame()
     void *mpixels; int mpitch;
     uint32_t cpybytes;
 
-    // CPU processing of underlying game texture is floating point heavy, so split into threads
-    // per the Blargg setting for the same
-    if (config.video.blarggthreads>1) {
-        int ID;
-        omp_set_num_threads(config.video.blarggthreads);
+    int ID;
+    int threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+
+    if (shader) {
+        // Blargg filtering provides more of a CRT look.
+        framenumber++;
+        // process this in specified number of threads
         #pragma omp parallel
         {
             ID = omp_get_thread_num();
-            colorise_frame(ID,config.video.blarggthreads,srcpix,game_pixels,overlay_pixels,game_width,game_height);
+            shade(ID,threads);
         }
-    } else colorise_frame(0,1,srcpix,game_pixels,overlay_pixels,game_width,game_height);
 
-//    SDL_UpdateTexture(game_tx, NULL, game_pixels, game_width * sizeof (Uint32));
-    cpybytes = game_width * sizeof(Uint32) * game_height;
-    SDL_LockTexture(game_tx, NULL, &mpixels, &mpitch);
-    memcpy(mpixels, game_pixels, cpybytes);
-    SDL_UnlockTexture(game_tx);
+        // update phase.  We need to consider whether we're running at 30 or 60 fps
+        if (config.fps == 60) {
+            if (++phaseframe == 2) {
+                phase ^= 1;
+                phaseframe = 0;
+            }
+        } else phase ^= 1; // 0 -> 1 -> 0 -> 1...
+    }
+
+    // CPU processing of underlying game texture is floating point heavy, so split into threads
+    // per the Blargg setting for the same
+    #pragma omp parallel
+    {
+        ID = omp_get_thread_num();
+        colorise_frame(ID,threads,srcpix,game_pixels,overlay_pixels,game_width,game_height);
+    }
+
+//    SDL_RenderCopy(renderer, last_game_tx, &src_rect, &dst_rect);         // previous frame becomes the underlay
+    SDL_UpdateTexture(game_tx, NULL, game_pixels, game_width * sizeof (Uint32));
     SDL_SetTextureColorMod(game_tx, 0xff, 0xff, 0xff); // rgb balance
+//    SDL_SetTextureAlphaMod(game_tx, 224); // represent over the top of the previous frame (phosphor persistence)
 
-//    SDL_UpdateTexture(overlay, NULL, overlay_pixels, game_width * sizeof (Uint32));
-    SDL_LockTexture(overlay, NULL, &mpixels, &mpitch);
-    memcpy(mpixels, overlay_pixels, cpybytes);
-    SDL_UnlockTexture(overlay);
-    SDL_SetTextureColorMod(overlay, 0xff, 0xff, 0xff); // rgb balance
+    SDL_UpdateTexture(overlay, NULL, overlay_pixels, game_width * sizeof (Uint32));
     SDL_SetTextureAlphaMod(overlay, alpha_target); // bloom intensity
 
     // now pass the layers to the GPU to deal with
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, game_tx, &src_rect, &dst_rect);      // game image, maybe with CRT filter for artifacts
+
+//    SDL_RenderCopy(renderer, last_game_tx, &src_rect, &dst_rect);   // old game image underlay
+    SDL_RenderCopy(renderer, game_tx, &src_rect, &dst_rect);        // game image, maybe with CRT filter for artifacts
 //    SDL_RenderCopy(renderer, game_tx, &src_rect, &dst_rect);      // game image + game image (brightness)
-//    SDL_RenderCopy(renderer, game_tx2, &src_rect, &dst_rect);     // game image * game image, to provides x^2 colour curve
 
-    SDL_RenderCopy(renderer, rgb_tx1, &rgb_rect, &dst_rect);       // vertical rgb overlay
+    if (crtmask) {
+        SDL_RenderCopy(renderer, rgb_tx1, &rgb_rect, &dst_rect);       // vertical rgb overlay
+        SDL_RenderCopy(renderer, overlay, &src_rect, &dst_rect);       // brightens and highlights
+    }
+    if (scanlines) SDL_RenderCopy(renderer, scanline_tx, &scanline_rect, &dst_rect);// scanline overlay
+    if (crtmask)   SDL_RenderCopy(renderer, overlay, &src_rect, &dst_rect);         // brightens and highlights, second pass
+    if (vignette)  SDL_RenderCopy(renderer, vignette_tx, &rgb_rect, &dst_rect);     // vignette overlay comes last (on top)
 
-//    SDL_RenderCopy(renderer, overlay, &src_rect, &dst_rect);     // brightens and highlights
-
-    SDL_RenderCopy(renderer, scanline_tx, &scanline_rect, &dst_rect); // scanline overlay
-    SDL_RenderCopy(renderer, overlay, &src_rect, &dst_rect);     // brightens and highlights, second pass
-    SDL_RenderCopy(renderer, vignette_tx, &rgb_rect, &dst_rect);           // vignette overlay comes last (on top)
-
-    // and finally, update the screen
+    // update the screen
     SDL_RenderPresent(renderer);
+
+//    and copy the current game image into the previous game image texture
+//    SDL_UpdateTexture(last_game_tx, NULL, game_pixels, game_width * sizeof (Uint32));
 
     return true;
 }
 
-void RenderSurface::shade(int ThreadID, int TotalThreads, uint16_t* pixels)
+void RenderSurface::shade(int ThreadID, int TotalThreads) //, uint16_t* pixels)
 {
     // Does converts the native screen image storage in 'pixels' array to Blargg filtered image
     // in filtered_pixels (global).
     register uint32_t current_val;
     register uint16_t current_rgb_val;
-    uint16_t* current_pixel = pixels;
+//    uint16_t* current_pixel = pixels;
     uint16_t* th_rgb_pixels = rgb_pixels;
     uint16_t* th_filtered_rgb_pixels;
     uint32_t* th_filtered_pixels;
@@ -712,18 +741,8 @@ void RenderSurface::shade(int ThreadID, int TotalThreads, uint16_t* pixels)
     // calculate how much data to process in this thread
     start = src_width * first_block_rows * ThreadID;
     end   = start + (src_width * block_rows);
-    current_pixel += start;
-    th_rgb_pixels += start;
-
-    // convert pixel data to format used by Blarrg filtering code
-    for (int i = start; i < end; i++) {
-        // first, convert the game generated image to RGB as per the standard display code
-        current_val = rgb[*(current_pixel++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
-        // then convert that ready for Blargg
-        *(th_rgb_pixels++) = uint16_t( ((uint16_t((current_val & Rmask) >> Rshift) & 0x00F8) << 8) +   // red
-                                       ((uint16_t((current_val & Gmask) >> Gshift) & 0x00FC) << 3) +   // green
-                                       ((uint16_t((current_val & Bmask) >> Bshift) & 0x00F8) >> 3) );  // blue
-    }
+//    current_pixel += start;
+//    th_rgb_pixels += start;
 
     long output_pitch = (snes_src_width << 1); // 2 bytes-per-pixel (5/6/5)
     th_rgb_pixels = rgb_pixels + start; // move back to start of data processed
@@ -732,6 +751,7 @@ void RenderSurface::shade(int ThreadID, int TotalThreads, uint16_t* pixels)
     th_filtered_rgb_pixels = filtered_rgb_pixels + start;
     th_filtered_pixels = filtered_pixels + start;
 
+//...
     // Now call the blargg code, to do the work...
     if (config.video.hires) {
         snes_ntsc_blit_hires( ntsc, th_rgb_pixels, long(src_width), phase,
@@ -756,40 +776,38 @@ void RenderSurface::shade(int ThreadID, int TotalThreads, uint16_t* pixels)
 
 void RenderSurface::draw_frame(uint16_t* pixels)
 {
-    uint32_t* spix = screen_pixels;
-    uint32_t  currentpos = 1;
-    uint32_t  current_val = 0;
-    uint16_t  thisline = 0;
-    uint32_t  scanlineshade = 0;
-
+    // grabs the S16 frame buffer (pixels) and stores it, either
+    // as straight SDL RGB or SNES RGB ready for Blargg filter, if enabled
+    int threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
     framesrendered++;
     if (shader) {
-        // Blargg filtering provides more of a CRT look.
-        framenumber++;
-        // process this in specified number of threads
-        int ID;
-        if (config.video.blarggthreads>1) {
-            omp_set_num_threads(config.video.blarggthreads);
-            #pragma omp parallel
-            {
-                ID = omp_get_thread_num();
-                shade(ID,config.video.blarggthreads,pixels);
+        // convert pixel data to format used by Blarrg filtering code
+        #pragma omp parallel
+        {
+            uint16_t* tpix = pixels;
+            uint16_t* spix = rgb_pixels;
+            uint32_t current_val;
+            #pragma omp parallel for
+            for (int i = 0; i < (src_width * src_height); i++) {
+                // first, convert the game generated image to RGB as per the standard display code
+                current_val = rgb[*(tpix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+                // then convert that ready for Blargg
+                *(spix++) = uint16_t( ((uint16_t((current_val & Rmask) >> Rshift) & 0x00F8) << 8) +         // red
+                                            ((uint16_t((current_val & Gmask) >> Gshift) & 0x00FC) << 3) +   // green
+                                            ((uint16_t((current_val & Bmask) >> Bshift) & 0x00F8) >> 3) );  // blue
             }
-        } else {
-            shade(0,1,pixels);
         }
-
-        // update phase.  We need to consider whether we're running at 30 or 60 fps
-        if (config.fps == 60) {
-                if (++phaseframe == 2) {
-                        phase ^= 1;
-                        phaseframe = 0;
-                }
-        } else phase ^= 1; // 0 -> 1 -> 0 -> 1...
     } else {
-        // Lookup real RGB value from rgb array for backbuffer
-        for (int i = 0; i < (src_width * src_height); i++)
-	    *(spix++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)] +      // RGB
-                        (uint32_t(Alevel) << Ashift);                             // A
+        // Standard image processing; lookup real RGB value from rgb array for backbuffer
+        #pragma omp parallel
+        {
+            uint16_t* tpix = pixels;
+            uint32_t* spix = screen_pixels;
+            #pragma omp parallel for
+            for (int i = 0; i < (src_width * src_height); i++)
+                *(spix++) = rgb[*(tpix++) & ((S16_PALETTE_ENTRIES * 3) - 1)] +      // RGB
+                          (uint32_t(Alevel) << Ashift);                             // A
+        }
     }
 }

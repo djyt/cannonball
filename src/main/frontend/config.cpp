@@ -86,13 +86,12 @@ void Config::load(const std::string &filename)
     video.mask_strength = pt_config.get("video.mask_strength",   0); // JJP - SDL blend strength
     video.vignette   = pt_config.get("video.vignette",           0); // JJP - 0-100% dim edges
     video.blargg     = pt_config.get("video.blargg",             0); // JJP - Blargg filtering mode
-    video.blarggthreads = pt_config.get("video.blarggthreads",   1); // JJP - Blargg filter threads
     video.saturation = pt_config.get("video.saturation",         0); // JJP - Blargg filter saturation, -1 to +1
     video.contrast   = pt_config.get("video.contrast",           0); // JJP - Blargg filter contrast, -1 to +1
     video.brightness = pt_config.get("video.brightness",         0); // JJP - Blargg filter brightness, -1 to +1
     video.sharpness  = pt_config.get("video.sharpness",          0); // JJP - Blargg edge bluring
     video.gamma      = pt_config.get("video.gamma",              0); // JJP - Blargg gamma, -1 to +1
-    // not in UI currently
+    // not in UI currently:
     video.filtering  = pt_config.get("video.filtering",          0); // Open GL Filtering Mode
     video.flicker    = pt_config.get("video.flicker",            0); // JJP - flicker on/off
     video.fps_count  = pt_config.get("video.fps_counter",        0); // FPS Counter on/off
@@ -102,11 +101,11 @@ void Config::load(const std::string &filename)
     // ------------------------------------------------------------------------
     // Sound Settings
     // ------------------------------------------------------------------------
-    sound.enabled       = pt_config.get("sound.enable",       1);
-    sound.advertise     = pt_config.get("sound.advertise",    1);
-    sound.preview       = pt_config.get("sound.preview",      1);
+    sound.enabled        = pt_config.get("sound.enable",       1);
+    sound.advertise      = pt_config.get("sound.advertise",    1);
+    sound.preview        = pt_config.get("sound.preview",      1);
     sound.playback_speed = pt_config.get("sound.playback_speed",125); // JJP - BPM for synth
-    sound.fix_samples   = pt_config.get("sound.fix_samples",  1);
+    sound.fix_samples    = pt_config.get("sound.fix_samples",  1);
 
     // Custom Music
     for (int i = 0; i < 4; i++)
@@ -216,7 +215,6 @@ bool Config::save(const std::string &filename)
     pt_config.put("video.mask_strength",      video.mask_strength); // JJP CRT setup
     pt_config.put("video.vignette",           video.vignette);      // JJP - vignette post-processing filter
     pt_config.put("video.blargg",             video.blargg);        // JJP Blargg setting
-    pt_config.put("video.blarggthreads",      video.blarggthreads); // JJP Blargg settings
     pt_config.put("video.saturation",         video.saturation);    // JJP Blargg settings
     pt_config.put("video.contrast",           video.contrast);      // JJP Blargg settings
     pt_config.put("video.brightness",         video.brightness);    // JJP Blargg settings
@@ -432,13 +430,15 @@ void Config::set_fps(int fps)
     // Original game ticks sprites at 30fps but background scroll at 60fps
     tick_fps  = video.fps < 2 ? 30 : 60;
 
-    cannonball::frame_ms = 1000.0 / this->fps;
+    (this->fps == 60) ?
+        cannonball::frame_ms = 1000.0 / 60 : //.0543;
+        cannonball::frame_ms = 1000.0 / 30; //.02715;
 
-    #ifdef COMPILE_SOUND_CODE
-    if (config.sound.enabled)
-        cannonball::audio.stop_audio();
-    osoundint.init();
-    if (config.sound.enabled)
-        cannonball::audio.start_audio();
-    #endif
+//    #ifdef COMPILE_SOUND_CODE
+//    if (config.sound.enabled)
+//        cannonball::audio.stop_audio();
+//    osoundint.init();
+//    if (config.sound.enabled)
+//        cannonball::audio.start_audio();
+//    #endif
 }

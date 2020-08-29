@@ -86,8 +86,8 @@ SegaPCM::~SegaPCM()
 
 void SegaPCM::init(int32_t fps)
 {
-    int FREQ = 44100;
-    downsample = (32000.0 / (double) FREQ);
+    int FREQ = 31250; // JJP - match arcade hardware
+    downsample = 1;   // 31250.0 / double(FREQ);
     SoundChip::init(STEREO, FREQ, fps);
 }
 
@@ -138,7 +138,7 @@ void SegaPCM::stream_update()
                 write_buffer(RIGHT, i, read_buffer(RIGHT, i) + (v * regs[3]));
 
                 // Advance.
-                // Cannonball Change: Output at a fixed 44,100Hz. 
+                // Cannonball Change: Output at configured sample rate.
                 double increment = ((double)regs[7]) * downsample;
                 addr = (addr + (int) increment) & 0xffffff;
             }

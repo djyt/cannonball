@@ -21,6 +21,7 @@
 #include "engine/osprites.hpp"
 #include "engine/otraffic.hpp"
 #include "engine/ozoom_lookup.hpp"
+#include <string.h> // JJP
 
 OSprites osprites;
 
@@ -38,14 +39,18 @@ void OSprites::init()
     no_sprites = config.engine.level_objects ? SPRITE_ENTRIES : 0x4F;
 
     // Also handled by clear_palette_data() now
-    for (uint16_t i = 0; i < 0x100; i++)
-        pal_lookup[i] = 0;
-
-    for (uint16_t i = 0; i < 0x2000; i++)
-    {
-        sprite_order[i] = 0;
-        sprite_order2[i] = 0;
-    }
+    // JJP optimisation
+    memset(pal_lookup,0,0x100);
+    memset(sprite_order,0,0x2000);
+    memset(sprite_order2,0,0x2000);
+//    for (uint16_t i = 0; i < 0x100; i++)
+//        pal_lookup[i] = 0;
+//
+//    for (uint16_t i = 0; i < 0x2000; i++)
+//    {
+//        sprite_order[i] = 0;
+//        sprite_order2[i] = 0;
+//    }
 
     // Reset hardware entries
     for (uint16_t i = 0; i < JUMP_ENTRIES_TOTAL; i++)
@@ -276,8 +281,10 @@ void OSprites::sprite_control()
 void OSprites::clear_palette_data()
 {
     spr_col_pal = 0;
-    for (int16_t i = 0; i < 0x100; i++)
-        pal_lookup[i] = 0;
+    // JJP optimisation
+    memset(pal_lookup,0,0x100);
+//    for (int16_t i = 0; i < 0x100; i++)
+//        pal_lookup[i] = 0;
 }
 
 

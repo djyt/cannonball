@@ -1,6 +1,6 @@
 /***************************************************************************
     SDL2 Hardware Surface Video Rendering
-    Copyright Manuel Alfayate, Chris White.
+    Copyright (c) 2012,2020 Manuel Alfayate, Chris White.
 
     Copyright (c) 2020 James Pearce:
     - Blargg CRT filter integration
@@ -11,10 +11,9 @@
     - RGB colour processing:
       - Offset (adds a fixed value)
       - Floor (sets the minimum value)
-      - Overdrive (maxes out above a certain value)
+      - Overdrive (multiplies everything up, whiting out the image)
       - Bloom (bleeds brightness into neighbouring pixels)
-      - Scale (multiplies)
-      - Power (gamma)
+      - Colour Curves (adjusts RGB intensity to match non-linear response)
 
     See license.txt for more details.
 ***************************************************************************/
@@ -24,70 +23,130 @@
 #include "frontend/config.hpp"
 
 // Blargg filter for CRT processing (JJP) - with SMP support
-#include "snes_ntsc.h"
+//#include "snes_ntsc.h"
 #include <omp.h>
-
+/*
 // JJP - Blargg filtering for CRT style visuals
 static snes_ntsc_setup_t setup;
 static snes_ntsc_t* ntsc = 0;
 static int shader;                          // true if using Blargg filter
 static int vignette;                        // true if vignette is to be applied to screen
 static int flicker;                         // true is screen flicker should be added with vignette
-static uint16_t *rgb_pixels = 0;            // used by Blargg filter
-static uint16_t *filtered_rgb_pixels = 0;   // used by Blargg filter for RGB output
-static uint32_t *filtered_pixels = 0;       // used by Blargg filter for native output
-static double *vignette_mask = 0;           // dims image intensity towards edges
 static int phase;
 static int phaseframe;
+static int src_width;
 static int snes_src_width;
-static int framesrendered;
-static int framesdropped;
-static uint32_t framenumber;
-static int Alevel = 192;                    // default alpga value for game image
+static int src_height;
 static int crtmask = 0;
+static int crtfade = 0;
 static int mask_intensity = 0;
 static uint32_t screen_r[256]; // rainbow table to lookup exponent values for red channel
 static uint32_t screen_g[256]; // rainbow table to lookup exponent values for green channel
 static uint32_t screen_b[256]; // rainbow table to lookup exponent values for blue channel
-static int alpha_target = 0xff;
+static int Alevel = 192;       // default alpha value for game image
+static int overdrive;
+// working buffers for video processing
 static uint32_t *game_pixels;
 static uint32_t *overlay_pixels;
-
+// Blargg filtering buffers
+static uint16_t *rgb_pixels = 0;            // used by Blargg filter
+static uint16_t *filtered_rgb_pixels = 0;   // used by Blargg filter for RGB output
+static uint32_t *filtered_pixels = 0;       // used by Blargg filter for native output
+*/
 
 
 RenderSurface::RenderSurface()
 {
+    ntsc = (snes_ntsc_t*) malloc( sizeof(snes_ntsc_t) );
 }
 
 RenderSurface::~RenderSurface()
 {
+    free(ntsc);
 }
 
-bool RenderSurface::init(int src_width, int src_height,
-                    int scale,
-                    int video_mode,
-                    int scanlines)
+bool RenderSurface::init(int source_width, int source_height,
+                         int source_scale, int video_mode_requested, int scanlines_requested)
 {
-    this->src_width  = src_width;
-    this->src_height = src_height;
-    this->video_mode = video_mode;
-    this->scanlines  = scanlines;
+    src_width  = source_width;
+    src_height = source_height;
+    scale      = source_scale;
+    video_mode = video_mode_requested;
 
-    alpha_target = int( double(config.video.brightness) * 255.0 / 100.0 ) ; // used for final intensity overlay blend
-
-    // JJP - Blargg filtering
-    (config.video.blargg > video_settings_t::BLARGG_DISABLE) ? shader = 1 : shader = 0; // enable Blargg based on settings
-    (config.video.vignette) ? vignette = 1 : vignette = 0;
-    (config.video.flicker) ? flicker = 1 : flicker = 0;
-    crtmask = config.video.mask;
+    // Capture current settings
+    scanlines      = config.video.scanlines;
+    shader         = config.video.blargg;
+    vignette       = config.video.vignette;
+    crtmask        = config.video.mask;
     mask_intensity = config.video.mask_strength;
+    overdrive      = int( double(config.video.overdrive) * 255.0 / 100.0 );
+    flicker        = config.video.flicker;
+    crtfade        = 0;
+    red_gain       = config.video.red_gain;
+    green_gain     = config.video.green_gain;
+    blue_gain      = config.video.blue_gain;
+    red_curve      = config.video.red_curve;
+    green_curve    = config.video.green_curve;
+    blue_curve     = config.video.blue_curve;
+
+    // call the initialisation routines
+    init_blargg_filter();
+    if (!init_sdl(video_mode)) return false;
+    init_textures();
+    init_overlays();
+    create_color_curves();
+
+    // create some other buffers - deleted in disable()
+    rgb_pixels          = new uint16_t[src_width * src_height];
+    filtered_rgb_pixels = new uint16_t[(snes_src_width+1) * src_height];
+    filtered_pixels     = new uint32_t[(snes_src_width+1) * src_height];
+    game_pixels         = new uint32_t[src_rect.w * src_rect.h];
+    overlay_pixels      = new uint32_t[src_rect.w * src_rect.h];
+
+    return true;
+}
+
+void RenderSurface::disable()
+{
+    // release SDL textures etc
+    SDL_DestroyTexture(last_game_tx);
+    SDL_DestroyTexture(game_tx);
+    SDL_DestroyTexture(overlay);
+    SDL_DestroyTexture(scanline_tx);
+    SDL_DestroyTexture(rgb_tx1);
+    SDL_DestroyTexture(vignette_tx);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_FreeSurface(surface);
+    // release buffers
+    delete[] rgb_pixels;
+    delete[] filtered_rgb_pixels;
+    delete[] filtered_pixels;
+    delete[] game_pixels;
+    delete[] overlay_pixels;
+}
+
+bool RenderSurface::start_frame()
+{
+    return true;
+}
+
+
+void RenderSurface::init_blargg_filter()
+{
+    // Initialises the Blargg NTSC filter effects. This configures the output (s-video/rgb etc) and
+    // also pre-calculates the pixel mapping (which is slow), to the shader then runs on a lookup basis
+    // in the game (fast).
     if (shader) {
         // first calculate the resultant image size.
         snes_src_width = SNES_NTSC_OUT_WIDTH( src_width );
-        if (config.video.hires) snes_src_width = snes_src_width >> 1;
-        snes_src_width++; // not sure why!
-        if (!ntsc) ntsc = (snes_ntsc_t*) malloc( sizeof(snes_ntsc_t) );
-
+printf("SNES_NTSC_OUT_WIDTH: %i, SNES_NTSC_IN_WIDTH %i\n",snes_src_width,SNES_NTSC_IN_WIDTH(snes_src_width));
+        // SNES_NTSC_OUT_WIDTH can return slightly rounded down, so we need to check for this error
+        // but counting up to the next input pixel length boundary
+        while (SNES_NTSC_IN_WIDTH(snes_src_width) < src_width) snes_src_width++;
+        snes_src_width--; // while loop will have overshot by one pixel
+        if (config.video.hires) snes_src_width = snes_src_width >> 1; // hires filter halves output width
+printf("src_width: %i, snes_src_width: %i\n",src_width,snes_src_width);
         // configure selcted filtering type
         switch (config.video.blargg) {
             case video_settings_t::BLARGG_COMPOSITE:
@@ -107,23 +166,22 @@ bool RenderSurface::init(int src_width, int src_height,
         phase = 0;                      // initial frame will be phase 0
         phaseframe = 0;                 // used to track phase at 60 fps
         Alevel = 255;                   // blackpoint
-        setup.hue        = 0; //double(config.video.hue) / 100;
+        setup.hue        = 0.0; //double(config.video.hue) / 100;
         setup.saturation = double(config.video.saturation) / 100;
-        setup.contrast   = double(config.video.contrast) / 100;
-        setup.brightness = 0; //double(config.video.brightness) / 100;
-        setup.sharpness  = double(config.video.sharpness) / 100;
-        setup.gamma      = double(config.video.gamma) / 100;
+        setup.contrast   = double(config.video.contrast)   / 100;
+        setup.brightness = double(config.video.brightness) / 100;
+        setup.sharpness  = double(config.video.sharpness)  / 100;
+        setup.gamma      = double(config.video.gamma)      / 100;
+        setup.resolution = double(config.video.resolution) / 100;
         //setup.bleed      = config.video.bleed;
         //setup.fringing = 1;
         snes_ntsc_init( ntsc, &setup ); // configure the library
     }
+}
 
-    // Setup SDL Screen size
-    if (!RenderBase::sdl_screen_size())
-        return false;
 
-    int flags = SDL_FLAGS;
-
+bool RenderSurface::init_sdl(int video_mode)
+{
     // In SDL2, we calculate the output dimensions, but then in draw_frame() we won't do any scaling: SDL2
     // will do that for us, using the rects passed to SDL_RenderCopy().
     // scn_* -> physical screen dimensions OR window dimensions. On FULLSCREEN MODE it has the physical screen
@@ -133,10 +191,15 @@ bool RenderSurface::init(int src_width, int src_height,
     // above corrected_scn_width_* -> output screen size for scaling.
     // In windowed mode it's the size of the window.
 
+    // Setup SDL Screen size
+    if (!RenderBase::sdl_screen_size())
+        return false;
+
+    flags = SDL_FLAGS;
     // --------------------------------------------------------------------------------------------
     // Full Screen Mode
     // --------------------------------------------------------------------------------------------
-    printf("src_width: %i\nsrc_height: %i\n",src_width,src_height);
+    // printf("src_width: %i\nsrc_height: %i\n",src_width,src_height);
     if (video_mode == video_settings_t::MODE_FULL || video_mode == video_settings_t::MODE_STRETCH)
     {
 	flags |= (SDL_WINDOW_FULLSCREEN); // Set SDL flag
@@ -175,7 +238,8 @@ bool RenderSurface::init(int src_width, int src_height,
     // --------------------------------------------------------------------------------------------
     else
     {
-        this->video_mode = video_settings_t::MODE_WINDOW;
+        //this->video_mode = video_settings_t::MODE_WINDOW;
+        video_mode = video_settings_t::MODE_WINDOW;
 
         scn_width  = src_width  * scale;
         scn_height = src_height * scale;
@@ -192,6 +256,30 @@ bool RenderSurface::init(int src_width, int src_height,
         SDL_ShowCursor(true);
     }
 
+    // Frepare new surface
+    surface = SDL_CreateRGBSurfaceWithFormat(0, src_rect.w, src_rect.h, BPP, SDL_PIXELFORMAT_ARGB8888);
+    if (!surface) {
+        std::cerr << "Surface creation failed: " << SDL_GetError() << std::endl;
+        return false;
+    } else {
+        int res;
+        res = SDL_SetSurfaceRLE(surface,1); // enable RLE acceleration if possible
+        printf("RLE: "); (!res) ? printf("enabled\n") : printf("not enabled\n");
+        res = SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1");
+        printf("Framebuffer Acceleration: %i\n",res);
+        // Create window with SDL
+        if (config.video.filtering==0) SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+        else SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+        SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+        window = SDL_CreateWindow("Cannonball", 0, 0, scn_width, scn_height, flags);
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED); //|SDL_RENDERER_PRESENTVSYNC);
+    }
+    return true;
+}
+
+
+void RenderSurface::init_textures()
+{
     scanline_rect.w = 1; //src_rect.w;
     scanline_rect.h = (config.video.hires) ? src_rect.h << 1 : src_rect.h << 2;
     scanline_rect.x = 0;
@@ -201,19 +289,6 @@ bool RenderSurface::init(int src_width, int src_height,
     rgb_rect.h = dst_rect.h;
     rgb_rect.x = 0;
     rgb_rect.y = 0;
-
-    //int bpp = info->vfmt->BitsPerPixel;
-    const int bpp = 32;
-
-    // Frepare new surface
-    if (surface)
-        SDL_FreeSurface(surface);
-    surface = SDL_CreateRGBSurfaceWithFormat(0, src_rect.w, src_rect.h, bpp, SDL_PIXELFORMAT_ARGB8888);
-    if (!surface)
-    {
-        std::cerr << "Surface creation failed: " << SDL_GetError() << std::endl;
-        return false;
-    }
 
     // Get SDL Pixel Format Information
     Rshift = surface->format->Rshift;
@@ -225,13 +300,7 @@ bool RenderSurface::init(int src_width, int src_height,
     Bmask  = surface->format->Bmask;
     Amask  = surface->format->Amask;
 
-    // Create window with SDL and set up the stacked textures
-    if (config.video.filtering==0) SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-    else SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-    window = SDL_CreateWindow("Cannonball", 0, 0, scn_width, scn_height, flags);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);//|SDL_RENDERER_PRESENTVSYNC);
-    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
-
+    // Set up the stacked textures
     last_game_tx = SDL_CreateTexture(renderer,
                                SDL_PIXELFORMAT_ARGB8888,
                                SDL_TEXTUREACCESS_STREAMING,
@@ -251,17 +320,24 @@ bool RenderSurface::init(int src_width, int src_height,
     overlay = SDL_CreateTexture(renderer,
                                SDL_PIXELFORMAT_ARGB8888,
                                SDL_TEXTUREACCESS_STREAMING,
-                              src_rect.w, src_rect.h);
+                               src_rect.w, src_rect.h);
     vignette_tx = SDL_CreateTexture(renderer,
                                SDL_PIXELFORMAT_ARGB8888,
                                SDL_TEXTUREACCESS_STATIC,
                                dst_rect.w, dst_rect.h); // hw display pixels covered by image
-//    SDL_SetTextureBlendMode(game_tx, SDL_BLENDMODE_BLEND);
+    if (crtfade) SDL_SetTextureBlendMode(game_tx, SDL_BLENDMODE_BLEND);
     SDL_SetTextureBlendMode(rgb_tx1, SDL_BLENDMODE_MOD);
     SDL_SetTextureBlendMode(scanline_tx, SDL_BLENDMODE_MOD);
     SDL_SetTextureBlendMode(overlay, SDL_BLENDMODE_ADD);
     SDL_SetTextureBlendMode(vignette_tx, SDL_BLENDMODE_MOD);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+}
+
+
+void RenderSurface::init_overlays()
+{
+    // This function builds out the configured image overlays, i.e. CRT mask, vignette etc
+    // This is called by init(). Texture dimensions must be previously defined (by init_textures)
 
     // create the last frame, as to start with that is obviously black
     uint32_t *texture_pixels = new uint32_t[(src_rect.w * src_rect.h)];
@@ -466,7 +542,6 @@ bool RenderSurface::init(int src_width, int src_height,
         // the interaction with the above game filter won't be perfect due to image ratio differences
         // and alpha blend vs value multiplication
         uint32_t vignette_target = round( ( (double(config.video.vignette) / 100.0) * 255.0 ) );
-        uint32_t *scnlp = texture_pixels;
         double midx = double(dst_rect.w >> 1);
         double midy = double(dst_rect.h >> 1);
         double dia = sqrt( ((midx * midx) + (midy * midy)) );
@@ -474,6 +549,7 @@ bool RenderSurface::init(int src_width, int src_height,
         double inner = dia * 0.30;
         uint32_t shadeval;
         double total_black = 0.0; double d;
+        uint32_t *scnlp = texture_pixels;
         for (int y=0; y<dst_rect.h; y++) {
             for (int x=0; x<dst_rect.w; x++) {
                 // calculate distance to middle
@@ -534,26 +610,20 @@ bool RenderSurface::init(int src_width, int src_height,
     SDL_UpdateTexture(reflection_tx, NULL, texture_pixels, dst_rect.w * sizeof(Uint32));
     delete[] texture_pixels;
 */
-    // create some other buffers
-    delete[] rgb_pixels;
-    rgb_pixels = new uint16_t[src_width * src_height];
-    delete[] filtered_rgb_pixels;
-    filtered_rgb_pixels = new uint16_t[(snes_src_width+1) * src_height];
-    delete[] filtered_pixels;
-    filtered_pixels = new uint32_t[(snes_src_width+1) * src_height];
+}
 
-    // Convert the SDL pixel surface to 32 bit.
-    // This is potentially a larger surface area than the internal pixel array.
-    screen_pixels = (uint32_t*)surface->pixels;
-
-    // pre-calculate the rgb multipliers based on configured color curves. These
-    // will be used every frame, and floaring point exponents are expensive!
+void RenderSurface::create_color_curves()
+{
+    // pre-calculates rgb multipliers based on configured color curves. These
+    // will be used every frame, and as floaring point exponents are expensive
+    // the mapping is looked up by colorise_frame from the arrays built here
+    // (called from init()
     int bleed;
-    int bleedlimit = 255;
+    int bleedlimit = config.video.bleed_limit;
     for (int x=0; x<=255; x++) {
-        screen_r[x] = uint32_t( pow((float(x)/255.0),1.75) * 255.0 * 1.0 );
-        screen_g[x] = uint32_t( pow((float(x)/255.0),1.75) * 255.0 * 1.0 );
-        screen_b[x] = uint32_t( pow((float(x)/255.0),1.5) * 255.0 * 1.2 );
+        screen_r[x] = uint32_t( pow((float(x)/255.0),(float(red_curve)/100.0)) * 255.0 * float(red_gain)/100.0 );
+        screen_g[x] = uint32_t( pow((float(x)/255.0),(float(green_curve)/100.0)) * 255.0 * float(green_gain)/100.0 );
+        screen_b[x] = uint32_t( pow((float(x)/255.0),(float(blue_curve)/100.0)) * 255.0 * float(blue_gain)/100.0 );
         if (screen_r[x] > bleedlimit) {
             bleed = screen_r[x] - bleedlimit;
             screen_g[x] = screen_g[x] + bleed;
@@ -573,31 +643,39 @@ bool RenderSurface::init(int src_width, int src_height,
         screen_g[x] = (screen_g[x] > 255) ? 255 : screen_g[x];
         screen_b[x] = (screen_b[x] > 255) ? 255 : screen_b[x];
     }
-
-    delete[] game_pixels; // don't leak!
-    delete[] overlay_pixels;
-    game_pixels = new uint32_t[src_rect.w * src_rect.h];
-    overlay_pixels = new uint32_t[src_rect.w * src_rect.h];
-
-    return true;
 }
 
-void RenderSurface::disable()
+
+
+/*void RenderSurface::colorise_frame(uint32_t *gameimage, uint32_t *coloredimage, uint32_t *intensityimage,
+                                   int width, int height)
 {
-    SDL_DestroyTexture(last_game_tx);
-    SDL_DestroyTexture(game_tx);
-    SDL_DestroyTexture(scanline_tx);
-    SDL_DestroyTexture(rgb_tx1);
-    SDL_DestroyTexture(vignette_tx);
-    SDL_DestroyTexture(overlay);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-}
+    #pragma omp parallel
+    {
+        uint32_t red, green, blue;
+        uint32_t intensity;
+        uint32_t *srcpix = gameimage;
+        uint32_t *colpix = coloredimage;
+        uint32_t *intpix = intensityimage;
+        #pragma omp parallel for
+        for (int i=0; i < (width * height); i++) {
+            // CRT colour curve mapping
+            red           = screen_r[(*(srcpix+i) & Rmask) >> Rshift];
+            green         = screen_g[(*(srcpix+i) & Gmask) >> Gshift];
+            blue          = screen_b[(*(srcpix+i) & Bmask) >> Bshift];
+            *(colpix+i)   = ( (red << Rshift) +     // Red
+                              (green << Gshift) +  // Green
+                              (blue << Bshift) +    // Blue
+                              (0xff << Ashift) );   // A
+            intensity     = ((red + green + blue) >> 2) & 0xff;
+            *(intpix+i)   = ( (intensity << Rshift) +
+                              (intensity << Gshift) +
+                              (intensity << Bshift) +
+                              (0xff << Ashift) );
+        }
+    }
+}*/
 
-bool RenderSurface::start_frame()
-{
-    return true;
-}
 
 
 void RenderSurface::colorise_frame(int ThreadID, int TotalThreads,
@@ -627,11 +705,11 @@ void RenderSurface::colorise_frame(int ThreadID, int TotalThreads,
     for (int y=0; y < block_rows; y++) {
         for (int x=0; x < width; x++) {
             // CRT colour curve mapping
-            red   = (*gameimage & Rmask) >> Rshift; //screen_r[(*gameimage & Rmask) >> Rshift];
-            green = (*gameimage & Gmask) >> Gshift; //screen_g[(*gameimage & Gmask) >> Gshift];
-            blue  = (*gameimage & Bmask) >> Bshift; //screen_b[(*gameimage & Bmask) >> Bshift]; *
+            red   = screen_r[(*gameimage & Rmask) >> Rshift];
+            green = screen_g[(*gameimage & Gmask) >> Gshift];
+            blue  = screen_b[(*gameimage & Bmask) >> Bshift];
             *coloredimage = ( (red << Rshift) +     // Red
-                              (green << Gshift) +  // Green
+                              (green << Gshift) +   // Green
                               (blue << Bshift) +    // Blue
                               (0xff << Ashift) );   // A
             intensity        = ((red + green + blue) >> 2) & 0xff;
@@ -650,18 +728,13 @@ bool RenderSurface::finalize_frame()
 {
     int game_width = src_rect.w;
     int game_height = src_rect.h;
-
-    uint32_t *srcpix = (shader==0) ? screen_pixels : filtered_pixels;
-    void *mpixels; int mpitch;
-    uint32_t cpybytes;
+    uint32_t *srcpix = (shader==0) ? game_pixels : filtered_pixels;
 
     int ID;
     int threads = omp_get_max_threads();
-    omp_set_num_threads(threads);
 
     if (shader) {
         // Blargg filtering provides more of a CRT look.
-        framenumber++;
         // process this in specified number of threads
         #pragma omp parallel
         {
@@ -677,46 +750,40 @@ bool RenderSurface::finalize_frame()
             }
         } else phase ^= 1; // 0 -> 1 -> 0 -> 1...
     }
-
-    // CPU processing of underlying game texture is floating point heavy, so split into threads
-    // per the Blargg setting for the same
     #pragma omp parallel
     {
         ID = omp_get_thread_num();
         colorise_frame(ID,threads,srcpix,game_pixels,overlay_pixels,game_width,game_height);
     }
 
-//    SDL_RenderCopy(renderer, last_game_tx, &src_rect, &dst_rect);         // previous frame becomes the underlay
     SDL_UpdateTexture(game_tx, NULL, game_pixels, game_width * sizeof (Uint32));
     SDL_SetTextureColorMod(game_tx, 0xff, 0xff, 0xff); // rgb balance
-//    SDL_SetTextureAlphaMod(game_tx, 224); // represent over the top of the previous frame (phosphor persistence)
-
-    SDL_UpdateTexture(overlay, NULL, overlay_pixels, game_width * sizeof (Uint32));
-    SDL_SetTextureAlphaMod(overlay, alpha_target); // bloom intensity
-
+    if (crtfade) SDL_SetTextureAlphaMod(game_tx, 224);
+    if (overdrive) {
+        SDL_UpdateTexture(overlay, NULL, overlay_pixels, game_width * sizeof (Uint32));
+        SDL_SetTextureAlphaMod(overlay, overdrive);    // simulate CRT overdrive
+    }
     // now pass the layers to the GPU to deal with
     SDL_RenderClear(renderer);
 
-//    SDL_RenderCopy(renderer, last_game_tx, &src_rect, &dst_rect);   // old game image underlay
-    SDL_RenderCopy(renderer, game_tx, &src_rect, &dst_rect);        // game image, maybe with CRT filter for artifacts
-//    SDL_RenderCopy(renderer, game_tx, &src_rect, &dst_rect);      // game image + game image (brightness)
-
-    if (crtmask) {
-        SDL_RenderCopy(renderer, rgb_tx1, &rgb_rect, &dst_rect);       // vertical rgb overlay
-        SDL_RenderCopy(renderer, overlay, &src_rect, &dst_rect);       // brightens and highlights
-    }
-    if (scanlines) SDL_RenderCopy(renderer, scanline_tx, &scanline_rect, &dst_rect);// scanline overlay
-    if (crtmask)   SDL_RenderCopy(renderer, overlay, &src_rect, &dst_rect);         // brightens and highlights, second pass
-    if (vignette)  SDL_RenderCopy(renderer, vignette_tx, &rgb_rect, &dst_rect);     // vignette overlay comes last (on top)
+    if (crtfade) SDL_RenderCopy(renderer, last_game_tx, &src_rect, &dst_rect);   // old game image underlay
+    SDL_RenderCopy(renderer, game_tx, &src_rect, &dst_rect);                     // game image, maybe with CRT filter for artifacts
+    if (overdrive) SDL_RenderCopy(renderer, overlay, &src_rect, &dst_rect);      // pump up the source as required
+    if (crtmask) SDL_RenderCopy(renderer, rgb_tx1, &rgb_rect, &dst_rect);                  // vertical rgb overlay
+    if (scanlines) SDL_RenderCopy(renderer, scanline_tx, &scanline_rect, &dst_rect);       // scanline overlay
+    if ((crtmask) && (overdrive)) SDL_RenderCopy(renderer, overlay, &src_rect, &dst_rect); // brightens over the mask
+    if (vignette) SDL_RenderCopy(renderer, vignette_tx, &rgb_rect, &dst_rect);             // vignette last (on top)
 
     // update the screen
     SDL_RenderPresent(renderer);
 
-//    and copy the current game image into the previous game image texture
-//    SDL_UpdateTexture(last_game_tx, NULL, game_pixels, game_width * sizeof (Uint32));
+    if (crtfade)
+        // copy the current game image into the previous game image texture
+        SDL_UpdateTexture(last_game_tx, NULL, game_pixels, game_width * sizeof (Uint32));
 
     return true;
 }
+
 
 void RenderSurface::shade(int ThreadID, int TotalThreads) //, uint16_t* pixels)
 {
@@ -751,7 +818,6 @@ void RenderSurface::shade(int ThreadID, int TotalThreads) //, uint16_t* pixels)
     th_filtered_rgb_pixels = filtered_rgb_pixels + start;
     th_filtered_pixels = filtered_pixels + start;
 
-//...
     // Now call the blargg code, to do the work...
     if (config.video.hires) {
         snes_ntsc_blit_hires( ntsc, th_rgb_pixels, long(src_width), phase,
@@ -778,36 +844,71 @@ void RenderSurface::draw_frame(uint16_t* pixels)
 {
     // grabs the S16 frame buffer (pixels) and stores it, either
     // as straight SDL RGB or SNES RGB ready for Blargg filter, if enabled
-    int threads = omp_get_max_threads();
-    omp_set_num_threads(threads);
-    framesrendered++;
+    uint16_t* tpix = pixels;
     if (shader) {
         // convert pixel data to format used by Blarrg filtering code
-        #pragma omp parallel
+//        #pragma omp parallel
         {
-            uint16_t* tpix = pixels;
             uint16_t* spix = rgb_pixels;
             uint32_t current_val;
-            #pragma omp parallel for
+//            #pragma omp parallel for
             for (int i = 0; i < (src_width * src_height); i++) {
                 // first, convert the game generated image to RGB as per the standard display code
-                current_val = rgb[*(tpix++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+                current_val = rgb[*(tpix+i) & ((S16_PALETTE_ENTRIES * 3) - 1)];
                 // then convert that ready for Blargg
-                *(spix++) = uint16_t( ((uint16_t((current_val & Rmask) >> Rshift) & 0x00F8) << 8) +         // red
-                                            ((uint16_t((current_val & Gmask) >> Gshift) & 0x00FC) << 3) +   // green
-                                            ((uint16_t((current_val & Bmask) >> Bshift) & 0x00F8) >> 3) );  // blue
-            }
+                *(spix+i) = uint16_t( ((uint16_t((current_val & Rmask) >> Rshift) & 0x00F8) << 8) +   // red
+                                      ((uint16_t((current_val & Gmask) >> Gshift) & 0x00FC) << 3) +   // green
+                                      ((uint16_t((current_val & Bmask) >> Bshift) & 0x00F8) >> 3) );  // blue
+           }
         }
     } else {
+        uint32_t* spix = game_pixels;
         // Standard image processing; lookup real RGB value from rgb array for backbuffer
-        #pragma omp parallel
-        {
-            uint16_t* tpix = pixels;
-            uint32_t* spix = screen_pixels;
-            #pragma omp parallel for
-            for (int i = 0; i < (src_width * src_height); i++)
-                *(spix++) = rgb[*(tpix++) & ((S16_PALETTE_ENTRIES * 3) - 1)] +      // RGB
-                          (uint32_t(Alevel) << Ashift);                             // A
-        }
+//        #pragma omp parallel for
+        for (int i = 0; i < (src_width * src_height); i++)
+            *(spix+i) = rgb[*(tpix+i) & ((S16_PALETTE_ENTRIES * 3) - 1)] +      // RGB
+                        (uint32_t(Alevel) << Ashift);                           // A
+    }
+
+    // Check for any changes to the configured video settings (that don't require full SDL restart)
+    if ((shader           != config.video.blargg)                   ||
+        (setup.saturation != double(config.video.saturation) / 100) ||
+        (setup.contrast   != double(config.video.contrast) / 100)   ||
+        (setup.brightness != double(config.video.brightness) / 100) ||
+        (setup.sharpness  != double(config.video.sharpness) / 100)  ||
+        (setup.resolution != double(config.video.resolution) / 100))
+        // re-initiatise the Blargg filter library
+        init_blargg_filter();
+    if ((crtfade        != 0)                          ||
+        (scanlines      != config.video.scanlines)     ||
+        (vignette       != config.video.vignette)      ||
+        (crtmask        != config.video.mask)          ||
+        (mask_intensity != config.video.mask_strength) ||
+        (overdrive      != int( double(config.video.overdrive) * 255.0 / 100.0 ))) {
+        // re-initiatise the overlays after capturing new settings
+        crtfade         =  0;
+        scanlines       =  config.video.scanlines;
+        vignette        =  config.video.vignette;
+        crtmask         =  config.video.mask;
+        mask_intensity  =  config.video.mask_strength;
+        overdrive       =  int( double(config.video.overdrive) * 255.0 / 100.0 );
+        // call the initialisation routine
+        init_overlays();
+    }
+    if ((red_gain    != config.video.red_gain)    ||
+        (green_gain  != config.video.green_gain)  ||
+        (blue_gain   != config.video.blue_gain)   ||
+        (red_curve   != config.video.red_curve)   ||
+        (green_curve != config.video.green_curve) ||
+        (blue_curve  != config.video.blue_curve)) {
+        // re-initiatise the colour mapping after capturing new settings
+        red_gain     =  config.video.red_gain;
+        green_gain   =  config.video.green_gain;
+        blue_gain    =  config.video.blue_gain;
+        red_curve    =  config.video.red_curve;
+        green_curve  =  config.video.green_curve;
+        blue_curve   =  config.video.blue_curve;
+        // call the initialisation routine
+        create_color_curves();
     }
 }

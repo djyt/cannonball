@@ -23,12 +23,12 @@ public:
     void convert_palette(uint32_t adr, uint32_t r, uint32_t g, uint32_t b);
 
 protected:
-	SDL_Surface *surface;
+    SDL_Surface *surface;
 
     // Palette Lookup
     uint32_t rgb[S16_PALETTE_ENTRIES * 3];    // Extended to hold shadow/hilight colours
 
-    uint32_t *screen_pixels;
+//    uint32_t *screen_pixels;
 
     // Original Screen Width & Height
     uint16_t orig_width, orig_height;

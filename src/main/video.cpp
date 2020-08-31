@@ -44,7 +44,7 @@ Video::Video(void)
 {
     #ifdef WITH_OPENGL
     renderer     = new RenderGL();
-    
+
     #elif defined SDL2
 
     #ifdef WITH_OPENGLES
@@ -64,10 +64,9 @@ Video::Video(void)
 
 Video::~Video(void)
 {
-    delete sprite_layer;
+    video.disable();
     delete tile_layer;
-    if (pixels) delete[] pixels;
-    renderer->disable();
+    delete sprite_layer;
     delete renderer;
 }
 
@@ -77,12 +76,10 @@ int Video::init(Roms* roms, video_settings_t* settings)
         return 0;
 
     // Internal pixel array. The size of this is always constant
-    if (pixels) delete[] pixels;
     pixels = new uint16_t[config.s16_width * config.s16_height];
 
     // Convert S16 tiles to a more useable format
     tile_layer->init(roms->tiles.rom, config.video.hires != 0);
-    
     clear_tile_ram();
     clear_text_ram();
     if (roms->tiles.rom)
@@ -114,6 +111,7 @@ int Video::init(Roms* roms, video_settings_t* settings)
 void Video::disable()
 {
     renderer->disable();
+    delete[] pixels;
 }
 
 // ------------------------------------------------------------------------------------------------

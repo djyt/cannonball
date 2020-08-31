@@ -420,7 +420,7 @@ void HWRoad::render_foreground_lores(uint16_t* pixels)
     // calls render_foreground_lores_thread in required number of threads
     int ID;
     int threads = omp_get_max_threads();
-    omp_set_num_threads(threads);
+//    omp_set_num_threads(threads);
 
     #pragma omp parallel
     {
@@ -678,7 +678,7 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
     // calls render_foreground_hires_thread in required number of threads
     int ID;
     int threads = omp_get_max_threads();
-    omp_set_num_threads(threads);
+//    omp_set_num_threads(threads);
 
     #pragma omp parallel
     {

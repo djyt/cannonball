@@ -322,6 +322,10 @@ static void main_video_loop()
             // wait a maximum of one update interval
             ts.tv_nsec = long(waittime * 1000000); // ns to sleep
             res = nanosleep(&ts, &ts);
+        } else if (waittime < -64) {
+            // we are more than 64ms behind; perhaps the video mode was reset
+            SDL_Delay(50);
+            targetupdatetime = double(SDL_GetTicks()); // reset timer
         }
     }
 }
@@ -413,8 +417,6 @@ static void main_game_loop()
 
 int main(int argc, char* argv[])
 {
-    printf("OMP Max Threads: %i\n",omp_get_max_threads());
-
     // Initialize timer and video systems
     if( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1 ) {
         std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
@@ -447,8 +449,8 @@ int main(int argc, char* argv[])
             std::cout << "Unable to load widescreen tilemaps" << std::endl;
 
 #ifndef SDL2
-        //Set the window caption 
-        SDL_WM_SetCaption( "Cannonball", NULL ); 
+        //Set the window caption
+        SDL_WM_SetCaption( "Cannonball", NULL );
 #endif
 
         // Initialize SDL Video

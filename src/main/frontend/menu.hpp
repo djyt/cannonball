@@ -77,6 +77,7 @@ private:
     std::vector<std::string> menu_cannonboard;
     std::vector<std::string> menu_video;
     std::vector<std::string> menu_crt_overlay;
+    std::vector<std::string> menu_crt_colour;
     std::vector<std::string> menu_blargg_filter;
     std::vector<std::string> menu_sound;
     std::vector<std::string> menu_controls;
@@ -84,7 +85,7 @@ private:
     std::vector<std::string> menu_musictest;
 
     std::vector<std::string> text_redefine;
-    
+
     void tick_ui();
     void draw_menu_options();
     void draw_text(std::string);

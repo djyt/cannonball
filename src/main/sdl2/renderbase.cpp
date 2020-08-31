@@ -4,7 +4,7 @@
 RenderBase::RenderBase()
 {
     surface       = NULL;
-    screen_pixels = NULL;
+//    screen_pixels = NULL;
 
     orig_width  = 0;
     orig_height = 0;
@@ -18,8 +18,8 @@ bool RenderBase::sdl_screen_size()
 	SDL_DisplayMode info;
 
 	SDL_GetCurrentDisplayMode(0, &info);
-        
-        orig_width  = info.w; 
+
+        orig_width  = info.w;
         orig_height = info.h;
     }
 
@@ -44,16 +44,15 @@ void RenderBase::convert_palette(uint32_t adr, uint32_t r, uint32_t g, uint32_t 
 
     // Create shadow / highlight colours at end of RGB array
 
-    r = r << 2; // * 202 / 256;
-    g = g << 2; //* 202 / 256;
-    b = b << 2; //* 202 / 256;
-    rgb[adr + (S16_PALETTE_ENTRIES << 0)] = CURRENT_RGB(); // highlight
+    r = r << 1; //* 202 / 256;
+    g = g << 1; //* 202 / 256;
+    b = b << 1; //* 202 / 256;
+    rgb[adr + (S16_PALETTE_ENTRIES << 0)] = CURRENT_RGB(); // highlight, twice intensity
 
-    // The resultant values are the same as MAME
-    r = r >> 3; // * 202 / 256;
-    g = g >> 3; //* 202 / 256;
-    b = b >> 3; //* 202 / 256;
+    r = r >> 2; //* 202 / 256;
+    g = g >> 2; //* 202 / 256;
+    b = b >> 2; //* 202 / 256;
 
-    rgb[adr + (S16_PALETTE_ENTRIES << 1)] = CURRENT_RGB(); // shadow
+    rgb[adr + (S16_PALETTE_ENTRIES << 1)] = CURRENT_RGB(); // shadow, half intensity
 
 }

@@ -76,25 +76,34 @@ void Config::load(const std::string &filename)
     // Video Settings
     // ------------------------------------------------------------------------
 
-    video.mode       = pt_config.get("video.mode",               1); // Video Mode: Default is Full-screen
-    video.scale      = pt_config.get("video.window.scale",       1); // Video Scale: Default is 1x
-    video.fps        = pt_config.get("video.fps",                1); // Default is original
-    video.widescreen = pt_config.get("video.widescreen",         0); // Enable Widescreen Mode
-    video.hires      = pt_config.get("video.hires",              0); // Hi-Resolution Mode
-    video.scanlines  = pt_config.get("video.scanlines",          0); // Scanlines strength
-    video.mask       = pt_config.get("video.mask",               0); // JJP - SDL blend
+    video.mode          = pt_config.get("video.mode",            1); // Video Mode: Default is Full-screen
+    video.scale         = pt_config.get("video.window.scale",    1); // Video Scale: Default is 1x
+    video.fps           = pt_config.get("video.fps",             1); // Default is original
+    video.widescreen    = pt_config.get("video.widescreen",      0); // Enable Widescreen Mode
+    video.hires         = pt_config.get("video.hires",           0); // Hi-Resolution Mode
+    video.scanlines     = pt_config.get("video.scanlines",       0); // Scanlines strength
+    video.mask          = pt_config.get("video.mask",            0); // JJP - SDL blend
     video.mask_strength = pt_config.get("video.mask_strength",   0); // JJP - SDL blend strength
-    video.vignette   = pt_config.get("video.vignette",           0); // JJP - 0-100% dim edges
-    video.blargg     = pt_config.get("video.blargg",             0); // JJP - Blargg filtering mode
-    video.saturation = pt_config.get("video.saturation",         0); // JJP - Blargg filter saturation, -1 to +1
-    video.contrast   = pt_config.get("video.contrast",           0); // JJP - Blargg filter contrast, -1 to +1
-    video.brightness = pt_config.get("video.brightness",         0); // JJP - Blargg filter brightness, -1 to +1
-    video.sharpness  = pt_config.get("video.sharpness",          0); // JJP - Blargg edge bluring
-    video.gamma      = pt_config.get("video.gamma",              0); // JJP - Blargg gamma, -1 to +1
+    video.vignette      = pt_config.get("video.vignette",        0); // JJP - 0-100% dim edges
+    video.overdrive     = pt_config.get("video.overdrive",       0); // JJP - 0-100% overdrive
+    video.blargg        = pt_config.get("video.blargg",          0); // JJP - Blargg filtering mode
+    video.saturation    = pt_config.get("video.saturation",      0); // JJP - Blargg filter saturation, -1 to +1
+    video.contrast      = pt_config.get("video.contrast",        0); // JJP - Blargg filter contrast, -1 to +1
+    video.brightness    = pt_config.get("video.brightness",      0); // JJP - Blargg filter brightness, -1 to +1
+    video.sharpness     = pt_config.get("video.sharpness",       0); // JJP - Blargg edge bluring
+    video.resolution    = pt_config.get("video.resolution",      0); // JJP - Blargg resolution, -2 to 0
+    video.gamma         = pt_config.get("video.gamma",           0); // JJP - Blargg gamma, -3 to +3
     // not in UI currently:
-    video.filtering  = pt_config.get("video.filtering",          0); // Open GL Filtering Mode
-    video.flicker    = pt_config.get("video.flicker",            0); // JJP - flicker on/off
-    video.fps_count  = pt_config.get("video.fps_counter",        0); // FPS Counter on/off
+    video.filtering     = pt_config.get("video.filtering",       0); // Open GL Filtering Mode
+    video.flicker       = pt_config.get("video.flicker",         0); // JJP - flicker on/off
+    video.fps_count     = pt_config.get("video.fps_counter",     0); // FPS Counter on/off
+    video.bleed_limit   = pt_config.get("video.bleed_limit",   255); // see config.hpp for descriptions of
+    video.red_curve     = pt_config.get("video.red_curve",     100); // these settings
+    video.green_curve   = pt_config.get("video.green_curve",   100); //  ..
+    video.blue_curve    = pt_config.get("video.blue_curve",    100); //  ..
+    video.red_gain      = pt_config.get("video.red_gain",      100); //  ..
+    video.green_gain    = pt_config.get("video.green_gain",    100); //  ..
+    video.blue_gain     = pt_config.get("video.blue_gain",     100); //  ..
 
     set_fps(video.fps);
 
@@ -214,16 +223,25 @@ bool Config::save(const std::string &filename)
     pt_config.put("video.mask",               video.mask);          // JJP CRT setup
     pt_config.put("video.mask_strength",      video.mask_strength); // JJP CRT setup
     pt_config.put("video.vignette",           video.vignette);      // JJP - vignette post-processing filter
+    pt_config.put("video.overdrive",          video.overdrive);     // JJP - overall gain
     pt_config.put("video.blargg",             video.blargg);        // JJP Blargg setting
     pt_config.put("video.saturation",         video.saturation);    // JJP Blargg settings
     pt_config.put("video.contrast",           video.contrast);      // JJP Blargg settings
     pt_config.put("video.brightness",         video.brightness);    // JJP Blargg settings
     pt_config.put("video.sharpness",          video.sharpness);     // JJP Blargg settings
+    pt_config.put("video.resolution",         video.resolution);         // JJP Blargg settings
     pt_config.put("video.gamma",              video.gamma);         // JJP Blargg settings
     // not in UI currentlyy
-    pt_config.put("video.filtering",          video.filtering);       // JJP - screen flicker on/off
+    pt_config.put("video.filtering",          video.filtering);     // JJP - screen flicker on/off
     pt_config.put("video.flicker",            video.flicker);       // JJP - screen flicker on/off
     pt_config.put("video.fps_count",          video.fps_count);
+    pt_config.put("video.bleed_limit",        video.bleed_limit);   // see config.hpp for descriptions of
+    pt_config.put("video.red_curve",          video.red_curve);     // these settings
+    pt_config.put("video.green_curve",        video.green_curve);   //  ..
+    pt_config.put("video.blue_curve",         video.blue_curve);    //  ..
+    pt_config.put("video.red_gain",           video.red_gain);      //  ..
+    pt_config.put("video.green_gain",         video.green_gain);    //  ..
+    pt_config.put("video.blue_gain",          video.blue_gain);     //  ..
 
     pt_config.put("sound.enable",             sound.enabled);
     pt_config.put("sound.advertise",          sound.advertise);

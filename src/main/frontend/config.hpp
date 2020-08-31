@@ -47,27 +47,38 @@ struct video_settings_t
     const static int BLARGG_RGB = 3;
     const static int BLARGG_MONO = 4;
 
+    // video settings
     int fps;
     int fps_count;
     int mode;              // Full screen or Windowed
     int scale;             // now integrated into mode in UI (Fullscreen/Window1x/Windows2x/Window3x/Window4x)
     int widescreen;
     int hires;
-    int scanlines;         // Provides
-    int mask;              // various CRT effects
+    // JJP CRT filter settings
+    int scanlines;         // Scanline intensity
+    int mask;              // CRT mask option
     int mask_strength;     // Blend strength of selected effect
-    int vignette;          // progressively dims screen away from centre
-    // JJP - Blargg related filtering settings
+    int vignette;          // Progressively dims screen away from centre
+    int overdrive;         // Overall gain applied to the whole image
+
+    // JJP - Blargg filtering settings
     int blargg;            // Blargg mode - per above constants
     int saturation;
     int contrast;
     int brightness;
     int sharpness;
     int gamma;
+    int resolution;
     // No UI for the following
     int filtering;         // OpenGL blend mode, 0 or 1 on Linux
     int flicker;           // Slightly dims alternate frames
-    
+    int bleed_limit;       // colour value over which adjacent colours will be impacted
+    int red_curve;         // Curves are exponential adjustments
+    int green_curve;       //   these enable representation of the non-linear response of CRT phosphor
+    int blue_curve;        //   Output value = 255 x ((game generated value/255)^colour_curve)
+    int red_gain;          // Gain values are simple multipliers
+    int green_gain;        //   Output value = curve adjusted input value x colour_gain
+    int blue_gain;         //   (clipped at 255)
 };
 
 struct sound_settings_t
@@ -159,7 +170,7 @@ public:
 
     // Continuous Mode: Traffic Setting
     int cont_traffic;
-    
+
     Config(void);
     ~Config(void);
 
@@ -172,7 +183,7 @@ public:
     void save_tiletrial_scores();
     bool clear_scores();
     void set_fps(int fps);
-   
+
 private:
 };
 

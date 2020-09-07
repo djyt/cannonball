@@ -18,3 +18,19 @@ X Optional Timer Enhancement
 
 3DS ENHANCEMENTS
 - Car Handling Options/Cheats
+
+
+Documentation:
+
+- Extract SDL and create cmake file that's needed
+- Visual Studio. Open Solution. Set cannonball as startup project (right click)
+- Set working directory to something sensible. Right click -> Configuration properties -> Debugging
+
+CannonBoard support:
+
+Compile boost (64-bit, Visual Studio 2019 compile, noted as msvc-14.2 below)
+
+Open command prompt and change to boost directory and run the following commands:
+
+bootstrap
+b2 -j8 --toolset=msvc-14.2 address-model=64 architecture=x86 link=static threading=multi runtime-link=shared --build-type=complete stage

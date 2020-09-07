@@ -9,10 +9,12 @@
 #ifndef ASYNCSERIAL_H
 #define	ASYNCSERIAL_H
 
+#include <iostream>
 #include <vector>
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
 #include <boost/utility.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_array.hpp>

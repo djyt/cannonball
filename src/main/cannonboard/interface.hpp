@@ -8,6 +8,7 @@
 #pragma once
 
 #include "globals.hpp"
+#include <iostream>
 #include <string>
 
 #ifdef CANNONBOARD

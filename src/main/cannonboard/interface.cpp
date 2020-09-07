@@ -27,6 +27,7 @@ Packet* Interface::get_packet() { return &dummy; }
 #endif
 
 #ifdef CANNONBOARD
+using namespace boost::placeholders;
 Interface::Interface()
 {
     serial     = NULL;

@@ -44,5 +44,6 @@ Build
 * Right click and choose 'Set as StartUp project'. 
 * Set working directory to something sensible. Right click -> Configuration properties -> Debugging
 * Copy SDL2.DLL and the roms subdirectory to the working directory.
+* Ensure config.xml and the res subdirectory are in the working directory. 
 * Copy the OutRun revision B romset to the roms subdirectory. Rename the files if necessary.
 * You can then compile, debug and run from Visual Studio as expected.

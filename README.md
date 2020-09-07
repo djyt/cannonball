@@ -13,7 +13,9 @@ Getting Started
 ---------------
 
 CannonBall is coded in C++ and makes use of the SDL 2 and Boost libraries. 
+
 CannonBall has been successfully built for Windows, Mac OS X, Linux, Open Pandora and the Raspberry Pi.
+
 CannonBall can use OpenGL, OpenGLES (mobile platforms) or plain SDL2 for rendering. 
 
 I have recently deprecated support for SDL 1, to focus on SDL 2. But feel free to grab an older version from github if you need it. 

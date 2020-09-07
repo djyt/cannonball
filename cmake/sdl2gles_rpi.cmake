@@ -9,7 +9,7 @@ include_directories("${sdl_root}")
 
 link_libraries(cannonball 
     SDL2
-    GLESv2
+    brcmGLESv2
 )
 
 # Linking
@@ -17,7 +17,7 @@ link_directories(
     "${sdl_root}/lib"
 )
 
-add_definitions(-O3 -DSDL2 -DWITH_OPENGLES -march=armv6 -mfpu=vfp -mfloat-abi=hard)
+add_definitions(-O3 -DSDL2 -DWITH_OPENGLES -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard)
 #add_definitions(-O0 -ggdb -DSDL2 -DWITH_OPENGLES)
  
 # Location for Cannonball to create save files

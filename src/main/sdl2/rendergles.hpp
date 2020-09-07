@@ -29,6 +29,7 @@ struct __ShaderInfo
    GLint input_size;
    GLint output_size;
    GLint texture_size;
+   GLfloat scanline_bright;
 };
 
 class Render : public RenderBase

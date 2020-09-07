@@ -10,20 +10,10 @@
 
 // SDL Library
 #include <SDL.h>
-#ifndef SDL2
-#pragma comment(lib, "SDLmain.lib") // Replace main with SDL_main
-#endif
-#pragma comment(lib, "SDL.lib")
-#pragma comment(lib, "glu32.lib")
 
 // SDL Specific Code
-#if defined SDL2
 #include "sdl2/timer.hpp"
 #include "sdl2/input.hpp"
-#else
-#include "sdl/timer.hpp"
-#include "sdl/input.hpp"
-#endif
 
 #include "video.hpp"
 
@@ -271,8 +261,6 @@ int main(int argc, char* argv[])
         return 1; 
     }
 
-    menu = new Menu(&cannonboard);
-
     bool loaded = false;
 
     // Load LayOut File
@@ -287,9 +275,6 @@ int main(int argc, char* argv[])
         loaded = roms.load_revb_roms();
     }
 
-    //trackloader.set_layout_track("d:/temp.bin");
-    //loaded = roms.load_revb_roms();
-
     if (loaded)
     {
         // Load XML Config
@@ -302,11 +287,6 @@ int main(int argc, char* argv[])
         // Load patched widescreen tilemaps
         if (!omusic.load_widescreen_map())
             std::cout << "Unable to load widescreen tilemaps" << std::endl;
-
-#ifndef SDL2
-        //Set the window caption 
-        SDL_WM_SetCaption( "Cannonball", NULL ); 
-#endif
 
         // Initialize SDL Video
         if (!video.init(&roms, &config.video))
@@ -333,6 +313,7 @@ int main(int argc, char* argv[])
         }
 
         // Populate menus
+        menu = new Menu(&cannonboard);
         menu->populate();
         main_loop();  // Loop until we quit the app
     }

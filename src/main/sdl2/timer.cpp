@@ -1,8 +1,4 @@
-#ifdef SDL2
 #include "sdl2/timer.hpp"
-#else
-#include "sdl/timer.hpp"
-#endif
 
 /***************************************************************************
     SDL Based Timer.

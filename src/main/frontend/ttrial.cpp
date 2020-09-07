@@ -6,11 +6,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#ifdef SDL2
 #include "sdl2/input.hpp"
-#else
-#include "sdl/input.hpp"
-#endif
 
 #include "frontend/ttrial.hpp"
 

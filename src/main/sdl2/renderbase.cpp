@@ -15,9 +15,8 @@ bool RenderBase::sdl_screen_size()
 {
     if (orig_width == 0 || orig_height == 0)
     {
-	SDL_DisplayMode info;
-
-	SDL_GetCurrentDisplayMode(0, &info);
+	    SDL_DisplayMode info;
+	    SDL_GetCurrentDisplayMode(0, &info);
         
         orig_width  = info.w; 
         orig_height = info.h;

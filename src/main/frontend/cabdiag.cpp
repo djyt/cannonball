@@ -15,12 +15,7 @@
 ***************************************************************************/
 
 #include "cabdiag.hpp"
-
-#ifdef SDL2
 #include "sdl2/input.hpp"
-#else
-#include "sdl/input.hpp"
-#endif
 
 #include "utils.hpp"
 #include "../video.hpp"

@@ -132,15 +132,15 @@ const GLushort indices[] =
 	0, 2, 3,
 };
 
-RenderGLES::RenderGLES()
+Render::Render()
 {
 }
 
-RenderGLES::~RenderGLES()
+Render::~Render()
 {
 }
 
-void RenderGLES::disable()
+void Render::disable()
 {
     glDeleteProgram(shader.program);
     glDeleteBuffers(3, buffers); SHOW_ERROR
@@ -151,29 +151,36 @@ void RenderGLES::disable()
     SDL_GL_DeleteContext(glcontext);   
 }
 
-bool RenderGLES::init(int src_width, int src_height,
+bool Render::init(int src_width, int src_height,
                     int scale,
                     int video_mode,
                     int scanlines)
 {
+	this->src_width = src_width;
+	this->src_height = src_height;
+	this->video_mode = video_mode;
+	this->scanlines = scanlines;
+
+	// Setup SDL Screen size
+	if (!RenderBase::sdl_screen_size())
+		return false;
+
+	int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP;
+
     const int bpp = 32;
 
     // We init the SDL2 EGL context here
     SDL_ShowCursor(SDL_DISABLE);
-    window = SDL_CreateWindow(
-        "Cannonball", 0, 0, 0, 0, 
-        SDL_WINDOW_OPENGL|SDL_WINDOW_FULLSCREEN_DESKTOP);
 
+	SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1");
+	SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none");
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
-    glcontext = SDL_GL_CreateContext(window);
+	window = SDL_CreateWindow("Cannonball", 0, 0, 0, 0, flags);
 
-    this->src_width  = src_width;
-    this->src_height = src_height;
-    this->video_mode = video_mode;
-    this->scanlines  = scanlines;
+    glcontext = SDL_GL_CreateContext(window);
 
     // Frees (Deletes) existing surface
     if (surface)
@@ -186,23 +193,43 @@ bool RenderGLES::init(int src_width, int src_height,
 	    return false;
     }
 
-    // We get the screen dimensions from the egl information member of the context object.
-    // Final values may vary if aspect ratio correction is applied.
-    SDL_DisplayMode current_videomode;
-    SDL_GetCurrentDisplayMode(0, &current_videomode); 
-    scn_width = current_videomode.w;
-    scn_height = current_videomode.h;
-    
-    int orig_scn_mode_width = scn_width;
-    int scn_xpos = 0;
 
-    // We only consider fullscreenmodes, since that's what GL_ES 
-    // is meant to be displayed on. So it's streching or not: nothing else.
-    if (! (video_mode == video_settings_t::MODE_STRETCH)) {
-	float ratio_width = float (src_width) / float (src_height);
-        scn_width = scn_height * ratio_width;
-        scn_xpos = (orig_scn_mode_width - scn_width) / 2; 
-    }
+	// GL_ES only supports full screen mode
+	// Calculate how much to scale screen from its original resolution
+	
+	// Full Screen Mode
+	if (video_mode == video_settings_t::MODE_FULL)
+	{
+		// Calculate how much to scale screen from its original resolution
+		uint32_t w = (scn_width << 16) / src_width;
+		uint32_t h = (scn_height << 16) / src_height;
+		dst_width = (src_width * std::min(w, h)) >> 16;
+		dst_height = (src_height * std::min(w, h)) >> 16;
+	}
+	// Stretch screen. Lose original proportions
+	else
+	{
+		dst_width = scn_width;
+		dst_height = scn_height;
+	}
+
+	// If we're not stretching the screen, centre the image
+	if (video_mode != video_settings_t::MODE_STRETCH)
+	{
+		screen_xoff = scn_width - dst_width;
+		if (screen_xoff)
+			screen_xoff = (screen_xoff / 2);
+
+		screen_yoff = scn_height - dst_height;
+		if (screen_yoff)
+			screen_yoff = (screen_yoff / 2);
+	}
+	// Otherwise set to the top-left corner
+	else
+	{
+		screen_xoff = 0;
+		screen_yoff = 0;
+	}
    
     // The src and scn dimensions are only needed for the scanlines shaders
     gles2_init_shaders(src_width, src_height, scn_width, scn_height, scanlines);
@@ -220,12 +247,12 @@ bool RenderGLES::init(int src_width, int src_height,
     // Initalize Open GL
     // --------------------------------------------------------------------------------------------
 
-    glDisable(GL_DITHER);
-    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DITHER);		// Disable Dithering
+    glDisable(GL_DEPTH_TEST);	// Disable Depth Buffer
 
-    glClearColor(0, 0, 0, 0); // Black background
+    glClearColor(0, 0, 0, 0);	// Black background
 
-    glViewport(scn_xpos, 0, scn_width, scn_height); 
+    glViewport(screen_xoff, screen_yoff, dst_width, dst_height);
 
     // Initalize Texture ID
     glGenTextures(1, &texture);
@@ -312,7 +339,7 @@ void gles_show_error()
 	}
 }
 
-void RenderGLES::gles2_init_shaders (unsigned texture_width, unsigned texture_height,
+void Render::gles2_init_shaders (unsigned texture_width, unsigned texture_height,
 	unsigned output_width, unsigned output_height, int scanlines) {
 	
 	memset(&shader, 0, sizeof(__ShaderInfo));
@@ -335,12 +362,12 @@ void RenderGLES::gles2_init_shaders (unsigned texture_width, unsigned texture_he
 			shader.input_size    = glGetUniformLocation(shader.program, "InputSize");
 			shader.output_size   = glGetUniformLocation(shader.program, "OutputSize");
 			shader.texture_size  = glGetUniformLocation(shader.program, "TextureSize");
-			input_size [0]  = texture_width;
-			input_size [1]  = texture_height;
-			output_size[0]  = output_width;
-			output_size[1]  = output_height;
-			texture_size[0] = texture_width;
-			texture_size[1] = texture_height;
+			input_size [0]  = (float) texture_width;
+			input_size [1]  = (float) texture_height;
+			output_size[0]  = (float) output_width;
+			output_size[1]  = (float) output_height;
+			texture_size[0] = (float) texture_width;
+			texture_size[1] = (float) texture_height;
 		}
 	}
 	else	
@@ -348,14 +375,15 @@ void RenderGLES::gles2_init_shaders (unsigned texture_width, unsigned texture_he
 
 	glUseProgram(shader.program); SHOW_ERROR
 
-	if (scanlines) {
+	if (scanlines) 
+	{
 		glUniform2fv(shader.input_size, 1, input_size);
 		glUniform2fv(shader.output_size, 1, output_size);
 		glUniform2fv(shader.texture_size, 1, texture_size);
 	}
 }
 
-GLuint RenderGLES::CreateShader(GLenum type, const char *shader_src)
+GLuint Render::CreateShader(GLenum type, const char *shader_src)
 {
 	GLuint shader = glCreateShader(type);
 	if(!shader)
@@ -386,7 +414,7 @@ GLuint RenderGLES::CreateShader(GLenum type, const char *shader_src)
 }
 
 // Function to load both vertex and fragment shaders, and create the program
-GLuint RenderGLES::CreateProgram(const char *vertex_shader_src, const char *fragment_shader_src)
+GLuint Render::CreateProgram(const char *vertex_shader_src, const char *fragment_shader_src)
 {
 	GLuint vertex_shader = CreateShader(GL_VERTEX_SHADER, vertex_shader_src);
 	if(!vertex_shader)
@@ -431,7 +459,7 @@ GLuint RenderGLES::CreateProgram(const char *vertex_shader_src, const char *frag
 }
 
 // Builds an orthographic projection matrix and stores it in the matrix on the first parameter.
-void RenderGLES::SetOrtho(float m[4][4], float left, float right, float bottom, float top, float near, float far, float scale_x, float scale_y)
+void Render::SetOrtho(float m[4][4], float left, float right, float bottom, float top, float near, float far, float scale_x, float scale_y)
 {
 	memset(m, 0, 4*4*sizeof(float));
 	m[0][0] = 2.0f/(right - left)*scale_x;
@@ -443,17 +471,17 @@ void RenderGLES::SetOrtho(float m[4][4], float left, float right, float bottom, 
 	m[3][3] = 1;
 }
 
-bool RenderGLES::start_frame()
+bool Render::start_frame()
 {
     return true;
 }
 
-bool RenderGLES::finalize_frame()
+bool Render::finalize_frame()
 {
     return true;
 }
 
-void RenderGLES::draw_frame(uint16_t* pixels)
+void Render::draw_frame(uint16_t* pixels)
 {
     uint32_t* spix = screen_pixels;
 

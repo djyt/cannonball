@@ -650,7 +650,7 @@ void OHud::draw_debug_info(uint32_t pos, uint16_t height_pat, uint8_t sprite_pat
 // Big Yellow Text. Always Centered. 
 void OHud::blit_text_big(const uint8_t Y, const char* text, bool do_notes)
 {
-    uint16_t length = strlen(text);
+    uint16_t length = (uint16_t) strlen(text);
 
     const uint16_t X = 20 - (length >> 1);
 
@@ -720,7 +720,7 @@ void OHud::blit_text_big(const uint8_t Y, const char* text, bool do_notes)
 void OHud::blit_text_new(uint16_t x, uint16_t y, const char* text, uint16_t pal)
 {
     uint32_t dst_addr = translate(x, y); 
-    uint16_t length = strlen(text);
+    uint16_t length = (uint16_t) strlen(text);
 
     for (uint16_t i = 0; i < length; i++)
     {

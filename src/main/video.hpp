@@ -39,6 +39,7 @@ public:
     void disable();
     int set_video_mode(video_settings_t* settings);
     void draw_frame();
+    bool supports_window();
 
     void clear_text_ram();
     void write_text8(uint32_t, const uint8_t);

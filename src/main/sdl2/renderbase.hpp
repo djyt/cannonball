@@ -21,6 +21,7 @@ public:
     virtual bool finalize_frame()             = 0;
     virtual void draw_frame(uint16_t* pixels) = 0;
     void convert_palette(uint32_t adr, uint32_t r, uint32_t g, uint32_t b);
+    virtual bool supports_window() { return true; }
 
 protected:
 	SDL_Surface *surface;
@@ -59,6 +60,9 @@ protected:
 
     // Scanline density. 0 = Off, 1 = Full
     int scanlines;
+
+    // Screen Scale
+    int scale;
 
     // Offsets (for full-screen mode, where x/y resolution isn't a multiple of the original height)
     uint32_t screen_xoff, screen_yoff;

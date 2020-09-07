@@ -50,7 +50,7 @@
          Disable for original experience. -->
     <hires>0</hires>
     
-    <!-- Open GL Filtering for Scaling. 0 = Nearest Neighbour. 1 = Linear -->
+    <!-- Filtering for Scaling. 0 = Nearest Neighbour. 1 = Linear -->
     <filtering>0</filtering>
 </video>
 
@@ -96,6 +96,7 @@
 
 <!--
     CannonBoard Arduino Based Interface
+    Requires specially compiled build
  -->
  
 <cannonboard enabled = "0">

@@ -210,7 +210,7 @@ void Menu::populate()
     menu_musictest.push_back(ENTRY_MUSIC4);
     menu_musictest.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL 0.3 © CHRIS WHITE 2014");
+    menu_about.push_back("CANNONBALL 0.31 © CHRIS WHITE 2020");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back(" ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");
@@ -398,14 +398,14 @@ void Menu::draw_menu_options()
     int8_t x = 0;
 
     // Find central column in screen. 
-    int8_t y = 13 + ((ROWS - 13) >> 1) - ((menu_selected->size() * 2) >> 1);
+    int8_t y = 13 + ((ROWS - 13) >> 1) - (((int)menu_selected->size() * 2) >> 1);
 
     for (int i = 0; i < (int) menu_selected->size(); i++)
     {
         std::string s = menu_selected->at(i);
 
         // Centre the menu option
-        x = 20 - (s.length() >> 1);
+        x = 20 - ((int)s.length() >> 1);
         ohud.blit_text_new(x, y, s.c_str(), ohud.GREEN);
 
         if (!is_text_menu)
@@ -425,7 +425,7 @@ void Menu::draw_menu_options()
 void Menu::draw_text(std::string s)
 {
     // Centre text
-    int8_t x = 20 - (s.length() >> 1);
+    int8_t x = 20 - ((int)s.length() >> 1);
 
     // Find central column in screen. 
     int8_t y = 13 + ((ROWS - 13) >> 1) - 1;
@@ -450,7 +450,7 @@ void Menu::tick_menu()
         osoundint.queue_sound(sound::BEEP1);
 
         if (--cursor < 0)
-            cursor = menu_selected->size() - 1;
+            cursor = (int)menu_selected->size() - 1;
     }
     else if (input.has_pressed(Input::ACCEL) || input.has_pressed(Input::START) || oinputs.is_analog_select())
     {
@@ -594,7 +594,7 @@ void Menu::tick_menu()
             if (SELECTED(ENTRY_FULLSCREEN))
             {
                 if (++config.video.mode > video_settings_t::MODE_STRETCH)
-                    config.video.mode = video_settings_t::MODE_WINDOW;
+                    config.video.mode = video.supports_window() ? video_settings_t::MODE_WINDOW : video_settings_t::MODE_WINDOW + 1;
                 restart_video();
             }
             else if (SELECTED(ENTRY_WIDESCREEN))

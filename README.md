@@ -26,7 +26,7 @@ I have recently deprecated support for SDL 1, to focus on SDL 2. But feel free t
 * Extract the [SDL Development Library](https://www.libsdl.org/download-2.0.php) somewhere, for example: c:\coding\lib\SDL2-2.0.12
 * Read the SDL documentation & build the SDL Library for your system.
 * Windows only: I needed to copy cannonball/cmake/windows_copy_to_sdl2_lib_directory/sdl2-config.cmake to c:\coding\lib\SDL2-2.0.12
-* Windows only: download and install the [Direct 8.1 SDK](https://archive.org/details/dx81sdk_full)
+* Windows only: download and install the [Direct 8.1 SDK](https://archive.org/details/dx81sdk_full). This is used for force-feedback and a legacy from when I was using SDL 1. I should update it sometime to use SDL 2 instead. 
 * Extract the Cannonball code somewhere, for example: c:\coding\cannonball
 * You may need to create a .cmake file for your system to configure specific options. See the cmake subdirectory for more details.
 

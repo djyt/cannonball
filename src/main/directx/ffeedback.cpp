@@ -78,11 +78,13 @@ bool init(int max_force, int min_force, int force_duration)
     if (!g_supported)
     {
         // Platform Specific SDL code to get a window handle
+        SDL_Window* window;
+        window = SDL_CreateWindow("", 0, 0, 0, 0, SDL_WINDOW_HIDDEN);
         SDL_SysWMinfo i;
         SDL_VERSION(&i.version); 
-        if (SDL_GetWMInfo(&i))
+        if (SDL_GetWindowWMInfo(window, &i))
         {
-            HWND hwnd = i.window;
+            HWND hwnd = i.info.win.window;
             InitDirectInput(hwnd);
         }
     }

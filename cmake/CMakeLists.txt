@@ -5,7 +5,7 @@
 # Everything should go into a win64.cmake equivalent.
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required (VERSION 3.18) # Might compile lower, but untested
+cmake_minimum_required (VERSION 3.16) # Might compile lower, but untested
 project (cannonball)
 
 # -----------------------------------------------------------------------------

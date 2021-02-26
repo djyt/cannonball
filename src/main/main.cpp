@@ -5,6 +5,8 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <cstring>
+
 // Error reporting
 #include <iostream>
 

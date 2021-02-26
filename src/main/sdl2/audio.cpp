@@ -15,6 +15,7 @@
 ***************************************************************************/
 
 #include <iostream>
+#include <cstring>
 #include <SDL.h>
 
 #include "sdl2/audio.hpp"

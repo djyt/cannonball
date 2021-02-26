@@ -9,6 +9,7 @@
 ***************************************************************************/
 
 #include <iostream>
+#include <cstring>
 #include <cstdlib> // abs
 #include "sdl2/input.hpp"
 

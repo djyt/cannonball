@@ -5,7 +5,7 @@
 # Everything should go into a win64.cmake equivalent.
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required (VERSION 3.18) # Might compile lower, but untested
+cmake_minimum_required (VERSION 3.15) # Might compile lower, but untested
 project (cannonball)
 
 # -----------------------------------------------------------------------------
@@ -13,7 +13,7 @@ project (cannonball)
 # -----------------------------------------------------------------------------
 
 # CMake files 
-set(DCMAKE win64-opengl.cmake)
+set(DCMAKE pi4-opengles.cmake)
 set(CMDIR ../cmake)
 
 # Source location

@@ -6,6 +6,7 @@
 ***************************************************************************/
 
 #include <iostream>
+#include <cstring>
 #include <assert.h>
 
 #include "rendergles.hpp"

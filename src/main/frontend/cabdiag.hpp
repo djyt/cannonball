@@ -23,7 +23,6 @@ class CabDiag
 public:
     enum
     {
-        STATE_INTERFACE,
         STATE_CRT,
         STATE_INPUT,
         STATE_OUTPUT,
@@ -55,4 +54,5 @@ private:
     void blit1_block(uint32_t adr, uint32_t data);
     void blit7_block(uint32_t* adr, uint32_t data);
     void init_motor_test();
+    void tick_motor();
 };

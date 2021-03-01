@@ -71,10 +71,11 @@ const static char* ENTRY_SCORES     = "CLEAR HISCORES";
 const static char* ENTRY_SAVE       = "SAVE AND RETURN";
 
 // SMARTYPI Menu
-const static char* ENTRY_C_INTERFACE= "INTERFACE DIAGNOSTICS";
-const static char* ENTRY_C_INPUTS   = "INPUT TEST";
-const static char* ENTRY_C_OUTPUTS  = "OUTPUT TEST";
-const static char* ENTRY_C_CRT      = "CRT TEST";
+const static char* ENTRY_S_CAB      = "CABINET TYPE ";
+const static char* ENTRY_S_MOTOR    = "MOTOR TEST";
+const static char* ENTRY_S_INPUTS   = "INPUT TEST";
+const static char* ENTRY_S_OUTPUTS  = "OUTPUT TEST";
+const static char* ENTRY_S_CRT      = "CRT TEST";
 
 // Video Menu
 const static char* ENTRY_FPS        = "FRAME RATE ";
@@ -153,9 +154,9 @@ void Menu::populate()
     menu_timetrial.push_back(ENTRY_BACK);
 
     menu_settings.push_back(ENTRY_VIDEO);
-    #ifdef COMPILE_SOUND_CODE
+#ifdef COMPILE_SOUND_CODE
     menu_settings.push_back(ENTRY_SOUND);
-    #endif
+#endif
     menu_settings.push_back(ENTRY_CONTROLS);
     if (config.smartypi.enabled)
         menu_settings.push_back(ENTRY_SMARTYPI);
@@ -163,23 +164,22 @@ void Menu::populate()
     menu_settings.push_back(ENTRY_SCORES);
     menu_settings.push_back(ENTRY_SAVE);
 
-    menu_smartypi.push_back(ENTRY_C_INTERFACE);
-    menu_smartypi.push_back(ENTRY_C_INPUTS);
-    menu_smartypi.push_back(ENTRY_C_OUTPUTS);
-    menu_smartypi.push_back(ENTRY_C_CRT);
+    menu_smartypi.push_back(ENTRY_S_CAB);
+    menu_smartypi.push_back(ENTRY_S_INPUTS);
+    menu_smartypi.push_back(ENTRY_S_OUTPUTS);
+    menu_smartypi.push_back(ENTRY_S_MOTOR);
+    menu_smartypi.push_back(ENTRY_S_CRT);
     menu_smartypi.push_back(ENTRY_BACK);
 
     menu_video.push_back(ENTRY_FPS);
-    menu_video.push_back(ENTRY_FULLSCREEN);
-    menu_video.push_back(ENTRY_WIDESCREEN);
+    if (!config.smartypi.enabled) menu_video.push_back(ENTRY_FULLSCREEN);
+    if (!config.smartypi.enabled) menu_video.push_back(ENTRY_WIDESCREEN);
     menu_video.push_back(ENTRY_HIRES);
-    menu_video.push_back(ENTRY_SCALE);
-    menu_video.push_back(ENTRY_SCANLINES);
+    if (!config.smartypi.enabled) menu_video.push_back(ENTRY_SCALE);
+    if (!config.smartypi.enabled) menu_video.push_back(ENTRY_SCANLINES);
     menu_video.push_back(ENTRY_BACK);
 
     menu_sound.push_back(ENTRY_MUTE);
-    //menu_sound.push_back(ENTRY_BGM);
-    //menu_sound.push_back(ENTRY_SFX);
     menu_sound.push_back(ENTRY_ADVERTISE);
     menu_sound.push_back(ENTRY_PREVIEWSND);
     menu_sound.push_back(ENTRY_FIXSAMPLES);
@@ -187,11 +187,14 @@ void Menu::populate()
     menu_sound.push_back(ENTRY_BACK);
 
     menu_controls.push_back(ENTRY_GEAR);
-    if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
-    menu_controls.push_back(ENTRY_REDEFKEY);
-    if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
-    menu_controls.push_back(ENTRY_DSTEER);
-    menu_controls.push_back(ENTRY_DPEDAL);
+    if (!config.smartypi.enabled)
+    {
+        if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
+        menu_controls.push_back(ENTRY_REDEFKEY);
+        if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
+        menu_controls.push_back(ENTRY_DSTEER);
+        menu_controls.push_back(ENTRY_DPEDAL);
+    }
     menu_controls.push_back(ENTRY_BACK);
 
     menu_engine.push_back(ENTRY_TRACKS);
@@ -276,9 +279,6 @@ void Menu::init()
 
     frame = 0;
     message_counter = 0;
-
-    //if (config.smartypi.enabled)
-    //    display_message(cannonboard->started() ? "CANNONBOARD FOUND!" : "CANNONBOARD ERROR!");
 
     state = STATE_MENU;
 }
@@ -566,22 +566,29 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
-            else if (SELECTED(ENTRY_C_INTERFACE))
+            else if (SELECTED(ENTRY_S_MOTOR))
             {
-                cabdiag->set(CabDiag::STATE_INTERFACE);
+                cabdiag->set(CabDiag::STATE_MOTORT);
                 state = STATE_DIAGNOSTICS; return;
             }
-            else if (SELECTED(ENTRY_C_INPUTS))
+            else if (SELECTED(ENTRY_S_CAB))
+            {
+                if (config.smartypi.cabinet == config.smartypi.CABINET_MINI)
+                    config.smartypi.cabinet = config.smartypi.CABINET_UPRIGHT;
+                else
+                    config.smartypi.cabinet = config.smartypi.CABINET_MINI;
+            }
+            else if (SELECTED(ENTRY_S_INPUTS))
             {
                 cabdiag->set(CabDiag::STATE_INPUT);
                 state = STATE_DIAGNOSTICS; return;
             }
-            else if (SELECTED(ENTRY_C_OUTPUTS))
+            else if (SELECTED(ENTRY_S_OUTPUTS))
             {
                 cabdiag->set(CabDiag::STATE_OUTPUT);
                 state = STATE_DIAGNOSTICS; return;
             }
-            else if (SELECTED(ENTRY_C_CRT))
+            else if (SELECTED(ENTRY_S_CRT))
             {
                 cabdiag->set(CabDiag::STATE_CRT);
                 state = STATE_DIAGNOSTICS; return;
@@ -677,7 +684,10 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_GEAR))
             {
-                if (++config.controls.gear > config.controls.GEAR_AUTO)
+                if (config.smartypi.enabled)
+                    config.controls.gear = config.controls.gear == config.controls.GEAR_PRESS ? config.controls.GEAR_AUTO : config.controls.GEAR_PRESS;
+
+                else if (++config.controls.gear > config.controls.GEAR_AUTO)
                     config.controls.gear = config.controls.GEAR_BUTTON;
             }
             else if (SELECTED(ENTRY_ANALOG))
@@ -902,6 +912,11 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_ATTRACT))
                 set_menu_text(ENTRY_ATTRACT, config.engine.new_attract ? "ON" : "OFF");
 
+        }
+        else if (menu_selected == &menu_smartypi)
+        {
+            if(SELECTED(ENTRY_S_CAB))
+                set_menu_text(ENTRY_S_CAB, config.smartypi.cabinet == config.smartypi.CABINET_UPRIGHT ? "UPRIGHT" : "MINI");
         }
     }
     cursor = cursor_backup;

@@ -69,15 +69,11 @@ bool CabDiag::tick()
     if (!init)
     {
         init = true;
-        press_start_to_exit = true;
+        press_start_to_exit = true; // Denote test can be skipped
         reset();
 
         switch (state)
         {
-            case STATE_INTERFACE:
-                //init_interface();
-                break;
-
             case STATE_OUTPUT:
                 init_output();
                 break;
@@ -92,7 +88,7 @@ bool CabDiag::tick()
 
             case STATE_MOTORT:
                 init_motor_test();
-                press_start_to_exit = false; // Not skippable
+                //press_start_to_exit = false; // Not skippable
                 break;
         }
     }
@@ -108,10 +104,6 @@ bool CabDiag::tick()
     // Tick State
     switch (state)
     {
-        case STATE_INTERFACE:
-            //tick_interface(packet);
-            break;
-
         case STATE_OUTPUT:
             tick_output();
             break;
@@ -125,6 +117,7 @@ bool CabDiag::tick()
 
         case STATE_MOTORT:
             //press_start_to_exit = outrun.outputs->diag_motor(packet->ai1, packet->mci, 0);
+            tick_motor();
             break;
     }
     osprites.sprite_copy();
@@ -176,6 +169,8 @@ void CabDiag::tick_output()
         outrun.outputs->clear_digital(OOutputs::D_START_LAMP);
         outrun.outputs->clear_digital(OOutputs::D_BRAKE_LAMP);
     }
+    
+    outrun.outputs->writeDigitalToConsole();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -309,4 +304,29 @@ void CabDiag::init_motor_test()
     // Draw Text
     ohud.blit_text_new(15, 2, "DIAGNOSTIC", 0x86);
     ohud.blit_text_new(15, 4, "MOTOR TEST", 0x80);
+
+    // Draw Text
+    ohud.blit_text_new(13, 6, "MOTOR", 0x84);
+}
+
+void CabDiag::tick_motor()
+{
+    if (counter & BIT_5)
+    {
+        ohud.blit_text_new(24, 6, " ON", 0x80);
+        outrun.outputs->set_digital(OOutputs::D_MOTOR);
+    }
+    else
+    {
+        ohud.blit_text_new(24, 6, "OFF", 0x86);
+        outrun.outputs->clear_digital(OOutputs::D_MOTOR);
+    }
+
+    if (done)
+    {
+        outrun.outputs->clear_digital(OOutputs::D_MOTOR);
+        outrun.outputs->clear_digital(OOutputs::D_BRAKE_LAMP);
+    }
+
+    outrun.outputs->writeDigitalToConsole();
 }

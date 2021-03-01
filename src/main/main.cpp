@@ -194,7 +194,8 @@ static void tick()
     }
     // Write SMARTYPI Outputs
     //if (config.smartypi.enabled)
-    //    cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
+      //  outrun.outputs.writeToConsole();
+        //cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
 
     // Draw SDL Video
     video.draw_frame();  

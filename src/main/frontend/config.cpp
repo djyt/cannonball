@@ -110,8 +110,8 @@ void Config::load(const std::string &filename)
     // SMARTYPI Settings
     // ------------------------------------------------------------------------
     smartypi.enabled = pt_config.get("smartypi.<xmlattr>.enabled", 0);
-    smartypi.debug   = pt_config.get("smartypi.debug", 0);
-    smartypi.cabinet = pt_config.get("smartypi.cabinet", 0);
+    smartypi.ouputs  = pt_config.get("smartypi.outputs", 1);
+    smartypi.cabinet = pt_config.get("smartypi.cabinet", config.smartypi.CABINET_UPRIGHT);
 
     // ------------------------------------------------------------------------
     // Controls
@@ -201,6 +201,9 @@ bool Config::save(const std::string &filename)
     pt_config.put("sound.advertise",          sound.advertise);
     pt_config.put("sound.preview",            sound.preview);
     pt_config.put("sound.fix_samples",        sound.fix_samples);
+
+    if (config.smartypi.enabled)
+        pt_config.put("smartypi.cabinet",     config.smartypi.cabinet);
 
     pt_config.put("controls.gear",            controls.gear);
     pt_config.put("controls.steerspeed",      controls.steer_speed);

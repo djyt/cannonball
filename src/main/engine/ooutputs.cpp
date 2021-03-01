@@ -17,6 +17,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <iostream>
 #include <cstdlib> // abs
 
 #include "utils.hpp"
@@ -90,11 +91,27 @@ void OOutputs::tick(int MODE, int16_t input_motor, int16_t cabinet_type)
                 do_motors(MODE, input_motor);
                 do_vibrate_mini();
             }
-            else if (cabinet_type == config.smartypi.CABINET_UPRIGHT)
-                do_vibrate_upright();
-            else if (cabinet_type == config.smartypi.CABINET_MINI)
-                do_vibrate_mini();
+            else
+            {
+                if (cabinet_type == config.smartypi.CABINET_UPRIGHT)
+                    do_vibrate_upright();
+                else if (cabinet_type == config.smartypi.CABINET_MINI)
+                    do_vibrate_mini();
+
+                writeDigitalToConsole();
+            }
             break;
+    }
+}
+
+void OOutputs::writeDigitalToConsole()
+{
+    if (config.smartypi.ouputs)
+    {
+        std::cout
+            << "\nbrake_lamp = " << is_set(D_BRAKE_LAMP)
+            << " start_lamp = "  << is_set(D_START_LAMP)
+            << " wheel_motor = " << is_set(D_MOTOR);
     }
 }
 
@@ -110,6 +127,11 @@ void OOutputs::set_digital(uint8_t output)
 void OOutputs::clear_digital(uint8_t output)
 {
     dig_out &= ~output;
+}
+
+int OOutputs::is_set(uint8_t output)
+{
+    return (dig_out & output) ? 1 : 0;
 }
 
 // ------------------------------------------------------------------------------------------------

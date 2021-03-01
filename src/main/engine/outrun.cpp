@@ -279,8 +279,8 @@ void Outrun::jump_table()
         {
             if (config.controls.haptic && config.controls.analog)
                 outputs->tick(OOutputs::MODE_FFEEDBACK, oinputs.input_steering);
-            //else if (config.smartypi.enabled)
-            //    outputs->tick(OOutputs::MODE_CABINET, packet->ai1, config.smartypi.cabinet);
+            else if (config.smartypi.enabled)
+                outputs->tick(OOutputs::MODE_CABINET, 0, config.smartypi.cabinet);
         }
     }
 }

@@ -63,8 +63,10 @@ public:
     bool diag_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets);
     bool calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets);
     void tick(const int MODE, int16_t input_motor, int16_t cabinet_type = -1);
+    void writeDigitalToConsole();
     void set_digital(uint8_t);
     void clear_digital(uint8_t);
+    int is_set(uint8_t);
     void coin_chute_out(CoinChute* chute, bool insert);
 
 private:

@@ -89,7 +89,7 @@ struct smartypi_settings_t
     const static int CABINET_MINI    = 2;
 
     int enabled;      // CannonBall used in conjunction with SMARTYPI in arcade cabinet
-    int debug;        // Display Debug Information
+    int ouputs;       // Write Digital Outputs to console
     int cabinet;      // Cabinet Type
 };
 

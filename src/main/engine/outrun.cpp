@@ -31,7 +31,6 @@
 #include "engine/otiles.hpp"
 #include "engine/otraffic.hpp"
 #include "engine/outils.hpp"
-#include "cannonboard/interface.hpp"
 
 Outrun outrun;
 
@@ -76,7 +75,7 @@ void Outrun::init()
     tick_counter = 0;
 
     // CannonBoard Config: When Used in original cabinet
-    if (config.cannonboard.enabled && config.cannonboard.cabinet == config.cannonboard.CABINET_MOVING)
+    if (config.smartypi.enabled && config.smartypi.cabinet == config.smartypi.CABINET_MOVING)
         init_motor_calibration();
     else
         boot();
@@ -96,7 +95,7 @@ void Outrun::boot()
     outils::reset_random_seed(); // Ensure we match the genuine boot up of the original game each time
 }
 
-void Outrun::tick(Packet* packet, bool tick_frame)
+void Outrun::tick(bool tick_frame)
 {
     this->tick_frame = tick_frame;
     
@@ -125,7 +124,7 @@ void Outrun::tick(Packet* packet, bool tick_frame)
     // Updates V-Blank 1/2 frames
     if (config.fps == 30 && config.tick_fps == 30)
     {
-        jump_table(packet);
+        jump_table();
         oroad.tick();
         vint();
         vint();
@@ -137,7 +136,7 @@ void Outrun::tick(Packet* packet, bool tick_frame)
     {
         if (cannonball::tick_frame)
         {
-            jump_table(packet);
+            jump_table();
             oroad.tick();
         }
         vint();
@@ -147,7 +146,7 @@ void Outrun::tick(Packet* packet, bool tick_frame)
     // Updates V-Blank 1/1 frames
     else
     {
-        jump_table(packet);
+        jump_table();
         oroad.tick();
         vint();
     }
@@ -178,7 +177,7 @@ void Outrun::vint()
     }
 }
 
-void Outrun::jump_table(Packet* packet)
+void Outrun::jump_table()
 {
     if (tick_frame && game_state != GS_CALIBRATE_MOTOR)
     {
@@ -268,7 +267,7 @@ void Outrun::jump_table(Packet* packet)
     {
         if (game_state == GS_CALIBRATE_MOTOR)
         {
-            if (outputs->calibrate_motor(packet->ai1, packet->mci, 0))
+           // if (outputs->calibrate_motor(packet->ai1, packet->mci, 0))
             {
                 video.enabled     = false;
                 video.clear_text_ram();
@@ -280,30 +279,9 @@ void Outrun::jump_table(Packet* packet)
         {
             if (config.controls.haptic && config.controls.analog)
                 outputs->tick(OOutputs::MODE_FFEEDBACK, oinputs.input_steering);
-            else if (config.cannonboard.enabled)
-                outputs->tick(OOutputs::MODE_CABINET, packet->ai1, config.cannonboard.cabinet);
+            //else if (config.smartypi.enabled)
+            //    outputs->tick(OOutputs::MODE_CABINET, packet->ai1, config.smartypi.cabinet);
         }
-    }
-
-    if (config.cannonboard.enabled && config.cannonboard.debug)
-    {
-        uint16_t x = 1;
-        uint16_t y = 5;
-        ohud.blit_text_new(x, y, "AI0 ACCEL");   ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai0).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "AI2 WHEEL");   ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai2).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "AI3 BRAKE");   ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai3).c_str(), OHud::PINK); x += 13;
-      
-        x = 1;
-        y = 6;
-        ohud.blit_text_new(x, y, "AI1 MOTOR"); ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai1).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "MC OUT");    ohud.blit_text_new(x + 10, y, Utils::to_hex_string(outputs->hw_motor_control).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "MC IN");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->mci).c_str(), OHud::PINK);
-
-        x = 1;
-        y = 7;
-        ohud.blit_text_new(x, y, "DI1");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->di1).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "DI2");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->di2).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "DIG OUT"); ohud.blit_text_new(x + 10, y, Utils::to_hex_string(outputs->dig_out).c_str(), OHud::PINK); x += 13;
     }
 }
 
@@ -737,7 +715,7 @@ bool Outrun::decrement_timers()
 }
 
 // -------------------------------------------------------------------------------
-// CannonBoard: Motor Calibration
+// SMARTYPI: Motor Calibration
 // -------------------------------------------------------------------------------
 
 void Outrun::init_motor_calibration()

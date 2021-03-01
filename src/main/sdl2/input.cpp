@@ -31,7 +31,6 @@ void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* 
     this->axis        = axis;
     this->wheel_zone  = analog_settings[0];
     this->wheel_dead  = analog_settings[1];
-    this->pedals_dead = analog_settings[2];
 
     gamepad = SDL_NumJoysticks() > pad_id;
 
@@ -220,47 +219,19 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             //std::cout << "wheel zone : " << wheel_zone << " : " << std::hex << " : " << (int) adjusted << std::endl;
             a_wheel = adjusted;
         }
-        // Accelerator and Brake [Combined Axis]
-        else if (axis[1] == axis[2] && (evt->axis == axis[1] || evt->axis == axis[2]))
-        {
-            // Accelerator
-            if (value < -pedals_dead)
-            {
-                // Scale input to be in the range of 0 to 0x7F
-                value = -value;
-                int adjusted = value / 258;
-                adjusted += (adjusted >> 2);
-                a_accel = adjusted;
-            }
-            // Brake
-            else if (value > pedals_dead)
-            {
-                // Scale input to be in the range of 0 to 0x7F
-                int adjusted = value / 258;
-                adjusted += (adjusted >> 2);
-                a_brake = adjusted;
-            }
-            else
-            {
-                a_accel = 0;
-                a_brake = 0;
-            }
-        }
         // Accelerator [Single Axis]
         else if (evt->axis == axis[1])
         {
-            // Scale input to be in the range of 0 to 0x7F
-            int adjusted = 0x7F - ((value + (1 << 15)) >> 9);           
-            adjusted += (adjusted >> 2);
-            a_accel = adjusted;
+            // Scale input to be in the range of 0 to 0xFF (rather than -32768 to 32768)
+            a_accel = ((value + 0x8000) / 0x100);
+            //std::cout << "Acc: " << (int) a_accel << std::endl;
         }
         // Brake [Single Axis]
         else if (evt->axis == axis[2])
         {
-            // Scale input to be in the range of 0 to 0x7F
-            int adjusted = 0x7F - ((value + (1 << 15)) >> 9);
-            adjusted += (adjusted >> 2);
-            a_brake = adjusted;
+            // Scale input to be in the range of 0 to 0xFF (rather than -32768 to 32768)
+            a_brake = ((value + 0x8000) / 0x100);
+            //std::cout << "Brake: " << (int) a_brake << std::endl;
         }
     }
 }
@@ -278,7 +249,7 @@ void Input::handle_joy_up(SDL_JoyButtonEvent* evt)
 }
 
 void Input::handle_joy(const uint8_t button, const bool is_pressed)
-{
+{	
     if (button == pad_config[0])
         keys[ACCEL] = is_pressed;
 

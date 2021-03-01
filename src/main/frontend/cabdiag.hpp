@@ -5,7 +5,7 @@
     Mostly of use for real cabinets.
 
     - CRT Check
-    - CannonBoard Interface Check
+    - SMARTYPI Interface Check
     - Motor Hardware Test
     - Brake/Start Lamp Test
     - Control Input Test
@@ -17,9 +17,6 @@
 #pragma once
 
 #include "../stdint.hpp"
-
-class Interface;
-struct Packet;
 
 class CabDiag
 {
@@ -33,13 +30,12 @@ public:
         STATE_MOTORT,
     };
 
-    CabDiag(Interface* cannonboard);
+    CabDiag();
     ~CabDiag(void);
-    bool tick(Packet* packet);
+    bool tick();
     void set(uint8_t);
-private:
-    Interface* cannonboard;
 
+private:
     bool init;
     bool done;
     uint8_t state;
@@ -50,12 +46,10 @@ private:
 
     void reset();
 
-    void init_interface();
-    void tick_interface(Packet* packet);
     void init_output();
     void tick_output();
     void init_input();
-    void tick_input(Packet* packet);
+    void tick_input();
     void init_crt();
     void blit_box();
     void blit1_block(uint32_t adr, uint32_t data);

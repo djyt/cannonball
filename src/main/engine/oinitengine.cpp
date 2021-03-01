@@ -287,7 +287,7 @@ void OInitEngine::update_engine()
         ohud.blit_text1(HUD_KPH2);
 
         // Blit High/Low Gear
-        if (config.controls.gear == config.controls.GEAR_BUTTON && !config.cannonboard.enabled)
+        if (config.controls.gear == config.controls.GEAR_BUTTON && !config.smartypi.enabled)
         {
             if (oinputs.gear)
                 ohud.blit_text_new(9, 26, "H");

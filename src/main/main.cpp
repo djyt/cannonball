@@ -28,7 +28,6 @@
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
 
-#include "cannonboard/interface.hpp"
 #include "engine/oinputs.hpp"
 #include "engine/ooutputs.hpp"
 #include "engine/omusic.hpp"
@@ -51,7 +50,6 @@ Audio cannonball::audio;
 #endif
 
 Menu* menu;
-Interface cannonboard;
 
 static void quit_func(int code)
 {
@@ -113,9 +111,6 @@ static void tick()
 {
     frame++;
 
-    // Get CannonBoard Packet Data
-    Packet* packet = config.cannonboard.enabled ? cannonboard.get_packet() : NULL;
-
     // Non standard FPS.
     // Determine whether to tick the current frame.
     if (config.fps != 30)
@@ -129,7 +124,7 @@ static void tick()
     process_events();
 
     if (tick_frame)
-        oinputs.tick(packet); // Do Controls
+        oinputs.tick(); // Do Controls
     oinputs.do_gear();        // Digital Gear
 
     switch (state)
@@ -147,7 +142,7 @@ static void tick()
 
             if (!pause_engine || input.has_pressed(Input::STEP))
             {
-                outrun.tick(packet, tick_frame);
+                outrun.tick(tick_frame);
                 input.frame_done(); // Denote keys read
 
                 #ifdef COMPILE_SOUND_CODE
@@ -179,7 +174,7 @@ static void tick()
 
         case STATE_MENU:
         {
-            menu->tick(packet);
+            menu->tick();
             input.frame_done();
             #ifdef COMPILE_SOUND_CODE
             // Tick audio program code
@@ -197,9 +192,9 @@ static void tick()
             state = STATE_MENU;
             break;
     }
-    // Write CannonBoard Outputs
-    if (config.cannonboard.enabled)
-        cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
+    // Write SMARTYPI Outputs
+    //if (config.smartypi.enabled)
+    //    cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
 
     // Draw SDL Video
     video.draw_frame();  
@@ -307,15 +302,9 @@ int main(int argc, char* argv[])
         if (config.controls.haptic) 
             config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
         
-        // Initalize CannonBoard (For use in original cabinets)
-        if (config.cannonboard.enabled)
-        {
-            cannonboard.init(config.cannonboard.port, config.cannonboard.baud);
-            cannonboard.start();
-        }
 
         // Populate menus
-        menu = new Menu(&cannonboard);
+        menu = new Menu();
         menu->populate();
         main_loop();  // Loop until we quit the app
     }

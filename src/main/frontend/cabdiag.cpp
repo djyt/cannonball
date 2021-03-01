@@ -5,7 +5,7 @@
     Mostly of use for real cabinets.
 
     - CRT Check
-    - CannonBoard Interface Check
+    - SMARTYPI Interface Check
     - Motor Hardware Test
     - Brake/Start Lamp Test
     - Control Input Test
@@ -19,7 +19,6 @@
 
 #include "utils.hpp"
 #include "../video.hpp"
-#include "../cannonboard/interface.hpp"
 #include "../engine/outrun.hpp"
 #include "../engine/ooutputs.hpp"
 #include "../engine/ohud.hpp"
@@ -28,9 +27,8 @@
 const static uint32_t PAL_CRT[] = {0xF, 0xF000FF, 0xF000F0F, 0xFF00FFF, 0xFFF, 0xEEE0DDD, 0xCCC0BBB,
                                    0xAAA0999, 0x888, 0x0, 0x0, 0x0, 0x777, 0x6660555, 0x4440333, 0x2220111};
 
-CabDiag::CabDiag(Interface* cannonboard)
+CabDiag::CabDiag()
 {
-    this->cannonboard = cannonboard;
 }
 
 CabDiag::~CabDiag(void)
@@ -65,7 +63,7 @@ void CabDiag::set(uint8_t state)
     init = false;
 }
 
-bool CabDiag::tick(Packet* packet)
+bool CabDiag::tick()
 {
     // Initialize State
     if (!init)
@@ -77,7 +75,7 @@ bool CabDiag::tick(Packet* packet)
         switch (state)
         {
             case STATE_INTERFACE:
-                init_interface();
+                //init_interface();
                 break;
 
             case STATE_OUTPUT:
@@ -111,7 +109,7 @@ bool CabDiag::tick(Packet* packet)
     switch (state)
     {
         case STATE_INTERFACE:
-            tick_interface(packet);
+            //tick_interface(packet);
             break;
 
         case STATE_OUTPUT:
@@ -119,14 +117,14 @@ bool CabDiag::tick(Packet* packet)
             break;
 
         case STATE_INPUT:
-            tick_input(packet);
+            tick_input();
             break;
 
         case STATE_CRT:
             break;
 
         case STATE_MOTORT:
-            press_start_to_exit = outrun.outputs->diag_motor(packet->ai1, packet->mci, 0);
+            //press_start_to_exit = outrun.outputs->diag_motor(packet->ai1, packet->mci, 0);
             break;
     }
     osprites.sprite_copy();
@@ -140,47 +138,6 @@ bool CabDiag::tick(Packet* packet)
     return done;
 }
 
-// ------------------------------------------------------------------------------------------------
-// INTERFACE DIAGNOSTICS
-// ------------------------------------------------------------------------------------------------
-
-void CabDiag::init_interface()
-{
-    //cannonboard->reset_stats();
-    int x = 10;
-    int y = 2;
-    blit_box();
-    ohud.blit_text_new(3, y, "CANNONBOARD INTERFACE DIAGNOSTICS", 0x86);
-
-    y = 5;
-    ohud.blit_text_new(x, y++, "SERIAL PORT", 0x84); y+=2;
-
-    ohud.blit_text_new(4, y++, "- INBOUND PACKET INFORMATION  -", 0x82); y++;
-    ohud.blit_text_new(x, y++, "GOOD", 0x84);
-    ohud.blit_text_new(x, y++, "BAD", 0x84);
-    ohud.blit_text_new(x, y++, "NOT FOUND", 0x84); y+=2;
-
-    ohud.blit_text_new(4, y++, "- OUTBOUND PACKET INFORMATION -", 0x82); y++;
-    ohud.blit_text_new(x, y++, "GOOD", 0x84);
-    ohud.blit_text_new(x, y++, "BAD", 0x84);
-    ohud.blit_text_new(x, y++, "MISSED", 0x84);
-}
-
-void CabDiag::tick_interface(Packet* packet)
-{
-    int x = 23;
-    int y = 5;
-    ohud.blit_text_new(x, y, cannonboard->started() ? "READY" : "ERROR", 0x80);
-
-    y = 10;
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_found_in).c_str(), 0x80);
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_error_in).c_str(), 0x80);
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_notfound_in).c_str(), 0x80);
-    y += 4;
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_found_out).c_str(), 0x80);
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_error_out).c_str(), 0x80);
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(cannonboard->stats_missed_out).c_str(), 0x80);
-}
 
 // ------------------------------------------------------------------------------------------------
 // OUTPUT TEST
@@ -245,24 +202,25 @@ void CabDiag::init_input()
     ohud.blit_text_new(x, y++, "ACCEL", 0x84);
 }
 
-void CabDiag::tick_input(Packet* packet)
+void CabDiag::tick_input()
 {
     int x = 23;
     int y = 8;
-    ohud.blit_text_new(x, y++, (packet->di1 & 0x40) ? "ON " : "OFF", 0x80);  // COIN 1
-    ohud.blit_text_new(x, y++, (packet->di1 & 0x80) ? "ON " : "OFF", 0x80);  // COIN 2
+    ohud.blit_text_new(x, y++, input.is_pressed(Input::COIN) ? "ON " : "OFF", 0x80);  // COIN 1
+    ohud.blit_text_new(x, y++, input.is_pressed(Input::COIN) ? "ON " : "OFF", 0x80);  // COIN 2
     y++;
-    ohud.blit_text_new(x, y++, (packet->di1 & 0x04) ? "ON " : "OFF", 0x80);  // SERVICE
-    ohud.blit_text_new(x, y++, (packet->di1 & 0x08) ? "ON " : "OFF", 0x80);  // START
+    ohud.blit_text_new(x, y++, input.is_pressed(Input::MENU) ? "ON " : "OFF", 0x80);  // SERVICE
+    ohud.blit_text_new(x, y++, input.is_pressed(Input::START) ? "ON " : "OFF", 0x80);  // START
     y += 2;
-    ohud.blit_text_new(x, y++, (packet->di1 & 0x10) ? "LOW " : "HIGH", 0x80); // GEAR
+    ohud.blit_text_new(x, y++, input.is_pressed(Input::GEAR1) ? "LOW " : "HIGH", 0x80); // GEAR
     y++;
     ohud.blit_text_new(x, y, "  H", 0x80);
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(packet->ai2).c_str(), 0x80); // WHEEL
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(input.a_wheel).c_str(), 0x80); // WHEEL
     ohud.blit_text_new(x, y, "  H", 0x80);
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(packet->ai0).c_str(), 0x80); // BRAKE
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(input.a_brake).c_str(), 0x80); // BRAKE
     ohud.blit_text_new(x, y, "  H", 0x80);
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(packet->ai3).c_str(), 0x80); // ACCEL
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(input.a_accel).c_str(), 0x80); // ACCEL
+    
 }
 
 // ------------------------------------------------------------------------------------------------

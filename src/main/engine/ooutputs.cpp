@@ -83,16 +83,16 @@ void OOutputs::tick(int MODE, int16_t input_motor, int16_t cabinet_type)
             motor_output(hw_motor_control); // Force Feedback Handling
             break;
 
-        // CannonBoard: Real Cabinet
+        // SMARTYPI: Real Cabinet
         case MODE_CABINET:
-            if (cabinet_type == config.cannonboard.CABINET_MOVING)
+            if (cabinet_type == config.smartypi.CABINET_MOVING)
             {
                 do_motors(MODE, input_motor);
                 do_vibrate_mini();
             }
-            else if (cabinet_type == config.cannonboard.CABINET_UPRIGHT)
+            else if (cabinet_type == config.smartypi.CABINET_UPRIGHT)
                 do_vibrate_upright();
-            else if (cabinet_type == config.cannonboard.CABINET_MINI)
+            else if (cabinet_type == config.smartypi.CABINET_MINI)
                 do_vibrate_mini();
             break;
     }

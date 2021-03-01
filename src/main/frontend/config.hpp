@@ -74,7 +74,7 @@ struct controls_settings_t
     int pad_id;        // Use the N'th joystick on the system.
     int analog;        // Use analog controls
     int axis[3];       // Analog Axis
-    int asettings[3];  // Analog Settings
+    int asettings[2];  // Analog Settings
 
     int haptic;        // Force Feedback Enabled
     int max_force;
@@ -82,15 +82,13 @@ struct controls_settings_t
     int force_duration;
 };
 
-struct cannonboard_settings_t
+struct smartypi_settings_t
 {
     const static int CABINET_MOVING  = 0;
     const static int CABINET_UPRIGHT = 1;
     const static int CABINET_MINI    = 2;
 
-    int enabled;      // CannonBall used in conjunction with CannonBoard in arcade cabinet
-    std::string port; // Port Name
-    int baud;         // Baud Rate
+    int enabled;      // CannonBall used in conjunction with SMARTYPI in arcade cabinet
     int debug;        // Display Debug Information
     int cabinet;      // Cabinet Type
 };
@@ -122,7 +120,7 @@ public:
     controls_settings_t    controls;
     engine_settings_t      engine;
     ttrial_settings_t      ttrial;
-    cannonboard_settings_t cannonboard;
+    smartypi_settings_t    smartypi;
 
     // Internal screen width and height
     uint16_t s16_width, s16_height;

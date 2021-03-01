@@ -175,8 +175,6 @@ struct adr_t
 };
 
 class OOutputs;
-class Interface;
-struct Packet;
 
 class Outrun
 {
@@ -217,13 +215,12 @@ public:
 	~Outrun();
 	void init();
     void boot();
-	void tick(Packet* packet, bool tick_frame);
+	void tick(bool tick_frame);
 	void vint();
     void init_best_outrunners();
     void select_course(const bool jap, const bool prototype);
 
 private:
-    //Interface* cannonboard;
 
     uint8_t attract_view;
     int16_t attract_counter;
@@ -234,7 +231,7 @@ private:
     // Debug to denote when fork has been chosen
     int8_t fork_chosen;
 
-	void jump_table(Packet* packet);
+	void jump_table();
 	void init_jump_table();
 	void main_switch();
     void controls();

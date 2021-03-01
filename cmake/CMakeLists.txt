@@ -13,7 +13,8 @@ project (cannonball)
 # -----------------------------------------------------------------------------
 
 # CMake files 
-set(DCMAKE pi4-opengles.cmake)
+#set(DCMAKE pi4-opengles.cmake)
+set(DCMAKE win64-opengl.cmake)
 set(CMDIR ../cmake)
 
 # Source location
@@ -127,13 +128,6 @@ set(src_directx
     "${main_cpp_base}/directx/ffeedback.cpp"
 )
 
-set(src_cannonboard
-    "${main_cpp_base}/cannonboard/asyncserial.hpp"
-    "${main_cpp_base}/cannonboard/interface.hpp"
-    "${main_cpp_base}/cannonboard/asyncserial.cpp"
-    "${main_cpp_base}/cannonboard/interface.cpp"
-)
-
 set(src_engine
     "${main_cpp_base}/engine/oaddresses.hpp"
     "${main_cpp_base}/engine/oanimseq.hpp"
@@ -208,7 +202,6 @@ set(SRCS
     ${src_sdl}
     ${src_render}
     ${src_directx}
-    ${src_cannonboard}
     ${src_engine}
     ${src_engine_audio}
 )
@@ -221,7 +214,6 @@ SOURCE_GROUP(src\\hwaudio FILES ${src_hwaudio})
 SOURCE_GROUP(src\\sdl FILES ${src_sdl})
 SOURCE_GROUP(src\\sdl FILES ${src_render})
 SOURCE_GROUP(src\\directx FILES ${src_directx})
-SOURCE_GROUP(src\\cannonboard FILES ${src_cannonboard})
 SOURCE_GROUP(src\\engine FILES ${src_engine})
 SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
 
@@ -242,10 +234,6 @@ endif()
 
 if(OPENGLES)
     add_definitions(-DWITH_OPENGLES)
-endif()
-
-if(CANNONBOARD)
-    add_definitions(-DCANNONBOARD)
 endif()
 
 # -----------------------------------------------------------------------------

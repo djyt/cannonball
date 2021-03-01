@@ -88,7 +88,6 @@ private:
 
     int wheel_zone;
     int wheel_dead;
-    int pedals_dead;
 
     void handle_key(const int, const bool);
     void handle_joy(const uint8_t, const bool);

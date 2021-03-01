@@ -107,13 +107,11 @@ void Config::load(const std::string &filename)
     }
 
     // ------------------------------------------------------------------------
-    // CannonBoard Settings
+    // SMARTYPI Settings
     // ------------------------------------------------------------------------
-    cannonboard.enabled = pt_config.get("cannonboard.<xmlattr>.enabled", 0);
-    cannonboard.port    = pt_config.get("cannonboard.port", "COM6");
-    cannonboard.baud    = pt_config.get("cannonboard.baud", 57600);
-    cannonboard.debug   = pt_config.get("cannonboard.debug", 0);
-    cannonboard.cabinet = pt_config.get("cannonboard.cabinet", 0);
+    smartypi.enabled = pt_config.get("smartypi.<xmlattr>.enabled", 0);
+    smartypi.debug   = pt_config.get("smartypi.debug", 0);
+    smartypi.cabinet = pt_config.get("smartypi.cabinet", 0);
 
     // ------------------------------------------------------------------------
     // Controls
@@ -148,7 +146,6 @@ void Config::load(const std::string &filename)
     controls.axis[2]       = pt_config.get("controls.analog.axis.brake", 3);
     controls.asettings[0]  = pt_config.get("controls.analog.wheel.zone", 75);
     controls.asettings[1]  = pt_config.get("controls.analog.wheel.dead", 0);
-    controls.asettings[2]  = pt_config.get("controls.analog.pedals.dead", 0);
     
     controls.haptic        = pt_config.get("controls.analog.haptic.<xmlattr>.enabled", 0);
     controls.max_force     = pt_config.get("controls.analog.haptic.max_force", 9000);
@@ -268,7 +265,7 @@ void Config::load_scores(const std::string &filename)
     }
     catch (std::exception &e)
     {
-        e.what();
+        std::cout << e.what();
         return;
     }
     
@@ -342,7 +339,7 @@ void Config::load_tiletrial_scores()
         for (int i = 0; i < 15; i++)
             ttrial.best_times[i] = COUNTER_1M_15;
 
-        e.what();
+        std::cout << e.what();
         return;
     }
 

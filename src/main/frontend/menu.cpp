@@ -13,7 +13,6 @@
 #include "menu.hpp"
 #include "setup.hpp"
 #include "../utils.hpp"
-#include "../cannonboard/interface.hpp"
 
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
@@ -66,12 +65,12 @@ const static char* ENTRY_START_CONT = "START CONTINUOUS MODE";
 const static char* ENTRY_VIDEO      = "VIDEO";
 const static char* ENTRY_SOUND      = "SOUND";
 const static char* ENTRY_CONTROLS   = "CONTROLS";
-const static char* ENTRY_CANNONBOARD= "CANNONBOARD";
+const static char* ENTRY_SMARTYPI   = "SMARTYPI";
 const static char* ENTRY_ENGINE     = "GAME ENGINE";
 const static char* ENTRY_SCORES     = "CLEAR HISCORES";
 const static char* ENTRY_SAVE       = "SAVE AND RETURN";
 
-// CannonBoard Menu
+// SMARTYPI Menu
 const static char* ENTRY_C_INTERFACE= "INTERFACE DIAGNOSTICS";
 const static char* ENTRY_C_INPUTS   = "INPUT TEST";
 const static char* ENTRY_C_OUTPUTS  = "OUTPUT TEST";
@@ -116,10 +115,9 @@ const static char* ENTRY_MUSIC2     = "PASSING BREEZE";
 const static char* ENTRY_MUSIC3     = "SPLASH WAVE";
 const static char* ENTRY_MUSIC4     = "LAST WAVE";
 
-Menu::Menu(Interface* cannonboard)
+Menu::Menu()
 {
-    this->cannonboard = cannonboard;
-    cabdiag = new CabDiag(cannonboard);
+    cabdiag = new CabDiag();
     ttrial  = new TTrial(config.ttrial.best_times);
 }
 
@@ -159,17 +157,17 @@ void Menu::populate()
     menu_settings.push_back(ENTRY_SOUND);
     #endif
     menu_settings.push_back(ENTRY_CONTROLS);
-    if (config.cannonboard.enabled)
-        menu_settings.push_back(ENTRY_CANNONBOARD);
+    if (config.smartypi.enabled)
+        menu_settings.push_back(ENTRY_SMARTYPI);
     menu_settings.push_back(ENTRY_ENGINE);
     menu_settings.push_back(ENTRY_SCORES);
     menu_settings.push_back(ENTRY_SAVE);
 
-    menu_cannonboard.push_back(ENTRY_C_INTERFACE);
-    menu_cannonboard.push_back(ENTRY_C_INPUTS);
-    menu_cannonboard.push_back(ENTRY_C_OUTPUTS);
-    menu_cannonboard.push_back(ENTRY_C_CRT);
-    menu_cannonboard.push_back(ENTRY_BACK);
+    menu_smartypi.push_back(ENTRY_C_INTERFACE);
+    menu_smartypi.push_back(ENTRY_C_INPUTS);
+    menu_smartypi.push_back(ENTRY_C_OUTPUTS);
+    menu_smartypi.push_back(ENTRY_C_CRT);
+    menu_smartypi.push_back(ENTRY_BACK);
 
     menu_video.push_back(ENTRY_FPS);
     menu_video.push_back(ENTRY_FULLSCREEN);
@@ -279,13 +277,13 @@ void Menu::init()
     frame = 0;
     message_counter = 0;
 
-    if (config.cannonboard.enabled)
-        display_message(cannonboard->started() ? "CANNONBOARD FOUND!" : "CANNONBOARD ERROR!");
+    //if (config.smartypi.enabled)
+    //    display_message(cannonboard->started() ? "CANNONBOARD FOUND!" : "CANNONBOARD ERROR!");
 
     state = STATE_MENU;
 }
 
-void Menu::tick(Packet* packet)
+void Menu::tick()
 {
     switch (state)
     {
@@ -296,10 +294,10 @@ void Menu::tick(Packet* packet)
             break;
 
         case STATE_DIAGNOSTICS:
-            if (cabdiag->tick(packet))
+            if (cabdiag->tick())
             {
                 init();
-                set_menu(&menu_cannonboard);
+                set_menu(&menu_smartypi);
                 refresh_menu();
             }
             break;
@@ -530,8 +528,8 @@ void Menu::tick_menu()
         }
         else if (menu_selected == &menu_settings)
         {
-            if (SELECTED(ENTRY_CANNONBOARD))
-                set_menu(&menu_cannonboard);
+            if (SELECTED(ENTRY_SMARTYPI))
+                set_menu(&menu_smartypi);
             else if (SELECTED(ENTRY_VIDEO))
                 set_menu(&menu_video);
             else if (SELECTED(ENTRY_SOUND))
@@ -564,7 +562,7 @@ void Menu::tick_menu()
         {
             set_menu(&menu_main);
         }
-        else if (menu_selected == &menu_cannonboard)
+        else if (menu_selected == &menu_smartypi)
         {
             if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);

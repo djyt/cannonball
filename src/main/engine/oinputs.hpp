@@ -13,8 +13,6 @@
 #include "sdl2/input.hpp"
 #include "outrun.hpp"
 
-struct Packet;
-
 class OInputs
 {
 public:
@@ -44,7 +42,7 @@ public:
     ~OInputs(void);
 
     void init();
-    void tick(Packet* packet);
+    void tick();
     void adjust_inputs();
     void do_gear();
     uint8_t do_credits();

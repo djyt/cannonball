@@ -11,23 +11,20 @@
 #include <vector>
 #include "stdint.hpp"
 
-class Interface;
 class CabDiag;
 class TTrial;
-struct Packet;
 
 class Menu
 {
 public:
-    Menu(Interface* cannonboard);
+    Menu();
     ~Menu(void);
 
     void populate();
     void init();
-    void tick(Packet* packet);
+    void tick();
 
 private:
-    Interface* cannonboard;
     CabDiag* cabdiag;
 
     // Menu state
@@ -74,7 +71,7 @@ private:
     std::vector<std::string> menu_timetrial;
     std::vector<std::string> menu_about;
     std::vector<std::string> menu_settings;
-    std::vector<std::string> menu_cannonboard;
+    std::vector<std::string> menu_smartypi;
     std::vector<std::string> menu_video;
     std::vector<std::string> menu_sound;
     std::vector<std::string> menu_controls;

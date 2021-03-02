@@ -275,7 +275,9 @@ void Menu::init()
     // Reset audio, so we can play tones
     osoundint.has_booted = true;
     osoundint.init();
+    #ifdef COMPILE_SOUND_CODE
     cannonball::audio.clear_wav();
+    #endif
 
     frame = 0;
     message_counter = 0;

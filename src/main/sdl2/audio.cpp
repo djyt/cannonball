@@ -288,7 +288,7 @@ double Audio::adjust_speed()
     double alpha = 2.0 / (1.0+40.0);
     int gap_too_small;
     int gap_too_large;
-    bool inited = false;
+    static bool inited = false;
 
     if (!inited) 
     {

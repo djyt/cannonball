@@ -55,6 +55,10 @@ private:
     // 4 MHz
     static const uint32_t SOUND_CLOCK = 4000000;
 
+    // Fractionally counts number of times audio code must be called
+    // We call the audio code 125 times per frame from a timing perspective.
+    double audio_ticks;
+
     // Reference to 0xFF bytes of PCM Chip RAM
     uint8_t* pcm_ram;
 

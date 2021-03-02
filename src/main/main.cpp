@@ -144,13 +144,7 @@ static void tick()
             {
                 outrun.tick(tick_frame);
                 input.frame_done(); // Denote keys read
-
-                #ifdef COMPILE_SOUND_CODE
-                // Tick audio program code
                 osoundint.tick();
-                // Tick SDL Audio
-                audio.tick();
-                #endif
             }
             else
             {                
@@ -176,12 +170,7 @@ static void tick()
         {
             menu->tick();
             input.frame_done();
-            #ifdef COMPILE_SOUND_CODE
-            // Tick audio program code
             osoundint.tick();
-            // Tick SDL Audio
-            audio.tick();
-            #endif
         }
         break;
 
@@ -192,13 +181,6 @@ static void tick()
             state = STATE_MENU;
             break;
     }
-    // Write SMARTYPI Outputs
-    //if (config.smartypi.enabled)
-      //  outrun.outputs.writeToConsole();
-        //cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
-
-    // Draw SDL Video
-    video.draw_frame();  
 }
 
 static void main_loop()
@@ -209,30 +191,40 @@ static void main_loop()
     fps_count.start();
 
     // General Frame Timing
+    bool vsync = config.video.vsync == 1 && video.supports_vsync();
     Timer frame_time;
-    int t;
-    double deltatime  = 0;
-    int deltaintegral = 0;
+    int t;                              // Actual timing of tick in ms as measured by SDL (ms)
+    double deltatime  = 0;              // Time we want an entire frame to take (ms)
+    int deltaintegral = 0;              // Integer version of above
 
     while (state != STATE_QUIT)
     {
         frame_time.start();
+        // Tick Engine
         tick();
-        #ifdef COMPILE_SOUND_CODE
-        deltatime += (frame_ms * audio.adjust_speed());
-        #else
-        deltatime += frame_ms;
-        #endif
-        deltaintegral  = (int) deltatime;
-        t = frame_time.get_ticks();
 
-        // Cap Frame Rate: Sleep Remaining Frame Time
-        if (t < deltatime)
+        // Draw SDL Video
+        video.prepare_frame();
+        video.render_frame();
+
+        // Fill SDL Audio Buffer For Callback
+#ifdef COMPILE_SOUND_CODE
+        audio.tick();
+        deltatime += (frame_ms * audio.adjust_speed());
+#else
+        deltatime += frame_ms;
+#endif
+
+        // Calculate Timings. Cap Frame Rate. Note this might be trumped by V-Sync
+        if (!vsync)
         {
-            SDL_Delay((Uint32) (deltatime - t));
+            deltaintegral = (int)deltatime;
+            t = frame_time.get_ticks();
+            if (t < deltatime)
+                SDL_Delay((Uint32)(deltatime - t));
+
+            deltatime -= deltaintegral;
         }
-        
-        deltatime -= deltaintegral;
 
         if (config.video.fps_count)
         {

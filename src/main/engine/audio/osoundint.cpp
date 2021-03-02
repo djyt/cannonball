@@ -58,28 +58,25 @@ void OSoundInt::reset()
     sound_head    = 0;
     sound_tail    = 0;
     sounds_queued = 0;
+
+    audio_ticks = 0;
 }
 
 void OSoundInt::tick()
 {
-    if (config.fps == 30)
+    // The audio code is updated 125 times per frame
+    audio_ticks += (125.0 / config.fps);
+
+    // Ticks per frame will vary between 2 and 3 at 60fps. 
+    const int max_ticks = (int) audio_ticks;
+
+    for (int i = 0; i < max_ticks; i++)
     {
         play_queued_sound(); // Process audio commands from main program code
-        osound.tick();
-        play_queued_sound();
-        osound.tick();
-        play_queued_sound();
-        osound.tick();
-        play_queued_sound();
-        osound.tick();
+        osound.tick();       // Tick Ported Z80 Audio Code
     }
-    else if (config.fps == 60)
-    {
-        play_queued_sound(); // Process audio commands from main program code
-        osound.tick();
-        play_queued_sound();
-        osound.tick();
-    }
+
+    audio_ticks -= max_ticks;
 }
 
 // ----------------------------------------------------------------------------

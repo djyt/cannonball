@@ -34,7 +34,9 @@
 // Fine to include on non-windows builds as dummy functions used.
 #include "directx/ffeedback.hpp"
 
+// ------------------------------------------------------------------------------------------------
 // Initialize Shared Variables
+// ------------------------------------------------------------------------------------------------
 using namespace cannonball;
 
 int    cannonball::state       = STATE_BOOT;
@@ -43,11 +45,15 @@ int    cannonball::frame       = 0;
 bool   cannonball::tick_frame  = true;
 int    cannonball::fps_counter = 0;
 
+// ------------------------------------------------------------------------------------------------
+// Main Variables and Pointers
+// ------------------------------------------------------------------------------------------------
 Audio cannonball::audio;
 Menu* menu;
-
-// Pause Engine
 bool pause_engine;
+
+
+// ------------------------------------------------------------------------------------------------
 
 static void quit_func(int code)
 {

@@ -251,7 +251,7 @@ bool Config::save(const std::string &filename)
     }
     catch (std::exception &e)
     {
-        std::cout << "Error saving config: " << e.what() << "\n";
+        std::cout << e.what() << std::endl;
         return false;
     }
     return true;
@@ -268,7 +268,7 @@ void Config::load_scores(const std::string &filename)
     }
     catch (std::exception &e)
     {
-        std::cout << filename << " not found" << std::endl;
+        std::cout << e.what() << std::endl;
         return;
     }
     

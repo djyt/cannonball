@@ -268,7 +268,7 @@ void Config::load_scores(const std::string &filename)
     }
     catch (std::exception &e)
     {
-        std::cout << e.what();
+        std::cout << filename << " not found" << std::endl;
         return;
     }
     

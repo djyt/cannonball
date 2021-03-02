@@ -125,7 +125,7 @@ int Video::set_video_mode(video_settings_t* settings)
     return 1;
 }
 
-void Video::draw_frame()
+void Video::prepare_frame()
 {
     // Renderer Specific Frame Setup
     if (!renderer->start_frame())
@@ -149,7 +149,10 @@ void Video::draw_frame()
         sprite_layer->render(8);
         tile_layer->render_text_layer(pixels, 1);
      }
+}
 
+void Video::render_frame()
+{
     renderer->draw_frame(pixels);
     renderer->finalize_frame();
 }
@@ -157,6 +160,11 @@ void Video::draw_frame()
 bool Video::supports_window()
 {
     return renderer->supports_window();
+}
+
+bool Video::supports_vsync()
+{
+    return renderer->supports_vsync();
 }
 
 // ---------------------------------------------------------------------------

@@ -48,6 +48,7 @@ struct video_settings_t
     int fps_count;
     int hires;
     int filtering;
+    int vsync;
 };
 
 struct sound_settings_t

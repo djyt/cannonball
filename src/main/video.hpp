@@ -38,8 +38,10 @@ public:
 	int init(Roms* roms, video_settings_t* settings);
     void disable();
     int set_video_mode(video_settings_t* settings);
-    void draw_frame();
+    void prepare_frame();
+    void render_frame();
     bool supports_window();
+    bool supports_vsync();
 
     void clear_text_ram();
     void write_text8(uint32_t, const uint8_t);

@@ -22,6 +22,7 @@ public:
     virtual void draw_frame(uint16_t* pixels) = 0;
     void convert_palette(uint32_t adr, uint32_t r, uint32_t g, uint32_t b);
     virtual bool supports_window() { return true; }
+    virtual bool supports_vsync() { return false; }
 
 protected:
 	SDL_Surface *surface;

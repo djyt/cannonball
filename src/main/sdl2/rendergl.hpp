@@ -27,6 +27,7 @@ public:
     bool start_frame();
     bool finalize_frame();
     void draw_frame(uint16_t* pixels);
+    bool supports_vsync();
 
 private:
     // Texture IDs

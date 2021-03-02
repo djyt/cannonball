@@ -22,9 +22,10 @@
 #include "rendersurface.hpp"
 #include "frontend/config.hpp"
 
-// Blargg filter for CRT processing (JJP) - with SMP support
-//#include "snes_ntsc.h"
-#include <omp.h>
+#ifndef _WIN32
+    #include <omp.h>
+#endif
+
 /*
 // JJP - Blargg filtering for CRT style visuals
 static snes_ntsc_setup_t setup;
@@ -269,10 +270,10 @@ bool RenderSurface::init_sdl(int video_mode)
         printf("Framebuffer Acceleration: %i\n",res);
         // Create window with SDL
         if (config.video.filtering==0) SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-        else SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-        SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+        else SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
+        SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
         window = SDL_CreateWindow("Cannonball", 0, 0, scn_width, scn_height, flags);
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED); //|SDL_RENDERER_PRESENTVSYNC);
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     }
     return true;
 }
@@ -341,14 +342,14 @@ void RenderSurface::init_overlays()
 
     // create the last frame, as to start with that is obviously black
     uint32_t *texture_pixels = new uint32_t[(src_rect.w * src_rect.h)];
-    memset(texture_pixels, 0x00, sizeof(uint32_t[(src_rect.w * src_rect.h)]));
+    memset(texture_pixels, 0x00, sizeof(uint32_t) * src_rect.w * src_rect.h);
     // load into SDL
     SDL_UpdateTexture(last_game_tx, NULL, texture_pixels, src_rect.w * sizeof(Uint32));
     delete[] texture_pixels;
 
     // create the horizontal scanline texture and prepare it
     texture_pixels = new uint32_t[(scanline_rect.w * scanline_rect.h)];
-    memset(texture_pixels, 0xff, sizeof(uint32_t[(scanline_rect.w * scanline_rect.h)])); // fill with white i.e. no dimming
+    memset(texture_pixels, 0xff, sizeof(uint32_t) * scanline_rect.w * scanline_rect.h); // fill with white i.e. no dimming
     if (scanlines>0) {
         uint32_t *scnlp = texture_pixels;
         uint32_t dimval; uint32_t rgbdim;
@@ -368,7 +369,7 @@ void RenderSurface::init_overlays()
     // create the rgb texture(s) and prepare it
     // various mask designs
     texture_pixels = new uint32_t[(rgb_rect.w * rgb_rect.h)];
-    memset(texture_pixels, 0xff, sizeof(uint32_t[(rgb_rect.w * rgb_rect.h)])); // fill with white i.e. no dimming
+    memset(texture_pixels, 0xff, sizeof(uint32_t) * rgb_rect.w * rgb_rect.h); // fill with white i.e. no dimming
     if (crtmask) {
         uint32_t *scnlp = texture_pixels;
         uint32_t dimval;
@@ -536,7 +537,7 @@ void RenderSurface::init_overlays()
 
     // create vignette filter and texture
     texture_pixels = new uint32_t[(dst_rect.w * dst_rect.h)];
-    memset(texture_pixels, 0xff, sizeof(uint32_t[(dst_rect.w * dst_rect.h)])); // fill with white
+    memset(texture_pixels, 0xff, sizeof(uint32_t) * dst_rect.w * dst_rect.h); // fill with white
     if (vignette) {
         // next create a native resolution filter to create rounded corners on the screen
         // the interaction with the above game filter won't be perfect due to image ratio differences
@@ -700,7 +701,6 @@ void RenderSurface::colorise_frame(int ThreadID, int TotalThreads,
 //    float phasedim = 1.0;
 //    float red; float green; float blue;
     uint32_t red; uint32_t green; uint32_t blue;
-    uint32_t red_blend, green_blend, blue_blend;
     uint32_t intensity;
     for (int y=0; y < block_rows; y++) {
         for (int x=0; x < width; x++) {
@@ -712,7 +712,7 @@ void RenderSurface::colorise_frame(int ThreadID, int TotalThreads,
                               (green << Gshift) +   // Green
                               (blue << Bshift) +    // Blue
                               (0xff << Ashift) );   // A
-            intensity        = ((red + green + blue) >> 2) & 0xff;
+            intensity        = ((red + green + blue) / 3) & 0xff;
             *intensityimage  = ( (intensity << Rshift) +
                                  (intensity << Gshift) +
                                  (intensity << Bshift) +
@@ -731,16 +731,24 @@ bool RenderSurface::finalize_frame()
     uint32_t *srcpix = (shader==0) ? game_pixels : filtered_pixels;
 
     int ID;
+#ifndef _WIN32
     int threads = omp_get_max_threads();
+#endif
 
     if (shader) {
         // Blargg filtering provides more of a CRT look.
         // process this in specified number of threads
+#ifndef _WIN32
         #pragma omp parallel
         {
             ID = omp_get_thread_num();
             shade(ID,threads);
         }
+#else
+#pragma loop(hint_parallel(0))
+        for (int i=0; i<4; i++)
+            shade(i,4);
+#endif
 
         // update phase.  We need to consider whether we're running at 30 or 60 fps
         if (config.fps == 60) {
@@ -750,14 +758,21 @@ bool RenderSurface::finalize_frame()
             }
         } else phase ^= 1; // 0 -> 1 -> 0 -> 1...
     }
+
+#ifndef _WIN32
     #pragma omp parallel
     {
         ID = omp_get_thread_num();
         colorise_frame(ID,threads,srcpix,game_pixels,overlay_pixels,game_width,game_height);
     }
+#else
+#pragma loop(hint_parallel(0))
+    for (int i = 0; i < 4; i++)
+    colorise_frame(i, 4, srcpix, game_pixels, overlay_pixels, game_width, game_height);
+#endif
 
     SDL_UpdateTexture(game_tx, NULL, game_pixels, game_width * sizeof (Uint32));
-    SDL_SetTextureColorMod(game_tx, 0xff, 0xff, 0xff); // rgb balance
+//    SDL_SetTextureColorMod(game_tx, 0xff, 0xff, 0xff); // rgb balance
     if (crtfade) SDL_SetTextureAlphaMod(game_tx, 224);
     if (overdrive) {
         SDL_UpdateTexture(overlay, NULL, overlay_pixels, game_width * sizeof (Uint32));
@@ -847,11 +862,9 @@ void RenderSurface::draw_frame(uint16_t* pixels)
     uint16_t* tpix = pixels;
     if (shader) {
         // convert pixel data to format used by Blarrg filtering code
-//        #pragma omp parallel
         {
             uint16_t* spix = rgb_pixels;
             uint32_t current_val;
-//            #pragma omp parallel for
             for (int i = 0; i < (src_width * src_height); i++) {
                 // first, convert the game generated image to RGB as per the standard display code
                 current_val = rgb[*(tpix+i) & ((S16_PALETTE_ENTRIES * 3) - 1)];
@@ -864,7 +877,6 @@ void RenderSurface::draw_frame(uint16_t* pixels)
     } else {
         uint32_t* spix = game_pixels;
         // Standard image processing; lookup real RGB value from rgb array for backbuffer
-//        #pragma omp parallel for
         for (int i = 0; i < (src_width * src_height); i++)
             *(spix+i) = rgb[*(tpix+i) & ((S16_PALETTE_ENTRIES * 3) - 1)] +      // RGB
                         (uint32_t(Alevel) << Ashift);                           // A

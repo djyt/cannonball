@@ -19,7 +19,7 @@
 #ifndef SDL2
 #pragma comment(lib, "SDLmain.lib") // Replace main with SDL_main
 #endif
-#pragma comment(lib, "SDL.lib")
+#pragma comment(lib, "SDL2.lib")
 #pragma comment(lib, "glu32.lib")
 #endif
 
@@ -56,7 +56,6 @@
 #include <thread>
 #include <mutex>
 #include <time.h>
-#include <omp.h>
 
 // Initialize Shared Variables
 using namespace cannonball;
@@ -230,6 +229,7 @@ static void main_sound_loop()
     double targetupdatetime = 0; // our start point
     double interval = 1000.0 / 125.0; // this is the fixed playback rate.
     double waittime; // time to wait in ms
+    double sleeptime = 0;
     struct timespec ts;
     int res; int audiotick = 0;
     long thislocktime = 0;
@@ -261,9 +261,10 @@ static void main_sound_loop()
             // reset timer, likely SDL_GetTicks wrapped
             targetupdatetime = double(SDL_GetTicks());
         else if (waittime > 0) {
+            SDL_Delay(Uint32(waittime));
             // wait a maximum of one update interval
-            ts.tv_nsec = long(waittime * 1000000); // ns to sleep
-            res = nanosleep(&ts, &ts);
+            //ts.tv_nsec = long(waittime * 1000000); // ns to sleep
+            //res = nanosleep(&ts, &ts);
         } else if (waittime < -64) {
             // we are more than 64ms behind; perhaps the video mode was reset
             audio.resume_audio(); // clears buffers and re-establishes delay
@@ -319,9 +320,10 @@ static void main_video_loop()
             // reset timer, likely SDL_GetTicks wrapped
             targetupdatetime = double(SDL_GetTicks());
         else if (waittime > 0) {
+            SDL_Delay(Uint32(waittime));
             // wait a maximum of one update interval
-            ts.tv_nsec = long(waittime * 1000000); // ns to sleep
-            res = nanosleep(&ts, &ts);
+            // ts.tv_nsec = long(waittime * 1000000); // ns to sleep
+            //res = nanosleep(&ts, &ts);
         } else if (waittime < -64) {
             // we are more than 64ms behind; perhaps the video mode was reset
             SDL_Delay(50);
@@ -341,6 +343,7 @@ static void main_game_loop()
 
     // General Frame Timing
     int t;
+    int sleeptime = 0;
     double waittime;
     double interval;
     double targetupdatetime = 0;
@@ -390,8 +393,10 @@ static void main_game_loop()
             targetupdatetime = double(SDL_GetTicks());
         else if (waittime > 0) {
             // wait a maximum of one update interval
-            ts.tv_nsec = long(waittime * 1000000); // ns to sleep
-            res = nanosleep(&ts, &ts);
+            SDL_Delay(Uint32(waittime));
+            sleeptime += waittime;
+//            ts.tv_nsec = long(waittime * 1000000); // ns to sleep
+//            res = nanosleep(&ts, &ts);
         } else lateframes++;
     }
 
@@ -406,6 +411,8 @@ static void main_game_loop()
     printf("Late frames             :  %3i.0  (%4.1f%%) \n",lateframes,(float(lateframes*100)/float(frames)));
     printf("Game engine             :  %5.1fs (%4.1f%%) - %2.1fms/frame\n",
         (float(enginetime)/1000.0),(float(enginetime*100)/float(runtime)),(float(enginetime)/float(frames)));
+    printf("Game engine sleep       :  %5.1fs (%4.1f%%) - %2.1fms/frame\n",
+        (float(sleeptime) / 1000.0), (float(sleeptime * 100) / float(runtime)), (float(sleeptime) / float(frames)));
     printf("S16 Video Emulation     :  %5.1fs (%4.1f%%) - %2.1fms/frame\n",
         (float(s16videotime)/1000.0),(float(s16videotime*100)/float(runtime)),(float(s16videotime)/float(frames)));
     printf("Game rendering          :  %5.1fs (%4.1f%%) - %2.1fms/frame\n",
@@ -417,7 +424,7 @@ static void main_game_loop()
 
 int main(int argc, char* argv[])
 {
-    // Initialize timer and video systems
+// Initialize timer and video systems
     if( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1 ) {
         std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
         return 1;
@@ -478,12 +485,9 @@ int main(int argc, char* argv[])
         menu->populate();
 
         // start the game threads
-        std::thread video (main_video_loop); // SDL rendering thread
+        std::thread video(main_video_loop); // SDL rendering thread
         std::thread sound (main_sound_loop); // Z80 thread
-        std::thread game (main_game_loop);   // Primary M68k thread
-//        std::thread road (main_road_loop);   // Secondary M68k thread
-//        road.join();
-        game.join();
+        main_game_loop(); // run the main game in the main program thread
         sound.join();
         video.join(); // wait for all threads to complete
         quit_func(0);

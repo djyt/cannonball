@@ -301,7 +301,7 @@ void Audio::tick()
 //        dsp_write_pos -= dsp_buffer_bytes;
 
     soundMutex.unlock();
-    SDL_UnlockAudio;
+    SDL_UnlockAudio();
 
 }
 
@@ -446,6 +446,7 @@ void fill_audio(void *udata, Uint8 *stream, int len)
     else available_bytes = dsp_buffer_bytes - dsp_read_pos + dsp_write_pos;
     if (available_bytes < len) {
         underflow = len - available_bytes;
+        memset(stream, 0, len); // silence the buffer requested, and any valid data held will be filled below.
         printf("Underflow! (%i bytes)\n",underflow);
         printf("DSP Buffer: %i, read_pos: %i, write_pos: %i, Available Bytes: %i\n",
             dsp_buffer_bytes,dsp_read_pos,dsp_write_pos,available_bytes);
@@ -474,7 +475,7 @@ void fill_audio(void *udata, Uint8 *stream, int len)
         if (len>0)
             memcpy(stream + first_part_size, dsp_buffer, len - first_part_size); //error this line
 */    }
-    if (underflow) {
+/*    if (underflow) {
         // Just repeat the last good sample if underflow
         for (int i = 0; i < underflow; i++) {
             if ((newpos + i) < dsp_buffer_bytes)
@@ -483,7 +484,7 @@ void fill_audio(void *udata, Uint8 *stream, int len)
                 *(stream + newpos + i - dsp_buffer_bytes) = 0;
         }
     }
-
+*/
 /*        if (available_bytes >= bytes_per_sample)
             memcpy(last_bytes, stream + len - bytes_per_sample, bytes_per_sample);
         for (int i = 0; i < underflow_amount/bytes_per_sample; i++) {

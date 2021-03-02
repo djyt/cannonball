@@ -140,10 +140,13 @@ void hwsprites::swap()
 {                                                                                                     \
     if (x >= x1 && x < x2 && pix != 0 && pix != 15)                                                   \
     {                                                                                                 \
-        if (color == 0x3F) {                                                                          \
-            if (shadow && pix == 0xa) {                                                               \
-                pPixel[x] = 0xfff;                                                                    \
+        if (palette == 0x3f) {                                                                        \
+            if ((video.read_pal16(pPixel[x]) & 0x8000) == 0x8000) {                                   \
+                pPixel[x] &= 0xfff;                                                                   \
+                pPixel[x] += ((S16_PALETTE_ENTRIES * 2) + ((video.read_pal16(pPixel[x]) & 0x8000) >> 3)); \
             } else {                                                                                  \
+                pPixel[x] &= 0xfff;                                                                   \
+                pPixel[x] += ((S16_PALETTE_ENTRIES * 2) - ((video.read_pal16(pPixel[x]) & 0x8000) >> 3)); \
                 pPixel[x] = 0;                                                                        \
             }                                                                                         \
         }                                                                                             \
@@ -176,18 +179,20 @@ void hwsprites::render(const uint8_t priority)
         int32_t height  = (ramBuff[data+5] >> 8) + 1;       
         if (hide != 0 || height == 0) continue;
         
-        int16_t bank    = (ramBuff[data+0] >> 9) & 7;
-        int32_t top     = (ramBuff[data+0] & 0x1ff) - 0x100;
+        int16_t bank     = (ramBuff[data+0] >> 9) & 7;
+        int32_t top      = (ramBuff[data+0] & 0x1ff) - 0x100;
         uint32_t addr    = ramBuff[data+1];
-        int32_t pitch  = ((ramBuff[data+2] >> 1) | ((ramBuff[data+4] & 0x1000) << 3)) >> 8;
-        int32_t xpos    =  ramBuff[data+6]; // moved from original structure to accomodate widescreen
-        uint8_t shadow  = (ramBuff[data+3] >> 14) & 1;
+        int32_t pitch    = ((ramBuff[data+2] >> 1) | ((ramBuff[data+4] & 0x1000) << 3)) >> 8;
+        int32_t xpos     =  ramBuff[data+6]; // moved from original structure to accomodate widescreen
+        uint8_t shadow   = (ramBuff[data+3] >> 14) & 1;
         int32_t vzoom    = ramBuff[data+3] & 0x7ff;
-        int32_t ydelta = ((ramBuff[data+4] & 0x8000) != 0) ? 1 : -1;
-        int32_t flip   = (~ramBuff[data+4] >> 14) & 1;
-        int32_t xdelta = ((ramBuff[data+4] & 0x2000) != 0) ? 1 : -1;
-        int32_t hzoom    = ramBuff[data+4] & 0x7ff;     
-        int32_t color   = COLOR_BASE + ((ramBuff[data+5] & 0x7f) << 4);
+        int32_t ydelta   = ((ramBuff[data+4] & 0x8000) != 0) ? 1 : -1;
+        int32_t flip     = (~ramBuff[data+4] >> 14) & 1;
+        int32_t xdelta   = ((ramBuff[data+4] & 0x2000) != 0) ? 1 : -1;
+        int32_t hzoom    = ramBuff[data+4] & 0x7ff;
+        int32_t palette  = ramBuff[data+5] & 0x7f; // JJP
+        if (palette == 0x3f) { printf("Palette %i\n", palette); }
+        int32_t color    = COLOR_BASE + (palette << 4);
         int32_t x, y, ytarget, yacc = 0, pix;
             
         // adjust X coordinate

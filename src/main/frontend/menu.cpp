@@ -1068,8 +1068,8 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_BLUE_CURVE)) {
                 if (config.video.blue_curve > 100)
                     set_menu_text(ENTRY_BLUE_CURVE, "1." + Utils::to_string(config.video.blue_curve - 100));
-                else if (config.video.green_curve == 100)
-                    set_menu_text(ENTRY_GREEN_CURVE, "1.00");
+                else if (config.video.blue_curve == 100)
+                    set_menu_text(ENTRY_BLUE_CURVE, "1.00");
                 else set_menu_text(ENTRY_BLUE_CURVE, "0." + Utils::to_string(config.video.blue_curve));
             }
         }

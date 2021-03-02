@@ -1,16 +1,11 @@
 #pragma once
 
 #include "globals.hpp"
-
-#ifdef COMPILE_SOUND_CODE
 #include "sdl2/audio.hpp"
-#endif
 
 namespace cannonball
 {
-#ifdef COMPILE_SOUND_CODE
     extern Audio audio;
-#endif
 
     // Frame counter
 	extern int frame;

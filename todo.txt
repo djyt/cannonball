@@ -1,7 +1,3 @@
-CANNONBOARD:
-X Allow CannonBoard code to be completely compiled out
-- Static compile
-
 WIDESCREEN:
 - Fix clouds
 X Fix music select tilemap
@@ -34,3 +30,31 @@ Open command prompt and change to boost directory and run the following commands
 
 bootstrap
 b2 -j8 --toolset=msvc-14.2 address-model=64 architecture=x86 link=static threading=multi runtime-link=shared --build-type=complete stage
+
+audio:
+http://forums.nesdev.com/viewtopic.php?f=3&t=15405
+
+
+-------------------------------------------------------------------------------
+Fix the sound
+-------------------------------------------------------------------------------
+
+#ifdef _WIN32
+#include <windows.h>/* WinAPI */
+
+/* Windows sleep in 100ns units */
+BOOLEAN nanosleep(const struct timespec* req, struct timespec* rem) {
+    uint32_t ms = req->tv_nsec / 1000000;
+    SDL_Delay(ms);
+    return TRUE;
+}
+#endif
+
+
+// start the game threads
+std::thread video (main_video_loop); // SDL rendering thread
+std::thread sound (main_sound_loop); // Z80 thread
+main_game_loop(); // run the main game in the main program thread
+sound.join();
+video.join(); // wait for all threads to complete
+quit_func(0);

@@ -83,4 +83,22 @@ private:
     // SDL2 audio device
     SDL_AudioDeviceID dev;
 };
+#else
+class Audio
+{
+public:
+    // Enable/Disable Sound
+    bool sound_enabled = false;
+
+    Audio() {}
+    ~Audio() {}
+
+    void init() {}
+    void tick() {}
+    void start_audio() {}
+    void stop_audio() {}
+    double adjust_speed() { return 1.0; }
+    void load_wav(const char* filename);
+    void clear_wav() {}
+};
 #endif

@@ -6,8 +6,6 @@
 ***************************************************************************/
 
 #include <cstring>
-
-// Error reporting
 #include <iostream>
 
 // SDL Library
@@ -45,17 +43,15 @@ int    cannonball::frame       = 0;
 bool   cannonball::tick_frame  = true;
 int    cannonball::fps_counter = 0;
 
-#ifdef COMPILE_SOUND_CODE
 Audio cannonball::audio;
-#endif
-
 Menu* menu;
+
+// Pause Engine
+bool pause_engine;
 
 static void quit_func(int code)
 {
-#ifdef COMPILE_SOUND_CODE
     audio.stop_audio();
-#endif
     input.close();
     forcefeedback::close();
     delete menu;
@@ -103,9 +99,6 @@ static void process_events(void)
         }
     }
 }
-
-// Pause Engine
-bool pause_engine;
 
 static void tick()
 {
@@ -208,18 +201,15 @@ static void main_loop()
         video.render_frame();
 
         // Fill SDL Audio Buffer For Callback
-#ifdef COMPILE_SOUND_CODE
         audio.tick();
-        deltatime += (frame_ms * audio.adjust_speed());
-#else
-        deltatime += frame_ms;
-#endif
-
+        
         // Calculate Timings. Cap Frame Rate. Note this might be trumped by V-Sync
         if (!vsync)
         {
+            deltatime += (frame_ms * audio.adjust_speed());
             deltaintegral = (int)deltatime;
             t = frame_time.get_ticks();
+            
             if (t < deltatime)
                 SDL_Delay((Uint32)(deltatime - t));
 
@@ -261,50 +251,45 @@ int main(int argc, char* argv[])
     }
     // Load Roms Only
     else
-    {
         loaded = roms.load_revb_roms();
-    }
 
-    if (loaded)
-    {
-        // Load XML Config
-        config.load(FILENAME_CONFIG);
-
-        // Load fixed PCM ROM based on config
-        if (config.sound.fix_samples)
-            roms.load_pcm_rom(true);
-
-        // Load patched widescreen tilemaps
-        if (!omusic.load_widescreen_map())
-            std::cout << "Unable to load widescreen tilemaps" << std::endl;
-
-        // Initialize SDL Video
-        if (!video.init(&roms, &config.video))
-            quit_func(1);
-
-#ifdef COMPILE_SOUND_CODE
-        audio.init();
-#endif
-        state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
-
-        // Initalize controls
-        input.init(config.controls.pad_id,
-                   config.controls.keyconfig, config.controls.padconfig, 
-                   config.controls.analog,    config.controls.axis, config.controls.asettings);
-
-        if (config.controls.haptic) 
-            config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
-        
-
-        // Populate menus
-        menu = new Menu();
-        menu->populate();
-        main_loop();  // Loop until we quit the app
-    }
-    else
+    if (!loaded)
     {
         quit_func(1);
+        return 0;
     }
+
+    // Load XML Config
+    config.load(FILENAME_CONFIG);
+
+    // Load fixed PCM ROM based on config
+    if (config.sound.fix_samples)
+        roms.load_pcm_rom(true);
+
+    // Load patched widescreen tilemaps
+    if (!omusic.load_widescreen_map())
+        std::cout << "Unable to load widescreen tilemaps" << std::endl;
+
+    // Initialize SDL Video
+    if (!video.init(&roms, &config.video))
+        quit_func(1);
+
+    audio.init();
+
+    state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
+
+    // Initalize controls
+    input.init(config.controls.pad_id,
+                config.controls.keyconfig, config.controls.padconfig, 
+                config.controls.analog,    config.controls.axis, config.controls.asettings);
+
+    if (config.controls.haptic) 
+        config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
+        
+    // Populate menus
+    menu = new Menu();
+    menu->populate();
+    main_loop();  // Loop until we quit the app
 
     // Never Reached
     return 0;

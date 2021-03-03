@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
         return 1; 
     }
 
-    // Parse command line arguments (config file location, 
+    // Parse command line arguments (config file location, LayOut data) 
     bool ok = parse_command_line(argc, argv);
 
     if (ok)

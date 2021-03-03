@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!-- 
+    External Data Required
+-->
+<data>
+    <!-- OutRun Revision B ROM directory (sub-directory from where executable is, or a complete path) -->
+    <path>roms/</path>
+</data>
+
+<!-- 
     Video Settings
 -->
 <video>

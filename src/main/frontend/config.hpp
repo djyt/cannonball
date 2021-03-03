@@ -16,7 +16,16 @@
 
 struct data_settings_t
 {
-    std::string path;
+    std::string rom_path;
+    std::string save_path;
+    std::string cfg_file;
+
+    std::string file_scores;            // Arcade Hi-Scores (World & Japanese)
+    std::string file_scores_jap;
+    std::string file_ttrial;            // Time Trial Hi-Scores
+    std::string file_ttrial_jap;
+    std::string file_cont;              // Continous Mode Hi-Scores
+    std::string file_cont_jap;
 };
 
 struct custom_music_t
@@ -147,11 +156,11 @@ public:
     Config(void);
     ~Config(void);
 
-    void init();
-    void load(const std::string &filename);
-    bool save(const std::string &filename);
-    void load_scores(const std::string &filename);
-    void save_scores(const std::string &filename);
+    void set_config_file(const std::string& filename);
+    void load();
+    bool save();
+    void load_scores(bool original_mode);
+    void save_scores(bool original_mode);
     void load_tiletrial_scores();
     void save_tiletrial_scores();
     bool clear_scores();

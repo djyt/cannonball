@@ -58,7 +58,7 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     chdir(bundlepath);
 #endif
 
-    std::string path = config.data.path;
+    std::string path = config.data.rom_path;
     path += std::string(filename);
 
     // Open rom file

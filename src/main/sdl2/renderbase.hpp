@@ -2,7 +2,6 @@
 
 #include "../stdint.hpp"
 #include "../globals.hpp"
-#include "../setup.hpp"
 
 #include <SDL.h>
 

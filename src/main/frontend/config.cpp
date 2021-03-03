@@ -16,7 +16,6 @@
 #include "main.hpp"
 #include "config.hpp"
 #include "globals.hpp"
-#include "setup.hpp"
 #include "../utils.hpp"
 
 #include "engine/ohiscore.hpp"
@@ -34,7 +33,7 @@ Config config;
 
 Config::Config(void)
 {
-
+    data.cfg_file = "./config.xml";
 }
 
 
@@ -42,15 +41,17 @@ Config::~Config(void)
 {
 }
 
-void Config::init()
-{
 
+// Set Path to load and save config to
+void Config::set_config_file(const std::string& file)
+{
+    data.cfg_file = file;
 }
 
 using boost::property_tree::ptree;
 ptree pt_config;
 
-void Config::load(const std::string &filename)
+void Config::load()
 {
     // Load XML file and put its contents in property tree. 
     // No namespace qualification is needed, because of Koenig 
@@ -58,7 +59,7 @@ void Config::load(const std::string &filename)
     // is thrown.
     try
     {
-        read_xml(filename, pt_config, boost::property_tree::xml_parser::trim_whitespace);
+        read_xml(data.cfg_file, pt_config, boost::property_tree::xml_parser::trim_whitespace);
     }
     catch (std::exception &e)
     {
@@ -68,7 +69,15 @@ void Config::load(const std::string &filename)
     // ------------------------------------------------------------------------
     // Data Settings
     // ------------------------------------------------------------------------
-    data.path              = pt_config.get("data.path", "roms/");   // Path to ROMs
+    data.rom_path         = pt_config.get("data.rompath", "roms/");   // Path to ROMs
+    data.save_path        = pt_config.get("data.savepath", "./");     // Path to Save Data
+
+    data.file_scores      = data.save_path + "hiscores.xml";
+    data.file_scores_jap  = data.save_path + "hiscores_jap.xml";
+    data.file_ttrial      = data.save_path + "hiscores_timetrial.xml";
+    data.file_ttrial_jap  = data.save_path + "hiscores_timetrial_jap.xml";
+    data.file_cont        = data.save_path + "hiscores_continuous.xml";
+    data.file_cont_jap    = data.save_path + "hiscores_continuous_jap.xml";
 
     // ------------------------------------------------------------------------
     // Menu Settings
@@ -191,7 +200,7 @@ void Config::load(const std::string &filename)
     cont_traffic   = pt_config.get("continuous.traffic", 3);
 }
 
-bool Config::save(const std::string &filename)
+bool Config::save()
 {
     // Save stuff
     pt_config.put("video.mode",               video.mode);
@@ -251,7 +260,7 @@ bool Config::save(const std::string &filename)
 
     try
     {
-        write_xml(filename, pt_config, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
+        write_xml(data.cfg_file, pt_config, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
     }
     catch (std::exception &e)
     {
@@ -261,14 +270,21 @@ bool Config::save(const std::string &filename)
     return true;
 }
 
-void Config::load_scores(const std::string &filename)
+void Config::load_scores(bool original_mode)
 {
+    std::string filename;
+
+    if (original_mode)
+        filename = engine.jap ? data.file_scores_jap : data.file_scores;
+    else
+        filename = engine.jap ? data.file_cont_jap : data.file_cont;
+
     // Create empty property tree object
     ptree pt;
 
     try
     {
-        read_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml" , pt, boost::property_tree::xml_parser::trim_whitespace);
+        read_xml(filename , pt, boost::property_tree::xml_parser::trim_whitespace);
     }
     catch (std::exception &e)
     {
@@ -297,8 +313,15 @@ void Config::load_scores(const std::string &filename)
     }
 }
 
-void Config::save_scores(const std::string &filename)
+void Config::save_scores(bool original_mode)
 {
+    std::string filename;
+
+    if (original_mode)
+        filename = engine.jap ? data.file_scores_jap : data.file_scores;
+    else
+        filename = engine.jap ? data.file_cont_jap : data.file_cont;
+
     // Create empty property tree object
     ptree pt;
         
@@ -319,7 +342,7 @@ void Config::save_scores(const std::string &filename)
     
     try
     {
-        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
+        write_xml(filename, pt, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
     }
     catch (std::exception &e)
     {
@@ -329,8 +352,6 @@ void Config::save_scores(const std::string &filename)
 
 void Config::load_tiletrial_scores()
 {
-    const std::string filename = FILENAME_TTRIAL;
-
     // Counter value that represents 1m 15s 0ms
     static const uint16_t COUNTER_1M_15 = 0x11D0;
 
@@ -339,7 +360,7 @@ void Config::load_tiletrial_scores()
 
     try
     {
-        read_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml" , pt, boost::property_tree::xml_parser::trim_whitespace);
+        read_xml(engine.jap ? config.data.file_ttrial_jap : config.data.file_ttrial, pt, boost::property_tree::xml_parser::trim_whitespace);
     }
     catch (std::exception &e)
     {
@@ -359,8 +380,6 @@ void Config::load_tiletrial_scores()
 
 void Config::save_tiletrial_scores()
 {
-    const std::string filename = FILENAME_TTRIAL;
-
     // Create empty property tree object
     ptree pt;
 
@@ -372,7 +391,7 @@ void Config::save_tiletrial_scores()
 
     try
     {
-        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
+        write_xml(engine.jap ? config.data.file_ttrial_jap : config.data.file_ttrial, pt, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
     }
     catch (std::exception &e)
     {
@@ -388,12 +407,12 @@ bool Config::clear_scores()
     int clear = 0;
 
     // Remove XML files if they exist
-    clear += remove(std::string(FILENAME_SCORES).append(".xml").c_str());
-    clear += remove(std::string(FILENAME_SCORES).append("_jap.xml").c_str());
-    clear += remove(std::string(FILENAME_TTRIAL).append(".xml").c_str());
-    clear += remove(std::string(FILENAME_TTRIAL).append("_jap.xml").c_str());
-    clear += remove(std::string(FILENAME_CONT).append(".xml").c_str());
-    clear += remove(std::string(FILENAME_CONT).append("_jap.xml").c_str());
+    clear += remove(data.file_scores.c_str());
+    clear += remove(data.file_scores_jap.c_str());
+    clear += remove(data.file_ttrial.c_str());
+    clear += remove(data.file_ttrial_jap.c_str());
+    clear += remove(data.file_cont.c_str());
+    clear += remove(data.file_cont_jap.c_str());
 
     // remove returns 0 on success
     return clear == 6;

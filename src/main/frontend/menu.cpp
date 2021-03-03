@@ -11,7 +11,6 @@
 
 #include "main.hpp"
 #include "menu.hpp"
-#include "setup.hpp"
 #include "../utils.hpp"
 
 #include "engine/ohud.hpp"
@@ -492,7 +491,7 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_START_CONT))
             {
-                config.save(FILENAME_CONFIG);
+                config.save();
                 outrun.custom_traffic = config.cont_traffic;
                 start_game(Outrun::MODE_CONT);
             }
@@ -510,7 +509,7 @@ void Menu::tick_menu()
             {
                 if (check_jap_roms())
                 {
-                    config.save(FILENAME_CONFIG);
+                    config.save();
                     state = STATE_TTRIAL;
                     ttrial->init();
                 }
@@ -553,7 +552,7 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_SAVE))
             {
-                if (config.save(FILENAME_CONFIG))
+                if (config.save())
                     display_message("SETTINGS SAVED");
                 else
                     display_message("ERROR SAVING SETTINGS!");

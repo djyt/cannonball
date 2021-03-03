@@ -6,7 +6,6 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "setup.hpp"
 #include "main.hpp"
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
@@ -248,7 +247,7 @@ void OHiScore::check_name_entry()
         
         // Save new score info
         if (state == STATE_DONE)
-            config.save_scores(outrun.cannonball_mode == Outrun::MODE_ORIGINAL ? FILENAME_SCORES : FILENAME_CONT);
+            config.save_scores(outrun.cannonball_mode == Outrun::MODE_ORIGINAL);
     }
 }
 

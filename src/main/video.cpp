@@ -12,7 +12,6 @@
 #include <iostream>
 
 #include "video.hpp"
-#include "setup.hpp"
 #include "globals.hpp"
 #include "frontend/config.hpp"
 

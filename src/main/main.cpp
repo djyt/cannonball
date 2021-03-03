@@ -21,7 +21,6 @@
 #include "trackloader.hpp"
 #include "stdint.hpp"
 #include "main.hpp"
-#include "setup.hpp"
 #include "engine/outrun.hpp"
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
@@ -238,6 +237,32 @@ static void main_loop()
     quit_func(0);
 }
 
+// Very (very) simple command line parser.
+// Returns true if everything is ok to proceed with launching th engine.
+static bool parse_command_line(int argc, char* argv[])
+{
+    for (int i = 0; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-cfgfile") == 0 && i+1 < argc)
+        {
+            config.set_config_file(argv[i+1]);
+        }
+        else if (strcmp(argv[i], "-file") == 0 && i+1 < argc)
+        {
+            if (!trackloader.set_layout_track(argv[i+1]))
+                return false;
+        }
+        else if (strcmp(argv[i], "-help") == 0)
+        {
+            std::cout << "Command Line Options:\n\n" <<
+                         "-cfgfile: Location and name of config.xml\n" <<
+                         "-file   : LayOut Editor track data to load\n" << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
+
 int main(int argc, char* argv[])
 {
     // Initialize timer and video systems
@@ -247,22 +272,15 @@ int main(int argc, char* argv[])
         return 1; 
     }
 
-    bool loaded = false;
+    // Parse command line arguments (config file location, 
+    bool ok = parse_command_line(argc, argv);
 
-    // Load XML Config
-    config.load(FILENAME_CONFIG);
-
-    // Load LayOut File
-    if (argc == 3 && strcmp(argv[1], "-file") == 0)
+    if (ok)
     {
-        if (trackloader.set_layout_track(argv[2]))
-            loaded = roms.load_revb_roms(); 
+        config.load();                          // Load config.XML file
+        ok = roms.load_revb_roms();             // Load Revision B OutRun ROM Data
     }
-    // Load Roms Only
-    else
-        loaded = roms.load_revb_roms();
-
-    if (!loaded)
+    if (!ok)
     {
         quit_func(1);
         return 0;

@@ -36,7 +36,7 @@ bool Render::init(int src_width, int src_height,
     if (!RenderBase::sdl_screen_size())
         return false;
 
-    int flags = SDL_FLAGS;
+    int flags = SDL_WINDOW_SHOWN;
 
     // In SDL2, we calculate the output dimensions, but then in draw_frame() we won't do any scaling: SDL2
     // will do that for us, using the rects passed to SDL_RenderCopy().

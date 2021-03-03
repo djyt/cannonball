@@ -48,7 +48,6 @@ set(src_main
     "${main_cpp_base}/romloader.hpp"
     "${main_cpp_base}/roms.hpp"
     "${main_cpp_base}/trackloader.hpp"
-    "${main_cpp_base}/setup.hpp"
     "${main_cpp_base}/stdint.hpp"
     "${main_cpp_base}/main.hpp"
     "${main_cpp_base}/video.hpp"

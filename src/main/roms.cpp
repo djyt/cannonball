@@ -13,6 +13,8 @@ Roms roms;
 Roms::Roms()
 {
     jap_rom_status = -1;
+    rom0p = NULL;
+    rom1p = NULL;
 }
 
 Roms::~Roms(void)

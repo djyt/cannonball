@@ -66,6 +66,11 @@ void Config::load(const std::string &filename)
     }
 
     // ------------------------------------------------------------------------
+    // Data Settings
+    // ------------------------------------------------------------------------
+    data.path              = pt_config.get("data.path", "roms/");   // Path to ROMs
+
+    // ------------------------------------------------------------------------
     // Menu Settings
     // ------------------------------------------------------------------------
 
@@ -85,8 +90,6 @@ void Config::load(const std::string &filename)
     video.hires      = pt_config.get("video.hires",              0); // Hi-Resolution Mode
     video.filtering  = pt_config.get("video.filtering",          0); // Open GL Filtering Mode
     video.vsync      = pt_config.get("video.vsync",              1); // Use V-Sync where available (e.g. Open GL)
-          
-    set_fps(video.fps);
 
     // ------------------------------------------------------------------------
     // Sound Settings
@@ -407,11 +410,9 @@ void Config::set_fps(int fps)
 
     cannonball::frame_ms = 1000.0 / this->fps;
 
-    #ifdef COMPILE_SOUND_CODE
     if (config.sound.enabled)
         cannonball::audio.stop_audio();
     osoundint.init();
     if (config.sound.enabled)
         cannonball::audio.start_audio();
-    #endif
 }

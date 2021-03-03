@@ -249,6 +249,9 @@ int main(int argc, char* argv[])
 
     bool loaded = false;
 
+    // Load XML Config
+    config.load(FILENAME_CONFIG);
+
     // Load LayOut File
     if (argc == 3 && strcmp(argv[1], "-file") == 0)
     {
@@ -265,9 +268,6 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    // Load XML Config
-    config.load(FILENAME_CONFIG);
-
     // Load fixed PCM ROM based on config
     if (config.sound.fix_samples)
         roms.load_pcm_rom(true);
@@ -277,6 +277,7 @@ int main(int argc, char* argv[])
         std::cout << "Unable to load widescreen tilemaps" << std::endl;
 
     // Initialize SDL Video
+    config.set_fps(config.video.fps);
     if (!video.init(&roms, &config.video))
         quit_func(1);
 

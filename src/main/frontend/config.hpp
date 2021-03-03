@@ -14,6 +14,11 @@
 #include <string>
 #include "stdint.hpp"
 
+struct data_settings_t
+{
+    std::string path;
+};
+
 struct custom_music_t
 {
     int enabled;
@@ -115,6 +120,7 @@ struct engine_settings_t
 class Config
 {
 public:
+    data_settings_t        data;
     menu_settings_t        menu;
     video_settings_t       video;
     sound_settings_t       sound;

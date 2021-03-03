@@ -15,6 +15,7 @@
 
 #include "stdint.hpp"
 #include "romloader.hpp"
+#include "frontend/config.hpp"
 
 #ifdef __APPLE__
 #include "CoreFoundation/CoreFoundation.h"
@@ -57,14 +58,14 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     chdir(bundlepath);
 #endif
 
-    std::string path = "roms/";
+    std::string path = config.data.path;
     path += std::string(filename);
 
     // Open rom file
     std::ifstream src(path.c_str(), std::ios::in | std::ios::binary);
     if (!src)
     {
-        std::cout << "cannot open rom: " << filename << std::endl;
+        std::cout << "cannot open rom: " << path << std::endl;
         loaded = false;
         return 1; // fail
     }

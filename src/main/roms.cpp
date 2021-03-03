@@ -72,8 +72,8 @@ bool Roms::load_revb_roms()
     status += sprites.load("mpr-10378.16", 0x080003, 0x20000, 0xa1062984, RomLoader::INTERLEAVE4);
 
     // Load Z80 Sound ROM
-    z80.init(0x10000);
-    status += z80.load("epr-10187.88", 0x0000, 0x10000, 0xa10abaa9);
+    z80.init(0x08000);
+    status += z80.load("epr-10187.88", 0x0000, 0x08000, 0xa10abaa9);
 
     // Load Sega PCM Chip Samples
     pcm.init(0x60000);

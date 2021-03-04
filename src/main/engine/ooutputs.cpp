@@ -111,7 +111,7 @@ void OOutputs::writeDigitalToConsole()
         if ((dig_out & D_START_LAMP) != (dig_out_old & D_START_LAMP))
             std::cout << "start_lamp = " << is_set(D_START_LAMP) << std::endl;
         if ((dig_out & D_MOTOR) != (dig_out_old & D_MOTOR))
-            std::cout << "wheel_motor = " << is_set(D_START_LAMP) << std::endl;
+            std::cout << "wheel_motor = " << is_set(D_MOTOR) << std::endl;
 
         dig_out_old = dig_out;
     }

@@ -109,15 +109,11 @@ static void tick()
 {
     frame++;
 
-    // Non standard FPS.
-    // Determine whether to tick the current frame.
-    if (config.fps != 30)
-    {
-        if (config.fps == 60)
-            tick_frame = frame & 1;
-        else if (config.fps == 120)
-            tick_frame = (frame & 3) == 1;
-    }
+    // Non standard FPS: Determine whether to tick certain logic for the current frame.
+    if (config.fps == 60)
+        tick_frame = frame & 1;
+    else if (config.fps == 120)
+        tick_frame = (frame & 3) == 1;
 
     process_events();
 
@@ -129,14 +125,9 @@ static void tick()
     {
         case STATE_GAME:
         {
-            if (input.has_pressed(Input::TIMER))
-                outrun.freeze_timer = !outrun.freeze_timer;
-
-            if (input.has_pressed(Input::PAUSE))
-                pause_engine = !pause_engine;
-
-            if (input.has_pressed(Input::MENU))
-                state = STATE_INIT_MENU;
+            if (input.has_pressed(Input::TIMER)) outrun.freeze_timer = !outrun.freeze_timer;
+            if (input.has_pressed(Input::PAUSE)) pause_engine = !pause_engine;
+            if (input.has_pressed(Input::MENU))  state = STATE_INIT_MENU;
 
             if (!pause_engine || input.has_pressed(Input::STEP))
             {
@@ -165,12 +156,10 @@ static void tick()
             break;
 
         case STATE_MENU:
-        {
             menu->tick();
             input.frame_done();
             osoundint.tick();
-        }
-        break;
+            break;
 
         case STATE_INIT_MENU:
             oinputs.init();
@@ -179,6 +168,8 @@ static void tick()
             state = STATE_MENU;
             break;
     }
+
+    outrun.outputs->writeDigitalToConsole();
 }
 
 static void main_loop()
@@ -305,8 +296,8 @@ int main(int argc, char* argv[])
 
     // Initalize controls
     input.init(config.controls.pad_id,
-                config.controls.keyconfig, config.controls.padconfig, 
-                config.controls.analog,    config.controls.axis, config.controls.asettings);
+               config.controls.keyconfig, config.controls.padconfig, 
+               config.controls.analog,    config.controls.axis, config.controls.asettings);
 
     if (config.controls.haptic) 
         config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);

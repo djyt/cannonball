@@ -100,16 +100,16 @@ bool Roms::load_japanese_roms()
     jap_rom_status = 0;
 
     // Load Master CPU ROMs     
-    jap_rom_status += j_rom0.load_crc32("epr-10380.133", 0x00000, 0x10000, 0xe339e87a, RomLoader::INTERLEAVE2);
-    jap_rom_status += j_rom0.load_crc32("epr-10382.118", 0x00001, 0x10000, 0x65248dd5, RomLoader::INTERLEAVE2);
-    jap_rom_status += j_rom0.load_crc32("epr-10381.132", 0x20000, 0x10000, 0xbe8c412b, RomLoader::INTERLEAVE2);
-    jap_rom_status += j_rom0.load_crc32("epr-10383.117", 0x20001, 0x10000, 0xdcc586e7, RomLoader::INTERLEAVE2);
+    jap_rom_status += LOAD(j_rom0, ("epr-10380.133", 0x00000, 0x10000, 0xe339e87a, RomLoader::INTERLEAVE2));
+    jap_rom_status += LOAD(j_rom0, ("epr-10382.118", 0x00001, 0x10000, 0x65248dd5, RomLoader::INTERLEAVE2));
+    jap_rom_status += LOAD(j_rom0, ("epr-10381.132", 0x20000, 0x10000, 0xbe8c412b, RomLoader::INTERLEAVE2));
+    jap_rom_status += LOAD(j_rom0, ("epr-10383.117", 0x20001, 0x10000, 0xdcc586e7, RomLoader::INTERLEAVE2));
 
     // Load Slave CPU ROMs        
-    jap_rom_status += j_rom1.load_crc32("epr-10327.76", 0x00000, 0x10000, 0xda99d855, RomLoader::INTERLEAVE2);
-    jap_rom_status += j_rom1.load_crc32("epr-10329.58", 0x00001, 0x10000, 0xfe0fa5e2, RomLoader::INTERLEAVE2);
-    jap_rom_status += j_rom1.load_crc32("epr-10328.75", 0x20000, 0x10000, 0x3c0e9a7f, RomLoader::INTERLEAVE2);
-    jap_rom_status += j_rom1.load_crc32("epr-10330.57", 0x20001, 0x10000, 0x59786e99, RomLoader::INTERLEAVE2);
+    jap_rom_status += LOAD(j_rom1, ("epr-10327.76", 0x00000, 0x10000, 0xda99d855, RomLoader::INTERLEAVE2));
+    jap_rom_status += LOAD(j_rom1, ("epr-10329.58", 0x00001, 0x10000, 0xfe0fa5e2, RomLoader::INTERLEAVE2));
+    jap_rom_status += LOAD(j_rom1, ("epr-10328.75", 0x20000, 0x10000, 0x3c0e9a7f, RomLoader::INTERLEAVE2));
+    jap_rom_status += LOAD(j_rom1, ("epr-10330.57", 0x20001, 0x10000, 0x59786e99, RomLoader::INTERLEAVE2));
     // If status has been incremented, a rom has failed to load.
     return jap_rom_status == 0;
 }

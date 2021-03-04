@@ -574,10 +574,10 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_S_CAB))
             {
-                if (config.smartypi.cabinet == config.smartypi.CABINET_MINI)
-                    config.smartypi.cabinet = config.smartypi.CABINET_UPRIGHT;
+                if (config.smartypi.cabinet == config.CABINET_MINI)
+                    config.smartypi.cabinet = config.CABINET_UPRIGHT;
                 else
-                    config.smartypi.cabinet = config.smartypi.CABINET_MINI;
+                    config.smartypi.cabinet = config.CABINET_MINI;
             }
             else if (SELECTED(ENTRY_S_INPUTS))
             {
@@ -917,7 +917,7 @@ void Menu::refresh_menu()
         else if (menu_selected == &menu_smartypi)
         {
             if(SELECTED(ENTRY_S_CAB))
-                set_menu_text(ENTRY_S_CAB, config.smartypi.cabinet == config.smartypi.CABINET_UPRIGHT ? "UPRIGHT" : "MINI");
+                set_menu_text(ENTRY_S_CAB, config.smartypi.cabinet == config.CABINET_UPRIGHT ? "UPRIGHT" : "MINI");
         }
     }
     cursor = cursor_backup;

@@ -99,10 +99,6 @@ struct controls_settings_t
 
 struct smartypi_settings_t
 {
-    const static int CABINET_MOVING  = 0;
-    const static int CABINET_UPRIGHT = 1;
-    const static int CABINET_MINI    = 2;
-
     int enabled;      // CannonBall used in conjunction with SMARTYPI in arcade cabinet
     int ouputs;       // Write Digital Outputs to console
     int cabinet;      // Cabinet Type
@@ -137,6 +133,10 @@ public:
     engine_settings_t      engine;
     ttrial_settings_t      ttrial;
     smartypi_settings_t    smartypi;
+	
+	const static int CABINET_MOVING  = 0;
+	const static int CABINET_UPRIGHT = 1;
+	const static int CABINET_MINI    = 2;
 
     // Internal screen width and height
     uint16_t s16_width, s16_height;

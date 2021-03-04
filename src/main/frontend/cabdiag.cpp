@@ -169,8 +169,6 @@ void CabDiag::tick_output()
         outrun.outputs->clear_digital(OOutputs::D_START_LAMP);
         outrun.outputs->clear_digital(OOutputs::D_BRAKE_LAMP);
     }
-    
-    outrun.outputs->writeDigitalToConsole();
 }
 
 // ------------------------------------------------------------------------------------------------

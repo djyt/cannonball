@@ -124,7 +124,7 @@ void Config::load()
     // ------------------------------------------------------------------------
     smartypi.enabled = pt_config.get("smartypi.<xmlattr>.enabled", 0);
     smartypi.ouputs  = pt_config.get("smartypi.outputs", 1);
-    smartypi.cabinet = pt_config.get("smartypi.cabinet", config.smartypi.CABINET_UPRIGHT);
+    smartypi.cabinet = pt_config.get("smartypi.cabinet", 1);
 
     // ------------------------------------------------------------------------
     // Controls

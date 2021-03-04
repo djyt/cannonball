@@ -52,7 +52,6 @@ public:
         D_UNUSED     = 0x40, // bit 6 = ?
         D_SOUND      = 0x80, // bit 7 = sound enable
     };
-    uint8_t dig_out;
 
     CoinChute chute1, chute2;
 
@@ -70,6 +69,8 @@ public:
     void coin_chute_out(CoinChute* chute, bool insert);
 
 private:
+    uint8_t dig_out, dig_out_old;
+
     const static uint16_t STATE_INIT   = 0;
     const static uint16_t STATE_DELAY  = 1;
     const static uint16_t STATE_LEFT   = 2;

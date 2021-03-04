@@ -74,7 +74,7 @@ void Outrun::init()
     tick_counter = 0;
 
     // CannonBoard Config: When Used in original cabinet
-    if (config.smartypi.enabled && config.smartypi.cabinet == config.smartypi.CABINET_MOVING)
+    if (config.smartypi.enabled && config.smartypi.cabinet == config.CABINET_MOVING)
         init_motor_calibration();
     else
         boot();

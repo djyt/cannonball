@@ -12,10 +12,8 @@ project (cannonball)
 # Directory Setup
 # -----------------------------------------------------------------------------
 
-# CMake files 
-#set(DCMAKE pi4-opengles.cmake)
+# CMake default file (override with -DTARGET=file)
 set(DCMAKE win64-opengl.cmake)
-set(CMDIR ../cmake)
 
 # Source location
 set(main_cpp_base ../src/main)
@@ -26,10 +24,9 @@ set(main_cpp_base ../src/main)
 
 # Include relevant CMAKE file (default, mingw, pandora etc.)
 if(TARGET)
-    set(TCMAKE ${TARGET}.cmake)
-    if(EXISTS ${CMDIR}/${TCMAKE})
-        message("CMake files for ${TARGET} found, using ${TCMAKE}")
-        include(${TCMAKE})
+    if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/${TARGET}")
+        message("CMake files for ${TARGET} found")
+        include(${TARGET})
     else()
         message("CMake files for ${TARGET} not found, using ${DCMAKE}")
         include(${DCMAKE})

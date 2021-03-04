@@ -32,13 +32,21 @@
 #include <dirent.h>
 #endif
 
+// Disable CRC 32 based rom loading if it implodes, and work by filename instead
+const static bool CRC32_LOADING = true;
+
+
 RomLoader::RomLoader()
 {
     loaded = false;
+
+    // Setup pointer to function we want to use (either load_crc32 or load_rom)
+    load = CRC32_LOADING  ? &RomLoader::load_crc32 : &RomLoader::load_rom;
 }
 
 RomLoader::~RomLoader()
 {
+
 }
 
 void RomLoader::init(const uint32_t length)
@@ -53,7 +61,8 @@ void RomLoader::unload(void)
 }
 
 // ------------------------------------------------------------------------------------------------
-// Deprecated filename based ROM loader
+// Filename based ROM loader
+// Advantage: Simpler. Does not require <dirent.h>
 // ------------------------------------------------------------------------------------------------
 
 int RomLoader::load_rom(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
@@ -98,8 +107,8 @@ int RomLoader::load_rom(const char* filename, const int offset, const int length
 }
 
 // ------------------------------------------------------------------------------------------------
-// Search and load ROM by CRC32 value as opposed to filame.
-// More resiliant to different rom sets.
+// Search and load ROM by CRC32 value as opposed to filename.
+// Advantage: More resilient to renamed romsets.
 // ------------------------------------------------------------------------------------------------
 
 int RomLoader::load_crc32(const char* debug, const int offset, const int length, const int expected_crc, const uint8_t interleave)

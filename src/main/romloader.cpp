@@ -102,7 +102,7 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
 // More resiliant to different rom sets.
 // ------------------------------------------------------------------------------------------------
 
-int RomLoader::loadCRC32(const int expected_crc, const int offset, const int length, const uint8_t interleave)
+int RomLoader::loadCRC32(const char* debug, const int expected_crc, const int offset, const int length, const uint8_t interleave)
 {
     std::string path = config.data.rom_path;
     DIR* dir;
@@ -149,7 +149,7 @@ int RomLoader::loadCRC32(const int expected_crc, const int offset, const int len
     }
 
     // We have not found the file by CRC.
-    std::cout << "Unable to locate rom in path: " << path << " crc: " << expected_crc << std::endl;
+    std::cout << "Unable to locate rom in path: " << path << " possible name: " << debug << " crc32: 0x" << std::hex << expected_crc << std::endl;
     closedir(dir);
     return 1; // failure
 }

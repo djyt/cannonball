@@ -27,8 +27,8 @@ public:
     RomLoader();
     ~RomLoader();
     void init(uint32_t);
-    int load(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t mode = NORMAL);
-    int loadCRC32(const char* debug, const int expected_crc, const int offset, const int length, const uint8_t mode = NORMAL);
+    int load_rom(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t mode = NORMAL);
+    int load_crc32(const char* debug, const int offset, const int length, const int expected_crc, const uint8_t mode = NORMAL);
     int load_binary(const char* filename);
     void unload(void);
 

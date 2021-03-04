@@ -56,7 +56,7 @@ void RomLoader::unload(void)
 // Deprecated filename based ROM loader
 // ------------------------------------------------------------------------------------------------
 
-int RomLoader::load(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
+int RomLoader::load_rom(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
 {
     std::string path = config.data.rom_path;
     path += std::string(filename);
@@ -102,7 +102,7 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
 // More resiliant to different rom sets.
 // ------------------------------------------------------------------------------------------------
 
-int RomLoader::loadCRC32(const char* debug, const int expected_crc, const int offset, const int length, const uint8_t interleave)
+int RomLoader::load_crc32(const char* debug, const int offset, const int length, const int expected_crc, const uint8_t interleave)
 {
     std::string path = config.data.rom_path;
     DIR* dir;

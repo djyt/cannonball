@@ -31,6 +31,7 @@ Video::Video(void)
     pixels       = NULL;
     sprite_layer = new hwsprites();
     tile_layer   = new hwtiles();
+    enabled      = false;
 }
 
 Video::~Video(void)
@@ -85,6 +86,7 @@ int Video::init(Roms* roms, video_settings_t* settings)
 void Video::disable()
 {
     renderer->disable();
+    enabled = false;
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -49,6 +49,7 @@ set(src_main
     "${main_cpp_base}/main.hpp"
     "${main_cpp_base}/video.hpp"
     "${main_cpp_base}/utils.hpp"
+    "${main_cpp_base}/windirent.h"
 
     "${main_cpp_base}/main.cpp"
     "${main_cpp_base}/romloader.cpp"

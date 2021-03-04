@@ -268,18 +268,14 @@ int main(int argc, char* argv[])
 
     if (ok)
     {
-        config.load();                          // Load config.XML file
-        ok = roms.load_revb_roms();             // Load Revision B OutRun ROM Data
+        config.load(); // Load config.XML file
+        ok = roms.load_revb_roms(config.sound.fix_samples);
     }
     if (!ok)
     {
         quit_func(1);
         return 0;
     }
-
-    // Load fixed PCM ROM based on config
-    if (config.sound.fix_samples)
-        roms.load_pcm_rom(true);
 
     // Load patched widescreen tilemaps
     if (!omusic.load_widescreen_map())
@@ -290,11 +286,12 @@ int main(int argc, char* argv[])
     if (!video.init(&roms, &config.video))
         quit_func(1);
 
+    // Initialize SDL Audio
     audio.init();
 
     state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
 
-    // Initalize controls
+    // Initalize SDL Controls
     input.init(config.controls.pad_id,
                config.controls.keyconfig, config.controls.padconfig, 
                config.controls.analog,    config.controls.axis, config.controls.asettings);

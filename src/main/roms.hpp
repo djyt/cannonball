@@ -31,7 +31,7 @@ public:
 
     Roms();
     ~Roms();
-    bool load_revb_roms();
+    bool load_revb_roms(bool);
     bool load_japanese_roms();
     bool load_pcm_rom(bool);
 

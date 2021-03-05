@@ -104,7 +104,7 @@ void OOutputs::tick(int MODE, int16_t input_motor, int16_t cabinet_type)
 
 void OOutputs::writeDigitalToConsole()
 {
-    if (config.smartypi.ouputs)
+    if (config.smartypi.enabled && config.smartypi.ouputs)
     {
         if ((dig_out & D_BRAKE_LAMP) != (dig_out_old & D_BRAKE_LAMP))
             std::cout << "brake_lamp = " << is_set(D_BRAKE_LAMP) << std::endl;

@@ -501,3 +501,9 @@ void Render::draw_frame(uint16_t* pixels)
     // We pageflip the SDL2 EGL context here
     SDL_GL_SwapWindow(window);
 }
+
+bool Render::supports_vsync()
+{
+	return SDL_GL_GetSwapInterval() == 1;
+}
+

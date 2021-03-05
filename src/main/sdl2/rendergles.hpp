@@ -46,6 +46,8 @@ public:
     bool finalize_frame();
     void draw_frame(uint16_t* pixels);
     bool supports_window() { return false; }
+	bool supports_vsync();
+
 
 private:
     // Texture IDs

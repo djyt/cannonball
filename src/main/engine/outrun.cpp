@@ -199,6 +199,7 @@ void Outrun::jump_table()
 
 
         case GS_MUSIC:
+            omusic.check_start(); // Check for start button
             osprites.tick();
             olevelobjs.do_sprite_routine();
 
@@ -233,8 +234,7 @@ void Outrun::jump_table()
 
         case GS_ATTRACT:
         case GS_BEST1:
-            if (tick_frame)
-                check_freeplay_start();
+            check_freeplay_start();
         
         default:
             if (tick_frame) osprites.tick();                // Address #3 Jump_SetupSprites
@@ -361,7 +361,6 @@ void Outrun::main_switch()
         case GS_MUSIC:
             ohud.draw_credits();
             ohud.draw_insert_coin();
-            omusic.check_start(); // Check for start button
             omusic.tick();
             if (decrement_timers())
             {
@@ -801,10 +800,9 @@ void Outrun::check_freeplay_start()
 {
     if (config.engine.freeplay)
     {
-        if (input.is_pressed_clear(Input::START))
+        if (!ostats.credits && input.has_pressed(Input::START))
         {
-            if (!ostats.credits)
-                ostats.credits = 1;
+            ostats.credits = 1;
         }
     }
 }

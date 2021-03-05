@@ -43,7 +43,7 @@ extern void fill_audio(void *udata, Uint8 *stream, int len);
 
 Audio::Audio()
 {
-
+	sound_enabled = false;
 }
 
 Audio::~Audio()

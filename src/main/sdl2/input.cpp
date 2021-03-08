@@ -39,7 +39,7 @@ void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* 
         stick = SDL_JoystickOpen(pad_id);
     }
 
-    a_wheel = CENTRE;
+    wheel = a_wheel = CENTRE;
 }
 
 void Input::close()
@@ -203,6 +203,8 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             // Make 0 hard left, and 0x80 centre value.
             adjusted = ((adjusted + (1 << 15)) >> 9);
             adjusted += 0x40; // Centre
+
+            wheel = adjusted; // Back up this value for cab diagnostics only
 
             if (adjusted < 0x40)
                 adjusted = 0x40;

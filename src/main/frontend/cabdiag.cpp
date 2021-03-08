@@ -187,7 +187,7 @@ void CabDiag::init_input()
     int y = 8;
     ohud.blit_text_new(x, y++, "COIN #1", 0x84);
     ohud.blit_text_new(x, y++, "COIN #2", 0x84); y++;
-    ohud.blit_text_new(x, y++, "SERVICE", 0x84);
+    ohud.blit_text_new(x, y++, "TEST", 0x84);
     ohud.blit_text_new(x, y++, "START", 0x84); y += 2;
     ohud.blit_text_new(x, y++, "GEAR", 0x84); y++;
     ohud.blit_text_new(x, y++, "WHEEL", 0x84);
@@ -208,7 +208,7 @@ void CabDiag::tick_input()
     ohud.blit_text_new(x, y++, input.is_pressed(Input::GEAR1) ? "LOW " : "HIGH", 0x80); // GEAR
     y++;
     ohud.blit_text_new(x, y, "  H", 0x80);
-    ohud.blit_text_new(x, y++, Utils::to_hex_string(input.a_wheel).c_str(), 0x80); // WHEEL
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(input.wheel).c_str(), 0x80); // WHEEL
     ohud.blit_text_new(x, y, "  H", 0x80);
     ohud.blit_text_new(x, y++, Utils::to_hex_string(input.a_brake).c_str(), 0x80); // BRAKE
     ohud.blit_text_new(x, y, "  H", 0x80);

@@ -52,7 +52,7 @@ public:
     int16_t joy_button;
 
     // Analog Controls
-    int a_wheel;
+    int wheel, a_wheel;
     int a_accel;
     int a_brake;
 

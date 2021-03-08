@@ -197,14 +197,14 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
         // OutRun requires values between 0x48 and 0xb8.
         if (evt->axis == axis[0])
         {
+            wheel = ((value + 0x8000) / 0x100); // Back up this value for cab diagnostics only
+
             int percentage_adjust = ((wheel_zone) << 8) / 100;         
             int adjusted = value + ((value * percentage_adjust) >> 8);
             
             // Make 0 hard left, and 0x80 centre value.
             adjusted = ((adjusted + (1 << 15)) >> 9);
             adjusted += 0x40; // Centre
-
-            wheel = adjusted; // Back up this value for cab diagnostics only
 
             if (adjusted < 0x40)
                 adjusted = 0x40;

@@ -191,6 +191,7 @@ void CabDiag::init_input()
     ohud.blit_text_new(x, y++, "START", 0x84); y += 2;
     ohud.blit_text_new(x, y++, "GEAR", 0x84); y++;
     ohud.blit_text_new(x, y++, "WHEEL", 0x84);
+    ohud.blit_text_new(x, y++, "WHEEL AJ", 0x84);
     ohud.blit_text_new(x, y++, "BRAKE", 0x84);
     ohud.blit_text_new(x, y++, "ACCEL", 0x84);
 }
@@ -209,6 +210,8 @@ void CabDiag::tick_input()
     y++;
     ohud.blit_text_new(x, y, "  H", 0x80);
     ohud.blit_text_new(x, y++, Utils::to_hex_string(input.wheel).c_str(), 0x80); // WHEEL
+    ohud.blit_text_new(x, y, "  H", 0x80);
+    ohud.blit_text_new(x, y++, Utils::to_hex_string(input.a_wheel).c_str(), 0x80); // WHEEL (ADJUSTED)
     ohud.blit_text_new(x, y, "  H", 0x80);
     ohud.blit_text_new(x, y++, Utils::to_hex_string(input.a_brake).c_str(), 0x80); // BRAKE
     ohud.blit_text_new(x, y, "  H", 0x80);

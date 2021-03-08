@@ -165,6 +165,8 @@ public:
     void save_tiletrial_scores();
     bool clear_scores();
     void set_fps(int fps);
+    void inc_time();
+    void inc_traffic();
    
 private:
 };

@@ -243,13 +243,15 @@ bool Config::save()
     pt_config.put("controls.padconfig.view",  controls.padconfig[7]);
     pt_config.put("controls.analog.<xmlattr>.enabled", controls.analog);
 
-    pt_config.put("engine.freeplay", engine.freeplay);
-    pt_config.put("engine.time", engine.freeze_timer ? 4 : engine.dip_time);
-    pt_config.put("engine.traffic", engine.disable_traffic ? 4 : engine.dip_traffic);
+    pt_config.put("engine.freeplay",       (int) engine.freeplay);
+    pt_config.put("engine.time",            engine.freeze_timer ? 4 : engine.dip_time);
+    pt_config.put("engine.traffic",         engine.disable_traffic ? 4 : engine.dip_traffic);
     pt_config.put("engine.japanese_tracks", engine.jap);
-    pt_config.put("engine.prototype", engine.prototype);
-    pt_config.put("engine.levelobjects", engine.level_objects);
-    pt_config.put("engine.new_attract", engine.new_attract);
+    pt_config.put("engine.prototype",       engine.prototype);
+    pt_config.put("engine.levelobjects",    engine.level_objects);
+    pt_config.put("engine.fix_bugs",        (int) engine.fix_bugs);
+    pt_config.put("engine.fix_timer",       (int) engine.fix_timer);
+    pt_config.put("engine.new_attract",     engine.new_attract);
 
     pt_config.put("time_trial.laps",    ttrial.laps);
     pt_config.put("time_trial.traffic", ttrial.traffic);
@@ -435,4 +437,38 @@ void Config::set_fps(int fps)
     osoundint.init();
     if (config.sound.enabled)
         cannonball::audio.start_audio();
+}
+
+// Inc time setting from menu
+void Config::inc_time()
+{
+    if (engine.dip_time == 3)
+    {
+        if (!engine.freeze_timer)
+            engine.freeze_timer = 1;
+        else
+        {
+            engine.dip_time = 0;
+            engine.freeze_timer = 0;
+        }
+    }
+    else
+        engine.dip_time++;
+}
+
+// Inc traffic setting from menu
+void Config::inc_traffic()
+{
+    if (engine.dip_traffic == 3)
+    {
+        if (!engine.disable_traffic)
+            engine.disable_traffic = 1;
+        else
+        {
+            engine.dip_traffic = 0;
+            engine.disable_traffic = 0;
+        }
+    }
+    else
+        engine.dip_traffic++;
 }

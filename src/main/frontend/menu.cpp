@@ -71,6 +71,7 @@ const static char* ENTRY_SAVE       = "SAVE AND RETURN";
 
 // SMARTYPI Menu
 const static char* ENTRY_S_CAB      = "CABINET TYPE ";
+const static char* ENTRY_S_FREEPLAY = "FREEPLAY ";
 const static char* ENTRY_S_MOTOR    = "MOTOR TEST";
 const static char* ENTRY_S_INPUTS   = "INPUT TEST";
 const static char* ENTRY_S_OUTPUTS  = "OUTPUT TEST";
@@ -135,10 +136,10 @@ void Menu::populate()
     menu_main.push_back(ENTRY_GAMEMODES);
     menu_main.push_back(ENTRY_SETTINGS);
     menu_main.push_back(ENTRY_ABOUT);
-    menu_main.push_back(ENTRY_EXIT);
+    if (!config.smartypi.enabled) menu_main.push_back(ENTRY_EXIT);
 
-    menu_gamemodes.push_back(ENTRY_ENHANCED);
-    menu_gamemodes.push_back(ENTRY_ORIGINAL);
+    if (!config.smartypi.enabled) menu_gamemodes.push_back(ENTRY_ENHANCED);
+    if (!config.smartypi.enabled) menu_gamemodes.push_back(ENTRY_ORIGINAL);
     menu_gamemodes.push_back(ENTRY_CONT);
     menu_gamemodes.push_back(ENTRY_TIMETRIAL);
     menu_gamemodes.push_back(ENTRY_BACK);
@@ -157,13 +158,13 @@ void Menu::populate()
     menu_settings.push_back(ENTRY_SOUND);
 #endif
     menu_settings.push_back(ENTRY_CONTROLS);
-    if (config.smartypi.enabled)
-        menu_settings.push_back(ENTRY_SMARTYPI);
+    if (config.smartypi.enabled) menu_settings.push_back(ENTRY_SMARTYPI);
     menu_settings.push_back(ENTRY_ENGINE);
     menu_settings.push_back(ENTRY_SCORES);
     menu_settings.push_back(ENTRY_SAVE);
 
     menu_smartypi.push_back(ENTRY_S_CAB);
+    menu_smartypi.push_back(ENTRY_S_FREEPLAY);
     menu_smartypi.push_back(ENTRY_S_INPUTS);
     menu_smartypi.push_back(ENTRY_S_OUTPUTS);
     menu_smartypi.push_back(ENTRY_S_MOTOR);
@@ -210,7 +211,7 @@ void Menu::populate()
     menu_musictest.push_back(ENTRY_MUSIC4);
     menu_musictest.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL 0.31 © CHRIS WHITE 2020");
+    menu_about.push_back("CANNONBALL 0.31 © CHRIS WHITE 2021");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back(" ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");
@@ -437,14 +438,14 @@ void Menu::draw_text(std::string s)
 void Menu::tick_menu()
 {
     // Tick Controls
-    if (input.has_pressed(Input::DOWN) || oinputs.is_analog_r())
+    if (input.has_pressed(Input::DOWN) || oinputs.is_analog_l())
     {
         osoundint.queue_sound(sound::BEEP1);
 
         if (++cursor >= (int16_t) menu_selected->size())
             cursor = 0;
     }
-    else if (input.has_pressed(Input::UP) || oinputs.is_analog_l())
+    else if (input.has_pressed(Input::UP) || oinputs.is_analog_r())
     {
         osoundint.queue_sound(sound::BEEP1);
 
@@ -579,6 +580,8 @@ void Menu::tick_menu()
                 else
                     config.smartypi.cabinet = config.CABINET_MINI;
             }
+            else if (SELECTED(ENTRY_S_FREEPLAY))
+                config.engine.freeplay = !config.engine.freeplay;
             else if (SELECTED(ENTRY_S_INPUTS))
             {
                 cabdiag->set(CabDiag::STATE_INPUT);
@@ -916,8 +919,10 @@ void Menu::refresh_menu()
         }
         else if (menu_selected == &menu_smartypi)
         {
-            if(SELECTED(ENTRY_S_CAB))
+            if (SELECTED(ENTRY_S_CAB))
                 set_menu_text(ENTRY_S_CAB, config.smartypi.cabinet == config.CABINET_UPRIGHT ? "UPRIGHT" : "MINI");
+            else if (SELECTED(ENTRY_S_FREEPLAY))
+            set_menu_text(ENTRY_S_FREEPLAY, config.engine.freeplay ? "ON" : "OFF");
         }
     }
     cursor = cursor_backup;

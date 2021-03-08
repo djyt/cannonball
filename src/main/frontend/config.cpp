@@ -243,6 +243,7 @@ bool Config::save()
     pt_config.put("controls.padconfig.view",  controls.padconfig[7]);
     pt_config.put("controls.analog.<xmlattr>.enabled", controls.analog);
 
+    pt_config.put("engine.freeplay", engine.freeplay);
     pt_config.put("engine.time", engine.freeze_timer ? 4 : engine.dip_time);
     pt_config.put("engine.traffic", engine.disable_traffic ? 4 : engine.dip_traffic);
     pt_config.put("engine.japanese_tracks", engine.jap);

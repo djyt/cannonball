@@ -65,7 +65,7 @@ private:
     // Amount to adjust brake per tick. (0x10 is a good test value)
     uint8_t brake_inc;
 
-    static const int DELAY_RESET = 60;
+    static const int DELAY_RESET = 40;
     int delay1, delay2, delay3;
 
     // Coin Inputs (Only used by CannonBoard)

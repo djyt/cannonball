@@ -242,6 +242,8 @@ bool Config::save()
     pt_config.put("controls.padconfig.menu",  controls.padconfig[6]);
     pt_config.put("controls.padconfig.view",  controls.padconfig[7]);
     pt_config.put("controls.analog.<xmlattr>.enabled", controls.analog);
+    pt_config.put("controls.analog.axis.accel", controls.axis[1]);
+    pt_config.put("controls.analog.axis.brake", controls.axis[2]);
 
     pt_config.put("engine.freeplay",       (int) engine.freeplay);
     pt_config.put("engine.time",            engine.freeze_timer ? 4 : engine.dip_time);

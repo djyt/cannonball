@@ -71,6 +71,8 @@ public:
     bool is_pressed(presses p);
     bool is_pressed_clear(presses p);
     bool has_pressed(presses p);
+    void reset_axis_config();
+    int get_axis_config();
 
 private:
     static const int CENTRE = 0x80;
@@ -89,8 +91,12 @@ private:
     int wheel_zone;
     int wheel_dead;
 
+    // Last axis used
+    int axis_last , axis_counter, axis_config;
+
     void handle_key(const int, const bool);
     void handle_joy(const uint8_t, const bool);
+    void store_last_axis(const uint8_t axis, const int16_t value);
 };
 
 extern Input input;

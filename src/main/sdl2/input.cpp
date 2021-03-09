@@ -39,6 +39,7 @@ void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* 
         stick = SDL_JoystickOpen(pad_id);
     }
 
+    reset_axis_config();
     wheel = a_wheel = CENTRE;
 }
 
@@ -191,7 +192,7 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
     // Analog Controls
     else
     {
-        //std::cout << "Axis: " << (int) evt->axis << " Value: " << (int) evt->value << std::endl;
+        store_last_axis(evt->axis, value);
 
         // Steering
         // OutRun requires values between 0x48 and 0xb8.
@@ -221,21 +222,51 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             //std::cout << "wheel zone : " << wheel_zone << " : " << std::hex << " : " << (int) adjusted << std::endl;
             a_wheel = adjusted;
         }
-        // Accelerator [Single Axis]
+        // Accelerator [Single Axis] : Scale input to be in the range of 0 to 0xFF (rather than -32768 to 32768)
         else if (evt->axis == axis[1])
-        {
-            // Scale input to be in the range of 0 to 0xFF (rather than -32768 to 32768)
             a_accel = ((value + 0x8000) / 0x100);
-            //std::cout << "Acc: " << (int) a_accel << std::endl;
-        }
-        // Brake [Single Axis]
+
+        // Brake [Single Axis]       : Scale input to be in the range of 0 to 0xFF (rather than -32768 to 32768)
         else if (evt->axis == axis[2])
-        {
-            // Scale input to be in the range of 0 to 0xFF (rather than -32768 to 32768)
             a_brake = ((value + 0x8000) / 0x100);
-            //std::cout << "Brake: " << (int) a_brake << std::endl;
-        }
     }
+}
+
+// ------------------------------------------------------------------------------------------------
+// Store the last analog axis to be pressed and depressed beyond the cap value for config purposes
+// ------------------------------------------------------------------------------------------------
+void Input::store_last_axis(const uint8_t axis, const int16_t value)
+{
+    const static int CAP = 10000;
+
+    if (std::abs(value) > CAP)
+        axis_last = axis;
+
+    if (axis == axis_last)
+    {
+        if (value > CAP && axis_counter == 0)   axis_counter = 1;       // Increment beyond cap
+        if (value < -CAP && axis_counter == 1)  axis_counter = 2;       // Decrement below cap
+        if (axis_counter == 2)                  axis_config = axis;     // Store the axis
+    }
+}
+
+int Input::get_axis_config()
+{
+    if (axis_counter == 2)
+    {
+        //std::cout << "axis: " << axis_config << " counter: " << axis_counter << std::endl;
+        int value = axis_config;
+        reset_axis_config();
+        return value;
+    }
+    return -1;
+}
+
+void Input::reset_axis_config()
+{
+    axis_config = -1;
+    axis_last = -1;
+    axis_counter = 0;
 }
 
 void Input::handle_joy_down(SDL_JoyButtonEvent* evt)

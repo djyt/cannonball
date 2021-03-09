@@ -707,8 +707,9 @@ void Menu::tick_menu()
             {
                 display_message("PRESS MENU TO END AT ANY STAGE");
                 state = STATE_REDEFINE_JOY;
-                redef_state = config.controls.analog == 1 ? 2 : 0; // Ignore pedals when redefining analog
+                redef_state = 0; 
                 input.joy_button = -1;
+                input.reset_axis_config();
             }
             else if (SELECTED(ENTRY_DSTEER))
             {
@@ -922,7 +923,18 @@ void Menu::redefine_joystick()
             else
             {
                 draw_text(text_redefine.at(redef_state + 4));
-                if (input.joy_button != -1)
+                // Analog controls enabled (Accelerator & Brake): Read axis being pressed
+                if (config.controls.analog == 1 && (redef_state == 0 || redef_state == 1))
+                {
+                    int last_axis = input.get_axis_config();
+
+                    if (last_axis != -1)
+                    {
+                        config.controls.axis[redef_state + 1] = last_axis;
+                        redef_state++;
+                    }
+                }
+                else if (input.joy_button != -1)
                 {
                     config.controls.padconfig[redef_state] = input.joy_button;
                     redef_state++;

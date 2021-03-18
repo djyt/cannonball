@@ -97,6 +97,10 @@ static void process_events(void)
                 input.handle_joy_up(&event.jbutton);
                 break;
 
+            case SDL_JOYHATMOTION:
+                input.handle_joy_hat(&event.jhat);
+                break;
+
             case SDL_QUIT:
                 // Handle quit requests (like Ctrl-c).
                 state = STATE_QUIT;

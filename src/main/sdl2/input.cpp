@@ -88,41 +88,18 @@ void Input::handle_key_up(SDL_Keysym* keysym)
 void Input::handle_key(const int key, const bool is_pressed)
 {
     // Redefinable Key Input
-    if (key == key_config[0])
-        keys[UP] = is_pressed;
-
-    else if (key == key_config[1])
-        keys[DOWN] = is_pressed;
-
-    else if (key == key_config[2])
-        keys[LEFT] = is_pressed;
-
-    else if (key == key_config[3])
-        keys[RIGHT] = is_pressed;
-
-    if (key == key_config[4])
-        keys[ACCEL] = is_pressed;
-
-    if (key == key_config[5])
-        keys[BRAKE] = is_pressed;
-
-    if (key == key_config[6])
-        keys[GEAR1] = is_pressed;
-
-    if (key == key_config[7])
-        keys[GEAR2] = is_pressed;
-
-    if (key == key_config[8])
-        keys[START] = is_pressed;
-
-    if (key == key_config[9])
-        keys[COIN] = is_pressed;
-
-    if (key == key_config[10])
-        keys[MENU] = is_pressed;
-
-    if (key == key_config[11])
-        keys[VIEWPOINT] = is_pressed;
+    if (key == key_config[0])  keys[UP] = is_pressed;
+    if (key == key_config[1])  keys[DOWN] = is_pressed;
+    if (key == key_config[2])  keys[LEFT] = is_pressed;
+    if (key == key_config[3])  keys[RIGHT] = is_pressed;
+    if (key == key_config[4])  keys[ACCEL] = is_pressed;
+    if (key == key_config[5])  keys[BRAKE] = is_pressed;
+    if (key == key_config[6])  keys[GEAR1] = is_pressed;
+    if (key == key_config[7])  keys[GEAR2] = is_pressed;
+    if (key == key_config[8])  keys[START] = is_pressed;
+    if (key == key_config[9])  keys[COIN] = is_pressed;
+    if (key == key_config[10]) keys[MENU] = is_pressed;
+    if (key == key_config[11]) keys[VIEWPOINT] = is_pressed;
 
     // Function keys are not redefinable
     switch (key)
@@ -149,48 +126,8 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
 {
     int16_t value = evt->value;
 
-    // Digital Controls
-    if (!analog)
-    {
-        // X-Axis
-        if (evt->axis == 0)
-        {
-            // Neural
-            if ( (value > -DIGITAL_DEAD ) && (value < DIGITAL_DEAD ) )
-            {
-                keys[LEFT]  = false;
-                keys[RIGHT] = false;
-            }
-            else if (value < 0)
-            {
-                keys[LEFT] = true;
-            }
-            else if (value > 0)
-            {
-                keys[RIGHT] = true;
-            }
-        }
-        // Y-Axis
-        else if (evt->axis == 1)
-        {
-            // Neural
-            if ( (value > -DIGITAL_DEAD ) && (value < DIGITAL_DEAD ) )
-            {
-                keys[UP]  = false;
-                keys[DOWN] = false;
-            }
-            else if (value < 0)
-            {
-                keys[UP] = true;
-            }
-            else if (value > 0)
-            {
-                keys[DOWN] = true;
-            }
-        }
-    }
     // Analog Controls
-    else
+    if (analog)
     {
         store_last_axis(evt->axis, value);
 
@@ -283,27 +220,20 @@ void Input::handle_joy_up(SDL_JoyButtonEvent* evt)
 
 void Input::handle_joy(const uint8_t button, const bool is_pressed)
 {	
-    if (button == pad_config[0])
-        keys[ACCEL] = is_pressed;
+    if (button == pad_config[0])   keys[ACCEL] = is_pressed;
+    if (button == pad_config[1])   keys[BRAKE] = is_pressed;
+    if (button == pad_config[2])   keys[GEAR1] = is_pressed;
+    if (button == pad_config[3])   keys[GEAR2] = is_pressed;
+    if (button == pad_config[4])   keys[START] = is_pressed;
+    if (button == pad_config[5])   keys[COIN] = is_pressed;
+    if (button == pad_config[6])   keys[MENU] = is_pressed;
+    if (button == pad_config[7])   keys[VIEWPOINT] = is_pressed;
+}
 
-    if (button == pad_config[1])
-        keys[BRAKE] = is_pressed;
-
-    if (button == pad_config[2])
-        keys[GEAR1] = is_pressed;
-
-    if (button == pad_config[3])
-        keys[GEAR2] = is_pressed;
-
-    if (button == pad_config[4])
-        keys[START] = is_pressed;
-
-    if (button == pad_config[5])
-        keys[COIN] = is_pressed;
-
-    if (button == pad_config[6])
-        keys[MENU] = is_pressed;
-
-    if (button == pad_config[7])
-        keys[VIEWPOINT] = is_pressed;
+void Input::handle_joy_hat(SDL_JoyHatEvent* evt)
+{
+    keys[UP] = evt->value == SDL_HAT_UP;
+    keys[DOWN] = evt->value == SDL_HAT_DOWN;
+    keys[LEFT] = evt->value == SDL_HAT_LEFT;
+    keys[RIGHT] = evt->value == SDL_HAT_RIGHT;
 }

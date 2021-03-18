@@ -67,6 +67,7 @@ public:
     void handle_joy_axis(SDL_JoyAxisEvent*);
     void handle_joy_down(SDL_JoyButtonEvent*);
     void handle_joy_up(SDL_JoyButtonEvent*);
+    void handle_joy_hat(SDL_JoyHatEvent*);
     void frame_done();
     bool is_pressed(presses p);
     bool is_pressed_clear(presses p);
@@ -76,9 +77,6 @@ public:
 
 private:
     static const int CENTRE = 0x80;
-
-    // Digital Dead Zone
-    static const int DIGITAL_DEAD = 3200;
 
     // SDL Joystick / Keypad
     SDL_Joystick *stick;

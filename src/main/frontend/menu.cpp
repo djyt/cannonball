@@ -71,7 +71,7 @@ void Menu::populate()
     menu_musictest.push_back(ENTRY_MUSIC4);
     menu_musictest.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL 0.31 © CHRIS WHITE 2021");
+    menu_about.push_back("CANNONBALL 0.32 © CHRIS WHITE 2021");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back(" ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");
@@ -915,31 +915,23 @@ void Menu::redefine_joystick()
         case 5:
         case 6:
         case 7:
-            if (input.has_pressed(Input::MENU))
+            draw_text(text_redefine.at(redef_state + 4));
+            // Analog controls enabled (Accelerator & Brake): Read axis being pressed
+            if (config.controls.analog == 1 && (redef_state == 0 || redef_state == 1))
             {
-                message_counter = 0;
-                state = STATE_MENU;
-            }
-            else
-            {
-                draw_text(text_redefine.at(redef_state + 4));
-                // Analog controls enabled (Accelerator & Brake): Read axis being pressed
-                if (config.controls.analog == 1 && (redef_state == 0 || redef_state == 1))
-                {
-                    int last_axis = input.get_axis_config();
+                int last_axis = input.get_axis_config();
 
-                    if (last_axis != -1)
-                    {
-                        config.controls.axis[redef_state + 1] = last_axis;
-                        redef_state++;
-                    }
-                }
-                else if (input.joy_button != -1)
+                if (last_axis != -1)
                 {
-                    config.controls.padconfig[redef_state] = input.joy_button;
+                    config.controls.axis[redef_state + 1] = last_axis;
                     redef_state++;
-                    input.joy_button = -1;
                 }
+            }
+            else if (input.joy_button != -1)
+            {
+                config.controls.padconfig[redef_state] = input.joy_button;
+                redef_state++;
+                input.joy_button = -1;
             }
             break;
 

@@ -256,13 +256,6 @@ static bool parse_command_line(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    // Initialize timer and video systems
-    if( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1 ) 
-    { 
-        std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
-        return 1; 
-    }
-
     // Parse command line arguments (config file location, LayOut data) 
     bool ok = parse_command_line(argc, argv);
 
@@ -277,8 +270,19 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    // Load gamecontrollerdb.txt mappings
+    if (SDL_GameControllerAddMappingsFromFile((config.data.res_path + "gamecontrollerdb.txt").c_str()) == -1)
+        std::cout << "Unable to load controller mapping" << std::endl;
+
+    // Initialize timer and video systems
+    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1)
+    {
+        std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
+        return 1;
+    }
+
     // Load patched widescreen tilemaps
-    if (!omusic.load_widescreen_map())
+    if (!omusic.load_widescreen_map(config.data.res_path))
         std::cout << "Unable to load widescreen tilemaps" << std::endl;
 
     // Initialize SDL Video

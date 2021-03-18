@@ -276,3 +276,6 @@ configure_file(../res/tilemap.bin ./res/tilemap.bin
 configure_file(../res/tilepatch.bin ./res/tilepatch.bin
     COPYONLY 
 )
+configure_file(../res/gamecontrollerdb.txt ./res/gamecontrollerdb.txt
+    COPYONLY 
+)

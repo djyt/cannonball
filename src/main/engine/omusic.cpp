@@ -32,20 +32,20 @@ OMusic::~OMusic(void)
 }
 
 // Load Modified Widescreen version of tilemap
-bool OMusic::load_widescreen_map()
+bool OMusic::load_widescreen_map(std::string path)
 {
     int status = 0;
 
     if (tilemap == NULL)
     {
         tilemap = new RomLoader();
-        status += tilemap->load_binary("res/tilemap.bin");
+        status += tilemap->load_binary(std::string(path + "tilemap.bin").c_str());
     }
 
     if (tile_patch == NULL)
     {
         tile_patch = new RomLoader();
-        status += tile_patch->load_binary("res/tilepatch.bin");
+        status += tile_patch->load_binary(std::string(path + "tilepatch.bin").c_str());
     }
 
     return status == 0;

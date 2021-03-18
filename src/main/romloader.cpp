@@ -17,10 +17,6 @@
 #include "romloader.hpp"
 #include "frontend/config.hpp"
 
-#ifdef __APPLE__
-#include "CoreFoundation/CoreFoundation.h"
-#endif
-
 // In order to get a cross-platform directory listing I'm using a Visual Studio
 // version of Linux's Dirent from here: https://github.com/tronkko/dirent
 //
@@ -169,20 +165,6 @@ int RomLoader::load_crc32(const char* debug, const int offset, const int length,
 
 int RomLoader::load_binary(const char* filename)
 {
-#ifdef __APPLE__    
-    CFBundleRef mainBundle = CFBundleGetMainBundle();
-    CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
-    char bundlepath[PATH_MAX];
-
-    if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)bundlepath, PATH_MAX))
-    {
-        // error!
-    }
-
-    CFRelease(resourcesURL);
-    chdir(bundlepath);
-#endif
-
     std::ifstream src(filename, std::ios::in | std::ios::binary);
     if (!src)
     {

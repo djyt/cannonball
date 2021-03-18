@@ -22,7 +22,7 @@ public:
     OMusic(void);
     ~OMusic(void);
 
-    bool load_widescreen_map();
+    bool load_widescreen_map(std::string path);
     void enable();
     void disable();
     void tick();

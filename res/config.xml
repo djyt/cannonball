@@ -4,8 +4,12 @@
     External Data Required
 -->
 <data>
-    <!-- OutRun Revision B ROM directory (sub-directory from where executable is, or a complete path) -->
-    <path>roms/</path>
+	<!-- OutRun Revision B ROM directory -->
+	<rompath>roms/</rompath>
+	<!-- Path to load required binary files from -->
+	<respath>./res/</respath>
+	<!-- Path to write XML for scores -->
+	<savepath>./</savepath>
 </data>
 
 <!-- 

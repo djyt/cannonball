@@ -17,6 +17,7 @@
 struct data_settings_t
 {
     std::string rom_path;
+    std::string res_path;
     std::string save_path;
     std::string cfg_file;
 

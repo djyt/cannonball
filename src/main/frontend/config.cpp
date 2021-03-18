@@ -70,6 +70,7 @@ void Config::load()
     // Data Settings
     // ------------------------------------------------------------------------
     data.rom_path         = pt_config.get("data.rompath", "roms/");   // Path to ROMs
+    data.res_path         = pt_config.get("data.respath", "res/");   // Path to ROMs
     data.save_path        = pt_config.get("data.savepath", "./");     // Path to Save Data
 
     data.file_scores      = data.save_path + "hiscores.xml";

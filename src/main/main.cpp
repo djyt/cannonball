@@ -256,6 +256,9 @@ static bool parse_command_line(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
+    // Load gamecontrollerdb.txt mappings
+    SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt");
+    
     // Initialize timer and video systems
     if( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1 ) 
     { 

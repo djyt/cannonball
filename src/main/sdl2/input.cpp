@@ -56,7 +56,7 @@ void Input::open_joy()
                 axis[0] = b.value.axis;
 
             // Analog: Default Accelerate Axis
-             b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+            b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
             if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[1] == -1)
                 axis[1] = b.value.axis;
 
@@ -65,40 +65,17 @@ void Input::open_joy()
             if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[2] == -1)
                 axis[2] = b.value.axis;
 
-            // Digital Controls. Map 'A' to Accelerate
-            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_A);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[0] == -1)
-                pad_config[0] = b.value.button;
-
-            // Digital Controls. Map 'B' to Brake
-            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_B);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[1] == -1)
-                pad_config[1] = b.value.button;
-
-            // Digital Controls. Map 'X' to Gear
-            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_X);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[2] == -1)
-                pad_config[2] = b.value.button;
-
-            // Digital Controls. Map 'START'
-            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_START);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[4] == -1)
-                pad_config[4] = b.value.button;
-
-            // Digital Controls. Map 'Y' to Coin
-            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_Y);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[5] == -1)
-                pad_config[5] = b.value.button;
-
-            // Digital Controls. Map 'MENU' to BACK
-            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_BACK);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[6] == -1)
-                pad_config[6] = b.value.button;
-
-            // Digital Controls. Map 'VIEW' to Left Shoulder Button
-            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[7] == -1)
-                pad_config[7] = b.value.button;
+            bind_button(controller, SDL_CONTROLLER_BUTTON_A, 0);                // Digital Controls. Map 'A' to Accelerate
+            bind_button(controller, SDL_CONTROLLER_BUTTON_B, 1);                // Digital Controls. Map 'B' to Brake
+            bind_button(controller, SDL_CONTROLLER_BUTTON_X, 2);                // Digital Controls. Map 'X' to Gear
+            bind_button(controller, SDL_CONTROLLER_BUTTON_START, 4);            // Digital Controls. Map 'START'
+            bind_button(controller, SDL_CONTROLLER_BUTTON_Y, 5);                // Digital Controls. Map 'Y' to Coin
+            bind_button(controller, SDL_CONTROLLER_BUTTON_BACK, 6);             // Digital Controls. Map 'MENU' to BACK
+            bind_button(controller, SDL_CONTROLLER_BUTTON_LEFTSHOULDER, 7);     // Digital Controls. Map 'VIEW' to Left Shoulder Button
+            bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_UP, 8);          // Digital Controls. Map D-Pad
+            bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_DOWN, 9);
+            bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT, 10);
+            bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, 11);
 
             SDL_GameControllerClose(controller);
         }
@@ -106,6 +83,13 @@ void Input::open_joy()
 
     reset_axis_config();
     wheel = a_wheel = CENTRE;
+}
+
+void Input::bind_button(SDL_GameController* controller, SDL_GameControllerButton button, int offset)
+{
+    SDL_GameControllerButtonBind b = SDL_GameControllerGetBindForButton(controller, button);
+    if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[offset] == -1)
+        pad_config[offset] = b.value.button;
 }
 
 void Input::close_joy()
@@ -287,19 +271,18 @@ void Input::handle_joy_up(SDL_JoyButtonEvent* evt)
 
 void Input::handle_joy(const uint8_t button, const bool is_pressed)
 {	
-    if (button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)  keys[LEFT] = is_pressed;
-    if (button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT) keys[RIGHT] = is_pressed;
-    if (button == SDL_CONTROLLER_BUTTON_DPAD_UP)    keys[UP] = is_pressed;
-    if (button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)  keys[DOWN] = is_pressed;
-
-    if (button == pad_config[0])   keys[ACCEL] = is_pressed;
-    if (button == pad_config[1])   keys[BRAKE] = is_pressed;
-    if (button == pad_config[2])   keys[GEAR1] = is_pressed;
-    if (button == pad_config[3])   keys[GEAR2] = is_pressed;
-    if (button == pad_config[4])   keys[START] = is_pressed;
-    if (button == pad_config[5])   keys[COIN] = is_pressed;
-    if (button == pad_config[6])   keys[MENU] = is_pressed;
+    if (button == pad_config[0])   keys[ACCEL]     = is_pressed;
+    if (button == pad_config[1])   keys[BRAKE]     = is_pressed;
+    if (button == pad_config[2])   keys[GEAR1]     = is_pressed;
+    if (button == pad_config[3])   keys[GEAR2]     = is_pressed;
+    if (button == pad_config[4])   keys[START]     = is_pressed;
+    if (button == pad_config[5])   keys[COIN]      = is_pressed;
+    if (button == pad_config[6])   keys[MENU]      = is_pressed;
     if (button == pad_config[7])   keys[VIEWPOINT] = is_pressed;
+    if (button == pad_config[8])   keys[UP]        = is_pressed;
+    if (button == pad_config[9])   keys[DOWN]      = is_pressed;
+    if (button == pad_config[10])  keys[LEFT]      = is_pressed;
+    if (button == pad_config[11])  keys[RIGHT]     = is_pressed;
 }
 
 void Input::handle_joy_hat(SDL_JoyHatEvent* evt)

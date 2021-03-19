@@ -155,6 +155,10 @@
 		<coin>-1</coin>
 		<menu>-1</menu>
 		<view>-1</view>
+        <up>-1</up>
+        <down>-1</down>
+        <left>-1</left>
+        <right>-1</right>
 	</padconfig>
 	<!-- Digital Controls: Steering Adjust Speed (1 to 9) -->
 	<steerspeed>3</steerspeed>

@@ -52,18 +52,54 @@ void Input::open_joy()
 
             // Analog: Default Steering Axis
             b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTX);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS)
-                if (axis[0] == -1) axis[0] = b.value.axis;
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[0] == -1)
+                axis[0] = b.value.axis;
 
             // Analog: Default Accelerate Axis
              b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS)
-                if (axis[1] == -1) axis[1] = b.value.axis;
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[1] == -1)
+                axis[1] = b.value.axis;
 
             // Analog: Default Brake Axis
             b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS)
-                if (axis[2] == -1) axis[2] = b.value.axis;
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[2] == -1)
+                axis[2] = b.value.axis;
+
+            // Digital Controls. Map 'A' to Accelerate
+            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_A);
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[0] == -1)
+                pad_config[0] = b.value.button;
+
+            // Digital Controls. Map 'B' to Brake
+            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_B);
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[1] == -1)
+                pad_config[1] = b.value.button;
+
+            // Digital Controls. Map 'X' to Gear
+            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_X);
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[2] == -1)
+                pad_config[2] = b.value.button;
+
+            // Digital Controls. Map 'START'
+            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_START);
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[4] == -1)
+                pad_config[4] = b.value.button;
+
+            // Digital Controls. Map 'Y' to Coin
+            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_Y);
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[5] == -1)
+                pad_config[5] = b.value.button;
+
+            // Digital Controls. Map 'MENU' to BACK
+            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_BACK);
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[6] == -1)
+                pad_config[6] = b.value.button;
+
+            // Digital Controls. Map 'VIEW' to Left Shoulder Button
+            b = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[7] == -1)
+                pad_config[7] = b.value.button;
+
         }
     }
 

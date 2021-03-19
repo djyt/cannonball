@@ -144,16 +144,17 @@
 		<menu>286</menu>
 		<view>304</view>
 	</keyconfig>
-	<!-- Gamepad / Joystick Button Configuration. Easiest to configure with inbuilt menu. -->
+	<!-- Gamepad / Joystick Button Configuration. Easiest to configure with inbuilt menu. 
+         Set these values to '-1' to attempt auto-detection/auto-assignment -->
 	<padconfig>
-		<acc>0</acc>
-		<brake>1</brake>
-		<gear1>0</gear1>
-		<gear2>2</gear2>
-		<start>7</start>
-		<coin>6</coin>
-		<menu>3</menu>
-		<view>2</view>
+		<acc>-1</acc>
+		<brake>-1</brake>
+		<gear1>-1</gear1>
+		<gear2>-1</gear2>
+		<start>-1</start>
+		<coin>-1</coin>
+		<menu>-1</menu>
+		<view>-1</view>
 	</padconfig>
 	<!-- Digital Controls: Steering Adjust Speed (1 to 9) -->
 	<steerspeed>3</steerspeed>

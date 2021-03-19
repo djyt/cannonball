@@ -100,6 +100,7 @@ void Input::open_joy()
             if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[7] == -1)
                 pad_config[7] = b.value.button;
 
+            SDL_GameControllerClose(controller);
         }
     }
 
@@ -191,11 +192,10 @@ void Input::handle_key(const int key, const bool is_pressed)
 
 void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
 {
-    int16_t value = evt->value;
-
     // Analog Controls
     if (analog)
     {
+        int16_t value = evt->value;
         store_last_axis(evt->axis, value);
 
         // Steering

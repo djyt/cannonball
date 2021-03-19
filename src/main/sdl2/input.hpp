@@ -94,6 +94,7 @@ private:
     // Last axis used
     int axis_last , axis_counter, axis_config;
 
+    void bind_axis(SDL_GameController* controller, SDL_GameControllerAxis ax, int offset);
     void bind_button(SDL_GameController* controller, SDL_GameControllerButton button, int offset);
     void handle_key(const int, const bool);
     void handle_joy(const uint8_t, const bool);

@@ -48,23 +48,10 @@ void Input::open_joy()
         if (SDL_IsGameController(pad_id))
         {
             SDL_GameController* controller = SDL_GameControllerOpen(pad_id);
-            SDL_GameControllerButtonBind b;
 
-            // Analog: Default Steering Axis
-            b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTX);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[0] == -1)
-                axis[0] = b.value.axis;
-
-            // Analog: Default Accelerate Axis
-            b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[1] == -1)
-                axis[1] = b.value.axis;
-
-            // Analog: Default Brake Axis
-            b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[2] == -1)
-                axis[2] = b.value.axis;
-
+            bind_axis(controller, SDL_CONTROLLER_AXIS_LEFTX, 0);                // Analog: Default Steering Axis
+            bind_axis(controller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT, 1);         // Analog: Default Accelerate Axis
+            bind_axis(controller, SDL_CONTROLLER_AXIS_TRIGGERLEFT, 2);          // Analog: Default Brake Axis
             bind_button(controller, SDL_CONTROLLER_BUTTON_A, 0);                // Digital Controls. Map 'A' to Accelerate
             bind_button(controller, SDL_CONTROLLER_BUTTON_B, 1);                // Digital Controls. Map 'B' to Brake
             bind_button(controller, SDL_CONTROLLER_BUTTON_X, 2);                // Digital Controls. Map 'X' to Gear
@@ -83,6 +70,13 @@ void Input::open_joy()
 
     reset_axis_config();
     wheel = a_wheel = CENTRE;
+}
+
+void Input::bind_axis(SDL_GameController* controller, SDL_GameControllerAxis ax, int offset)
+{
+    SDL_GameControllerButtonBind b = SDL_GameControllerGetBindForAxis(controller, ax);
+    if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[offset] == -1)
+        axis[offset] = b.value.axis;
 }
 
 void Input::bind_button(SDL_GameController* controller, SDL_GameControllerButton button, int offset)

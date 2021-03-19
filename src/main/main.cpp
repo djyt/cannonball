@@ -57,7 +57,7 @@ bool pause_engine;
 static void quit_func(int code)
 {
     audio.stop_audio();
-    input.close();
+    input.close_joy();
     forcefeedback::close();
     delete menu;
     SDL_Quit();
@@ -99,6 +99,14 @@ static void process_events(void)
 
             case SDL_JOYHATMOTION:
                 input.handle_joy_hat(&event.jhat);
+                break;
+
+            case SDL_JOYDEVICEADDED:
+                input.open_joy();
+                break;
+
+            case SDL_JOYDEVICEREMOVED:
+                input.close_joy();
                 break;
 
             case SDL_QUIT:

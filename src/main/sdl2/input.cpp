@@ -25,6 +25,7 @@ Input::~Input(void)
 
 void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* axis, int* analog_settings)
 {
+    this->pad_id      = pad_id;
     this->key_config  = key_config;
     this->pad_config  = pad_config;
     this->analog      = analog;
@@ -32,6 +33,11 @@ void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* 
     this->wheel_zone  = analog_settings[0];
     this->wheel_dead  = analog_settings[1];
 
+    open_joy();
+}
+
+void Input::open_joy()
+{
     gamepad = SDL_NumJoysticks() > pad_id;
 
     if (gamepad)
@@ -43,10 +49,13 @@ void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* 
     wheel = a_wheel = CENTRE;
 }
 
-void Input::close()
+void Input::close_joy()
 {
     if (gamepad && stick != NULL)
+    {
         SDL_JoystickClose(stick);
+        gamepad = false;
+    }
 }
 
 // Detect whether a key press change has occurred

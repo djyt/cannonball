@@ -60,7 +60,8 @@ public:
     ~Input(void);
 
     void init(int, int*, int*, const int, int*, int*);
-    void close();
+    void open_joy();
+    void close_joy();
 
     void handle_key_up(SDL_Keysym*);
     void handle_key_down(SDL_Keysym*);
@@ -82,6 +83,7 @@ private:
     SDL_Joystick *stick;
 
     // Configurations for keyboard and joypad
+    int pad_id;
     int* pad_config;
     int* key_config;
     int* axis;

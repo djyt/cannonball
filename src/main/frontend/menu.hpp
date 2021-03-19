@@ -85,6 +85,7 @@ private:
     std::vector<std::string> text_redefine;
     
     void populate_for_pc();
+    void populate_controls();
     void populate_for_cabinet();
     void tick_ui();
     void draw_menu_options();

@@ -133,14 +133,6 @@ void Menu::populate_for_pc()
     menu_sound.push_back(ENTRY_MUSICTEST);
     menu_sound.push_back(ENTRY_BACK);
 
-    menu_controls.push_back(ENTRY_GEAR);
-    if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
-    menu_controls.push_back(ENTRY_REDEFKEY);
-    if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
-    menu_controls.push_back(ENTRY_DSTEER);
-    menu_controls.push_back(ENTRY_DPEDAL);
-    menu_controls.push_back(ENTRY_BACK);
-
     menu_engine.push_back(ENTRY_TRACKS);
     menu_engine.push_back(ENTRY_TIME);
     menu_engine.push_back(ENTRY_TRAFFIC);
@@ -150,6 +142,20 @@ void Menu::populate_for_pc()
     menu_engine.push_back(ENTRY_BACK);
 }
 
+// Split into own function to handle controllers being added/removed
+void Menu::populate_controls()
+{
+    if (menu_controls.size() > 0)
+        menu_controls.clear();
+
+    menu_controls.push_back(ENTRY_GEAR);
+    if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
+    menu_controls.push_back(ENTRY_REDEFKEY);
+    if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
+    menu_controls.push_back(ENTRY_DSTEER);
+    menu_controls.push_back(ENTRY_DPEDAL);
+    menu_controls.push_back(ENTRY_BACK);
+}
 
 // ------------------------------------------------------------------------------------------------
 // Populate Menus for Genuine Cabinet Setup (via SmartyPi interface)
@@ -529,6 +535,8 @@ void Menu::tick_menu()
             {
                 if (input.gamepad)
                     display_message("GAMEPAD FOUND");
+
+                populate_controls();
                 set_menu(&menu_controls);
             }
         }

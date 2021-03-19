@@ -43,6 +43,28 @@ void Input::open_joy()
     if (gamepad)
     {
         stick = SDL_JoystickOpen(pad_id);
+
+        // If this is a recognized Game Controller, let's pull some useful default information
+        if (SDL_IsGameController(pad_id))
+        {
+            SDL_GameController* controller = SDL_GameControllerOpen(pad_id);
+            SDL_GameControllerButtonBind b;
+
+            // Analog: Default Steering Axis
+            b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTX);
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS)
+                if (axis[0] == -1) axis[0] = b.value.axis;
+
+            // Analog: Default Accelerate Axis
+             b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS)
+                if (axis[1] == -1) axis[1] = b.value.axis;
+
+            // Analog: Default Brake Axis
+            b = SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+            if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS)
+                if (axis[2] == -1) axis[2] = b.value.axis;
+        }
     }
 
     reset_axis_config();
@@ -229,6 +251,11 @@ void Input::handle_joy_up(SDL_JoyButtonEvent* evt)
 
 void Input::handle_joy(const uint8_t button, const bool is_pressed)
 {	
+    if (button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)  keys[LEFT] = is_pressed;
+    if (button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT) keys[RIGHT] = is_pressed;
+    if (button == SDL_CONTROLLER_BUTTON_DPAD_UP)    keys[UP] = is_pressed;
+    if (button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)  keys[DOWN] = is_pressed;
+
     if (button == pad_config[0])   keys[ACCEL] = is_pressed;
     if (button == pad_config[1])   keys[BRAKE] = is_pressed;
     if (button == pad_config[2])   keys[GEAR1] = is_pressed;

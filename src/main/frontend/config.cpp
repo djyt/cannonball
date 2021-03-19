@@ -155,9 +155,9 @@ void Config::load()
     controls.padconfig[7]  = pt_config.get("controls.padconfig.view",  6);
     controls.analog        = pt_config.get("controls.analog.<xmlattr>.enabled", 0);
     controls.pad_id        = pt_config.get("controls.pad_id", 0);
-    controls.axis[0]       = pt_config.get("controls.analog.axis.wheel", 0);
-    controls.axis[1]       = pt_config.get("controls.analog.axis.accel", 2);
-    controls.axis[2]       = pt_config.get("controls.analog.axis.brake", 3);
+    controls.axis[0]       = pt_config.get("controls.analog.axis.wheel", -1);
+    controls.axis[1]       = pt_config.get("controls.analog.axis.accel", -1);
+    controls.axis[2]       = pt_config.get("controls.analog.axis.brake", -1);
     controls.asettings[0]  = pt_config.get("controls.analog.wheel.zone", 75);
     controls.asettings[1]  = pt_config.get("controls.analog.wheel.dead", 0);
     
@@ -243,6 +243,7 @@ bool Config::save()
     pt_config.put("controls.padconfig.menu",  controls.padconfig[6]);
     pt_config.put("controls.padconfig.view",  controls.padconfig[7]);
     pt_config.put("controls.analog.<xmlattr>.enabled", controls.analog);
+    pt_config.put("controls.analog.axis.wheel", controls.axis[0]);
     pt_config.put("controls.analog.axis.accel", controls.axis[1]);
     pt_config.put("controls.analog.axis.brake", controls.axis[2]);
 

@@ -713,7 +713,7 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_REDEFJOY))
             {
-                display_message("PRESS MENU TO END AT ANY STAGE");
+                //display_message("PRESS MENU TO END AT ANY STAGE");
                 state = STATE_REDEFINE_JOY;
                 redef_state = 0; 
                 input.joy_button = -1;

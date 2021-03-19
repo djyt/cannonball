@@ -165,14 +165,16 @@
          1 = On
          2 = Wheel Only
     -->
-	<analog enabled="1">
+	<analog enabled="0">
 		<!-- Select axis for analog controls              
              For an XBox 360 Controller, the wheel should be axis 0, accelerator on 5 and brake on 2
+             
+             Set these values to -1 to attempt to auto-detect the axis on first boot.
           -->
 		<axis>
-			<wheel>0</wheel>
-			<accel>5</accel>
-			<brake>2</brake>
+			<wheel>-1</wheel>
+			<accel>-1</accel>
+			<brake>-1</brake>
 		</axis>
 		
         <!-- Analog Wheel Settings -->

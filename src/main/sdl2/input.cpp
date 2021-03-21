@@ -42,12 +42,13 @@ void Input::open_joy()
 
     if (gamepad)
     {
-        stick = SDL_JoystickOpen(pad_id);
+        bool isController = SDL_IsGameController(pad_id);
 
         // If this is a recognized Game Controller, let's pull some useful default information
-        if (SDL_IsGameController(pad_id))
+        if (controller == NULL && isController)
         {
-            SDL_GameController* controller = SDL_GameControllerOpen(pad_id);
+            std::cout << "open controller\n";
+            controller = SDL_GameControllerOpen(pad_id);
 
             bind_axis(controller, SDL_CONTROLLER_AXIS_LEFTX, 0);                // Analog: Default Steering Axis
             bind_axis(controller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT, 1);         // Analog: Default Accelerate Axis
@@ -63,8 +64,12 @@ void Input::open_joy()
             bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_DOWN, 9);
             bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT, 10);
             bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, 11);
-
-            SDL_GameControllerClose(controller);
+        }
+        
+        if (stick == NULL && !isController)
+        {
+            std::cout << "open joy\n";
+            stick = SDL_JoystickOpen(pad_id);
         }
     }
 
@@ -74,25 +79,33 @@ void Input::open_joy()
 
 void Input::bind_axis(SDL_GameController* controller, SDL_GameControllerAxis ax, int offset)
 {
-    SDL_GameControllerButtonBind b = SDL_GameControllerGetBindForAxis(controller, ax);
-    if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[offset] == -1)
-        axis[offset] = b.value.axis;
+    if (axis[offset] == -1)
+        axis[offset] = ax;
 }
 
 void Input::bind_button(SDL_GameController* controller, SDL_GameControllerButton button, int offset)
 {
-    SDL_GameControllerButtonBind b = SDL_GameControllerGetBindForButton(controller, button);
-    if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[offset] == -1)
-        pad_config[offset] = b.value.button;
+    if (pad_config[offset] == -1)
+        pad_config[offset] = button;
 }
 
 void Input::close_joy()
 {
-    if (gamepad && stick != NULL)
+    if (controller != NULL)
     {
-        SDL_JoystickClose(stick);
-        gamepad = false;
+        std::cout << "close controller\n";
+        SDL_GameControllerClose(controller);
+        controller = NULL;
     }
+
+    if (stick != NULL)
+    {
+        std::cout << "close joy\n";
+        SDL_JoystickClose(stick);
+        stick = NULL;
+    }
+
+    gamepad = false;
 }
 
 // Detect whether a key press change has occurred
@@ -168,17 +181,31 @@ void Input::handle_key(const int key, const bool is_pressed)
     }
 }
 
+void Input::handle_controller_axis(SDL_ControllerAxisEvent* evt)
+{
+    if (controller == NULL) return;
+
+    handle_axis(evt->axis, evt->value);
+}
+
 void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
+{
+    if (stick == NULL) return;
+
+    handle_axis(evt->axis, evt->value);
+}
+
+void Input::handle_axis(const uint8_t evtAxis, const int16_t evtValue)
 {
     // Analog Controls
     if (analog)
     {
-        int16_t value = evt->value;
-        store_last_axis(evt->axis, value);
+        int16_t value = evtValue;
+        store_last_axis(evtAxis, value);
 
         // Steering
         // OutRun requires values between 0x48 and 0xb8.
-        if (evt->axis == axis[0])
+        if (evtAxis == axis[0])
         {
             wheel = ((value + 0x8000) / 0x100); // Back up this value for cab diagnostics only
 
@@ -205,11 +232,11 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             a_wheel = adjusted;
         }
         // Accelerator [Single Axis] : Scale input to be in the range of 0 to 0xFF (rather than -32768 to 32768)
-        else if (evt->axis == axis[1])
+        else if (evtAxis == axis[1])
             a_accel = ((value + 0x8000) / 0x100);
 
         // Brake [Single Axis]       : Scale input to be in the range of 0 to 0xFF (rather than -32768 to 32768)
-        else if (evt->axis == axis[2])
+        else if (evtAxis == axis[2])
             a_brake = ((value + 0x8000) / 0x100);
     }
 }
@@ -251,8 +278,26 @@ void Input::reset_axis_config()
     axis_counter = 0;
 }
 
+void Input::handle_controller_down(SDL_ControllerButtonEvent* evt)
+{
+    if (controller == NULL) return;
+
+    // Latch joystick button presses for redefines
+    joy_button = evt->button;
+    handle_joy(evt->button, true);
+}
+
+void Input::handle_controller_up(SDL_ControllerButtonEvent* evt)
+{
+    if (controller == NULL) return;
+
+    handle_joy(evt->button, false);
+}
+
 void Input::handle_joy_down(SDL_JoyButtonEvent* evt)
 {
+    if (stick == NULL) return;
+
     // Latch joystick button presses for redefines
     joy_button = evt->button;
     handle_joy(evt->button, true);
@@ -260,6 +305,8 @@ void Input::handle_joy_down(SDL_JoyButtonEvent* evt)
 
 void Input::handle_joy_up(SDL_JoyButtonEvent* evt)
 {
+    if (stick == NULL) return;
+
     handle_joy(evt->button, false);
 }
 
@@ -281,6 +328,8 @@ void Input::handle_joy(const uint8_t button, const bool is_pressed)
 
 void Input::handle_joy_hat(SDL_JoyHatEvent* evt)
 {
+    if (stick == NULL) return;
+
     keys[UP] = evt->value == SDL_HAT_UP;
     keys[DOWN] = evt->value == SDL_HAT_DOWN;
     keys[LEFT] = evt->value == SDL_HAT_LEFT;

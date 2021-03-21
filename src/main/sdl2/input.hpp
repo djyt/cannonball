@@ -65,6 +65,9 @@ public:
 
     void handle_key_up(SDL_Keysym*);
     void handle_key_down(SDL_Keysym*);
+    void handle_controller_axis(SDL_ControllerAxisEvent*);
+    void handle_controller_down(SDL_ControllerButtonEvent*);
+    void handle_controller_up(SDL_ControllerButtonEvent*);
     void handle_joy_axis(SDL_JoyAxisEvent*);
     void handle_joy_down(SDL_JoyButtonEvent*);
     void handle_joy_up(SDL_JoyButtonEvent*);
@@ -81,6 +84,7 @@ private:
 
     // SDL Joystick / Keypad
     SDL_Joystick *stick;
+    SDL_GameController* controller;
 
     // Configurations for keyboard and joypad
     int pad_id;
@@ -98,6 +102,7 @@ private:
     void bind_button(SDL_GameController* controller, SDL_GameControllerButton button, int offset);
     void handle_key(const int, const bool);
     void handle_joy(const uint8_t, const bool);
+    void handle_axis(const uint8_t, const int16_t);
     void store_last_axis(const uint8_t axis, const int16_t value);
 };
 

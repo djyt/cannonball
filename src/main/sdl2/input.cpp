@@ -17,9 +17,12 @@ Input input;
 
 Input::Input(void)
 {
-    stick = NULL;
+    stick      = NULL;
     controller = NULL;
+    haptic     = NULL;
+
     gamepad = false;
+    rumble_supported = false;
 }
 
 Input::~Input(void)
@@ -64,6 +67,15 @@ void Input::open_joy()
             bind_button(SDL_CONTROLLER_BUTTON_DPAD_DOWN, 9);
             bind_button(SDL_CONTROLLER_BUTTON_DPAD_LEFT, 10);
             bind_button(SDL_CONTROLLER_BUTTON_DPAD_RIGHT, 11);
+
+            haptic = SDL_HapticOpen(pad_id);
+            if (haptic)
+            {
+                rumble_supported = false;
+
+                if (SDL_HapticRumbleSupported(haptic))
+                    rumble_supported = SDL_HapticRumbleInit(haptic) != -1;
+            }
         }
     }
 
@@ -93,6 +105,13 @@ void Input::close_joy()
     {
         SDL_JoystickClose(stick);
         stick = NULL;
+    }
+
+    if (haptic != NULL)
+    {
+        SDL_HapticClose(haptic);
+        haptic = NULL;
+        rumble_supported = false;
     }
 
     gamepad = false;
@@ -334,4 +353,14 @@ void Input::handle_joy_hat(SDL_JoyHatEvent* evt)
     keys[DOWN] = evt->value == SDL_HAT_DOWN;
     keys[LEFT] = evt->value == SDL_HAT_LEFT;
     keys[RIGHT] = evt->value == SDL_HAT_RIGHT;
+}
+
+void Input::set_rumble(bool enable)
+{
+    if (haptic == NULL || !rumble_supported) return;
+
+    if (enable)
+        SDL_HapticRumblePlay(haptic, 1.0f, 1000 / 30);
+    else
+        SDL_HapticRumbleStop(haptic);
 }

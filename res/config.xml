@@ -129,8 +129,13 @@
         3 = Automatic 
     -->
     <gear>0</gear>
+    
     <!-- Use the N'th joystick on the system. -->
     <pad_id>0</pad_id>
+    
+    <!-- Use simple rumble effect if supported on controller (not to be confused with force feedback) -->
+    <rumble>1</rumble>
+    
     <!-- Keyboard Button Configuration. Easiest to configure with inbuilt menu. -->
     <keyconfig>
         <up>1073741906</up>
@@ -146,6 +151,7 @@
         <menu>286</menu>
         <view>304</view>
     </keyconfig>
+    
     <!-- Gamepad / Joystick Button Configuration. Easiest to configure with inbuilt menu. 
          Set these values to '-1' to attempt auto-detection/auto-assignment -->
     <padconfig>
@@ -162,20 +168,19 @@
         <left>-1</left>
         <right>-1</right>
     </padconfig>
+    
     <!-- Digital Controls: Steering Adjust Speed (1 to 9) -->
     <steerspeed>3</steerspeed>
     <!-- Digital Controls: Pedal Adjust Speed (1 to 9) -->
     <pedalspeed>4</pedalspeed>
-    
+        
     <!-- Analog Controls
          0 = Off
          1 = On
          2 = Wheel Only
     -->
     <analog enabled="0">
-        <!-- Select axis for analog controls              
-             For an XBox 360 Controller, the wheel should be axis 0, accelerator on 5 and brake on 2
-             
+        <!-- Select axis for analog controls             
              Set these values to -1 to attempt to auto-detect the axis on first boot.
           -->
         <axis>
@@ -195,7 +200,7 @@
                  A good Logitech Racing wheel should not need this -->
             <dead>0</dead>
         </wheel>
-        <!-- Force Feedback / Haptic Support -->
+        <!-- Force Feedback / Haptic Support (For Gamepads, use the simple rumble support instead -->
         <haptic enabled="0">
             <!-- Make both of the below values negative, 
                  if force feedback is in the wrong direction -->

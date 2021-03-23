@@ -134,6 +134,7 @@ void Config::load()
     controls.gear          = pt_config.get("controls.gear", 0);
     controls.steer_speed   = pt_config.get("controls.steerspeed", 3);
     controls.pedal_speed   = pt_config.get("controls.pedalspeed", 4);
+    controls.rumble        = pt_config.get("controls.rumble", 1);
     controls.keyconfig[0]  = pt_config.get("controls.keyconfig.up",    273);
     controls.keyconfig[1]  = pt_config.get("controls.keyconfig.down",  274);
     controls.keyconfig[2]  = pt_config.get("controls.keyconfig.left",  276);

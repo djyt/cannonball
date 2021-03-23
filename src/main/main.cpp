@@ -193,7 +193,13 @@ static void tick()
             break;
     }
 
+    // Map OutRun outputs to CannonBall devices (SmartyPi Interface /Controller Rumble)
     outrun.outputs->writeDigitalToConsole();
+    if (tick_frame)
+    {
+        if (config.controls.rumble)
+            input.set_rumble(outrun.outputs->is_set(OOutputs::D_MOTOR));
+    }
 }
 
 static void main_loop()
@@ -299,7 +305,7 @@ int main(int argc, char* argv[])
         std::cout << "Unable to load controller mapping" << std::endl;
 
     // Initialize timer and video systems
-    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) == -1)
+    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) == -1)
     {
         std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
         return 1;

@@ -93,6 +93,7 @@ struct controls_settings_t
     int axis[3];       // Analog Axis
     int asettings[2];  // Analog Settings
 
+    int rumble;        // Simple Controller Rumble Support
     int haptic;        // Force Feedback Enabled
     int max_force;
     int min_force;

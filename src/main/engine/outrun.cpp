@@ -73,11 +73,21 @@ void Outrun::init()
 
     tick_counter = 0;
 
-    // CannonBoard Config: When Used in original cabinet
-    if (config.smartypi.enabled && config.smartypi.cabinet == config.CABINET_MOVING)
-        init_motor_calibration();
-    else
-        boot();
+    if (config.smartypi.enabled)
+    {
+        outputs->set_mode(OOutputs::MODE_CABINET);
+        if (config.smartypi.cabinet == Config::CABINET_MOVING)
+        {
+            init_motor_calibration();
+            return;
+        }
+    }
+    else if (config.controls.haptic)
+        outputs->set_mode(OOutputs::MODE_FFEEDBACK);
+    else if (config.controls.rumble)
+        outputs->set_mode(OOutputs::MODE_RUMBLE);
+
+    boot();
 }
 
 void Outrun::boot()
@@ -276,10 +286,7 @@ void Outrun::jump_table()
         }
         else
         {
-            if (config.controls.haptic && config.controls.analog)
-                outputs->tick(OOutputs::MODE_FFEEDBACK, oinputs.input_steering);
-            else if (config.smartypi.enabled)
-                outputs->tick(OOutputs::MODE_CABINET, 0, config.smartypi.cabinet);
+            outputs->tick(oinputs.input_steering); // Todo: Should be motor_input on real cab!
         }
     }
 }

@@ -78,6 +78,7 @@ public:
     bool has_pressed(presses p);
     void reset_axis_config();
     int get_axis_config();
+    void set_rumble(bool);
 
 private:
     static const int CENTRE = 0x80;
@@ -85,6 +86,7 @@ private:
     // SDL Joystick / Keypad
     SDL_Joystick *stick;
     SDL_GameController* controller;
+    SDL_Haptic* haptic;
 
     // Configurations for keyboard and joypad
     int pad_id;
@@ -97,6 +99,8 @@ private:
 
     // Last axis used
     int axis_last , axis_counter, axis_config;
+
+    int rumble_supported;
 
     void bind_axis(SDL_GameControllerAxis ax, int offset);
     void bind_button(SDL_GameControllerButton button, int offset);

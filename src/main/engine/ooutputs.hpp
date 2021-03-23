@@ -28,10 +28,11 @@ struct CoinChute
 
 class OOutputs
 {
-public:
-    
-    const static int MODE_FFEEDBACK = 0;
-    const static int MODE_CABINET   = 1;
+public:  
+    const static int MODE_DISABLED = 0; // Disabled
+    const static int MODE_CABINET = 1; // SmartyPi Interface / Original Cabinet
+    const static int MODE_FFEEDBACK = 2; // Force Feedback for Wheels
+    const static int MODE_RUMBLE = 3; // Simple rumble for controllers
 
     // Hardware Motor Control:
     // 0 = Switch off
@@ -59,9 +60,10 @@ public:
     ~OOutputs(void);
 
     void init();
+    void set_mode(int);
     bool diag_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets);
     bool calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets);
-    void tick(const int MODE, int16_t input_motor, int16_t cabinet_type = -1);
+    void tick(int16_t input_motor = 0);
     void writeDigitalToConsole();
     void set_digital(uint8_t);
     void clear_digital(uint8_t);
@@ -69,6 +71,8 @@ public:
     void coin_chute_out(CoinChute* chute, bool insert);
 
 private:
+    int mode;
+
     uint8_t dig_out, dig_out_old;
 
     const static uint16_t STATE_INIT   = 0;

@@ -17,6 +17,9 @@ Input input;
 
 Input::Input(void)
 {
+    stick = NULL;
+    controller = NULL;
+    gamepad = false;
 }
 
 Input::~Input(void)
@@ -32,14 +35,11 @@ void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* 
     this->axis        = axis;
     this->wheel_zone  = analog_settings[0];
     this->wheel_dead  = analog_settings[1];
-
-    open_joy();
 }
 
 void Input::open_joy()
 {
     gamepad = SDL_NumJoysticks() > pad_id;
-
     if (gamepad)
     {
         stick = SDL_JoystickOpen(pad_id);
@@ -47,24 +47,23 @@ void Input::open_joy()
         // If this is a recognized Game Controller, let's pull some useful default information
         if (SDL_IsGameController(pad_id))
         {
-            SDL_GameController* controller = SDL_GameControllerOpen(pad_id);
+            controller = SDL_GameControllerOpen(pad_id);
 
-            bind_axis(controller, SDL_CONTROLLER_AXIS_LEFTX, 0);                // Analog: Default Steering Axis
-            bind_axis(controller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT, 1);         // Analog: Default Accelerate Axis
-            bind_axis(controller, SDL_CONTROLLER_AXIS_TRIGGERLEFT, 2);          // Analog: Default Brake Axis
-            bind_button(controller, SDL_CONTROLLER_BUTTON_A, 0);                // Digital Controls. Map 'A' to Accelerate
-            bind_button(controller, SDL_CONTROLLER_BUTTON_B, 1);                // Digital Controls. Map 'B' to Brake
-            bind_button(controller, SDL_CONTROLLER_BUTTON_X, 2);                // Digital Controls. Map 'X' to Gear
-            bind_button(controller, SDL_CONTROLLER_BUTTON_START, 4);            // Digital Controls. Map 'START'
-            bind_button(controller, SDL_CONTROLLER_BUTTON_Y, 5);                // Digital Controls. Map 'Y' to Coin
-            bind_button(controller, SDL_CONTROLLER_BUTTON_BACK, 6);             // Digital Controls. Map 'MENU' to BACK
-            bind_button(controller, SDL_CONTROLLER_BUTTON_LEFTSHOULDER, 7);     // Digital Controls. Map 'VIEW' to Left Shoulder Button
-            bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_UP, 8);          // Digital Controls. Map D-Pad
-            bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_DOWN, 9);
-            bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT, 10);
-            bind_button(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, 11);
-
-            SDL_GameControllerClose(controller);
+            bind_axis(SDL_CONTROLLER_AXIS_LEFTX, 0);                // Analog: Default Steering Axis
+            bind_axis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT, 1);         // Analog: Default Accelerate Axis
+            bind_axis(SDL_CONTROLLER_AXIS_TRIGGERLEFT, 2);          // Analog: Default Brake Axis
+            bind_button(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, 0);    // Digital Controls. Map 'Right Shoulder' to Accelerate
+            bind_button(SDL_CONTROLLER_BUTTON_LEFTSHOULDER, 1);     // Digital Controls. Map 'Left Shoulder' to Brake
+            bind_button(SDL_CONTROLLER_BUTTON_A, 2);                // Digital Controls. Map 'A' to Gear 1
+            bind_button(SDL_CONTROLLER_BUTTON_B, 3);                // Digital Controls. Map 'B' to Gear 2 (has to be enabled)
+            bind_button(SDL_CONTROLLER_BUTTON_START, 4);            // Digital Controls. Map 'START'
+            bind_button(SDL_CONTROLLER_BUTTON_Y, 5);                // Digital Controls. Map 'Y' to Coin
+            bind_button(SDL_CONTROLLER_BUTTON_BACK, 6);             // Digital Controls. Map 'Back' to Menu Button
+            bind_button(SDL_CONTROLLER_BUTTON_X, 7);                // Digital Controls. Map 'X' to Change View
+            bind_button(SDL_CONTROLLER_BUTTON_DPAD_UP, 8);          // Digital Controls. Map D-Pad
+            bind_button(SDL_CONTROLLER_BUTTON_DPAD_DOWN, 9);
+            bind_button(SDL_CONTROLLER_BUTTON_DPAD_LEFT, 10);
+            bind_button(SDL_CONTROLLER_BUTTON_DPAD_RIGHT, 11);
         }
     }
 
@@ -72,27 +71,31 @@ void Input::open_joy()
     wheel = a_wheel = CENTRE;
 }
 
-void Input::bind_axis(SDL_GameController* controller, SDL_GameControllerAxis ax, int offset)
+void Input::bind_axis(SDL_GameControllerAxis ax, int offset)
 {
-    SDL_GameControllerButtonBind b = SDL_GameControllerGetBindForAxis(controller, ax);
-    if (b.bindType == SDL_CONTROLLER_BINDTYPE_AXIS && axis[offset] == -1)
-        axis[offset] = b.value.axis;
+    if (axis[offset] == -1) axis[offset] = ax;
 }
 
-void Input::bind_button(SDL_GameController* controller, SDL_GameControllerButton button, int offset)
+void Input::bind_button(SDL_GameControllerButton button, int offset)
 {
-    SDL_GameControllerButtonBind b = SDL_GameControllerGetBindForButton(controller, button);
-    if (b.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON && pad_config[offset] == -1)
-        pad_config[offset] = b.value.button;
+    if (pad_config[offset] == -1) pad_config[offset] = button;
 }
 
 void Input::close_joy()
 {
-    if (gamepad && stick != NULL)
+    if (controller != NULL)
+    {
+        SDL_GameControllerClose(controller);
+        controller = NULL;
+    }
+
+    if (stick != NULL)
     {
         SDL_JoystickClose(stick);
-        gamepad = false;
+        stick = NULL;
     }
+
+    gamepad = false;
 }
 
 // Detect whether a key press change has occurred
@@ -170,21 +173,32 @@ void Input::handle_key(const int key, const bool is_pressed)
 
 void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
 {
+    if (controller != NULL) return;
+    handle_axis(evt->axis, evt->value);
+}
+
+void Input::handle_controller_axis(SDL_ControllerAxisEvent* evt)
+{
+    handle_axis(evt->axis, evt->value);
+}
+
+void Input::handle_axis(const uint8_t ax, const int16_t value)
+{
     // Analog Controls
     if (analog)
     {
-        int16_t value = evt->value;
-        store_last_axis(evt->axis, value);
+        //std::cout << "ax: " << (int)ax << " value " << value << std::endl;
+        store_last_axis(ax, value);
 
         // Steering
         // OutRun requires values between 0x48 and 0xb8.
-        if (evt->axis == axis[0])
+        if (ax == axis[0])
         {
             wheel = ((value + 0x8000) / 0x100); // Back up this value for cab diagnostics only
 
-            int percentage_adjust = ((wheel_zone) << 8) / 100;         
+            int percentage_adjust = ((wheel_zone) << 8) / 100;
             int adjusted = value + ((value * percentage_adjust) >> 8);
-            
+
             // Make 0 hard left, and 0x80 centre value.
             adjusted = ((adjusted + (1 << 15)) >> 9);
             adjusted += 0x40; // Centre
@@ -204,31 +218,52 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             //std::cout << "wheel zone : " << wheel_zone << " : " << std::hex << " : " << (int) adjusted << std::endl;
             a_wheel = adjusted;
         }
-        // Accelerator [Single Axis] : Scale input to be in the range of 0 to 0xFF (rather than -32768 to 32768)
-        else if (evt->axis == axis[1])
-            a_accel = ((value + 0x8000) / 0x100);
+        // Accelerator [Single Axis]
+        else if (ax == axis[1])
+            a_accel = scale_trigger(value);
 
-        // Brake [Single Axis]       : Scale input to be in the range of 0 to 0xFF (rather than -32768 to 32768)
-        else if (evt->axis == axis[2])
-            a_brake = ((value + 0x8000) / 0x100);
+        // Brake [Single Axis]
+        else if (ax == axis[2])
+            a_brake = scale_trigger(value);
     }
+}
+
+// ------------------------------------------------------------------------------------------------
+// Scale the trigger value to be between 0 and 0xFF
+// 
+// This is based on whether this is an SDL Controller or Joystick.
+// Controllers: Trigger axis values range from 0 to SDL_JOYSTICK_AXIS_MAX (32767)
+// Joysticks:   Undefined, but usually between -32768 to 32767
+// ------------------------------------------------------------------------------------------------
+
+int Input::scale_trigger(const int16_t value)
+{
+    if (controller != NULL)
+        return value / 0x80;
+    else
+        return (value + 0x8000) / 0x100;
 }
 
 // ------------------------------------------------------------------------------------------------
 // Store the last analog axis to be pressed and depressed beyond the cap value for config purposes
 // ------------------------------------------------------------------------------------------------
-void Input::store_last_axis(const uint8_t axis, const int16_t value)
+void Input::store_last_axis(const uint8_t ax, const int16_t value)
 {
-    const static int CAP = 10000;
+    const static int CAP = SDL_JOYSTICK_AXIS_MAX / 4;
 
     if (std::abs(value) > CAP)
-        axis_last = axis;
-
-    if (axis == axis_last)
+        axis_last = ax;
+    else if (ax == axis_last)
     {
-        if (value > CAP && axis_counter == 0)   axis_counter = 1;       // Increment beyond cap
-        if (value < -CAP && axis_counter == 1)  axis_counter = 2;       // Decrement below cap
-        if (axis_counter == 2)                  axis_config = axis;     // Store the axis
+        axis_last = -1;
+        axis_counter = 0;
+    }
+
+    if (ax == axis_last)
+    {
+        if (value > CAP*2 && axis_counter == 0) axis_counter = 1;
+        if (value < CAP*2 && axis_counter == 1) axis_counter = 2;
+        if (axis_counter == 2)                  axis_config = ax; // Store the axis
     }
 }
 
@@ -236,7 +271,6 @@ int Input::get_axis_config()
 {
     if (axis_counter == 2)
     {
-        //std::cout << "axis: " << axis_config << " counter: " << axis_counter << std::endl;
         int value = axis_config;
         reset_axis_config();
         return value;
@@ -253,12 +287,25 @@ void Input::reset_axis_config()
 
 void Input::handle_joy_down(SDL_JoyButtonEvent* evt)
 {
+    if (controller != NULL) return;
     // Latch joystick button presses for redefines
     joy_button = evt->button;
     handle_joy(evt->button, true);
 }
 
 void Input::handle_joy_up(SDL_JoyButtonEvent* evt)
+{
+    if (controller != NULL) return;
+    handle_joy(evt->button, false);
+}
+
+void Input::handle_controller_down(SDL_ControllerButtonEvent* evt)
+{
+    joy_button = evt->button;
+    handle_joy(evt->button, true);
+}
+
+void Input::handle_controller_up(SDL_ControllerButtonEvent* evt)
 {
     handle_joy(evt->button, false);
 }

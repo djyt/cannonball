@@ -69,6 +69,9 @@ public:
     void handle_joy_down(SDL_JoyButtonEvent*);
     void handle_joy_up(SDL_JoyButtonEvent*);
     void handle_joy_hat(SDL_JoyHatEvent*);
+    void handle_controller_axis(SDL_ControllerAxisEvent*);
+    void handle_controller_down(SDL_ControllerButtonEvent*);
+    void handle_controller_up(SDL_ControllerButtonEvent*);
     void frame_done();
     bool is_pressed(presses p);
     bool is_pressed_clear(presses p);
@@ -81,6 +84,7 @@ private:
 
     // SDL Joystick / Keypad
     SDL_Joystick *stick;
+    SDL_GameController* controller;
 
     // Configurations for keyboard and joypad
     int pad_id;
@@ -94,11 +98,13 @@ private:
     // Last axis used
     int axis_last , axis_counter, axis_config;
 
-    void bind_axis(SDL_GameController* controller, SDL_GameControllerAxis ax, int offset);
-    void bind_button(SDL_GameController* controller, SDL_GameControllerButton button, int offset);
+    void bind_axis(SDL_GameControllerAxis ax, int offset);
+    void bind_button(SDL_GameControllerButton button, int offset);
     void handle_key(const int, const bool);
     void handle_joy(const uint8_t, const bool);
+    void handle_axis(const uint8_t axis, const int16_t value);
     void store_last_axis(const uint8_t axis, const int16_t value);
+    int scale_trigger(const int16_t);
 };
 
 extern Input input;

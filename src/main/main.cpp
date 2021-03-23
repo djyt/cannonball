@@ -97,6 +97,18 @@ static void process_events(void)
                 input.handle_joy_up(&event.jbutton);
                 break;
 
+            case SDL_CONTROLLERAXISMOTION:
+                input.handle_controller_axis(&event.caxis);
+                break;
+
+            case SDL_CONTROLLERBUTTONDOWN:
+                input.handle_controller_down(&event.cbutton);
+                break;
+
+            case SDL_CONTROLLERBUTTONUP:
+                input.handle_controller_up(&event.cbutton);
+                break;
+
             case SDL_JOYHATMOTION:
                 input.handle_joy_hat(&event.jhat);
                 break;
@@ -287,7 +299,7 @@ int main(int argc, char* argv[])
         std::cout << "Unable to load controller mapping" << std::endl;
 
     // Initialize timer and video systems
-    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1)
+    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) == -1)
     {
         std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
         return 1;

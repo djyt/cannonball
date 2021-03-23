@@ -100,5 +100,6 @@ public:
     }
 
 private:
+    int create_map();
     int filesize(const char* filename);
 };

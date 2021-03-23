@@ -12,6 +12,7 @@
 #include <fstream>
 #include <cstddef>       // for std::size_t
 #include <boost/crc.hpp> // CRC Checking via Boost library.
+#include <unordered_map>
 
 #include "stdint.hpp"
 #include "romloader.hpp"
@@ -28,16 +29,15 @@
 #include <dirent.h>
 #endif
 
-// Disable CRC 32 based rom loading if it implodes, and work by filename instead
-const static bool CRC32_LOADING = true;
+// Unordered Map to store contents of directory by CRC 32 value. Similar to Hashmap.
+static std::unordered_map<int, std::string> map;
+static bool map_created;
 
 
 RomLoader::RomLoader()
 {
+    map_created = false;
     loaded = false;
-
-    // Setup pointer to function we want to use (either load_crc32 or load_rom)
-    load = CRC32_LOADING  ? &RomLoader::load_crc32 : &RomLoader::load_rom;
 }
 
 RomLoader::~RomLoader()
@@ -47,6 +47,9 @@ RomLoader::~RomLoader()
 
 void RomLoader::init(const uint32_t length)
 {
+    // Setup pointer to function we want to use (either load_crc32 or load_rom)
+    load = config.data.crc32 ? &RomLoader::load_crc32 : &RomLoader::load_rom;
+
     this->length = length;
     rom = new uint8_t[length];
 }
@@ -102,26 +105,31 @@ int RomLoader::load_rom(const char* filename, const int offset, const int length
     return 0; // success
 }
 
-// ------------------------------------------------------------------------------------------------
-// Search and load ROM by CRC32 value as opposed to filename.
-// Advantage: More resilient to renamed romsets.
-// ------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
+// Create Unordered Map of files in ROM directory by CRC32 value
+// This should be faster than brute force searching every file in the directory every time.
+// --------------------------------------------------------------------------------------------
 
-int RomLoader::load_crc32(const char* debug, const int offset, const int length, const int expected_crc, const uint8_t interleave)
+int RomLoader::create_map()
 {
+    map_created = true;
+
     std::string path = config.data.rom_path;
     DIR* dir;
     struct dirent* ent;
 
-    if ((dir = opendir(path.c_str())) == NULL) 
+    if ((dir = opendir(path.c_str())) == NULL)
+    {
+        std::cout << "Warning: Could not open ROM directory - " << path << std::endl;
         return 1; // Failure (Could not open directory)
+    }
 
     // Iterate all files in directory
-    while ((ent = readdir(dir)) != NULL) 
+    while ((ent = readdir(dir)) != NULL)
     {
         std::string file = path + ent->d_name;
         std::ifstream src(file, std::ios::in | std::ios::binary);
-        
+
         if (!src) continue;
 
         // Read file
@@ -132,31 +140,67 @@ int RomLoader::load_crc32(const char* debug, const int offset, const int length,
         boost::crc_32_type result;
         result.process_bytes(buffer, (size_t)src.gcount());
 
-        // Correct ROM found
-        if (expected_crc == result.checksum())
-        {
-            // Interleave file as necessary
-            for (int i = 0; i < length; i++)
-                rom[(i * interleave) + offset] = buffer[i];
-
-            // Clean Up
-            closedir(dir);
-            delete[] buffer;
-            src.close();
-            loaded = true;
-            return 0; // success
-        }
-        else
-        {
-            delete[] buffer;
-            src.close();
-        }
+        // Insert file into MAP between CRC and filename
+        map.insert({ result.checksum(), file });
+        delete[] buffer;
+        src.close();
     }
 
-    // We have not found the file by CRC.
-    std::cout << "Unable to locate rom in path: " << path << " possible name: " << debug << " crc32: 0x" << std::hex << expected_crc << std::endl;
+    if (map.empty())
+        std::cout << "Warning: Could not create CRC32 Map. Did you copy the ROM files into the directory? " << std::endl;
+
     closedir(dir);
-    return 1; // failure
+    return 0; //success
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// Search and load ROM by CRC32 value as opposed to filename.
+// Advantage: More resilient to renamed romsets.
+// ------------------------------------------------------------------------------------------------
+
+int RomLoader::load_crc32(const char* debug, const int offset, const int length, const int expected_crc, const uint8_t interleave)
+{
+    if (!map_created)
+        create_map();
+
+    if (map.empty())
+        return 1;
+
+    auto search = map.find(expected_crc);
+
+    // Cannot find file by CRC value in map
+    if (search == map.end())
+    {
+        std::cout << "Unable to locate rom in path: " << config.data.rom_path << " possible name: " << debug << " crc32: 0x" << std::hex << expected_crc << std::endl;
+        loaded = false;
+        return 1;
+    }
+
+    // Correct ROM found
+    std::string file = search->second;
+
+    std::ifstream src(file, std::ios::in | std::ios::binary);
+    if (!src)
+    {
+        std::cout << "cannot open rom: " << file << std::endl;
+        loaded = false;
+        return 1; // fail
+    }
+
+    // Read file
+    char* buffer = new char[length];
+    src.read(buffer, length);
+
+    // Interleave file as necessary
+    for (int i = 0; i < length; i++)
+        rom[(i * interleave) + offset] = buffer[i];
+
+    // Clean Up
+    delete[] buffer;
+    src.close();
+    loaded = true;
+    return 0; // success
 }
 
 // --------------------------------------------------------------------------------------------

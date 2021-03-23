@@ -20,6 +20,7 @@ struct data_settings_t
     std::string res_path;
     std::string save_path;
     std::string cfg_file;
+    int crc32;
 
     std::string file_scores;            // Arcade Hi-Scores (World & Japanese)
     std::string file_scores_jap;

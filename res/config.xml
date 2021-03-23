@@ -10,6 +10,8 @@
 	<respath>./res/</respath>
 	<!-- Path to write XML for scores -->
 	<savepath>./</savepath>
+    <!-- Use CRC 32 Based ROM Loading (i.e. rely on scanning file contents, not on filenames) -->
+    <crc32>1</crc32>
 </data>
 
 <!-- 

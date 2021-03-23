@@ -67,15 +67,15 @@ void Input::open_joy()
             bind_button(SDL_CONTROLLER_BUTTON_DPAD_DOWN, 9);
             bind_button(SDL_CONTROLLER_BUTTON_DPAD_LEFT, 10);
             bind_button(SDL_CONTROLLER_BUTTON_DPAD_RIGHT, 11);
+        }
 
-            haptic = SDL_HapticOpen(pad_id);
-            if (haptic)
-            {
-                rumble_supported = false;
+        haptic = SDL_HapticOpen(pad_id);
+        if (haptic)
+        {
+            rumble_supported = false;
 
-                if (SDL_HapticRumbleSupported(haptic))
-                    rumble_supported = SDL_HapticRumbleInit(haptic) != -1;
-            }
+            if (SDL_HapticRumbleSupported(haptic))
+                rumble_supported = SDL_HapticRumbleInit(haptic) != -1;
         }
     }
 

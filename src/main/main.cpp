@@ -193,7 +193,7 @@ static void tick()
             break;
     }
 
-    // Map OutRun outputs to CannonBall devices (SmartyPi Interface /Controller Rumble)
+    // Map OutRun outputs to CannonBall devices (SmartyPi Interface / Controller Rumble)
     outrun.outputs->writeDigitalToConsole();
     if (tick_frame)
     {

@@ -328,6 +328,8 @@ void Input::handle_joy(const uint8_t button, const bool is_pressed)
 
 void Input::handle_joy_hat(SDL_JoyHatEvent* evt)
 {
+    if (controller != NULL) return;
+
     keys[UP] = evt->value == SDL_HAT_UP;
     keys[DOWN] = evt->value == SDL_HAT_DOWN;
     keys[LEFT] = evt->value == SDL_HAT_LEFT;

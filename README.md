@@ -2,16 +2,13 @@ Cannonball - OutRun Engine
 ==========================
 
 * For an overview of CannonBall and its features, please read the [manual](https://github.com/djyt/cannonball/wiki).
-* I blog about retro games and other Sega history: [Reassembler Blog](http://reassembler.blogspot.co.uk/).
+* [Reassembler Blog](http://reassembler.blogspot.co.uk/)
 * [Twitter](https://twitter.com/djyt)
 
-
-Credits
--------
-
-* Chris White - Project creator.
-
 Please note that I  maintain the Windows build of CannonBall. Whilst I strive to ensure this is a fully cross-platform project that compiles across Linux, Wii, Mac, Pi4 etc. I do not maintain those ports. Port specific issues should be raised with the author of the respective ports. 
+
+Thank you! 
+Chris White (Project Creator). 
 
 
 Getting Started

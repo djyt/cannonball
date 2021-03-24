@@ -178,6 +178,7 @@ static void tick()
             }
             else
             {
+                tick_frame = true;
                 pause_engine = false;
                 outrun.init();
                 state = STATE_GAME;

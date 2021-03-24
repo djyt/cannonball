@@ -1,6 +1,8 @@
 Cannonball - OutRun Engine
 ==========================
 
+CannonBall is an souped up game engine for the OutRun arcade game. The original 68000 and Z80 assembler code has been rewritten in C++. This makes it possible to make improvements suitable for modern platforms, including a higher frame-rate and widescreen support. It requires the original ROMs, as these contain elements including the graphics and audio data. 
+
 * For an overview of CannonBall and its features, please read the [manual](https://github.com/djyt/cannonball/wiki).
 * [Reassembler Blog](http://reassembler.blogspot.co.uk/)
 * [Twitter](https://twitter.com/djyt)

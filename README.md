@@ -1,7 +1,10 @@
 Cannonball - OutRun Engine
 ==========================
 
-See [Reassembler Blog](http://reassembler.blogspot.co.uk/).
+* For an overview of CannonBall and its features, please read the [manual](https://github.com/djyt/cannonball/wiki).
+* I blog about retro games and other Sega history: [Reassembler Blog](http://reassembler.blogspot.co.uk/).
+* [Twitter](https://twitter.com/djyt)
+
 
 Credits
 -------

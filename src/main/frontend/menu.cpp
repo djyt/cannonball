@@ -149,12 +149,19 @@ void Menu::populate_controls()
         menu_controls.clear();
 
     menu_controls.push_back(ENTRY_GEAR);
-    if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
+    if (input.gamepad) menu_controls.push_back(ENTRY_CONFIGUREGP);
     menu_controls.push_back(ENTRY_REDEFKEY);
-    if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
     menu_controls.push_back(ENTRY_DSTEER);
     menu_controls.push_back(ENTRY_DPEDAL);
     menu_controls.push_back(ENTRY_BACK);
+
+    if (menu_controls_gp.size() > 0)
+        menu_controls_gp.clear();
+
+    menu_controls_gp.push_back(ENTRY_ANALOG);
+    if (input.rumble_supported) menu_controls_gp.push_back(ENTRY_RUMBLE);
+    menu_controls_gp.push_back(ENTRY_REDEFJOY);
+    menu_controls_gp.push_back(ENTRY_BACK);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -431,7 +438,7 @@ void Menu::tick_menu()
         if (--cursor < 0)
             cursor = (int)menu_selected->size() - 1;
     }
-    else if (input.has_pressed(Input::ACCEL) || input.has_pressed(Input::START) || oinputs.is_analog_select())
+    else if (select_pressed())
     {
         // Get option that was selected
         const char* OPTION = menu_selected->at(cursor).c_str();
@@ -533,9 +540,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_SCORES))        display_message(config.clear_scores() ? "SCORES CLEARED" : "NO SAVED SCORES FOUND!");
             else if (SELECTED(ENTRY_CONTROLS))
             {
-                if (input.gamepad)
-                    display_message("GAMEPAD FOUND");
-
+                display_message(input.gamepad ? "GAMEPAD FOUND" : "NO GAMEPAD FOUND!");
                 populate_controls();
                 set_menu(&menu_controls);
             }
@@ -698,26 +703,14 @@ void Menu::tick_menu()
                 if (++config.controls.gear > config.controls.GEAR_AUTO)
                     config.controls.gear = config.controls.GEAR_BUTTON;
             }
-            else if (SELECTED(ENTRY_ANALOG))
-            {
-                if (++config.controls.analog == 3)
-                    config.controls.analog = 0;
-                input.analog = config.controls.analog;
-            }
+            else if (SELECTED(ENTRY_CONFIGUREGP))
+                set_menu(&menu_controls_gp);
             else if (SELECTED(ENTRY_REDEFKEY))
             {
                 display_message("PRESS MENU TO END AT ANY STAGE");
                 state = STATE_REDEFINE_KEYS;
                 redef_state = 0;
                 input.key_press = -1;
-            }
-            else if (SELECTED(ENTRY_REDEFJOY))
-            {
-                //display_message("PRESS MENU TO END AT ANY STAGE");
-                state = STATE_REDEFINE_JOY;
-                redef_state = 0; 
-                input.joy_button = -1;
-                input.reset_axis_config();
             }
             else if (SELECTED(ENTRY_DSTEER))
             {
@@ -731,6 +724,30 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings, true);
+        }
+        else if (menu_selected == &menu_controls_gp)
+        {
+            if (SELECTED(ENTRY_ANALOG))
+            {
+                if (++config.controls.analog == 3)
+                    config.controls.analog = 0;
+                input.analog = config.controls.analog;
+            }
+            else if (SELECTED(ENTRY_RUMBLE))
+            {
+                config.controls.rumble += 0.25f;
+                if (config.controls.rumble > 1.0f) config.controls.rumble = 0;
+            }
+            else if (SELECTED(ENTRY_REDEFJOY))
+            {
+                //display_message("PRESS MENU TO END AT ANY STAGE");
+                state = STATE_REDEFINE_JOY;
+                redef_state = 0;
+                input.joy_button = -1;
+                input.reset_axis_config();
+            }
+            else if (SELECTED(ENTRY_BACK))
+                set_menu(&menu_controls, true);
         }
         else if (menu_selected == &menu_engine)
         {
@@ -760,6 +777,16 @@ void Menu::tick_menu()
         osoundint.queue_sound(sound::BEEP1);
         refresh_menu();
     }
+}
+
+bool Menu::select_pressed()
+{
+    // On a real cabinet, use START button or Accelerator to select
+    if (config.smartypi.enabled)
+        return input.has_pressed(Input::START) || oinputs.is_analog_select();
+    // On a Joystick, use START, Digital Accelerate or Gear (as it's probably mapped to Button A)
+    else
+        return input.has_pressed(Input::START) || input.has_pressed(Input::ACCEL) || input.has_pressed(Input::GEAR1);
 }
 
 // Set Current Menu
@@ -821,9 +848,13 @@ void Menu::refresh_menu()
         else if (menu_selected == &menu_controls)
         {
             if (SELECTED(ENTRY_GEAR))               set_menu_text(ENTRY_GEAR, GEAR_LABELS[config.controls.gear]);
-            else if (SELECTED(ENTRY_ANALOG))        set_menu_text(ENTRY_ANALOG, ANALOG_LABELS[config.controls.analog]);
             else if (SELECTED(ENTRY_DSTEER))        set_menu_text(ENTRY_DSTEER, Utils::to_string(config.controls.steer_speed));
             else if (SELECTED(ENTRY_DPEDAL))        set_menu_text(ENTRY_DPEDAL, Utils::to_string(config.controls.pedal_speed));
+        }
+        else if (menu_selected == &menu_controls_gp)
+        {
+            if (SELECTED(ENTRY_ANALOG))             set_menu_text(ENTRY_ANALOG, ANALOG_LABELS[config.controls.analog]);
+            else if (SELECTED(ENTRY_RUMBLE))        set_menu_text(ENTRY_RUMBLE, RUMBLE_LABELS[(int)(config.controls.rumble / 0.25f)]);
         }
         else if (menu_selected == &menu_engine || menu_selected == &menu_dips)
         {

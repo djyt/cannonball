@@ -197,8 +197,7 @@ static void tick()
     outrun.outputs->writeDigitalToConsole();
     if (tick_frame)
     {
-        if (config.controls.rumble)
-            input.set_rumble(outrun.outputs->is_set(OOutputs::D_MOTOR));
+         input.set_rumble(outrun.outputs->is_set(OOutputs::D_MOTOR), config.controls.rumble);
     }
 }
 

@@ -70,11 +70,15 @@ const static char* ENTRY_MUSICTEST = "MUSIC TEST";
 
 // Controls Menu
 const static char* ENTRY_GEAR = "GEAR ";
-const static char* ENTRY_ANALOG = "ANALOG ";
-const static char* ENTRY_REDEFJOY = "REDEFINE GAMEPAD";
+const static char* ENTRY_CONFIGUREGP = "CONFIGURE GAMEPAD";
 const static char* ENTRY_REDEFKEY = "REDEFINE KEYS";
 const static char* ENTRY_DSTEER = "DIGITAL STEER SPEED ";
 const static char* ENTRY_DPEDAL = "DIGITAL PEDAL SPEED ";
+
+// GamePad Menu
+const static char* ENTRY_ANALOG = "ANALOG ";
+const static char* ENTRY_RUMBLE = "RUMBLE STRENGTH ";
+const static char* ENTRY_REDEFJOY = "REDEFINE GAMEPAD";
 
 // Game Engine Menu
 const static char* ENTRY_TRACKS = "TRACKS ";
@@ -95,3 +99,4 @@ const static char* GEAR_LABELS[4] = {"MANUAL", "MANUAL CABINET", "MANUAL 2 BUTTO
 const static char* FPS_LABELS[3] = { "30 FPS", "ORIGINAL", "60 FPS" };
 const static char* ANALOG_LABELS[3] = { "OFF", "ON", "ON WHEEL ONLY" };
 const static char* VIDEO_LABELS[3] = { "OFF", "ON", "STRETCH" };
+const static char* RUMBLE_LABELS[5] = { "OFF", "LOW", "MED", "HIGH", "FULL" };

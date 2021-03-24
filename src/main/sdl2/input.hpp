@@ -42,6 +42,9 @@ public:
     // Has gamepad been found?
     bool gamepad;
 
+    // Gamepad supports rumble?
+    int rumble_supported;
+
     // Use analog controls
     int analog;
 
@@ -78,7 +81,7 @@ public:
     bool has_pressed(presses p);
     void reset_axis_config();
     int get_axis_config();
-    void set_rumble(bool);
+    void set_rumble(bool, float strength = 1.0f);
 
 private:
     static const int CENTRE = 0x80;
@@ -99,8 +102,6 @@ private:
 
     // Last axis used
     int axis_last , axis_counter, axis_config;
-
-    int rumble_supported;
 
     void bind_axis(SDL_GameControllerAxis ax, int offset);
     void bind_button(SDL_GameControllerButton button, int offset);

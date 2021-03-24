@@ -133,7 +133,9 @@
     <!-- Use the N'th joystick on the system. -->
     <pad_id>0</pad_id>
     
-    <!-- Use simple rumble effect if supported on controller (not to be confused with force feedback) -->
+    <!-- Use simple rumble effect if supported on controller (not to be confused with force feedback) 
+         This is a value between 0 and 1.0 [0 = off, 1 = full]
+    -->
     <rumble>1</rumble>
     
     <!-- Keyboard Button Configuration. Easiest to configure with inbuilt menu. -->
@@ -179,7 +181,7 @@
          1 = On
          2 = Wheel Only
     -->
-    <analog enabled="0">
+    <analog enabled="1">
         <!-- Select axis for analog controls             
              Set these values to -1 to attempt to auto-detect the axis on first boot.
           -->
@@ -198,8 +200,9 @@
             <!-- Dead Zone In Centre Of Wheel. Total Wheel Range = 128
                  A Dead zone is useful if the centre accuracy of your wheel is poor.
                  A good Logitech Racing wheel should not need this -->
-            <dead>0</dead>
+            <dead>16</dead>
         </wheel>
+        
         <!-- Force Feedback / Haptic Support (For Gamepads, use the simple rumble support instead -->
         <haptic enabled="0">
             <!-- Make both of the below values negative, 

@@ -75,6 +75,7 @@ private:
     std::vector<std::string> menu_video;
     std::vector<std::string> menu_sound;
     std::vector<std::string> menu_controls;
+    std::vector<std::string> menu_controls_gp;
     std::vector<std::string> menu_engine;
     std::vector<std::string> menu_musictest;
     std::vector<std::string> menu_exsettings;       // smartypi specific
@@ -91,6 +92,7 @@ private:
     void draw_menu_options();
     void draw_text(std::string);
     void tick_menu();
+    bool select_pressed();
     void set_menu(std::vector<std::string>*, bool back = false);
     void refresh_menu();
     void set_menu_text(std::string s1, std::string s2);

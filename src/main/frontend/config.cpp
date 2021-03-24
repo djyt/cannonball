@@ -134,7 +134,7 @@ void Config::load()
     controls.gear          = pt_config.get("controls.gear", 0);
     controls.steer_speed   = pt_config.get("controls.steerspeed", 3);
     controls.pedal_speed   = pt_config.get("controls.pedalspeed", 4);
-    controls.rumble        = pt_config.get("controls.rumble", 1);
+    controls.rumble        = pt_config.get("controls.rumble", 1.0f);
     controls.keyconfig[0]  = pt_config.get("controls.keyconfig.up",    273);
     controls.keyconfig[1]  = pt_config.get("controls.keyconfig.down",  274);
     controls.keyconfig[2]  = pt_config.get("controls.keyconfig.left",  276);
@@ -159,7 +159,7 @@ void Config::load()
     controls.padconfig[9]  = pt_config.get("controls.padconfig.down",  -1);
     controls.padconfig[10] = pt_config.get("controls.padconfig.left",  -1);
     controls.padconfig[11] = pt_config.get("controls.padconfig.right", -1);
-    controls.analog        = pt_config.get("controls.analog.<xmlattr>.enabled", 0);
+    controls.analog        = pt_config.get("controls.analog.<xmlattr>.enabled", 1);
     controls.pad_id        = pt_config.get("controls.pad_id", 0);
     controls.axis[0]       = pt_config.get("controls.analog.axis.wheel", -1);
     controls.axis[1]       = pt_config.get("controls.analog.axis.accel", -1);
@@ -226,6 +226,7 @@ bool Config::save()
         pt_config.put("smartypi.cabinet",     config.smartypi.cabinet);
 
     pt_config.put("controls.gear",            controls.gear);
+    pt_config.put("controls.rumble",          controls.rumble);
     pt_config.put("controls.steerspeed",      controls.steer_speed);
     pt_config.put("controls.pedalspeed",      controls.pedal_speed);
     pt_config.put("controls.keyconfig.up",    controls.keyconfig[0]);

@@ -355,12 +355,12 @@ void Input::handle_joy_hat(SDL_JoyHatEvent* evt)
     keys[RIGHT] = evt->value == SDL_HAT_RIGHT;
 }
 
-void Input::set_rumble(bool enable)
+void Input::set_rumble(bool enable, float strength)
 {
-    if (haptic == NULL || !rumble_supported) return;
+    if (haptic == NULL || !rumble_supported || strength == 0) return;
 
     if (enable)
-        SDL_HapticRumblePlay(haptic, 1.0f, 1000 / 30);
+        SDL_HapticRumblePlay(haptic, strength, 1000 / 30);
     else
         SDL_HapticRumbleStop(haptic);
 }

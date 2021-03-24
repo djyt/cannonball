@@ -22,7 +22,7 @@ CannonBall can use OpenGL, OpenGLES (mobile platforms) or plain SDL2 for renderi
 
 I have recently deprecated support for SDL 1, to focus on SDL 2. But feel free to grab an older version from github if you need it. 
 
-* Install your favourite C++ environment (e.g. GCC, Visual Studio, Xcode, MingGW etc.)
+* Install your favourite C++11 environment (e.g. GCC, Visual Studio, Xcode, MingGW etc.)
 * Install [CMake](http://www.cmake.org/). This generates your platform and compiler build files. 
 * Extract the [Boost Library](http://www.boost.org/) somewhere, for example: c:\coding\lib\boost_1_74_0
 * Extract the [SDL Development Library](https://www.libsdl.org/download-2.0.php) somewhere, for example: c:\coding\lib\SDL2-2.0.12
@@ -45,7 +45,7 @@ Build
 * Open the created CannonBall solution in VS 2019. 
 * Right click and choose 'Set as StartUp project'. 
 * Set working directory to something sensible. Right click -> Configuration properties -> Debugging
-* Copy SDL2.DLL and the roms subdirectory to the working directory.
-* Ensure config.xml and the res subdirectory are in the working directory. 
-* Copy the OutRun revision B romset to the roms subdirectory. Rename the files if necessary.
+* Ensure config.xml is in the working directory. _You can specify an alternate location on the command line_
+* Edit config.xml to reflect the paths of your roms and res directories. By default, they should be in the working directory.
+* Copy the OutRun revision B romset to the roms subdirectory. 
 * You can then compile, debug and run from Visual Studio as expected.

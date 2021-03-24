@@ -108,7 +108,7 @@ void Outrun::tick(bool tick_frame)
 {
     this->tick_frame = tick_frame;
     
-    if (cannonball::tick_frame)
+    if (tick_frame)
         tick_counter++;
 
     if (game_state >= GS_START1 && game_state <= GS_INGAME)
@@ -143,7 +143,7 @@ void Outrun::tick(bool tick_frame)
     // Updates V-Blank 1/1 frames
     else if (config.fps == 60 && config.tick_fps == 30)
     {
-        if (cannonball::tick_frame)
+        if (tick_frame)
         {
             jump_table();
             oroad.tick();

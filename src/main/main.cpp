@@ -142,9 +142,13 @@ static void tick()
     process_events();
 
     if (tick_frame)
-        oinputs.tick(); // Do Controls
-    oinputs.do_gear();        // Digital Gear
-
+    {
+        oinputs.tick();           // Do Controls
+        oinputs.do_gear();        // Digital Gear
+    }
+    else if (config.fps == 60 && config.tick_fps == 60)
+        oinputs.do_gear();
+     
     switch (state)
     {
         case STATE_GAME:
@@ -156,7 +160,14 @@ static void tick()
             if (!pause_engine || input.has_pressed(Input::STEP))
             {
                 outrun.tick(tick_frame);
-                input.frame_done(); // Denote keys read
+                if (config.fps == 60 && config.tick_fps == 30)
+                {
+                    if (tick_frame) input.frame_done();
+                }
+                else
+                {
+                    input.frame_done(); // Denote keys read
+                }
                 osoundint.tick();
             }
             else

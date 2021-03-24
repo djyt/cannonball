@@ -8,7 +8,7 @@ Credits
 
 * Chris White - Project creator.
 
-Please note that I do not maintain the ports of CannonBall (Linux, Mac, Wii etc.) so please do not raise issues for these, but instead speak to the respective port authors. 
+Please note that I  maintain the Windows build of CannonBall. Whilst I strive to ensure this is a fully cross-platform project that compiles across Linux, Wii, Mac, Pi4 etc. I do not maintain those ports. Port specific issues should be raised with the author of the respective ports. 
 
 
 Getting Started

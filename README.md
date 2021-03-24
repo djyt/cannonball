@@ -5,7 +5,7 @@ Cannonball - OutRun Engine
 * [Reassembler Blog](http://reassembler.blogspot.co.uk/)
 * [Twitter](https://twitter.com/djyt)
 
-Please note that I  maintain the Windows build of CannonBall. Whilst I strive to ensure this is a fully cross-platform project that compiles across Linux, Wii, Mac, Pi4 etc. I do not maintain those ports. Port specific issues should be raised with the author of the respective ports. 
+Please note that I  maintain the Windows build of CannonBall. Whilst I strive to ensure this is a fully cross-platform project that compiles across Linux, Wii, Mac, Pi4 etc. I do not maintain those ports. Port specific issues should be raised with the respective person. 
 
 Thank you! 
 Chris White (Project Creator). 

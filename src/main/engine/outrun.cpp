@@ -109,17 +109,19 @@ void Outrun::tick(bool tick_frame)
     this->tick_frame = tick_frame;
     
     if (tick_frame)
+    {
         tick_counter++;
 
-    if (game_state >= GS_START1 && game_state <= GS_INGAME)
-    {
-        if (input.has_pressed(Input::VIEWPOINT))
+        if (game_state >= GS_START1 && game_state <= GS_INGAME)
         {
-            int mode = oroad.get_view_mode() + 1;
-            if (mode > ORoad::VIEW_INCAR)
-                mode = ORoad::VIEW_ORIGINAL;
+            if (input.has_pressed(Input::VIEWPOINT))
+            {
+                int mode = oroad.get_view_mode() + 1;
+                if (mode > ORoad::VIEW_INCAR)
+                    mode = ORoad::VIEW_ORIGINAL;
 
-            oroad.set_view_mode(mode);
+                oroad.set_view_mode(mode);
+            }
         }
     }
 
@@ -209,7 +211,7 @@ void Outrun::jump_table()
 
 
         case GS_MUSIC:
-            omusic.check_start(); // Check for start button
+            if (tick_frame) omusic.check_start(); // Check for start button
             osprites.tick();
             olevelobjs.do_sprite_routine();
 
@@ -239,12 +241,12 @@ void Outrun::jump_table()
         // Core Game Engine Routines
         // ----------------------------------------------------------------------------------------
         case GS_LOGO:
-            if (!cannonball::tick_frame)
+            if (!tick_frame)
                 ologo.blit();
 
         case GS_ATTRACT:
         case GS_BEST1:
-            check_freeplay_start();
+            if (tick_frame) check_freeplay_start();
         
         default:
             if (tick_frame) osprites.tick();                // Address #3 Jump_SetupSprites

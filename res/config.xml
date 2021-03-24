@@ -82,7 +82,7 @@
     <preview>1</preview>
     
     <!-- OutRun shipped with a corrupt PCM sample ROM. This uses the repaired ROM 'opr-10188.71f' -->
-    <fix_samples>1</fix_samples>
+    <fix_samples>0</fix_samples>
     
     <!-- Custom Music: Play a WAV file instead of the inbuilt music. Place WAVs in the same folder as the executable. -->
     <custom_music>

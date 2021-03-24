@@ -238,7 +238,7 @@
     -->
     <traffic>1</traffic>
     <!-- Freeplay Mode -->
-    <freeplay>0</freeplay>
+    <freeplay>1</freeplay>
     <!-- The original Japanese release of OutRun featured slightly different
          tracks and course ordering. 
          

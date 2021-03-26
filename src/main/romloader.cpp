@@ -36,13 +36,15 @@ static bool map_created;
 
 RomLoader::RomLoader()
 {
+    rom = NULL;
     map_created = false;
     loaded = false;
 }
 
 RomLoader::~RomLoader()
 {
-
+    if (rom != NULL)
+        delete[] rom;
 }
 
 void RomLoader::init(const uint32_t length)
@@ -57,6 +59,7 @@ void RomLoader::init(const uint32_t length)
 void RomLoader::unload(void)
 {
     delete[] rom;
+    rom = NULL;
 }
 
 // ------------------------------------------------------------------------------------------------

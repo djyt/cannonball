@@ -20,6 +20,7 @@ namespace sound
         RESET  = 0x80,           // Reset sound code
         MUSIC_BREEZE = 0x81,     // Music: Passing Breeze
         MUSIC_SPLASH = 0x82,     // Music: Splash Wave
+        MUSIC_CUSTOM = 0x83,     // Enhancement: Play Custom Imported Data
         COIN_IN = 0x84,          // Coin IN Effect
         MUSIC_MAGICAL = 0x85,    // Music: Magical Sound Shower
         YM_CHECKPOINT = 0x86,    // YM: Checkpoint Ding
@@ -49,9 +50,6 @@ namespace sound
         // 0xA3 Unused - Should be voice 4, but isn't hooked up
         PCM_WAVE         = 0xA4, // Wave Sample
         MUSIC_LASTWAVE   = 0xA5, // Music: Last Wave
-        MUSIC_BREEZE2    = 0xB0, // Enhancement: Play new music in-game without triggering rev effect
-        MUSIC_MAGICAL2   = 0xB1,
-        MUSIC_SPLASH2    = 0xB2,
     };
 
     // ----------------------------------------------------------------------------

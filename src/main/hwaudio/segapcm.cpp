@@ -84,11 +84,11 @@ SegaPCM::~SegaPCM()
     delete[] low;
 }
 
-void SegaPCM::init(int32_t fps)
+void SegaPCM::init(int32_t rate, int32_t fps)
 {
-    int FREQ = 44100;
-    downsample = (32000.0 / (double) FREQ);
-    SoundChip::init(STEREO, FREQ, fps);
+    this->sample_freq = rate;
+    downsample = (32000.0 / (double) rate);
+    SoundChip::init(STEREO, rate, fps);
 }
 
 void SegaPCM::stream_update()

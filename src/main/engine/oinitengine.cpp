@@ -526,24 +526,7 @@ void OInitEngine::check_stage()
             if (outrun.game_state == GS_INGAME)
             {
                 if (ostats.cur_stage == 5 || ostats.cur_stage == 10)
-                {
-                    switch (omusic.music_selected)
-                    {
-                        // Cycle in-built sounds
-                        case sound::MUSIC_BREEZE:
-                            omusic.music_selected = sound::MUSIC_SPLASH;
-                            osoundint.queue_sound(sound::MUSIC_SPLASH2); // Play without rev effect
-                            break;
-                        case sound::MUSIC_SPLASH:
-                            omusic.music_selected = sound::MUSIC_MAGICAL;
-                            osoundint.queue_sound(sound::MUSIC_MAGICAL2); // Play without rev effect
-                            break;
-                        case sound::MUSIC_MAGICAL:
-                            omusic.music_selected = sound::MUSIC_BREEZE;
-                            osoundint.queue_sound(sound::MUSIC_BREEZE2); // Play without rev effect
-                            break;
-                    }                 
-                }
+                    omusic.cycle_music();
             }              
         }
     }

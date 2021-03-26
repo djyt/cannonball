@@ -317,9 +317,7 @@ void Outrun::main_switch()
             ostats.frame_counter = ostats.frame_reset;
             ohiscore.init();
             osoundint.queue_sound(sound::FM_RESET);
-            #ifdef COMPILE_SOUND_CODE
             cannonball::audio.clear_wav();
-            #endif
             game_state = GS_BEST1;
 
         case GS_BEST1:
@@ -396,16 +394,18 @@ void Outrun::main_switch()
             oroad.tick();
             osoundint.queue_sound(sound::STOP_CHEERS);
             osoundint.queue_sound(sound::VOICE_GETREADY);
+            osoundint.queue_sound(sound::REVS);             // Moved from Z80 Code for extra flexibility
             
-            #ifdef COMPILE_SOUND_CODE
+            /*#ifdef COMPILE_SOUND_CODE
             if (omusic.music_selected >= 0 && omusic.music_selected <= 2)
             {
-                cannonball::audio.load_wav(config.sound.custom_music[omusic.music_selected].filename.c_str());
+                cannonball::audio.load_wav(config.sound.music[omusic.music_selected].filename.c_str());
                 osoundint.queue_sound(sound::REVS); // queue revs sound manually
             }
             else
             #endif
-                osoundint.queue_sound(omusic.music_selected);
+                osoundint.queue_sound(omusic.music_selected);*/
+            omusic.play_music();
             
             if (!freeze_timer)
                 ostats.time_counter = ostats.TIME[config.engine.dip_time * 40]; // Set time to begin level with
@@ -562,9 +562,7 @@ void Outrun::main_switch()
             ohiscore.init();
             osoundint.queue_sound(sound::NEW_COMMAND);
             osoundint.queue_sound(sound::FM_RESET);
-            #ifdef COMPILE_SOUND_CODE
             cannonball::audio.clear_wav();
-            #endif
             game_state = GS_BEST2;
             // fall through
 

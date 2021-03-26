@@ -97,6 +97,9 @@ namespace z80_adr
     // PCM: Wave Sample
     const static uint16_t DATA_WAVE = 0x748B;
 
+    // Enhancement: Add Custom Music Data To End Of Z80 ROM
+    const static uint16_t DATA_CUSTOM = 0x84B9;
+
     // Engine Tone Table. 5 Bytes per entry.
     // Engine Note: Start Address Low, Start Address High, Volume Multiplier, Unknown, Pitch
     const static uint16_t ENGINE_ADR_TABLE = 0x7951;

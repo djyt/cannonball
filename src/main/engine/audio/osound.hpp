@@ -97,7 +97,7 @@ namespace channel
 //+0x00: [Byte] Flags e65--cn-
 //              n = FM noise channel (1 = yes, 0 = no)
 //              c = Corresponding music channel is enabled
-//              5 = Code exists to support this being set. But OutRun doesn't use it. Not sure of it's purpose.
+//              5 = Pitch Bend (Only used by Step On Beat track, not the standard music)
 //              6 = ???
 //              e = channel enable (1 = active, 0 = disabled). 
 //+0x01: [Byte] Flags -m---ccc
@@ -203,6 +203,36 @@ namespace ch_engines
         PITCH_H = 0x05,
         VOL6    = 0x06,
         ACTIVE  = 0x08,
+    };
+};
+
+// MML Command Languge Defines
+namespace mml
+{
+    enum
+    {
+        TEMPO            = 0x01, // change tempo of track(only possible for non - FIXED_TEMPO tracks)
+        SAMPLE_LEVEL	 = 0x02, // set sample left / right volume
+        SEAMLESS		 = 0x03, // make use of unused command $83 for 'seamless' note transitions
+        END_FM_TRACK	 = 0x04, // end playback of this FM track(DO NOT USE ON PCM TRACKS)
+        NOISE_ON		 = 0x05, // set noise bit(only works on FM track 7)
+        SET_TL		     = 0x06, // only partially working(can't use bits 0 and 1)
+        KEY_FRACTIONS	 = 0x07, // little to no audible difference
+        CALL		     = 0x08, // call a subroutine
+        RET			     = 0x09, // return from a subroutine
+        LOOP_FOREVER	 = 0x0a, // self explanatory
+        TRANSPOSE		 = 0x0b, // transpose subsequent notes up or down
+        LOOP		     = 0x0c, // loop n number of times(allows nested loops via second parameter)
+        PITCH_BEND_START = 0x0d, // pitch bend start
+        PITCH_BEND_END	 = 0x0e, // pitch bend AND 'seamless' end
+        LOAD_PATCH		 = 0x11, // load new FM patch data into the sound chip registers
+        NOISE_OFF		 = 0x12, // clear noise bit(set by cmd $85)
+        VOICE_PITCH		 = 0x13, // set pitch of PCM voice like 'Checkpoint' or 'Get Ready'
+        FIXED_TEMPO		 = 0x14, // note duration is read directly from track rather than being computed
+        LONG		     = 0x15, // used for 'long' notes, restsand percussion samples
+        RIGHT_CH_ONLY	 = 0x16, // send FM output to right channel / speaker only
+        LEFT_CH_ONLY	 = 0x17, // send FM output to left channel / speaker only
+        BOTH_CH		     = 0x18, // send FM output to both channels / speakers
     };
 };
 
@@ -352,7 +382,7 @@ private:
     void process_channel(uint16_t chan_id);
     void process_section(uint8_t* chan);
     void calc_end_marker(uint8_t* chan);
-    void do_command(uint8_t* chan, uint8_t cmd);
+    void next_mml_cmd(uint8_t* chan, uint8_t cmd);
     void new_command();
     void play_pcm_index(uint8_t* chan, uint8_t cmd);
     void setvol(uint8_t* chan);
@@ -370,12 +400,12 @@ private:
     void fm_write_reg(uint8_t reg, uint8_t value);
     void fm_write_block(uint8_t ix0, uint16_t adr, uint8_t chan);
     void ym_set_levels();
-    void ym_set_block(uint8_t* chan);
+    void ym_load_patch(uint8_t* chan);
     uint16_t ym_lookup_data(uint8_t cmd, uint8_t offset, uint8_t block);
     void ym_set_connect(uint8_t* chan, uint8_t pan);
-    void ym_finalize(uint8_t* chan);
+    void ym_end_track(uint8_t* chan);
     void read_mod_table(uint8_t* chan);
-    void write_seq_adr(uint8_t* chan);
+    void call_adr(uint8_t* chan);
 
     // ------------------------------------------------------------------------
     // ENGINE TONE FUNCTIONS

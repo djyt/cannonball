@@ -18,6 +18,7 @@
 #include "engine/oinputs.hpp"
 #include "engine/osprites.hpp"
 #include "engine/ologo.hpp"
+#include "engine/omusic.hpp"
 #include "engine/opalette.hpp"
 #include "engine/otiles.hpp"
 
@@ -67,8 +68,6 @@ void Menu::populate()
 
     menu_musictest.push_back(ENTRY_MUSIC1);
     menu_musictest.push_back(ENTRY_MUSIC2);
-    menu_musictest.push_back(ENTRY_MUSIC3);
-    menu_musictest.push_back(ENTRY_MUSIC4);
     menu_musictest.push_back(ENTRY_BACK);
 
     menu_about.push_back("CANNONBALL 0.32 © CHRIS WHITE 2021");
@@ -596,7 +595,10 @@ void Menu::tick_menu()
                 state = STATE_DIAGNOSTICS; return;
             }
             else if (SELECTED(ENTRY_MUSICTEST))
+            {
+                music_track = 0;
                 set_menu(&menu_musictest);
+            }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_main, true);
         }
@@ -623,7 +625,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_OBJECTS))       config.engine.level_objects ^= 1;
             else if (SELECTED(ENTRY_PROTOTYPE))     config.engine.prototype ^= 1;
             else if (SELECTED(ENTRY_S_BUGS))        config.engine.fix_bugs ^= 1;
-            else if (SELECTED(ENTRY_S_TIMER))        config.engine.fix_timer ^= 1;
+            else if (SELECTED(ENTRY_S_TIMER))       config.engine.fix_timer ^= 1;
             else if (SELECTED(ENTRY_BACK))          set_menu(&menu_exsettings, true);
         }
         else if (menu_selected == &menu_video)
@@ -692,7 +694,10 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_PREVIEWSND))
                 config.sound.preview ^= 1;
             else if (SELECTED(ENTRY_MUSICTEST))
+            {
+                music_track = 0;
                 set_menu(&menu_musictest);
+            }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings, true);
         }
@@ -761,12 +766,27 @@ void Menu::tick_menu()
         }
         else if (menu_selected == &menu_musictest)
         {
-            if (SELECTED(ENTRY_MUSIC1))         osoundint.queue_sound(sound::MUSIC_MAGICAL);
-            else if (SELECTED(ENTRY_MUSIC2))    osoundint.queue_sound(sound::MUSIC_BREEZE);
-            else if (SELECTED(ENTRY_MUSIC3))    osoundint.queue_sound(sound::MUSIC_SPLASH);
-            else if (SELECTED(ENTRY_MUSIC4))    osoundint.queue_sound(sound::MUSIC_LASTWAVE);
+            if (SELECTED(ENTRY_MUSIC1))
+            {
+                osoundint.queue_sound(sound::FM_RESET);
+
+                // Last Wave
+                if (music_track == config.sound.music.size())
+                {
+                    cannonball::audio.clear_wav();
+                    osoundint.queue_sound(sound::MUSIC_LASTWAVE);
+                }
+                // Everything Else
+                else
+                    omusic.play_music(music_track);
+            }
+            else if (SELECTED(ENTRY_MUSIC2))
+            {
+                if (++music_track > config.sound.music.size()) music_track = 0;
+            }
             else if (SELECTED(ENTRY_BACK))
             {
+                cannonball::audio.clear_wav();
                 osoundint.queue_sound(sound::FM_RESET);
                 set_menu(config.smartypi.enabled ? &menu_tests : &menu_sound, true);
             }
@@ -884,6 +904,10 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_PROTOTYPE))     set_menu_text(ENTRY_PROTOTYPE, config.engine.prototype ? "ON" : "OFF");
             else if (SELECTED(ENTRY_S_BUGS))        set_menu_text(ENTRY_S_BUGS, config.engine.fix_bugs ? "ON" : "OFF");
             else if (SELECTED(ENTRY_S_TIMER))       set_menu_text(ENTRY_S_TIMER, config.engine.fix_timer ? "ON" : "OFF");
+        }
+        else if (menu_selected == &menu_musictest)
+        {
+            if (SELECTED(ENTRY_MUSIC2))             set_menu_text(ENTRY_MUSIC2, music_track >= config.sound.music.size() ? ENTRY_MUSIC3 : config.sound.music.at(music_track).title);
         }
     }
     cursor = cursor_backup;

@@ -5,6 +5,8 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <iostream>
+#include <cstring>
 #include "stdint.hpp"
 #include "roms.hpp"
 
@@ -70,7 +72,8 @@ bool Roms::load_revb_roms(bool fixed_rom)
     status += LOAD(sprites, ("mpr-10378.16", 0x080003, 0x20000, 0xa1062984, RomLoader::INTERLEAVE4));
 
     // Load Z80 Sound ROM
-    z80.init(0x08000);
+    // Note: This is a deliberate decision to double the Z80 ROM Space to accomodate extra FM based music
+    z80.init(0x10000);
     status += LOAD(z80, ("epr-10187.88", 0x0000, 0x08000, 0xa10abaa9, RomLoader::NORMAL));
 
     // Load Sega PCM Chip Samples
@@ -117,4 +120,23 @@ bool Roms::load_japanese_roms()
 bool Roms::load_pcm_rom(bool fixed_rom)
 {
     return LOAD(pcm, (fixed_rom ? "opr-10188.71f" : "opr-10188.71", 0x50000, 0x08000, fixed_rom ? 0x37598616 : 0xbad30ad9, RomLoader::NORMAL)) == 0;
+}
+
+bool Roms::load_ym_data(const char* filename)
+{
+    RomLoader data;
+    if (data.load_binary(filename) == 0)
+    {
+        if (data.length < 0x8000)
+        {
+            memcpy(z80.rom + 0x8000, data.rom, data.length);
+            data.unload();
+            return true;
+        }
+        else
+        {
+            std::cout << "YM Data is too large: " << filename << std::endl;
+        }
+    }
+    return false;
 }

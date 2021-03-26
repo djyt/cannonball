@@ -25,6 +25,10 @@ X More cars seem to be high pitched than on MAME. (Fixed - engine channel setup)
 // Enable Unused code block warnings
 //#define UNUSED_WARNINGS 1
 
+#ifdef UNUSED_WARNINGS
+#include <iostream>
+#endif
+
 using namespace z80_adr;
 
 OSound::OSound()
@@ -134,16 +138,14 @@ void OSound::process_command()
                 break;
 
             case sound::MUSIC_BREEZE:
-                sound_props |= BIT_0; // Trigger rev effect
-            case sound::MUSIC_BREEZE2:
+                //sound_props |= BIT_0; // Trigger rev effect (moved into 68k code)
                 cmd = sound::MUSIC_BREEZE;
                 fm_reset();
                 init_sound(cmd, DATA_BREEZE, channel::YM1);
                 break;
 
             case sound::MUSIC_SPLASH:
-                sound_props |= BIT_0; // Trigger rev effect
-            case sound::MUSIC_SPLASH2:
+                //sound_props |= BIT_0; // Trigger rev effect (moved into 68k code)
                 cmd = sound::MUSIC_SPLASH;
                 fm_reset();
                 init_sound(cmd, DATA_SPLASH, channel::YM1);
@@ -154,8 +156,7 @@ void OSound::process_command()
                 break;
 
             case sound::MUSIC_MAGICAL:
-                sound_props |= BIT_0; // Trigger rev effect
-            case sound::MUSIC_MAGICAL2:
+                //sound_props |= BIT_0; // Trigger rev effect (moved into 68k code)
                 cmd = sound::MUSIC_MAGICAL;
                 fm_reset();
                 init_sound(cmd, DATA_MAGICAL, channel::YM1);
@@ -276,6 +277,14 @@ void OSound::process_command()
 
             case sound::MUSIC_LASTWAVE:
                 init_sound(cmd, DATA_LASTWAVE, channel::YM1);
+                break;
+
+            // Enhancement: Load New Binary Data
+            case sound::MUSIC_CUSTOM:
+                //sound_props |= BIT_0; // Trigger rev effect
+                cmd = sound::MUSIC_CUSTOM;
+                fm_reset();
+                init_sound(cmd, DATA_CUSTOM, channel::YM1);
                 break;
 
             #ifdef UNUSED_WARNINGS
@@ -481,7 +490,7 @@ void OSound::process_section(uint8_t* chan)
     cmd_prev = cmd;
     if (cmd >= 0x80)
     {
-        do_command(chan, cmd);
+        next_mml_cmd(chan, cmd);
         return;
     }
 
@@ -549,10 +558,10 @@ void OSound::calc_end_marker(uint8_t* chan)
 }
 
 
-// Trigger New Command From Sound Data.
+// Trigger New MML Command From Sound Data.
 //
 // Source: 0x3A8
-void OSound::do_command(uint8_t* chan, uint8_t cmd)
+void OSound::next_mml_cmd(uint8_t* chan, uint8_t cmd)
 {
     // Play New PCM Sample
     if (cmd >= 0xBF)
@@ -565,75 +574,82 @@ void OSound::do_command(uint8_t* chan, uint8_t cmd)
     switch (cmd & 0x3F)
     {
         // YM & PCM: Set Volume
-        case 0x02:
+        case mml::SAMPLE_LEVEL:
             setvol(chan);
             break;
 
-        case 0x04:
-            ym_finalize(chan);
+        case mml::END_FM_TRACK:
+            ym_end_track(chan);
             return;
 
         // YM: Enable/Disable Modulation table
-        case 0x07:
+        case mml::KEY_FRACTIONS:
             chan[ch::FM_PHASETBL] = roms.z80.read8(pos);
             break;
 
         // Write Sequence Address (Used by PCM Drum Samples)
-        case 0x08:
-            write_seq_adr(chan);
+        case mml::CALL:
+            call_adr(chan);
             break;
 
         // Set Next Sequence Address [pos] (Used by PCM Drum Samples)
-        case 0x09:
+        case mml::RET:
             pos = r16(&chan[chan[ch::MEM_OFFSET]]);
             chan[ch::MEM_OFFSET] += 2;
             break;
 
-        case 0x0A:
+        case mml::LOOP_FOREVER:
             set_loop_adr();
             break;
 
         // YM: Set Note/Octave Offset
-        case 0x0B:
+        case mml::TRANSPOSE:
             chan[ch::NOTE_OFFSET] += roms.z80.read8(pos);
             break;
 
-        case 0x0C:
+        // LOOP	loopNumber, loopCount, loopAddress
+        case mml::LOOP:
             do_loop(chan);
             break;
 
-        case 0x11:
-            ym_set_block(chan);
+        // Only used by Step On Beat (Switch)
+        case mml::PITCH_BEND_END:
+            chan[ch::FLAGS] &= ~BIT_5;
+            pos--;
             break;
 
-        case 0x13:
+        case mml::LOAD_PATCH:
+            ym_load_patch(chan);
+            break;
+
+        case mml::VOICE_PITCH:
             pcm_setpitch(chan);
             break;
 
-        // FM: End Marker - Do not calculate, use value from data
-        case 0x14:
+        // FM: Note duration is read directly from track rather than being computed
+        case mml::FIXED_TEMPO:
             chan[ch::FM_MARKER] |= BIT_1;
             pos--;
             break;
 
-        // FM: End Marker - Set High Byte From Data
-        case 0x15:
+        // FM: Used for 'long' notes, restsand percussion samples
+        case mml::LONG:
             chan[ch::FM_MARKER] |= BIT_0;
             pos--;
             break;
 
         // FM: Connect Channel to Right Speaker
-        case 0x16:
+        case mml::RIGHT_CH_ONLY:
             ym_set_connect(chan, PAN_RIGHT);
             break;
 
         // FM: Connect Channel to Left Speaker
-        case 0x17:
+        case mml::LEFT_CH_ONLY:
             ym_set_connect(chan, PAN_LEFT);
             break;
 
         // FM: Connect Channel to Both Speakers
-        case 0x18:
+        case mml::BOTH_CH:
             ym_set_connect(chan, PAN_CENTRE);
             break;
 
@@ -643,7 +659,7 @@ void OSound::do_command(uint8_t* chan, uint8_t cmd)
         
         #ifdef UNUSED_WARNINGS
         default:
-            std::cout << std::hex << "do_command(...) Unsupported command: " << (int16_t) cmd << " : " << (int16_t) (cmd & 0x3F) << std::endl;
+            std::cout << std::hex << "next_mml_cmd(...) Unsupported command: " << (int16_t) cmd << " : " << (int16_t) (cmd & 0x3F) << std::endl;
             break;
         #endif
     }
@@ -681,7 +697,7 @@ void OSound::setvol(uint8_t* chan)
 // Source: 0x3C4
 void OSound::pcm_setpitch(uint8_t* chan)
 {
-    // PCM Channel
+    // PCM Percussion Sample (Pitch can't be applied to voices)
     if (chan[ch::FM_FLAGS] & BIT_6)
         chan[ch::PCM_PITCH] = roms.z80.read8(pos);
 }
@@ -695,6 +711,7 @@ void OSound::set_loop_adr()
 }
 
 // Set Loop Counter For FM & PCM Data
+// LOOP	loopNumber, loopCount, loopAddress
 // Source: 0x454
 void OSound::do_loop(uint8_t* chan)
 {
@@ -725,7 +742,7 @@ void OSound::pcm_finalize(uint8_t* chan)
     memcpy(pcm_ram + 0x50, chan_ram + CH11_CMDS1, 8); // Channel 11 Blocks
     memcpy(pcm_ram + 0xD0, chan_ram + CH11_CMDS1, 8);
     
-    ym_finalize(chan);
+    ym_end_track(chan);
 }
 
 // Percussion sample properties
@@ -1080,7 +1097,7 @@ const static uint16_t FM_DATA_TABLE[] =
 {
     DATA_BREEZE,
     DATA_SPLASH,
-    0,
+    DATA_CUSTOM,
     DATA_COININ,
     DATA_MAGICAL,
     DATA_CHECKPOINT,
@@ -1120,7 +1137,7 @@ const static uint16_t FM_DATA_TABLE[] =
 // This is called first, when setting up YM Samples.
 // The global 'pos' variable stores the location of the block table.
 // Source: 0x515
-void OSound::ym_set_block(uint8_t* chan)
+void OSound::ym_load_patch(uint8_t* chan)
 {
     // Set block address
     chan[ch::FM_BLOCK] = roms.z80.read8(pos);
@@ -1165,7 +1182,7 @@ void OSound::ym_set_connect(uint8_t* chan, uint8_t pan)
 // iy = chan_ram
 //
 // Source: 0x4BF
-void OSound::ym_finalize(uint8_t* chan)
+void OSound::ym_end_track(uint8_t* chan)
 {
     // Get channel number
     uint8_t chan_index = chan[ch::FM_FLAGS] & 7;
@@ -1253,7 +1270,7 @@ void OSound::read_mod_table(uint8_t* chan)
 // 4/ hl =  Address in block + bc
 // 5/ Increment and store next 'de' value in sequence within 0x20 block
 // Source: 0x418
-void OSound::write_seq_adr(uint8_t* chan)
+void OSound::call_adr(uint8_t* chan)
 {
     uint16_t value = roms.z80.read16(pos);
     pos++;

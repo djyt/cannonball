@@ -41,6 +41,9 @@ private:
 
     TTrial* ttrial;
 
+    // Music track for music test menu
+    int music_track;
+
     // Redefine keys/joystick substate
     uint8_t redef_state;
 

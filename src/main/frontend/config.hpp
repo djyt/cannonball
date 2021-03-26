@@ -12,6 +12,7 @@
 
 #include <set>
 #include <string>
+#include <vector>
 #include "stdint.hpp"
 
 struct data_settings_t
@@ -30,9 +31,15 @@ struct data_settings_t
     std::string file_cont_jap;
 };
 
-struct custom_music_t
+struct music_t
 {
-    int enabled;
+    // Audio Format
+    const static int IS_YM_INT = 0; // Intenal YM Track (from OutRun ROMs)
+    const static int IS_YM_EXT = 1; // External YM Track (from Binary)
+    const static int IS_WAV = 2;    // External WAV Track
+    int type;
+
+    int cmd;                        // Z80 Command
     std::string title;
     std::string filename;
 };
@@ -70,10 +77,11 @@ struct video_settings_t
 struct sound_settings_t
 {
     int enabled;
+    int rate;
     int advertise;
     int preview;
     int fix_samples;
-    custom_music_t custom_music[4];
+    std::vector <music_t> music;
 };
 
 struct controls_settings_t

@@ -35,8 +35,8 @@ void OSoundInt::init()
     if (ym == NULL)
         ym = new YM2151(0.5f, SOUND_CLOCK);
 
-    pcm->init(config.fps);
-    ym->init(44100, config.fps);
+    pcm->init(config.sound.rate, config.fps);
+    ym->init(config.sound.rate, config.fps);
 
     reset();
 

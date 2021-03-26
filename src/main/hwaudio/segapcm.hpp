@@ -28,7 +28,7 @@ public:
 
     SegaPCM(uint32_t clock, RomLoader* rom, uint8_t* ram, int32_t bank);
     ~SegaPCM();
-    void init(int32_t fps);
+    void init(int32_t rate, int32_t fps);
     void stream_update();
 
 private:

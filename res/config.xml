@@ -74,6 +74,9 @@
 <sound>
     <!-- Toggle Sound -->
     <enable>1</enable>
+
+	<!-- Sample Rate (Must be supported by your audio card. Example: 48000, 44100 etc.) -->
+	<rate>48000</rate>
     
     <!-- Advertise Sound In Attract Mode -->
     <advertise>1</advertise>
@@ -84,28 +87,40 @@
     <!-- OutRun shipped with a corrupt PCM sample ROM. This uses the repaired ROM 'opr-10188.71f' -->
     <fix_samples>0</fix_samples>
     
-    <!-- Custom Music: Play a WAV file instead of the inbuilt music. Place WAVs in the same folder as the executable. -->
-    <custom_music>
-        <!-- Magical Sound Shower Replacement -->
-        <track1 enabled="0">
-            <title>MAGICAL SOUND SHOWER REMIX</title>
-            <filename>track1.wav</filename>
-        </track1>
-        <!-- Passing Breeze Replacement -->
-        <track2 enabled="0">
-            <title>PASSING BREEZE REMIX</title>
-            <filename>track2.wav</filename>
-        </track2>
-        <!-- Splash Wave Replacement -->
-        <track3 enabled="0">
-            <title>SPLASH WAVE REMIX</title>
-            <filename>track3.wav</filename>
-        </track3>
-        <track4 enabled="0">
-            <title>LAST WAVE REMIX</title>
-            <filename>track4.wav</filename>
-        </track4>
-    </custom_music>
+	<!-- Add Additional Music To Music Selection Menu.
+         
+         1/ Music should be placed in the "res" directory.
+         2/ Music should either be in .wav format (streaming) OR
+            .bin format (Native OutRun Engine Format as also used by the 3DS and Switch conversions)
+            
+         Binary files should be 32K or under. They must be ripped correctly from the 3DS/Switch Ports.
+    -->
+	<custom_music>
+		<track1 enabled="0">
+			<title>RADIATION</title>
+			<filename>switch_radiation.bin</filename>
+		</track1>
+		<track2 enabled="0">
+			<title>CRUISING LINE</title>
+			<filename>switch_cruisingline.bin</filename>
+		</track2>
+		<track3 enabled="0">
+			<title>CAMINO A MI AMOR</title>
+			<filename>switch_camino.bin</filename>
+		</track3>
+		<track4 enabled="0">
+			<title>STEP ON BEAT</title>
+			<filename>switch_steponbeat.bin</filename>
+		</track4>
+		<track5 enabled="0">
+			<title>STEP ON BEAT MEGADRIVE</title>
+			<filename>switch_steponbeat_md.bin</filename>
+		</track5>
+		<track6 enabled="0">
+			<title>MIDNIGHT HIGHWAY</title>
+			<filename>switch_midnighthighway.wav</filename>
+		</track6>
+	</custom_music>
 </sound>
 
 <!--

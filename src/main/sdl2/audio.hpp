@@ -46,9 +46,6 @@ private:
 	// Enable/Disable Sound
 	bool sound_enabled;
 	
-    // Sample Rate. Can't be changed easily for now, due to lack of SDL resampling.
-    static const uint32_t FREQ = 44100;
-
     // Stereo. Could be changed, requires some recoding.
     static const uint32_t CHANNELS = 2;
 

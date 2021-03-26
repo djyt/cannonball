@@ -89,10 +89,9 @@ const static char* ENTRY_PROTOTYPE = "PROTOTYPE STAGE 1 ";
 const static char* ENTRY_ATTRACT = "NEW ATTRACT ";
 
 // Music Test Menu
-const static char* ENTRY_MUSIC1 = "MAGICAL SOUND SHOWER";
-const static char* ENTRY_MUSIC2 = "PASSING BREEZE";
-const static char* ENTRY_MUSIC3 = "SPLASH WAVE";
-const static char* ENTRY_MUSIC4 = "LAST WAVE";
+const static char* ENTRY_MUSIC1 = "PLAY TRACK";
+const static char* ENTRY_MUSIC2 = "TRACK - ";
+const static char* ENTRY_MUSIC3 = "LAST WAVE";
 
 const static char* DIP_DIFFICULTY[4] = { "EASY", "NORMAL", "HARD", "HARDEST" };
 const static char* GEAR_LABELS[4] = {"MANUAL", "MANUAL CABINET", "MANUAL 2 BUTTONS", "AUTOMATIC"};

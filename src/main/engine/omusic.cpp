@@ -7,6 +7,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "main.hpp"
 #include "engine/oferrari.hpp"
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
@@ -100,6 +101,8 @@ void OMusic::enable()
     }
 
     video.tile_layer->set_x_clamp(video.tile_layer->CENTRE);
+    cursor_pos = 1;
+    total_tracks = (int)config.sound.music.size();
 }
 
 void OMusic::disable()
@@ -213,10 +216,6 @@ void OMusic::check_start()
 // Tick and Blit
 void OMusic::tick()
 {
-    // Note tiles to append to left side of text
-    const uint32_t NOTE_TILES1 = 0x8A7A8A7B;
-    const uint32_t NOTE_TILES2 = 0x8A7C8A7D;
-
     // Radio Sprite
     osprites.do_spr_order_shadows(&osprites.jump_table[entry_start + 0]);
 
@@ -230,79 +229,16 @@ void OMusic::tick()
     // Draw appropriate FM station on radio, depending on steering setting
     // Draw Dial on radio, depending on steering setting
     e = &osprites.jump_table[entry_start + 2];
-    oentry *e2 = &osprites.jump_table[entry_start + 3];
+    oentry *dial = &osprites.jump_table[entry_start + 3];
     oentry *hand = &osprites.jump_table[entry_start + 4];
 
-    // Steer Left
-    if (oinputs.steering_adjust + 0x80 <= 0x55)
-    {                
-        hand->x = 17;
-
-        e->addr    = outrun.adr.sprite_fm_left;
-        e2->addr   = outrun.adr.sprite_dial_left;
-        hand->addr = outrun.adr.sprite_hand_left;
-
-        if (config.sound.custom_music[0].enabled)
-        {
-            ohud.blit_text_big(11, config.sound.custom_music[0].title.c_str(), true);
-            music_selected = 0;
-        }
-        else
-        {
-            ohud.blit_text2(TEXT2_MAGICAL);
-            video.write_text32(0x1105C0, NOTE_TILES1);
-            video.write_text32(0x110640, NOTE_TILES2);
-            music_selected = sound::MUSIC_MAGICAL;
-        }
-    }
-    // Centre
-    else if (oinputs.steering_adjust + 0x80 <= 0xAA)
-    {
-        hand->x = 21;
-
-        e->addr    = outrun.adr.sprite_fm_centre;
-        e2->addr   = outrun.adr.sprite_dial_centre;
-        hand->addr = outrun.adr.sprite_hand_centre;
-
-        if (config.sound.custom_music[1].enabled)
-        {
-            ohud.blit_text_big(11, config.sound.custom_music[1].title.c_str(), true);
-            music_selected = 1;
-        }
-        else
-        {
-            ohud.blit_text2(TEXT2_BREEZE);
-            video.write_text32(0x1105C6, NOTE_TILES1);
-            video.write_text32(0x110646, NOTE_TILES2);
-            music_selected = sound::MUSIC_BREEZE;
-        }
-    }
-    // Steer Right
-    else
-    {
-        hand->x = 21;
-
-        e->addr    = outrun.adr.sprite_fm_right;
-        e2->addr   = outrun.adr.sprite_dial_right;
-        hand->addr = outrun.adr.sprite_hand_right;
-
-        if (config.sound.custom_music[2].enabled)
-        {
-            ohud.blit_text_big(11, config.sound.custom_music[2].title.c_str(), true);
-            music_selected = 2;
-        }
-        else
-        {
-            ohud.blit_text2(TEXT2_SPLASH);
-            video.write_text32(0x1105C8, NOTE_TILES1);
-            video.write_text32(0x110648, NOTE_TILES2);
-            music_selected = sound::MUSIC_SPLASH;
-        }
-    }
+    // Determine Track Selection Logic
+    if (total_tracks < 3) tick_original(e, dial, hand);
+    else tick_enhanced(e, dial, hand);
 
     osprites.do_spr_order_shadows(e);
-    osprites.do_spr_order_shadows(e2);
-    osprites.do_spr_order_shadows(hand);
+    osprites.do_spr_order_shadows(dial);
+    osprites.do_spr_order_shadows(hand);;
 
     // Enhancement: Preview Music On Sound Selection Screen
     if (config.sound.preview)
@@ -314,12 +250,127 @@ void OMusic::tick()
 
             if (++preview_counter >= 10)
             {
+                play_music();
                 preview_counter = 0;
-                osoundint.queue_sound(music_selected);
-                last_music_selected = music_selected;
-            }
-        
+            }      
         }
+    }
+}
+
+void OMusic::play_music(int index)
+{
+    if (index == -1) index = music_selected;
+
+    next_track = &config.sound.music.at(index);
+
+    switch (next_track->type)
+    {
+        case music_t::IS_YM_INT:
+            cannonball::audio.clear_wav();
+            osoundint.queue_sound(next_track->cmd);
+            break;
+
+        case music_t::IS_YM_EXT:
+            cannonball::audio.clear_wav();
+            roms.load_ym_data((config.data.res_path + next_track->filename).c_str());
+            osoundint.queue_sound(next_track->cmd);
+            break;
+
+        case music_t::IS_WAV:
+            cannonball::audio.load_wav((config.data.res_path + next_track->filename).c_str());
+            break;
+    }
+
+    last_music_selected = index;
+}
+
+// Cycle music in continuous mode
+void OMusic::cycle_music()
+{
+    if (++music_selected > 2) music_selected = 0;
+    play_music();
+}
+
+// Original Version of Music Selection Screen With 3 Tracks. 
+// Wheel Left = Track 0, Wheel Centre = Track 1, Wheel Right = Track 2
+void OMusic::tick_original(oentry* fm, oentry* dial, oentry* hand)
+{
+    // Note tiles to append to left side of text
+    const uint32_t NOTE_TILES1 = 0x8A7A8A7B;
+    const uint32_t NOTE_TILES2 = 0x8A7C8A7D;
+
+    // Steer Left
+    if (oinputs.steering_adjust + 0x80 <= 0x55)
+    {                
+        set_hand(HAND_LEFT, fm, dial, hand);
+        ohud.blit_text2(TEXT2_MAGICAL);
+        video.write_text32(0x1105C0, NOTE_TILES1);
+        video.write_text32(0x110640, NOTE_TILES2);
+        music_selected = 0;
+    }
+    // Centre
+    else if (oinputs.steering_adjust + 0x80 <= 0xAA)
+    {
+        set_hand(HAND_CENTRE, fm, dial, hand);
+        ohud.blit_text2(TEXT2_BREEZE);
+        video.write_text32(0x1105C6, NOTE_TILES1);
+        video.write_text32(0x110646, NOTE_TILES2);
+        music_selected = 1;
+    }
+    // Steer Right
+    else
+    {
+        set_hand(HAND_RIGHT, fm, dial, hand);
+        ohud.blit_text2(TEXT2_SPLASH);
+        video.write_text32(0x1105C8, NOTE_TILES1);
+        video.write_text32(0x110648, NOTE_TILES2);
+        music_selected = 2;
+    }
+}
+
+// Enhanced Version of music selection with infinite tracks.
+void OMusic::tick_enhanced(oentry* fm, oentry* dial, oentry* hand)
+{
+    if (input.has_pressed(Input::LEFT) || oinputs.is_analog_l())
+        if (--cursor_pos < 0) cursor_pos = total_tracks - 1;  
+    if (input.has_pressed(Input::RIGHT) || oinputs.is_analog_r())
+        if (++cursor_pos >= total_tracks) cursor_pos = 0;
+
+    if (oinputs.steering_adjust + 0x80 <= 0x70)
+        set_hand(HAND_LEFT, fm, dial, hand);
+    else if (oinputs.steering_adjust + 0x80 <= 0x90)
+        set_hand(HAND_CENTRE, fm, dial, hand);
+    else
+        set_hand(HAND_RIGHT, fm, dial, hand);
+
+    music_selected = cursor_pos;    
+    ohud.blit_text_big(11, config.sound.music.at(music_selected).title.c_str(), true);
+}
+
+void OMusic::set_hand(short direction, oentry* fm, oentry* dial, oentry* hand)
+{
+    if (direction == HAND_LEFT)
+    {                
+        hand->x = 17;
+        fm->addr   = outrun.adr.sprite_fm_left;
+        dial->addr = outrun.adr.sprite_dial_left;
+        hand->addr = outrun.adr.sprite_hand_left;
+    }
+    // Centre
+    else if (direction == HAND_CENTRE)
+    {
+        hand->x = 21;
+        fm->addr   = outrun.adr.sprite_fm_centre;
+        dial->addr = outrun.adr.sprite_dial_centre;
+        hand->addr = outrun.adr.sprite_hand_centre;
+    }
+    // Steer Right
+    else if (direction == HAND_RIGHT)
+    {
+        hand->x = 21;
+        fm->addr   = outrun.adr.sprite_fm_right;
+        dial->addr = outrun.adr.sprite_dial_right;
+        hand->addr = outrun.adr.sprite_hand_right;
     }
 }
 

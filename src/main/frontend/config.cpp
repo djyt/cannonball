@@ -11,6 +11,8 @@
 // see: http://www.boost.org/doc/libs/1_52_0/doc/html/boost_propertytree/tutorial.html
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+// Boost string prediction
+#include <boost/algorithm/string/predicate.hpp>
 #include <iostream>
 
 #include "main.hpp"
@@ -34,6 +36,21 @@ Config config;
 Config::Config(void)
 {
     data.cfg_file = "./config.xml";
+    
+    // Setup default sounds
+    music_t magical, breeze, splash;
+    magical.title = "MAGICAL SOUND SHOWER";
+    breeze.title  = "PASSING BREEZE";
+    splash.title  = "SPLASH WAVE";
+    magical.type  = music_t::IS_YM_INT;
+    breeze.type   = music_t::IS_YM_INT;
+    splash.type   = music_t::IS_YM_INT;
+    magical.cmd   = sound::MUSIC_MAGICAL;
+    breeze.cmd    = sound::MUSIC_BREEZE;
+    splash.cmd    = sound::MUSIC_SPLASH;
+    sound.music.push_back(magical);
+    sound.music.push_back(breeze);
+    sound.music.push_back(splash);
 }
 
 
@@ -106,19 +123,27 @@ void Config::load()
     // Sound Settings
     // ------------------------------------------------------------------------
     sound.enabled     = pt_config.get("sound.enable",      1);
+    sound.rate        = pt_config.get("sound.rate",        44100);
     sound.advertise   = pt_config.get("sound.advertise",   1);
     sound.preview     = pt_config.get("sound.preview",     1);
     sound.fix_samples = pt_config.get("sound.fix_samples", 1);
 
-    // Custom Music
-    for (int i = 0; i < 4; i++)
+    // Custom Music. Search for enabled custom tracks
+    for (int i = 0;; i++)
     {
-        std::string xmltag = "sound.custom_music.track";
-        xmltag += Utils::to_string(i+1);  
-
-        sound.custom_music[i].enabled = pt_config.get(xmltag + ".<xmlattr>.enabled", 0);
-        sound.custom_music[i].title   = pt_config.get(xmltag + ".title", "TRACK " +Utils::to_string(i+1));
-        sound.custom_music[i].filename= pt_config.get(xmltag + ".filename", "track"+Utils::to_string(i+1)+".wav");
+        std::string xmltag = "sound.custom_music.track" + Utils::to_string(i + 1);
+        boost::optional<int> tag = pt_config.get_optional<int>(xmltag  + ".<xmlattr>.enabled");
+        if (!tag.is_initialized()) break;
+        if (tag.value() == 1)
+        {
+            music_t music;
+            music.filename = pt_config.get(xmltag + ".filename", "track"+Utils::to_string(i+1)+".wav");
+            music.title    = pt_config.get(xmltag + ".title", "TRACK " +Utils::to_string(i+1));
+            std::transform(music.title.begin(), music.title.end(), music.title.begin(), ::toupper); // Convert title to uppercase
+            music.type     = boost::ends_with(music.filename, ".wav") ? music_t::IS_WAV : music_t::IS_YM_EXT;
+            music.cmd      = sound::MUSIC_CUSTOM;
+            sound.music.push_back(music);
+        }
     }
 
     // ------------------------------------------------------------------------

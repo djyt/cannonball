@@ -70,7 +70,7 @@ void Menu::populate()
     menu_musictest.push_back(ENTRY_MUSIC2);
     menu_musictest.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL 0.32 © CHRIS WHITE 2021");
+    menu_about.push_back("CANNONBALL 0.33 © CHRIS WHITE 2021");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back(" ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");

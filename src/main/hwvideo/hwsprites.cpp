@@ -48,6 +48,9 @@
 *
  *******************************************************************************************/
 
+// Enable for hardware pixel accuracy (slower)
+#define PIXEL_ACCURACY 0 
+
 hwsprites::hwsprites()
 {
 }
@@ -139,6 +142,34 @@ void hwsprites::swap()
     }
 }
 
+#if PIXEL_ACCURACY
+
+// Reproduces glowy edge around sprites on top of shadows as seen on Hardware.
+//
+// 1/ Sprites Drawn on top of Shadow clears the shadow flags for its opaque pixels.
+// 2/ Either the flag clear or the sprite itself is offset by one pixel horizontally.
+// 
+// Thanks to Alex B. for this implementation.
+
+#define draw_pixel()                                                                                  \
+{                                                                                                     \
+    if (x >= x1 && x < x2)                                                                            \
+    {                                                                                                 \
+        if (shadow && pix == 0xa)                                                                     \
+        {                                                                                             \
+            pPixel[x] &= 0xfff;                                                                       \
+            pPixel[x] += S16_PALETTE_ENTRIES;                                                         \
+        }                                                                                             \
+        else if (pix != 0 && pix != 15)                                                               \
+        {                                                                                             \
+            if (x > x1) pPixel[x-1] &= 0xfff;                                                         \
+            pPixel[x] = (pix | color);                                                                \
+        }                                                                                             \
+    }                                                                                                 \
+}
+
+#else
+
 #define draw_pixel()                                                                                  \
 {                                                                                                     \
     if (x >= x1 && x < x2 && pix != 0 && pix != 15)                                                   \
@@ -155,6 +186,7 @@ void hwsprites::swap()
     }                                                                                                 \
 }
 
+#endif
 
 void hwsprites::render(const uint8_t priority)
 {

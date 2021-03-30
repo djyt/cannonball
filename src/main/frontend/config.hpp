@@ -72,6 +72,7 @@ struct video_settings_t
     int hires;
     int filtering;
     int vsync;
+    int shadow;
 };
 
 struct sound_settings_t

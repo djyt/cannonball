@@ -31,6 +31,8 @@ Video::Video(void)
     pixels       = NULL;
     sprite_layer = new hwsprites();
     tile_layer   = new hwtiles();
+
+    set_shadow_intensity(shadow::ORIGINAL);
     enabled      = false;
 }
 
@@ -121,9 +123,33 @@ int Video::set_video_mode(video_settings_t* settings)
     if (settings->scale < 1)
         settings->scale = 1;
 
+    set_shadow_intensity(settings->shadow == 0 ? shadow::ORIGINAL : shadow::MAME);
+
     renderer->init(config.s16_width, config.s16_height, settings->scale, settings->mode, settings->scanlines);
 
     return 1;
+}
+
+// --------------------------------------------------------------------------------------------
+// Shadow Colours. 
+// 63% Intensity is the correct value derived from hardware as follows:
+//
+// 1/ Shadows are just an extra 220 ohm resistor that goes to ground when enabled.
+// 2/ This is in parallel with the resistor-"DAC" (3.9k, 2k, 1k, 0.5k, 0.25k), 
+//    and otherwise left floating.
+//
+// Static calculation example:
+// 
+// const float rDAC   = 1.f / (1.f/3900.f + 1.f/2000.f + 1.f/1000.f + 1.f/500.f + 1.f/250.f); 
+// const float rShade = 220.f;                                                             
+// const float shadeAttenuation = rShade / (rShade + rDAC); // 0.63f
+// 
+// (MAME uses an incorrect value which is closer to 78% Intensity)
+// --------------------------------------------------------------------------------------------
+
+void Video::set_shadow_intensity(float f)
+{
+    renderer->set_shadow_intensity(f);
 }
 
 void Video::prepare_frame()

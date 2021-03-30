@@ -146,7 +146,7 @@ void hwsprites::swap()
         if (shadow && pix == 0xa)                                                                     \
         {                                                                                             \
             pPixel[x] &= 0xfff;                                                                       \
-            pPixel[x] += ((S16_PALETTE_ENTRIES * 2) - ((video.read_pal16(pPixel[x]) & 0x8000) >> 3)); \
+            pPixel[x] += S16_PALETTE_ENTRIES;                                                         \
         }                                                                                             \
         else                                                                                          \
         {                                                                                             \
@@ -154,6 +154,7 @@ void hwsprites::swap()
         }                                                                                             \
     }                                                                                                 \
 }
+
 
 void hwsprites::render(const uint8_t priority)
 {

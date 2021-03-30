@@ -274,7 +274,7 @@ void Render::draw_frame(uint16_t* pixels)
 
     // Lookup real RGB value from rgb array for backbuffer
     for (int i = 0; i < (src_width * src_height); i++)
-        *(spix++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+        *(spix++) = rgb[*(pixels++)];
 
     glBindTexture(GL_TEXTURE_2D, textures[SCREEN]);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,            // target, LOD, xoff, yoff

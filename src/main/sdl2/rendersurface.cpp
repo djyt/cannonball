@@ -207,5 +207,5 @@ void Render::draw_frame(uint16_t* pixels)
 
     // Lookup real RGB value from rgb array for backbuffer
     for (int i = 0; i < (src_width * src_height); i++)
-        *(spix++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+        *(spix++) = rgb[*(pixels++)];
 }

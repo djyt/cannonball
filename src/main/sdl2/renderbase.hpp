@@ -19,7 +19,8 @@ public:
     virtual bool start_frame()                = 0;
     virtual bool finalize_frame()             = 0;
     virtual void draw_frame(uint16_t* pixels) = 0;
-    void convert_palette(uint32_t adr, uint32_t r, uint32_t g, uint32_t b);
+    void convert_palette(uint32_t adr, uint32_t r1, uint32_t g1, uint32_t b1);
+    void set_shadow_intensity(float f);
     virtual bool supports_window() { return true; }
     virtual bool supports_vsync() { return false; }
 
@@ -27,7 +28,7 @@ protected:
 	SDL_Surface *surface;
 
     // Palette Lookup
-    uint32_t rgb[S16_PALETTE_ENTRIES * 3];    // Extended to hold shadow/hilight colours
+    uint32_t rgb[S16_PALETTE_ENTRIES * 2];    // Extended to hold shadow colours
 
     uint32_t *screen_pixels;
 
@@ -70,6 +71,9 @@ protected:
     // SDL Pixel Format Codes. These differ between platforms.
     uint8_t  Rshift, Gshift, Bshift;
     uint32_t Rmask, Gmask, Bmask;
+
+    // Shadow intensity multiplier
+    int shadow_multi;
 
     bool sdl_screen_size();
 };

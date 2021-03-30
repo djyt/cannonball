@@ -66,6 +66,9 @@
     
     <!-- Use VSync if supported -->
     <vsync>1</vsync>
+    
+    <!-- Shadow Intensity (0 = Match Hardware (Darker Shadows), 1 = MAME (Lighter Shadows) -->
+    <shadow>0</shadow>
 </video>
 
 <!-- 

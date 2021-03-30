@@ -118,6 +118,7 @@ void Config::load()
     video.hires      = pt_config.get("video.hires",              0); // Hi-Resolution Mode
     video.filtering  = pt_config.get("video.filtering",          0); // Open GL Filtering Mode
     video.vsync      = pt_config.get("video.vsync",              1); // Use V-Sync where available (e.g. Open GL)
+    video.shadow     = pt_config.get("video.shadow",             0); // Shadow Settings
 
     // ------------------------------------------------------------------------
     // Sound Settings

@@ -18,9 +18,14 @@
 #include "hwvideo/hwsprites.hpp"
 #include "hwvideo/hwroad.hpp"
 
+namespace shadow
+{
+    const static float ORIGINAL = 0.63f; // Hardware Intensity (63%)
+    const static float MAME = 0.78f;     // Mame Intensity (78%)
+};
+
 class hwsprites;
 class RenderBase;
-
 struct video_settings_t;
 
 class Video
@@ -38,6 +43,7 @@ public:
 	int init(Roms* roms, video_settings_t* settings);
     void disable();
     int set_video_mode(video_settings_t* settings);
+    void set_shadow_intensity(float);
     void prepare_frame();
     void render_frame();
     bool supports_window();

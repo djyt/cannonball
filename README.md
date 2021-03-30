@@ -26,7 +26,7 @@ I have recently deprecated support for SDL 1, to focus on SDL 2. But feel free t
 
 * Install your favourite C++11 environment (e.g. GCC, Visual Studio, Xcode, MingGW etc.)
 * Install [CMake](http://www.cmake.org/). This generates your platform and compiler build files. 
-* Extract the [Boost Library](http://www.boost.org/) somewhere, for example: c:\coding\lib\boost_1_74_0
+* Extract the [Boost Library](http://www.boost.org/) somewhere, for example: c:\coding\lib\boost_1_74_0  Note that Boost does not need to be compiled, as only the header libraries are used. This keeps things nice and lightweight.
 * Extract the [SDL Development Library](https://www.libsdl.org/download-2.0.php) somewhere, for example: c:\coding\lib\SDL2-2.0.12
 * Read the SDL documentation & build the SDL Library for your system.
 * Windows only: I needed to copy cannonball/cmake/windows_copy_to_sdl2_lib_directory/sdl2-config.cmake to c:\coding\lib\SDL2-2.0.12

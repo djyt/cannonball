@@ -42,7 +42,7 @@ Build
 
 ### Visual Studio 2019 Community Edition
 
-    cmake -G ../cmake
+    cmake -G "Visual Studio 16 2019" ../cmake
 
 * Open the created CannonBall solution in VS 2019. 
 * Right click and choose 'Set as StartUp project'. 

@@ -42,6 +42,8 @@ Build
 
 ### Visual Studio 2019 Community Edition
 
+* Create to the sub-directory you want to create your build files in (e.g. or vs_build)
+
     cmake -G "Visual Studio 16 2019" ../cmake
 
 * Open the created CannonBall solution in VS 2019. 

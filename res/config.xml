@@ -123,6 +123,22 @@
 			<title>MIDNIGHT HIGHWAY</title>
 			<filename>switch_midnighthighway.wav</filename>
 		</track6>
+		<track7 enabled="0">
+			<title>SPASH WAVE SATURN</title>
+			<filename>saturn_splashwave.wav</filename>
+		</track7>
+		<track8 enabled="0">
+			<title>PASSING BREEZE SATURN</title>
+			<filename>saturn_passingbreeze.wav</filename>
+		</track8>
+		<track9 enabled="0">
+			<title>MAGICAL SOUND SHOWER SATURN</title>
+			<filename>saturn_magicalsoundshower.wav</filename>
+		</track9>
+		<track10 enabled="0">
+			<title>LAST WAVE SATURN</title>
+			<filename>saturn_lastwave.wav</filename>
+		</track10>
 	</custom_music>
 </sound>
 

@@ -64,7 +64,7 @@ void OSoundInt::reset()
 
 void OSoundInt::tick()
 {
-    // The audio code is updated 125 times per frame
+    // The audio code is updated 125 times per second
     audio_ticks += (125.0 / config.fps);
 
     // Ticks per frame will vary between 2 and 3 at 60fps. 

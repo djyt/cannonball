@@ -162,6 +162,14 @@ void Outrun::tick(bool tick_frame)
         vint();
     }
 
+    // Moved out of vertical interrupt
+    if (tick_frame)
+    {
+        uint8_t coin = oinputs.do_credits();
+        outputs->coin_chute_out(&outputs->chute1, coin == 1);
+        outputs->coin_chute_out(&outputs->chute2, coin == 2);
+    }
+
     // Draw FPS
     if (config.video.fps_count)
         ohud.draw_fps_counter(cannonball::fps_counter);
@@ -174,18 +182,12 @@ void Outrun::vint()
     osprites.update_sprites();
     otiles.update_tilemaps(cannonball_mode == MODE_ORIGINAL ? ostats.cur_stage : 0);
 
-    if (config.fps < 120 || (cannonball::frame & 1))
-    {
-        opalette.cycle_sky_palette();
-        opalette.fade_palette();
-        // ... 
-        ostats.do_timers();
-        if (cannonball_mode != MODE_TTRIAL) ohud.draw_timer1(ostats.time_counter);
-        uint8_t coin = oinputs.do_credits();
-        outputs->coin_chute_out(&outputs->chute1, coin == 1);
-        outputs->coin_chute_out(&outputs->chute2, coin == 2);
-        oinitengine.set_granular_position();
-    }
+    opalette.cycle_sky_palette();
+    opalette.fade_palette();
+    // ... 
+    ostats.do_timers();
+    if (cannonball_mode != MODE_TTRIAL) ohud.draw_timer1(ostats.time_counter);
+    oinitengine.set_granular_position();
 }
 
 void Outrun::jump_table()
@@ -395,16 +397,6 @@ void Outrun::main_switch()
             osoundint.queue_sound(sound::STOP_CHEERS);
             osoundint.queue_sound(sound::VOICE_GETREADY);
             osoundint.queue_sound(sound::REVS);             // Moved from Z80 Code for extra flexibility
-            
-            /*#ifdef COMPILE_SOUND_CODE
-            if (omusic.music_selected >= 0 && omusic.music_selected <= 2)
-            {
-                cannonball::audio.load_wav(config.sound.music[omusic.music_selected].filename.c_str());
-                osoundint.queue_sound(sound::REVS); // queue revs sound manually
-            }
-            else
-            #endif
-                osoundint.queue_sound(omusic.music_selected);*/
             omusic.play_music();
             
             if (!freeze_timer)

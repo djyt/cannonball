@@ -251,7 +251,6 @@ uint8_t OInputs::do_credits()
 {
     if (input.has_pressed(Input::COIN))
     {
-        input.keys[Input::COIN] = false; // immediately clear due to this routine being in vertical interrupt
         if (!config.engine.freeplay && ostats.credits < 9)
         {
             ostats.credits++;

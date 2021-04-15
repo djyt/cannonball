@@ -190,6 +190,8 @@ void Config::load()
     controls.axis[0]       = pt_config.get("controls.analog.axis.wheel", -1);
     controls.axis[1]       = pt_config.get("controls.analog.axis.accel", -1);
     controls.axis[2]       = pt_config.get("controls.analog.axis.brake", -1);
+    controls.invert[1]     = pt_config.get("controls.analog.axis.accel.<xmlattr>.invert", 0);
+    controls.invert[2]     = pt_config.get("controls.analog.axis.brake.<xmlattr>.invert", 0);
     controls.asettings[0]  = pt_config.get("controls.analog.wheel.zone", 75);
     controls.asettings[1]  = pt_config.get("controls.analog.wheel.dead", 0);
     

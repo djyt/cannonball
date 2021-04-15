@@ -333,7 +333,7 @@ int main(int argc, char* argv[])
     // Initalize SDL Controls
     input.init(config.controls.pad_id,
                config.controls.keyconfig, config.controls.padconfig, 
-               config.controls.analog,    config.controls.axis, config.controls.asettings);
+               config.controls.analog,    config.controls.axis, config.controls.invert, config.controls.asettings);
 
     if (config.controls.haptic) 
         config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);

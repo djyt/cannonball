@@ -29,13 +29,14 @@ Input::~Input(void)
 {
 }
 
-void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* axis, int* analog_settings)
+void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* axis, bool* invert, int* analog_settings)
 {
     this->pad_id      = pad_id;
     this->key_config  = key_config;
     this->pad_config  = pad_config;
     this->analog      = analog;
     this->axis        = axis;
+    this->invert      = invert;
     this->wheel_zone  = analog_settings[0];
     this->wheel_dead  = analog_settings[1];
 }
@@ -239,11 +240,11 @@ void Input::handle_axis(const uint8_t ax, const int16_t value)
         }
         // Accelerator [Single Axis]
         else if (ax == axis[1])
-            a_accel = scale_trigger(value);
+            a_accel = scale_trigger(invert[1] ? -value : value);
 
         // Brake [Single Axis]
         else if (ax == axis[2])
-            a_brake = scale_trigger(value);
+            a_brake = scale_trigger(invert[2] ? -value : value);
     }
 }
 

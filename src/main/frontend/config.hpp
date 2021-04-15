@@ -101,6 +101,7 @@ struct controls_settings_t
     int analog;        // Use analog controls
     int axis[3];       // Analog Axis
     int asettings[2];  // Analog Settings
+    bool invert[3];    // Invert Analog Axis
 
     float rumble;      // Simple Controller Rumble Support
     int haptic;        // Force Feedback Enabled

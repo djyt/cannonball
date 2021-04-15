@@ -200,14 +200,15 @@
          2 = Wheel Only
     -->
     <analog enabled="1">
-        <!-- Select axis for analog controls             
-             Set these values to -1 to attempt to auto-detect the axis on first boot.
+		<!-- Select axis for analog controls             
+             Set the axis to -1 to attempt to auto-detect the axis on first boot.
+             Set invert to "1" when off and on and reversed (shouldn't be needed on gamepads).
           -->
-        <axis>
-            <wheel>-1</wheel>
-            <accel>-1</accel>
-            <brake>-1</brake>
-        </axis>
+		<axis>
+			<wheel>-1</wheel>
+			<accel invert="0">-1</accel>
+			<brake invert="0">-1</brake>
+		</axis>
         
         <!-- Analog Wheel Settings -->
         <wheel>

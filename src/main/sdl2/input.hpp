@@ -62,7 +62,7 @@ public:
     Input(void);
     ~Input(void);
 
-    void init(int, int*, int*, const int, int*, int*);
+    void init(int, int*, int*, const int, int*, bool*, int*);
     void open_joy();
     void close_joy();
 
@@ -96,6 +96,7 @@ private:
     int* pad_config;
     int* key_config;
     int* axis;
+    bool* invert;
 
     int wheel_zone;
     int wheel_dead;

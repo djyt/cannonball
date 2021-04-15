@@ -48,7 +48,7 @@
 *
  *******************************************************************************************/
 
-// Enable for hardware pixel accuracy (slower)
+// Enable for hardware pixel accuracy, where sprite shadowing delayed by 1 clock cycle (slower)
 #define PIXEL_ACCURACY 0 
 
 hwsprites::hwsprites()
@@ -145,6 +145,7 @@ void hwsprites::swap()
 #if PIXEL_ACCURACY
 
 // Reproduces glowy edge around sprites on top of shadows as seen on Hardware.
+// Believed to be caused by shadowing being out by one clock cycle / pixel.
 //
 // 1/ Sprites Drawn on top of Shadow clears the shadow flags for its opaque pixels.
 // 2/ Either the flag clear or the sprite itself is offset by one pixel horizontally.

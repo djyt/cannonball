@@ -224,6 +224,8 @@ void Config::load()
     engine.fix_timer       = pt_config.get("engine.fix_timer",    0) != 0;
     engine.layout_debug    = pt_config.get("engine.layout_debug", 0) != 0;
     engine.new_attract     = pt_config.get("engine.new_attract", 1) != 0;
+    engine.offroad         = pt_config.get("engine.offroad", 0);
+    engine.grippy_tyres    = pt_config.get("engine.grippy_tyres", 0);
 
     // ------------------------------------------------------------------------
     // Time Trial Mode
@@ -295,6 +297,8 @@ bool Config::save()
     pt_config.put("engine.fix_bugs",        (int) engine.fix_bugs);
     pt_config.put("engine.fix_timer",       (int) engine.fix_timer);
     pt_config.put("engine.new_attract",     engine.new_attract);
+    pt_config.put("engine.offroad",         (int) engine.offroad);
+    pt_config.put("engine.grippy_tyres",    (int) engine.grippy_tyres);
 
     pt_config.put("time_trial.laps",    ttrial.laps);
     pt_config.put("time_trial.traffic", ttrial.traffic);

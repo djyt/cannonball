@@ -132,13 +132,23 @@ void Menu::populate_for_pc()
     menu_sound.push_back(ENTRY_MUSICTEST);
     menu_sound.push_back(ENTRY_BACK);
 
-    menu_engine.push_back(ENTRY_TRACKS);
     menu_engine.push_back(ENTRY_TIME);
     menu_engine.push_back(ENTRY_TRAFFIC);
-    menu_engine.push_back(ENTRY_OBJECTS);
-    menu_engine.push_back(ENTRY_PROTOTYPE);
-    menu_engine.push_back(ENTRY_ATTRACT);
+    menu_engine.push_back(ENTRY_TRACKS);
+    menu_engine.push_back(ENTRY_FREEPLAY);
+    menu_engine.push_back(ENTRY_SUB_ENHANCEMENTS);
+    menu_engine.push_back(ENTRY_SUB_HANDLING);
     menu_engine.push_back(ENTRY_BACK);
+
+    menu_enhancements.push_back(ENTRY_TIMER);
+    menu_enhancements.push_back(ENTRY_ATTRACT);
+    menu_enhancements.push_back(ENTRY_OBJECTS);
+    menu_enhancements.push_back(ENTRY_PROTOTYPE);
+    menu_enhancements.push_back(ENTRY_BACK);
+
+    menu_handling.push_back(ENTRY_GRIP);
+    menu_handling.push_back(ENTRY_OFFROAD);
+    menu_handling.push_back(ENTRY_BACK);
 }
 
 // Split into own function to handle controllers being added/removed
@@ -180,38 +190,38 @@ void Menu::populate_for_cabinet()
     menu_gamemodes.push_back(ENTRY_TIMETRIAL);
     menu_gamemodes.push_back(ENTRY_BACK);
 
-    menu_dips.push_back(ENTRY_S_CAB);
-    menu_dips.push_back(ENTRY_S_FREEPLAY);
-    menu_dips.push_back(ENTRY_TIME);
-    menu_dips.push_back(ENTRY_TRAFFIC);
-    menu_dips.push_back(ENTRY_ADVERTISE);
-    menu_dips.push_back(ENTRY_SAVE);
+    menu_s_dips.push_back(ENTRY_S_CAB);
+    menu_s_dips.push_back(ENTRY_FREEPLAY);
+    menu_s_dips.push_back(ENTRY_TIME);
+    menu_s_dips.push_back(ENTRY_TRAFFIC);
+    menu_s_dips.push_back(ENTRY_ADVERTISE);
+    menu_s_dips.push_back(ENTRY_SAVE);
 
-    menu_tests.push_back(ENTRY_S_INPUTS);
-    menu_tests.push_back(ENTRY_S_OUTPUTS);
-    menu_tests.push_back(ENTRY_S_MOTOR);
-    menu_tests.push_back(ENTRY_S_CRT);
-    menu_tests.push_back(ENTRY_MUSICTEST);
-    menu_tests.push_back(ENTRY_BACK);
+    menu_s_tests.push_back(ENTRY_S_INPUTS);
+    menu_s_tests.push_back(ENTRY_S_OUTPUTS);
+    menu_s_tests.push_back(ENTRY_S_MOTOR);
+    menu_s_tests.push_back(ENTRY_S_CRT);
+    menu_s_tests.push_back(ENTRY_MUSICTEST);
+    menu_s_tests.push_back(ENTRY_BACK);
 
-    menu_exsettings.push_back(ENTRY_FPS);
-    menu_exsettings.push_back(ENTRY_TRACKS);
-    menu_exsettings.push_back(ENTRY_GEAR);
+    menu_s_exsettings.push_back(ENTRY_FPS);
+    menu_s_exsettings.push_back(ENTRY_TRACKS);
+    menu_s_exsettings.push_back(ENTRY_GEAR);
 #ifdef COMPILE_SOUND_CODE
-    menu_exsettings.push_back(ENTRY_MUTE);
+    menu_s_exsettings.push_back(ENTRY_MUTE);
 #endif
-    menu_exsettings.push_back(ENTRY_ENHANCE);
-    menu_exsettings.push_back(ENTRY_SCORES);
-    menu_exsettings.push_back(ENTRY_SAVE);
+    menu_s_exsettings.push_back(ENTRY_ENHANCE);
+    menu_s_exsettings.push_back(ENTRY_SCORES);
+    menu_s_exsettings.push_back(ENTRY_SAVE);
 
-    menu_enhance.push_back(ENTRY_PREVIEWSND);
-    menu_enhance.push_back(ENTRY_FIXSAMPLES);
-    menu_enhance.push_back(ENTRY_ATTRACT);
-    menu_enhance.push_back(ENTRY_OBJECTS);
-    menu_enhance.push_back(ENTRY_PROTOTYPE);
-    menu_enhance.push_back(ENTRY_S_TIMER);
-    menu_enhance.push_back(ENTRY_S_BUGS);
-    menu_enhance.push_back(ENTRY_BACK);
+    menu_s_enhance.push_back(ENTRY_PREVIEWSND);
+    menu_s_enhance.push_back(ENTRY_FIXSAMPLES);
+    menu_s_enhance.push_back(ENTRY_ATTRACT);
+    menu_s_enhance.push_back(ENTRY_OBJECTS);
+    menu_s_enhance.push_back(ENTRY_PROTOTYPE);
+    menu_s_enhance.push_back(ENTRY_TIMER);
+    menu_s_enhance.push_back(ENTRY_S_BUGS);
+    menu_s_enhance.push_back(ENTRY_BACK);
 }
 
 void Menu::init(bool init_main_menu)
@@ -284,7 +294,7 @@ void Menu::tick()
             if (cabdiag->tick())
             {
                 init(false);
-                set_menu(&menu_tests, true);
+                set_menu(&menu_s_tests, true);
                 refresh_menu();
             }
             break;
@@ -475,9 +485,9 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_SETTINGS))      set_menu(&menu_settings);
             else if (SELECTED(ENTRY_ABOUT))         set_menu(&menu_about);
             else if (SELECTED(ENTRY_EXIT))          cannonball::state = cannonball::STATE_QUIT;
-            else if (SELECTED(ENTRY_DIPS))          set_menu(&menu_dips);
-            else if (SELECTED(ENTRY_CABTESTS))      set_menu(&menu_tests);
-            else if (SELECTED(ENTRY_EXSETTINGS))    set_menu(&menu_exsettings);
+            else if (SELECTED(ENTRY_DIPS))          set_menu(&menu_s_dips);
+            else if (SELECTED(ENTRY_CABTESTS))      set_menu(&menu_s_tests);
+            else if (SELECTED(ENTRY_EXSETTINGS))    set_menu(&menu_s_exsettings);
         }
         else if (menu_selected == &menu_gamemodes)
         {
@@ -545,7 +555,7 @@ void Menu::tick_menu()
             }
         }
         // Extra Settings Menu (SmartyPi Only)
-        else if (menu_selected == &menu_exsettings)
+        else if (menu_selected == &menu_s_exsettings)
         {
             if (SELECTED(ENTRY_FPS))
             {
@@ -555,7 +565,7 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_TRACKS))        config.engine.jap ^= 1;
             else if (SELECTED(ENTRY_GEAR))          config.controls.gear = config.controls.gear == config.controls.GEAR_PRESS ? config.controls.GEAR_AUTO : config.controls.GEAR_PRESS;
-            else if (SELECTED(ENTRY_ENHANCE))       set_menu(&menu_enhance);
+            else if (SELECTED(ENTRY_ENHANCE))       set_menu(&menu_s_enhance);
             else if (SELECTED(ENTRY_SCORES))        display_message(config.clear_scores() ? "SCORES CLEARED" : "NO SAVED SCORES FOUND!");
             else if (SELECTED(ENTRY_MUTE))
             {
@@ -568,7 +578,7 @@ void Menu::tick_menu()
 
         }
         // Test Menu (SmartyPi Only)
-        else if (menu_selected == &menu_tests)
+        else if (menu_selected == &menu_s_tests)
         {
             if (SELECTED(ENTRY_S_MOTOR))
             {
@@ -603,7 +613,7 @@ void Menu::tick_menu()
                 set_menu(&menu_main, true);
         }
         // DIP Menu (SmartyPi Only)
-        else if (menu_selected == &menu_dips)
+        else if (menu_selected == &menu_s_dips)
         {
             if (SELECTED(ENTRY_S_CAB))
             {
@@ -612,21 +622,21 @@ void Menu::tick_menu()
                 else
                     config.smartypi.cabinet = config.CABINET_MINI;
             }
-            else if (SELECTED(ENTRY_S_FREEPLAY))    config.engine.freeplay = !config.engine.freeplay;
+            else if (SELECTED(ENTRY_FREEPLAY))      config.engine.freeplay = !config.engine.freeplay;
             else if (SELECTED(ENTRY_TIME))          config.inc_time();
             else if (SELECTED(ENTRY_TRAFFIC))       config.inc_traffic();
             else if (SELECTED(ENTRY_ADVERTISE))     config.sound.advertise ^= 1;
         }
         // Enahnce Menu (SmartyPi Only)
-        else if (menu_selected == &menu_enhance)
+        else if (menu_selected == &menu_s_enhance)
         {
             if (SELECTED(ENTRY_PREVIEWSND))         config.sound.preview ^= 1;
             else if (SELECTED(ENTRY_ATTRACT))       config.engine.new_attract ^= 1;
             else if (SELECTED(ENTRY_OBJECTS))       config.engine.level_objects ^= 1;
             else if (SELECTED(ENTRY_PROTOTYPE))     config.engine.prototype ^= 1;
             else if (SELECTED(ENTRY_S_BUGS))        config.engine.fix_bugs ^= 1;
-            else if (SELECTED(ENTRY_S_TIMER))       config.engine.fix_timer ^= 1;
-            else if (SELECTED(ENTRY_BACK))          set_menu(&menu_exsettings, true);
+            else if (SELECTED(ENTRY_TIMER))         config.engine.fix_timer ^= 1;
+            else if (SELECTED(ENTRY_BACK))          set_menu(&menu_s_exsettings, true);
         }
         else if (menu_selected == &menu_video)
         {
@@ -756,13 +766,27 @@ void Menu::tick_menu()
         }
         else if (menu_selected == &menu_engine)
         {
-            if (SELECTED(ENTRY_TRACKS))         config.engine.jap ^= 1;
-            else if (SELECTED(ENTRY_TIME))      config.inc_time();
-            else if (SELECTED(ENTRY_TRAFFIC))   config.inc_traffic();
-            else if (SELECTED(ENTRY_OBJECTS))   config.engine.level_objects ^= 1;
-            else if (SELECTED(ENTRY_PROTOTYPE)) config.engine.prototype ^= 1;
-            else if (SELECTED(ENTRY_ATTRACT))   config.engine.new_attract ^= 1;
-            else if (SELECTED(ENTRY_BACK))      set_menu(&menu_settings, true);
+            if (SELECTED(ENTRY_TRACKS))                 config.engine.jap ^= 1;
+            else if (SELECTED(ENTRY_TIME))              config.inc_time();
+            else if (SELECTED(ENTRY_TRAFFIC))           config.inc_traffic();
+            else if (SELECTED(ENTRY_FREEPLAY))          config.engine.freeplay = !config.engine.freeplay;
+            else if (SELECTED(ENTRY_SUB_ENHANCEMENTS))  set_menu(&menu_enhancements);
+            else if (SELECTED(ENTRY_SUB_HANDLING))      set_menu(&menu_handling);
+            else if (SELECTED(ENTRY_BACK))              set_menu(&menu_settings, true);
+        }
+        else if (menu_selected == &menu_enhancements)
+        {
+            if (SELECTED(ENTRY_ATTRACT))                config.engine.new_attract ^= 1;
+            else if (SELECTED(ENTRY_OBJECTS))           config.engine.level_objects ^= 1;
+            else if (SELECTED(ENTRY_PROTOTYPE))         config.engine.prototype ^= 1;
+            else if (SELECTED(ENTRY_TIMER))             config.engine.fix_timer ^= 1;
+            else if (SELECTED(ENTRY_BACK))              set_menu(&menu_engine, true);           
+        }
+        else if (menu_selected == &menu_handling)
+        {
+            if (SELECTED(ENTRY_GRIP))                   config.engine.grippy_tyres ^= 1;
+            else if (SELECTED(ENTRY_OFFROAD))           config.engine.offroad ^= 1;
+            else if (SELECTED(ENTRY_BACK))              set_menu(&menu_engine, true);  
         }
         else if (menu_selected == &menu_musictest)
         {
@@ -788,7 +812,7 @@ void Menu::tick_menu()
             {
                 cannonball::audio.clear_wav();
                 osoundint.queue_sound(sound::FM_RESET);
-                set_menu(config.smartypi.enabled ? &menu_tests : &menu_sound, true);
+                set_menu(config.smartypi.enabled ? &menu_s_tests : &menu_sound, true);
             }
         }
         else
@@ -876,7 +900,7 @@ void Menu::refresh_menu()
             if (SELECTED(ENTRY_ANALOG))             set_menu_text(ENTRY_ANALOG, ANALOG_LABELS[config.controls.analog]);
             else if (SELECTED(ENTRY_RUMBLE))        set_menu_text(ENTRY_RUMBLE, RUMBLE_LABELS[(int)(config.controls.rumble / 0.25f)]);
         }
-        else if (menu_selected == &menu_engine || menu_selected == &menu_dips)
+        else if (menu_selected == &menu_engine || menu_selected == &menu_s_dips)
         {
             if (SELECTED(ENTRY_TRACKS))             set_menu_text(ENTRY_TRACKS, config.engine.jap ? "JAPAN" : "WORLD");
             else if (SELECTED(ENTRY_TIME))          set_menu_text(ENTRY_TIME, config.engine.freeze_timer? "DISABLED" : DIP_DIFFICULTY[config.engine.dip_time]);
@@ -885,17 +909,17 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_PROTOTYPE))     set_menu_text(ENTRY_PROTOTYPE, config.engine.prototype ? "ON" : "OFF");
             else if (SELECTED(ENTRY_ATTRACT))       set_menu_text(ENTRY_ATTRACT, config.engine.new_attract ? "ON" : "OFF");
             else if (SELECTED(ENTRY_S_CAB))         set_menu_text(ENTRY_S_CAB, config.smartypi.cabinet == config.CABINET_UPRIGHT ? "UPRIGHT" : "MINI");
-            else if (SELECTED(ENTRY_S_FREEPLAY))    set_menu_text(ENTRY_S_FREEPLAY, config.engine.freeplay ? "ON" : "OFF");
+            else if (SELECTED(ENTRY_FREEPLAY))      set_menu_text(ENTRY_FREEPLAY, config.engine.freeplay ? "ON" : "OFF");
             else if (SELECTED(ENTRY_ADVERTISE))     set_menu_text(ENTRY_ADVERTISE, config.sound.advertise ? "ON" : "OFF");
         }
-        else if (menu_selected == &menu_exsettings)
+        else if (menu_selected == &menu_s_exsettings)
         {
             if (SELECTED(ENTRY_FPS))                set_menu_text(ENTRY_FPS, FPS_LABELS[config.video.fps]);
             else if (SELECTED(ENTRY_TRACKS))        set_menu_text(ENTRY_TRACKS, config.engine.jap ? "JAPAN" : "WORLD");
             else if (SELECTED(ENTRY_GEAR))          set_menu_text(ENTRY_GEAR, GEAR_LABELS[config.controls.gear]);
             else if (SELECTED(ENTRY_MUTE))          set_menu_text(ENTRY_MUTE, config.sound.enabled ? "ON" : "OFF");
         }
-        else if (menu_selected == &menu_enhance)
+        else if (menu_selected == &menu_enhancements || menu_selected == &menu_s_enhance)
         {
             if (SELECTED(ENTRY_PREVIEWSND))         set_menu_text(ENTRY_PREVIEWSND, config.sound.preview ? "ON" : "OFF");
             else if (SELECTED(ENTRY_FIXSAMPLES))    set_menu_text(ENTRY_FIXSAMPLES, config.sound.fix_samples ? "ON" : "OFF");
@@ -903,7 +927,12 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_OBJECTS))       set_menu_text(ENTRY_OBJECTS, config.engine.level_objects ? "ENHANCED" : "ORIGINAL");
             else if (SELECTED(ENTRY_PROTOTYPE))     set_menu_text(ENTRY_PROTOTYPE, config.engine.prototype ? "ON" : "OFF");
             else if (SELECTED(ENTRY_S_BUGS))        set_menu_text(ENTRY_S_BUGS, config.engine.fix_bugs ? "ON" : "OFF");
-            else if (SELECTED(ENTRY_S_TIMER))       set_menu_text(ENTRY_S_TIMER, config.engine.fix_timer ? "ON" : "OFF");
+            else if (SELECTED(ENTRY_TIMER))         set_menu_text(ENTRY_TIMER, config.engine.fix_timer ? "ON" : "OFF");
+        }
+        else if (menu_selected == &menu_handling)
+        {
+            if (SELECTED(ENTRY_GRIP))               set_menu_text(ENTRY_GRIP, config.engine.grippy_tyres ? "ON" : "OFF");
+            else if (SELECTED(ENTRY_OFFROAD))       set_menu_text(ENTRY_OFFROAD, config.engine.offroad ? "ON" : "OFF");
         }
         else if (menu_selected == &menu_musictest)
         {

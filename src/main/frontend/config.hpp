@@ -132,7 +132,9 @@ struct engine_settings_t
     bool fix_bugs_backup;
     bool fix_timer;
     bool layout_debug;
-    int new_attract;
+    int new_attract;    // New Attract Mode
+    bool grippy_tyres;  // Stick to track
+    bool offroad;       // Drive off-road
 };
 
 class Config

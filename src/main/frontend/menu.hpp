@@ -80,11 +80,13 @@ private:
     std::vector<std::string> menu_controls;
     std::vector<std::string> menu_controls_gp;
     std::vector<std::string> menu_engine;
+    std::vector<std::string> menu_enhancements;
+    std::vector<std::string> menu_handling;
     std::vector<std::string> menu_musictest;
-    std::vector<std::string> menu_exsettings;       // smartypi specific
-    std::vector<std::string> menu_tests;            // smartypi specific
-    std::vector<std::string> menu_dips;             // smartypi specific
-    std::vector<std::string> menu_enhance;          // smartypi specific
+    std::vector<std::string> menu_s_exsettings;     // smartypi specific
+    std::vector<std::string> menu_s_tests;          // smartypi specific
+    std::vector<std::string> menu_s_dips;           // smartypi specific
+    std::vector<std::string> menu_s_enhance;        // smartypi specific
 
     std::vector<std::string> text_redefine;
     

@@ -43,13 +43,13 @@ const static char* ENTRY_ENHANCE = "ENHANCEMENTS";
 
 // SMARTYPI Extra Settings
 const static char* ENTRY_S_CAB = "CABINET TYPE ";
-const static char* ENTRY_S_FREEPLAY = "FREEPLAY ";
+const static char* ENTRY_FREEPLAY = "FREEPLAY ";
 const static char* ENTRY_S_MOTOR = "MOTOR TEST";
 const static char* ENTRY_S_INPUTS = "INPUT TEST";
 const static char* ENTRY_S_OUTPUTS = "OUTPUT TEST";
 const static char* ENTRY_S_CRT = "CRT TEST";
-const static char* ENTRY_S_TIMER = "FIX TIMER ";
-const static char* ENTRY_S_BUGS = "FIX BUGS ";
+const static char* ENTRY_TIMER = "TIMING FIXES ";
+const static char* ENTRY_S_BUGS = "BUG FIXES ";
 
 // Video Menu
 const static char* ENTRY_FPS = "FRAME RATE ";
@@ -84,9 +84,17 @@ const static char* ENTRY_REDEFJOY = "REDEFINE GAMEPAD";
 const static char* ENTRY_TRACKS = "TRACKS ";
 const static char* ENTRY_TIME = "TIME ";
 const static char* ENTRY_TRAFFIC = "TRAFFIC ";
-const static char* ENTRY_OBJECTS = "OBJECTS ";
-const static char* ENTRY_PROTOTYPE = "PROTOTYPE STAGE 1 ";
+const static char* ENTRY_SUB_ENHANCEMENTS = "ENHANCEMENTS";
+const static char* ENTRY_SUB_HANDLING = "CAR HANDLING";
+
+// Game Engine: Enhancements Sub-Menu
 const static char* ENTRY_ATTRACT = "NEW ATTRACT ";
+const static char* ENTRY_PROTOTYPE = "PROTOTYPE STAGE 1 ";
+const static char* ENTRY_OBJECTS = "OBJECTS ";
+
+// Game Engine: Car Handling Sub-Menu
+const static char* ENTRY_GRIP    = "GRIPPY TYRES ";
+const static char* ENTRY_OFFROAD = "OFFROAD TYRES ";
 
 // Music Test Menu
 const static char* ENTRY_MUSIC1 = "PLAY TRACK";

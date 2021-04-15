@@ -290,10 +290,6 @@ void OFerrari::logic()
                 oinputs.brake_adjust = 0xFF;
                 do_end_seq();
                 break;
-
-        /*default:
-            std::cout << "Need to finish OFerrari:logic()" << std::endl;
-            break;*/
     }
 }
 
@@ -344,10 +340,6 @@ void OFerrari::ferrari_normal()
         case GS_INIT_MUSIC:
         case GS_MUSIC:
             return;
-
-        /*default:
-            std::cout << "Need to finish OFerrari:ferrari_normal()" << std::endl;
-            break;*/
     }
 }
 
@@ -383,7 +375,7 @@ void OFerrari::setup_ferrari_sprite()
     // If steering close to centre clear d4 to ignore h-flip of Ferrari
     if (d4 >= -8 && d4 <= 7)
         d4 = 0;
-    // If speed to slow clear d4 to ignore h-flip of Ferrari
+    // If speed too slow clear d4 to ignore h-flip of Ferrari
     if (oinitengine.car_increment >> 16 < 0x14)
         d4 = 0;
 
@@ -825,7 +817,7 @@ void OFerrari::set_curve_adjust()
     if (x_diff)
     {
         x_diff *= (oinitengine.car_increment >> 16);
-        x_diff /= 0xDC;
+        x_diff /= config.engine.grippy_tyres ? 0xFF : 0xDC;
         x_diff <<= 1;
         oinitengine.car_x_pos += x_diff;
     }
@@ -1228,14 +1220,17 @@ void OFerrari::car_acc_brake()
     // Adjust speed when offroad
     else if (wheel_state != WHEELS_ON)
     {
-        if (gear_value)
-            acc1 = (acc1 * 3) / 10;
-        else
-            acc1 = (acc1 * 6) / 10;
+        if (!config.engine.offroad)
+        {
+            if (gear_value)
+                acc1 = (acc1 * 3) / 10;
+            else
+                acc1 = (acc1 * 6) / 10;
 
-        // If only one wheel off road, increase acceleration by a bit more than if both wheels off-road
-        if (wheel_state != WHEELS_OFF)
-            acc1 = (acc1 << 1) + (acc1 >> 1);
+            // If only one wheel off road, increase acceleration by a bit more than if both wheels off-road
+            if (wheel_state != WHEELS_OFF)
+                acc1 = (acc1 << 1) + (acc1 >> 1);
+        }
     }
 
     // finalise_acc_value:

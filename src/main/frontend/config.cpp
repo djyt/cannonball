@@ -226,6 +226,7 @@ void Config::load()
     engine.new_attract     = pt_config.get("engine.new_attract", 1) != 0;
     engine.offroad         = pt_config.get("engine.offroad", 0);
     engine.grippy_tyres    = pt_config.get("engine.grippy_tyres", 0);
+    config.engine.bumper   = pt_config.get("engine.bumper", 0);
 
     // ------------------------------------------------------------------------
     // Time Trial Mode
@@ -288,7 +289,7 @@ bool Config::save()
     pt_config.put("controls.analog.axis.accel", controls.axis[1]);
     pt_config.put("controls.analog.axis.brake", controls.axis[2]);
 
-    pt_config.put("engine.freeplay",       (int) engine.freeplay);
+    pt_config.put("engine.freeplay",        (int) engine.freeplay);
     pt_config.put("engine.time",            engine.freeze_timer ? 4 : engine.dip_time);
     pt_config.put("engine.traffic",         engine.disable_traffic ? 4 : engine.dip_traffic);
     pt_config.put("engine.japanese_tracks", engine.jap);
@@ -299,6 +300,7 @@ bool Config::save()
     pt_config.put("engine.new_attract",     engine.new_attract);
     pt_config.put("engine.offroad",         (int) engine.offroad);
     pt_config.put("engine.grippy_tyres",    (int) engine.grippy_tyres);
+    pt_config.put("engine.bumper",          (int) engine.bumper);
 
     pt_config.put("time_trial.laps",    ttrial.laps);
     pt_config.put("time_trial.traffic", ttrial.traffic);

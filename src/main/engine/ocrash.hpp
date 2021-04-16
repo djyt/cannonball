@@ -37,13 +37,13 @@ public:
     oentry* spr_pass2s;
 
     // Default value to reset skid counter to on collision
-    const static uint8_t SKID_RESET = 0x14;
+    const static uint8_t SKID_RESET = 20;
 
     // Maximum value to allow skid reset to be set to during collision
-    const static uint8_t SKID_MAX = 0x1E;
+    const static uint8_t SKID_MAX = 30;
 
     // Amount to adjust car x position by when skidding
-    const static uint8_t SKID_X_ADJ = 0x18;
+    const static uint8_t SKID_X_ADJ = 24;
 
     //Crash State [Investigate Further]
     //

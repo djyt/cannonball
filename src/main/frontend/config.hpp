@@ -135,6 +135,7 @@ struct engine_settings_t
     int new_attract;    // New Attract Mode
     bool grippy_tyres;  // Stick to track
     bool offroad;       // Drive off-road
+    bool bumper;        // Smash into other cars without spinning
 };
 
 class Config

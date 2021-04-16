@@ -304,6 +304,9 @@
     <!-- Extra Grippy Tyres (Easy Cornerings)-->
     <grippy_tyres>0</grippy_tyres>
     
+    <!-- Bumper (Ram other cars and skid less) -->
+    <bumper>0</bumper>
+    
     <!-- Display debug info that's useful for LayOut track editing -->
     <layout_debug>0</layout_debug>
 </engine>

@@ -495,8 +495,6 @@ void OFerrari::setup_ferrari_bonus_sprite()
     spr_ferrari->x = x_off;
 
     set_ferrari_palette();
-    //osprites.map_palette(spr_ferrari);
-    //osprites.do_spr_order_shadows(spr_ferrari);
     draw_sprite(spr_ferrari);
 }
 

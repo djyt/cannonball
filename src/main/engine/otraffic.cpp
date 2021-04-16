@@ -752,6 +752,11 @@ void OTraffic::check_collision(oentry* sprite)
             // Set collision settings from property table
             collision_mask = roms.rom0p->read8(outrun.adr.traffic_props + sprite->type + 5);
             d0 = (sprite->x < 0) ? -OCrash::SKID_RESET : OCrash::SKID_RESET;
+
+            // Enhancement: Bumper enabled, reduce skid distance
+            if (config.engine.bumper)
+                d0 >>= 2;
+
             d0 += ocrash.skid_counter;
 
             if (d0 <= OCrash::SKID_MAX && d0 >= -OCrash::SKID_MAX)

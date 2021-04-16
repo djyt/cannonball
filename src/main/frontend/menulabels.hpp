@@ -95,6 +95,7 @@ const static char* ENTRY_OBJECTS = "OBJECTS ";
 // Game Engine: Car Handling Sub-Menu
 const static char* ENTRY_GRIP    = "GRIPPY TYRES ";
 const static char* ENTRY_OFFROAD = "OFFROAD TYRES ";
+const static char* ENTRY_BUMPER  = "STRONG BUMPER ";
 
 // Music Test Menu
 const static char* ENTRY_MUSIC1 = "PLAY TRACK";

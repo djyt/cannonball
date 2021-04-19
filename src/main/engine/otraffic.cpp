@@ -755,7 +755,7 @@ void OTraffic::check_collision(oentry* sprite)
 
             // Enhancement: Bumper enabled, reduce skid distance
             if (config.engine.bumper)
-                d0 >>= 2;
+                d0 /= 3;
 
             d0 += ocrash.skid_counter;
 

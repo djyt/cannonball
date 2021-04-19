@@ -44,6 +44,9 @@ const static uint16_t ROAD_END      = 0x79C;
 // End Point of level for CPU1, including horizon
 const static uint16_t ROAD_END_CPU1 = 0x904;
 
+// Default timer used for hi-score entry
+const static uint8_t HIGHSCORE_TIMER = 0x30;
+
 enum
 {
     BIT_0 = 0x01,

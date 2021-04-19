@@ -21,6 +21,7 @@
 #include "../utils.hpp"
 
 #include "engine/ohiscore.hpp"
+#include "engine/outils.hpp"
 #include "engine/audio/osoundint.hpp"
 
 // api change in boost 1.56
@@ -223,10 +224,21 @@ void Config::load()
     engine.fix_bugs        = pt_config.get("engine.fix_bugs",     1) != 0;
     engine.fix_timer       = pt_config.get("engine.fix_timer",    0) != 0;
     engine.layout_debug    = pt_config.get("engine.layout_debug", 0) != 0;
+    engine.hiscore_delete  = pt_config.get("scores.delete_last_entry", 1);
+    engine.hiscore_timer   = pt_config.get("scores.hiscore_timer", 0);
     engine.new_attract     = pt_config.get("engine.new_attract", 1) != 0;
     engine.offroad         = pt_config.get("engine.offroad", 0);
     engine.grippy_tyres    = pt_config.get("engine.grippy_tyres", 0);
-    config.engine.bumper   = pt_config.get("engine.bumper", 0);
+    engine.bumper          = pt_config.get("engine.bumper", 0);
+
+    if (!engine.hiscore_timer)
+        engine.hiscore_timer = HIGHSCORE_TIMER;
+    else
+    {
+        if (engine.hiscore_timer > 99)
+            engine.hiscore_timer = 99;
+        engine.hiscore_timer = outils::DEC_TO_HEX[engine.hiscore_timer]; // convert to hexadecimal
+    }
 
     // ------------------------------------------------------------------------
     // Time Trial Mode

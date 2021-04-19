@@ -311,6 +311,14 @@
     <layout_debug>0</layout_debug>
 </engine>
 
+<scores>
+    <!-- Enhancement: Allow deletion of third initial in Hi-Score Table -->
+    <delete_last_entry>1</delete_last_entry>
+    
+    <!-- Override Highscore Table Timeout (Default: 30 Seconds, Max: 99 Seconds) -->
+    <hiscore_timer>40</hiscore_timer>
+</scores>
+
 <!-- Settings for Time Trial Mode -->
 <time_trial>
     <!-- Default Number of Laps (1 - 5) -->

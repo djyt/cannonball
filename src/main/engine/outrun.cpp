@@ -547,7 +547,7 @@ void Outrun::main_switch()
             oferrari.car_ctrl_active = false; // -1
             oinitengine.car_increment = 0;
             oferrari.car_inc_old = 0;
-            ostats.time_counter = 0x30;
+            ostats.time_counter = config.engine.hiscore_timer;
             ostats.frame_counter = ostats.frame_reset;
             ohiscore.init();
             osoundint.queue_sound(sound::NEW_COMMAND);

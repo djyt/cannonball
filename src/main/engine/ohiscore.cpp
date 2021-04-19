@@ -106,11 +106,6 @@ void OHiScore::tick()
             if (score_pos != -1)
             {
                 osoundint.queue_sound(sound::PCM_WAVE);
-                //#ifdef COMPILE_SOUND_CODE
-                //if (config.sound.custom_music[3].enabled)
-                //    cannonball::audio.load_wav(config.sound.custom_music[3].filename.c_str());
-                //else
-                //#endif
                 osoundint.queue_sound(sound::MUSIC_LASTWAVE);
                 insert_score();               
             }
@@ -312,13 +307,14 @@ void OHiScore::do_input(uint32_t adr)
 {
     // Read Steering Left / Right & Denote Letter To Be Highlighted
 
-    const uint8_t ENTRIES = 28; // 28 Possible entries we can select from
+    const static uint8_t ENTRIES = 28; // 28 Possible entries we can select from
+    const static uint8_t DELETE = ENTRIES - 1;
     
     int16_t position = read_controls() + letter_selected;
 
     if (position > ENTRIES)
         letter_selected = position = 0;
-    else if (position < 0)
+    else if (position < (initial_selected == 3 ? DELETE : 0))
         letter_selected = position = ENTRIES;
     else
         letter_selected = position;
@@ -335,7 +331,7 @@ void OHiScore::do_input(uint32_t adr)
         state = STATE_DONE;
     }
     // Delete option selected
-    else if (letter_selected == ENTRIES - 1)
+    else if (letter_selected == DELETE)
     {
         // Delete if not at first position
         if (initial_selected != 0)
@@ -361,12 +357,16 @@ void OHiScore::do_input(uint32_t adr)
         else if (initial_selected == 1)
             scores[score_pos].initial2 = tile;
         else if (initial_selected == 2)
+        {
             scores[score_pos].initial3 = tile;
+            letter_selected = ENTRIES;
+        }
 
         video.write_text16(adr + (initial_selected << 1), tile | 0x8600); // Write initial tile to ram
 
         // Final Initial
-        if (++initial_selected >= 3)
+        // Note we have optional functionality to delete the final entry here
+        if (++initial_selected >= (config.engine.hiscore_delete ? 4 : 3))
         {
             state = STATE_DONE;
             ostats.frame_counter = ostats.frame_reset;

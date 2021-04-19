@@ -271,7 +271,7 @@ private:
     int8_t cornering;
     int8_t cornering_old;
 
-    static const uint16_t torque_lookup[];
+    static uint16_t torque_lookup[];
     static const uint8_t rev_inc_lookup[];
 
     void logic();

@@ -99,6 +99,9 @@ void OFerrari::init(oentry *f, oentry *p1, oentry *p2, oentry *s)
     cornering         = 0;
     cornering_old     = 0;
     car_ctrl_active   = true;
+    
+    // Change high gear torque value to enable faster speeds
+    torque_lookup[0x1F] = config.engine.turbo ? 0x558 : 0x66C;
 }
 
 // Reset all values relating to car speed, revs etc.
@@ -1032,6 +1035,7 @@ void OFerrari::move()
                 if (gear_counter == 0)
                     do_gear_torque(d1);
             }
+
             // set_torque:
             int16_t new_torque = torque_lookup[torque_index];
             torque = new_torque;
@@ -1309,7 +1313,7 @@ void OFerrari::do_gear_high(int16_t &d1)
     }
 
     // Increment torque until it reaches 0x1F
-    if (d1 == 0x1F) return;
+    if (d1 == 0x1f) return;
     d1++;
 }
 
@@ -1470,7 +1474,6 @@ void OFerrari::convert_revs_speed(int32_t new_torque, int32_t &d2)
                 revs_post_stop -= rev_stop_flag;
 
             // cont1:
-
             int16_t d5 = revs_post_stop >> 1;
             int16_t d4 = rev_stop_flag;
             if (revs_top >= d5)
@@ -1499,10 +1502,11 @@ void OFerrari::convert_revs_speed(int32_t new_torque, int32_t &d2)
         std::cout << "convert_revs_speed error!" << std::endl;
     }*/
 
+    const int max_speed = !config.engine.turbo ? MAX_SPEED : (int) (MAX_SPEED * 1.2f);
     d2 = (d2 / new_torque) * 0x480;
-    
+    //std::cout << std::hex << "d2: " << (int)d2 << " new_torque: " << new_torque << " torque index: " << std::hex << (int) torque_index << std::endl;
     if (d2 < 0) d2 = 0;
-    else if (d2 > MAX_SPEED) d2 = MAX_SPEED;
+    else if (d2 > max_speed) d2 = max_speed;
 }
 
 // Update road_pos, taking road_curve into account
@@ -1750,7 +1754,7 @@ const uint8_t OFerrari::rev_inc_lookup[] =
 };
 
 
-const uint16_t OFerrari::torque_lookup[] = 
+uint16_t OFerrari::torque_lookup[] = 
 {
     0x2600, // Offset 0x00 - Start line                                                           
     0x243C, // ..

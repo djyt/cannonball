@@ -134,11 +134,12 @@ struct engine_settings_t
     bool fix_timer;
     bool layout_debug;
     bool hiscore_delete;  // Allow deletion of last entry in score table
-    int hiscore_timer;     // Override default timer on high-score entry screen
-    int new_attract;    // New Attract Mode
-    bool grippy_tyres;  // Stick to track
-    bool offroad;       // Drive off-road
-    bool bumper;        // Smash into other cars without spinning
+    int hiscore_timer;    // Override default timer on high-score entry screen
+    int new_attract;      // New Attract Mode
+    bool grippy_tyres;    // Handling: Stick to track
+    bool offroad;         // Handling: Drive off-road
+    bool bumper;          // Handling: Smash into other cars without spinning
+    bool turbo;           // Handling: Faster Car
 };
 
 class Config

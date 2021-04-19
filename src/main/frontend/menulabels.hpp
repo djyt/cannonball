@@ -96,6 +96,7 @@ const static char* ENTRY_OBJECTS = "OBJECTS ";
 const static char* ENTRY_GRIP    = "GRIPPY TYRES ";
 const static char* ENTRY_OFFROAD = "OFFROAD TYRES ";
 const static char* ENTRY_BUMPER  = "STRONG BUMPER ";
+const static char* ENTRY_TURBO   = "FASTER CAR ";
 
 // Music Test Menu
 const static char* ENTRY_MUSIC1 = "PLAY TRACK";

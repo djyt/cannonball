@@ -129,6 +129,7 @@ void Config::load()
     sound.advertise   = pt_config.get("sound.advertise",   1);
     sound.preview     = pt_config.get("sound.preview",     1);
     sound.fix_samples = pt_config.get("sound.fix_samples", 1);
+    sound.music_timer = pt_config.get("sound.music_timer", 0);
 
     // Custom Music. Search for enabled custom tracks
     for (int i = 0;; i++)
@@ -146,6 +147,15 @@ void Config::load()
             music.cmd      = sound::MUSIC_CUSTOM;
             sound.music.push_back(music);
         }
+    }
+
+    if (!sound.music_timer)
+        sound.music_timer = MUSIC_TIMER;
+    else
+    {
+        if (sound.music_timer > 99)
+            sound.music_timer = 99;
+        sound.music_timer = outils::DEC_TO_HEX[sound.music_timer]; // convert to hexadecimal
     }
 
     // ------------------------------------------------------------------------

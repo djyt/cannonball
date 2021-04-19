@@ -47,6 +47,9 @@ const static uint16_t ROAD_END_CPU1 = 0x904;
 // Default timer used for hi-score entry
 const static uint8_t HIGHSCORE_TIMER = 0x30;
 
+// Default timer used for music selection (was 15 seconds on original/old romset)
+const static uint8_t MUSIC_TIMER = 0x30;
+
 enum
 {
     BIT_0 = 0x01,

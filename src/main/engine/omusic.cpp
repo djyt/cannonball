@@ -70,7 +70,7 @@ void OMusic::enable()
     oroad.horizon_base        = -0x3FF;
     last_music_selected       = -1;
     preview_counter           = -20; // Delay before playing music
-    ostats.time_counter       = 0x30; // Move 30 seconds to timer countdown (note on the original roms this is 15 seconds)
+    ostats.time_counter       = config.sound.music_timer; // Move 30 seconds to timer countdown (note on the original roms this is 15 seconds)
     ostats.frame_counter      = ostats.frame_reset;  
      
     blit_music_select();

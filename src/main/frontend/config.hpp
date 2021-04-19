@@ -82,6 +82,7 @@ struct sound_settings_t
     int advertise;
     int preview;
     int fix_samples;
+    int music_timer;
     std::vector <music_t> music;
 };
 

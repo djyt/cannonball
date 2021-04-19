@@ -90,6 +90,9 @@
     <!-- OutRun shipped with a corrupt PCM sample ROM. This uses the repaired ROM 'opr-10188.71f' -->
     <fix_samples>0</fix_samples>
     
+    <!-- Override Music Selection Timeout (Default: 30 Seconds, Max: 99 Seconds) -->
+    <music_timer>30</music_timer>
+    
 	<!-- Add Additional Music To Music Selection Menu.
          
          1/ Music should be placed in the "res" directory.

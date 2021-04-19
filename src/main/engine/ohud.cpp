@@ -150,7 +150,7 @@ void OHud::draw_timer1(uint16_t time)
     if (!outrun.freeze_timer)
     {
         const uint16_t BASE_TILE = 0x8C80;
-        draw_timer2(time, 0x1100BE, BASE_TILE);
+        draw_timer2(time > 0x99 ? 0x99 : time, 0x1100BE, BASE_TILE);
 
         // Blank out the OFF text area
         video.write_text16(0x110C2, 0);

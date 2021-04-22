@@ -35,9 +35,9 @@ void RenderBase::convert_palette(uint32_t adr, uint32_t r1, uint32_t g1, uint32_
 {
     adr >>= 1;
 
-    uint32_t r = r1 * 255 / 31;
-    uint32_t g = g1 * 255 / 31;
-    uint32_t b = b1 * 255 / 31;
+    uint32_t r = r1 * 8;
+    uint32_t g = g1 * 8;
+    uint32_t b = b1 * 8;
 
     rgb[adr] = CURRENT_RGB();
 

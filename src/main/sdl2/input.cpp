@@ -207,6 +207,7 @@ void Input::handle_axis(const uint8_t ax, const int16_t value)
     // Analog Controls
     if (analog)
     {
+        int workingv = value;
         //std::cout << "ax: " << (int)ax << " value " << value << std::endl;
         store_last_axis(ax, value);
 
@@ -240,11 +241,17 @@ void Input::handle_axis(const uint8_t ax, const int16_t value)
         }
         // Accelerator [Single Axis]
         else if (ax == axis[1])
-            a_accel = scale_trigger(invert[1] ? -value : value);
+        {
+            a_accel = scale_trigger(invert[1] ? -workingv : workingv);
+            if (a_accel > 0xff) a_accel = 0xff;
+        }
 
         // Brake [Single Axis]
         else if (ax == axis[2])
-            a_brake = scale_trigger(invert[2] ? -value : value);
+        {
+            a_brake = scale_trigger(invert[2] ? -workingv : workingv);
+            if (a_brake > 0xff) a_brake = 0xff;
+        }
     }
 }
 
@@ -256,7 +263,7 @@ void Input::handle_axis(const uint8_t ax, const int16_t value)
 // Joysticks:   Undefined, but usually between -32768 to 32767
 // ------------------------------------------------------------------------------------------------
 
-int Input::scale_trigger(const int16_t value)
+int Input::scale_trigger(const int value)
 {
     if (controller != NULL)
         return value / 0x80;

@@ -110,7 +110,7 @@ private:
     void handle_joy(const uint8_t, const bool);
     void handle_axis(const uint8_t axis, const int16_t value);
     void store_last_axis(const uint8_t axis, const int16_t value);
-    int scale_trigger(const int16_t);
+    int scale_trigger(const int);
 };
 
 extern Input input;

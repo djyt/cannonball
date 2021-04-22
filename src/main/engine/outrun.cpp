@@ -730,7 +730,7 @@ void Outrun::init_motor_calibration()
 
     oroad.init();
     oroad.horizon_set    = 1;
-    oroad.horizon_base   = -0x3FF;
+    oroad.horizon_base   = ORoad::HORIZON_OFF;
     game_state           = GS_CALIBRATE_MOTOR;
 
 

@@ -14,6 +14,7 @@
 #include "video.hpp"
 #include "globals.hpp"
 #include "frontend/config.hpp"
+#include "engine/oroad.hpp"
 
 #ifdef WITH_OPENGL
 #include "sdl2/rendergl.hpp"
@@ -172,7 +173,9 @@ void Video::prepare_frame()
         (hwroad.*hwroad.render_background)(pixels);
         tile_layer->render_tile_layer(pixels, 1, 0);      // background layer
         tile_layer->render_tile_layer(pixels, 0, 0);      // foreground layer
-        (hwroad.*hwroad.render_foreground)(pixels);
+
+        if (!config.engine.fix_bugs || oroad.horizon_base != ORoad::HORIZON_OFF)
+            (hwroad.*hwroad.render_foreground)(pixels);
         sprite_layer->render(8);
         tile_layer->render_text_layer(pixels, 1);
      }

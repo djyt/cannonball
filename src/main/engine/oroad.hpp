@@ -118,6 +118,7 @@ public:
     // Stage 1 is 0x240
     // Higher values = higher horizon.
     // Note: This is adjusted mid-stage for Stage 2, but remains constant for Stage 1.
+	const static int32_t HORIZON_OFF = -0x3FF;
 	int32_t horizon_base;
 
 	// 0x736: 0 = Base Horizon Value Not Set. 1 = Value Set.
@@ -260,9 +261,6 @@ private:
     int16_t scanline;
     int32_t total_height;
 
-    // MOVED FOR DEBUGGING PURPOSES ONLY!
-    private:
-
 	// -------------------------------------------------------------------------
 	// Locations in Road RAM
 	// -------------------------------------------------------------------------
@@ -270,7 +268,6 @@ private:
 	static const uint32_t HW_HSCROLL_TABLE1 = 0x80800;
 	static const uint32_t HW_BGCOLOR = 0x80C00;
 
-	void init_road_code();
 	void set_default_hscroll();
 	void clear_road_ram();
 	void init_stage1();
@@ -281,7 +278,6 @@ private:
 	void setup_road_x();
 	void setup_x_data(uint32_t);
 	void set_tilemap_x(uint32_t);
-	void add_next_road_pos(uint32_t*);
 	void create_curve(int16_t&, int16_t&,
                       const int32_t, const int32_t, const int16_t, const int16_t);
 
@@ -304,7 +300,6 @@ private:
 	void set_y_interpolate();
 	void set_y_horizon();
 	void set_y_2044();
-	void pos_done();
 	void read_next_height();
 	void set_elevation();
 

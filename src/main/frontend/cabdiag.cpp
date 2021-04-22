@@ -46,7 +46,7 @@ void CabDiag::reset()
     osprites.disable_sprites();
 
     oroad.horizon_set    = 1;
-    oroad.horizon_base   = -0x3FF;
+    oroad.horizon_base   = ORoad::HORIZON_OFF;
 
     // Write Palette To RAM
     uint32_t dst = 0x120000;

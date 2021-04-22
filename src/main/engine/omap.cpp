@@ -44,7 +44,7 @@ void OMap::init()
     osprites.spr_cnt_main     = 0;
     osprites.spr_cnt_shadow   = 0;
     oroad.road_ctrl           = ORoad::ROAD_BOTH_P0;
-    oroad.horizon_base        = -0x3FF;
+    oroad.horizon_base        = ORoad::HORIZON_OFF;
     otiles.fill_tilemap_color(0xABD); //  Paint pinkish colour on tilemap 16
     init_sprites = true;
 }

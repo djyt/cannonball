@@ -464,7 +464,7 @@ void Menu::tick_menu()
         {
             int rom_type = !config.sound.fix_samples;
 
-            if (roms.load_pcm_rom(rom_type == 1))
+            if (roms.load_pcm_rom(rom_type == 1) == 0)
             {
                 config.sound.fix_samples = rom_type;
                 display_message(rom_type == 1 ? "FIXED SAMPLES LOADED" : "ORIGINAL SAMPLES LOADED");
@@ -1086,7 +1086,7 @@ void Menu::start_game(int mode, int settings)
 
         if (!config.sound.fix_samples)
         {
-            if (roms.load_pcm_rom(true))
+            if (roms.load_pcm_rom(true) == 0)
                 config.sound.fix_samples = 1;
         }
 
@@ -1110,7 +1110,7 @@ void Menu::start_game(int mode, int settings)
 
         if (config.sound.fix_samples)
         {
-            if (roms.load_pcm_rom(false))
+            if (roms.load_pcm_rom(false) == 0)
                 config.sound.fix_samples = 0;
         }
 

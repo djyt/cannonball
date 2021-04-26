@@ -35,6 +35,9 @@ OInitEngine oinitengine;
 // Continuous Mode Level Ordering
 const static uint8_t CONTINUOUS_LEVELS[] = {0, 0x8, 0x9, 0x10, 0x11, 0x12, 0x18, 0x19, 0x1A, 0x1B, 0x20, 0x21, 0x22, 0x23, 0x24};
 
+// Set to 0 to 4 to test bonus sequence, -1 disables
+const static int DEBUG_BONUS = -1;
+
 OInitEngine::OInitEngine()
 {
 }
@@ -287,12 +290,14 @@ void OInitEngine::update_engine()
         ohud.blit_text1(HUD_KPH2);
 
         // Blit High/Low Gear
-        if (config.controls.gear == config.controls.GEAR_BUTTON && !config.smartypi.enabled)
+        if ((config.controls.gear == config.controls.GEAR_BUTTON ||
+            config.controls.gear == config.controls.GEAR_SEPARATE)
+            && !config.smartypi.enabled)
         {
             if (oinputs.gear)
-                ohud.blit_text_new(9, 26, "H");
+                ohud.blit_text_new(9, 26, "H", OHud::GREEN);
             else
-                ohud.blit_text_new(9, 26, "L");
+                ohud.blit_text_new(9, 26, "L", OHud::GREY);
         }
 
         if (config.engine.layout_debug)
@@ -334,8 +339,16 @@ void OInitEngine::check_road_split()
     {
         // State 0: No road split. Check current road position with ROAD_END.
         case SPLIT_NONE:
-            if (oroad.road_pos >> 16 <= ROAD_END) return; 
-            check_stage(); // Do Split - Split behaviour depends on stage
+            if (DEBUG_BONUS == -1)
+            {
+                if (oroad.road_pos >> 16 <= ROAD_END) return; 
+                check_stage(); // Do Split - Split behaviour depends on stage
+            }
+            else
+            {
+                if (oroad.road_pos >> 16 <= 0x100) return;
+                init_bonus(DEBUG_BONUS);
+            }
             break;
 
         // State 1: (Does this ever need to be called directly?)

@@ -33,11 +33,12 @@ public:
     ~Roms();
     bool load_revb_roms(bool);
     bool load_japanese_roms();
-    bool load_pcm_rom(bool);
+    int load_pcm_rom(bool);
     bool load_ym_data(const char* filename);
 
 private:
     int jap_rom_status;
+    const static bool VERBOSE = true;
 };
 
 extern Roms roms;

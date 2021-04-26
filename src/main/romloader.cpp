@@ -67,7 +67,7 @@ void RomLoader::unload(void)
 // Advantage: Simpler. Does not require <dirent.h>
 // ------------------------------------------------------------------------------------------------
 
-int RomLoader::load_rom(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
+int RomLoader::load_rom(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave, const bool verbose)
 {
     std::string path = config.data.rom_path;
     path += std::string(filename);
@@ -76,7 +76,7 @@ int RomLoader::load_rom(const char* filename, const int offset, const int length
     std::ifstream src(path.c_str(), std::ios::in | std::ios::binary);
     if (!src)
     {
-        std::cout << "cannot open rom: " << path << std::endl;
+        if (verbose) std::cout << "cannot open rom: " << path << std::endl;
         loaded = false;
         return 1; // fail
     }
@@ -91,8 +91,11 @@ int RomLoader::load_rom(const char* filename, const int offset, const int length
 
     if (expected_crc != result.checksum())
     {
+        if (verbose) 
         std::cout << std::hex << 
             filename << " has incorrect checksum.\nExpected: " << expected_crc << " Found: " << result.checksum() << std::endl;
+
+        return 1;
     }
 
     // Interleave file as necessary
@@ -162,7 +165,7 @@ int RomLoader::create_map()
 // Advantage: More resilient to renamed romsets.
 // ------------------------------------------------------------------------------------------------
 
-int RomLoader::load_crc32(const char* debug, const int offset, const int length, const int expected_crc, const uint8_t interleave)
+int RomLoader::load_crc32(const char* debug, const int offset, const int length, const int expected_crc, const uint8_t interleave, const bool verbose)
 {
     if (!map_created)
         create_map();
@@ -175,7 +178,7 @@ int RomLoader::load_crc32(const char* debug, const int offset, const int length,
     // Cannot find file by CRC value in map
     if (search == map.end())
     {
-        std::cout << "Unable to locate rom in path: " << config.data.rom_path << " possible name: " << debug << " crc32: 0x" << std::hex << expected_crc << std::endl;
+        if (verbose) std::cout << "Unable to locate rom in path: " << config.data.rom_path << " possible name: " << debug << " crc32: 0x" << std::hex << expected_crc << std::endl;
         loaded = false;
         return 1;
     }
@@ -186,7 +189,7 @@ int RomLoader::load_crc32(const char* debug, const int offset, const int length,
     std::ifstream src(file, std::ios::in | std::ios::binary);
     if (!src)
     {
-        std::cout << "cannot open rom: " << file << std::endl;
+        if (verbose) std::cout << "cannot open rom: " << file << std::endl;
         loaded = false;
         return 1; // fail
     }

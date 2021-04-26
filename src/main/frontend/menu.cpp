@@ -150,6 +150,7 @@ void Menu::populate_for_pc()
     menu_handling.push_back(ENTRY_OFFROAD);
     menu_handling.push_back(ENTRY_BUMPER);
     menu_handling.push_back(ENTRY_TURBO);
+    menu_handling.push_back(ENTRY_COLOR);
     menu_handling.push_back(ENTRY_BACK);
 }
 
@@ -790,6 +791,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_OFFROAD))           config.engine.offroad ^= 1;
             else if (SELECTED(ENTRY_BUMPER))            config.engine.bumper ^= 1;
             else if (SELECTED(ENTRY_TURBO))             config.engine.turbo ^= 1;
+            else if (SELECTED(ENTRY_COLOR))             { if (++config.engine.car_pal > 4) config.engine.car_pal = 0; }
             else if (SELECTED(ENTRY_BACK))              set_menu(&menu_engine, true);  
         }
         else if (menu_selected == &menu_musictest)
@@ -939,6 +941,7 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_OFFROAD))       set_menu_text(ENTRY_OFFROAD, config.engine.offroad ? "ON" : "OFF");
             else if (SELECTED(ENTRY_BUMPER))        set_menu_text(ENTRY_BUMPER, config.engine.bumper ? "ON" : "OFF");
             else if (SELECTED(ENTRY_TURBO))         set_menu_text(ENTRY_TURBO, config.engine.turbo ? "ON" : "OFF");
+            else if (SELECTED(ENTRY_COLOR))         set_menu_text(ENTRY_COLOR, COLOR_LABELS[config.engine.car_pal]);
         }
         else if (menu_selected == &menu_musictest)
         {

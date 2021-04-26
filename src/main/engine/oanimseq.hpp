@@ -66,7 +66,7 @@ private:
 
     void init_end_sprites();
     void tick_ferrari();
-    void anim_seq_outro(oanimsprite*);
+    void anim_seq_outro(oanimsprite*, int pal_override = -1);
     void anim_seq_shadow(oanimsprite*, oanimsprite*);
     void anim_seq_outro_ferrari();
     bool read_anim_data(oanimsprite*);

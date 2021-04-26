@@ -13,6 +13,8 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include "frontend/config.hpp"
+
 #include "engine/obonus.hpp"
 #include "engine/oferrari.hpp"
 #include "engine/oinputs.hpp"
@@ -251,7 +253,7 @@ void OAnimSeq::anim_seq_intro(oanimsprite* anim)
         uint32_t index              = anim->anim_addr_curr + (anim->anim_frame << 3);
 
         anim->sprite->addr          = roms.rom0p->read32(index) & 0xFFFFF;
-        anim->sprite->pal_src       = roms.rom0p->read8(index);
+        anim->sprite->pal_src       = anim == &anim_ferrari ? oferrari.ferrari_pal : roms.rom0p->read8(index);
         anim->sprite->zoom          = 0x7F;
         anim->sprite->road_priority = 0x1FE;
         anim->sprite->priority      = 0x1FE - ((roms.rom0p->read16(index) & 0x70) >> 4);
@@ -348,20 +350,22 @@ void OAnimSeq::tick_end_seq()
             else return;
             
         case 1: // tick & blit
-            anim_seq_outro_ferrari();                   // Ferrari Sprite
-            anim_seq_outro(&anim_obj1);                 // Car Door Opening Animation
-            anim_seq_outro(&anim_obj2);                 // Interior of Ferrari
-            anim_seq_shadow(&anim_ferrari, &anim_obj3); // Car Shadow
-            anim_seq_outro(&anim_pass1);                // Man Sprite
-            anim_seq_shadow(&anim_pass1, &anim_obj4);   // Man Shadow
-            anim_seq_outro(&anim_pass2);                // Female Sprite
-            anim_seq_shadow(&anim_pass2, &anim_obj5);   // Female Shadow
-            anim_seq_outro(&anim_obj6);                 // Man Presenting Trophy
+            anim_seq_outro_ferrari();                           // Ferrari Sprite
+            anim_seq_outro(&anim_obj1, oferrari.ferrari_pal);   // Car Door Opening Animation
+            anim_seq_outro(&anim_obj2);                         // Interior of Ferrari
+            anim_seq_shadow(&anim_ferrari, &anim_obj3);         // Car Shadow
+                                                                // Man Sprite
+            // Fix Wrong Palette Bug: Only occurs on 3 of the 5 possible end sequences (0 and 3 are ok)
+            anim_seq_outro(&anim_pass1, config.engine.fix_bugs ? 10 : -1);                        
+            anim_seq_shadow(&anim_pass1, &anim_obj4);           // Man Shadow
+            anim_seq_outro(&anim_pass2);                        // Female Sprite
+            anim_seq_shadow(&anim_pass2, &anim_obj5);           // Female Shadow
+            anim_seq_outro(&anim_obj6);                         // Man Presenting Trophy
             if (end_seq == 4)
-                anim_seq_outro(&anim_obj7);             // Varies
+                anim_seq_outro(&anim_obj7);                     // Varies
             else
                 anim_seq_shadow(&anim_obj6, &anim_obj7);
-            anim_seq_outro(&anim_obj8);                 // Effects
+            anim_seq_outro(&anim_obj8);                         // Effects
             break;
     }
 }
@@ -501,7 +505,7 @@ void OAnimSeq::init_end_sprites()
 // Source: 0x5B12
 void OAnimSeq::anim_seq_outro_ferrari()
 {
-    if (/*outrun.tick_frame && */!ferrari_stopped)
+    if (!ferrari_stopped)
     {
         // Car is moving. Turn Brake On.
         if (oinitengine.car_increment >> 16)
@@ -515,12 +519,12 @@ void OAnimSeq::anim_seq_outro_ferrari()
             ferrari_stopped = true;
         }
     }
-    anim_seq_outro(&anim_ferrari);
+    anim_seq_outro(&anim_ferrari, oferrari.ferrari_pal);
 }
 
 // End Sequence: Setup Animated Sprites 
 // Source: 0x5B42
-void OAnimSeq::anim_seq_outro(oanimsprite* anim)
+void OAnimSeq::anim_seq_outro(oanimsprite* anim, int pal_override)
 {
     oinputs.steering_adjust = 0;
 
@@ -528,55 +532,52 @@ void OAnimSeq::anim_seq_outro(oanimsprite* anim)
     if (!read_anim_data(anim)) 
         return;
 
-    if (outrun.tick_frame)
-    {    
-        // Process Animation Data
-        uint32_t index = anim->anim_addr_curr + (anim->anim_frame << 3);
+    // Process Animation Data
+    uint32_t index = anim->anim_addr_curr + (anim->anim_frame << 3);
 
-        anim->sprite->addr          = roms.rom0p->read32(index) & 0xFFFFF;
-        anim->sprite->pal_src       = roms.rom0p->read8(index);
-        anim->sprite->zoom          = roms.rom0p->read8(6 + index) >> 1;
-        anim->sprite->road_priority = roms.rom0p->read8(6 + index) << 1;
-        anim->sprite->priority      = anim->sprite->road_priority - ((roms.rom0p->read16(index) & 0x70) >> 4); // (bits 4-6)
-        anim->sprite->x             = (roms.rom0p->read8(4 + index) * anim->sprite->priority) >> 9;
+    anim->sprite->addr          = roms.rom0p->read32(index) & 0xFFFFF;   
+    // Override palette to overcome bugs / recolour Ferrari
+    anim->sprite->pal_src       = pal_override != -1 ? pal_override : roms.rom0p->read8(index); 
+    anim->sprite->zoom          = roms.rom0p->read8(6 + index) >> 1;
+    anim->sprite->road_priority = roms.rom0p->read8(6 + index) << 1;
+    anim->sprite->priority      = anim->sprite->road_priority - ((roms.rom0p->read16(index) & 0x70) >> 4); // (bits 4-6)
+    anim->sprite->x             = (roms.rom0p->read8(4 + index) * anim->sprite->priority) >> 9;
     
-        if (roms.rom0p->read8(1 + index) & BIT_7)
-            anim->sprite->x = -anim->sprite->x;
+    if (roms.rom0p->read8(1 + index) & BIT_7)
+        anim->sprite->x = -anim->sprite->x;
 
-        // set_sprite_xy: (similar to flag code again)
+    // set_sprite_xy: (similar to flag code again)
 
-        // Set Y Position
-        int16_t sprite_y = (int8_t) roms.rom0p->read8(5 + index);
-        int16_t final_y  = (sprite_y * anim->sprite->priority) >> 9;
-        anim->sprite->y  = oroad.get_road_y(anim->sprite->priority) - final_y;
+    // Set Y Position
+    int16_t sprite_y = (int8_t) roms.rom0p->read8(5 + index);
+    int16_t final_y  = (sprite_y * anim->sprite->priority) >> 9;
+    anim->sprite->y  = oroad.get_road_y(anim->sprite->priority) - final_y;
 
-        // Set H-Flip
-        if (roms.rom0p->read8(7 + index) & BIT_6)
-            anim->sprite->control |= OSprites::HFLIP;
-        else
-            anim->sprite->control &= ~OSprites::HFLIP;
+    // Set H-Flip
+    if (roms.rom0p->read8(7 + index) & BIT_6)
+        anim->sprite->control |= OSprites::HFLIP;
+    else
+        anim->sprite->control &= ~OSprites::HFLIP;
 
-        // Ready for next frame
-        if (--anim->frame_delay == 0)
+    // Ready for next frame
+    if (outrun.tick_frame && --anim->frame_delay == 0)
+    {
+        // Load Next Block Of Animation Data
+        if (roms.rom0p->read8(7 + index) & BIT_7)
         {
-            // Load Next Block Of Animation Data
-            if (roms.rom0p->read8(7 + index) & BIT_7)
-            {
-                anim->anim_props    |= 0xFF;
-                anim->anim_addr_curr = anim->anim_addr_next;
-                anim->frame_delay    = roms.rom0p->read8(7 + anim->anim_addr_curr) & 0x3F;
-                anim->anim_frame     = 0;
-            }
-            // Last Block
-            else
-            {
-                anim->frame_delay = roms.rom0p->read8(0x0F + index) & 0x3F;
-                anim->anim_frame++;
-            }
-        } 
-        osprites.map_palette(anim->sprite);
-    }
-
+            anim->anim_props    |= 0xFF;
+            anim->anim_addr_curr = anim->anim_addr_next;
+            anim->frame_delay    = roms.rom0p->read8(7 + anim->anim_addr_curr) & 0x3F;
+            anim->anim_frame     = 0;
+        }
+        // Last Block
+        else
+        {
+            anim->frame_delay = roms.rom0p->read8(0x0F + index) & 0x3F;
+            anim->anim_frame++;
+        }
+    } 
+    osprites.map_palette(anim->sprite);
     // Order sprites
     osprites.do_spr_order_shadows(anim->sprite);
 }
@@ -636,7 +637,7 @@ bool OAnimSeq::read_anim_data(oanimsprite* anim)
     // Test Whether Animation Sequence Is Over & Initalize Course Map
     if (obonus.bonus_control != OBonus::BONUS_DISABLE)
     {
-        const uint16_t END_SEQ_LENGTHS[] = {0x244, 0x244, 0x244, 0x190, 0x258};
+        const static uint16_t END_SEQ_LENGTHS[] = {0x244, 0x244, 0x244, 0x190, 0x258};
 
         if (seq_pos == END_SEQ_LENGTHS[end_seq])
         {

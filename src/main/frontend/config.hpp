@@ -140,6 +140,7 @@ struct engine_settings_t
     bool offroad;         // Handling: Drive off-road
     bool bumper;          // Handling: Smash into other cars without spinning
     bool turbo;           // Handling: Faster Car
+    int car_pal;          // Car Palette
 };
 
 class Config

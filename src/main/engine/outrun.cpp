@@ -616,7 +616,6 @@ void Outrun::main_switch()
             oinitengine.car_x_pos = oroad.car_x_bak;
         } 
     }
-
 }
 
 // Setup Jump Table. Move from ROM to RAM.

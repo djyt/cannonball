@@ -85,18 +85,21 @@ const static char* ENTRY_TRACKS = "TRACKS ";
 const static char* ENTRY_TIME = "TIME ";
 const static char* ENTRY_TRAFFIC = "TRAFFIC ";
 const static char* ENTRY_SUB_ENHANCEMENTS = "ENHANCEMENTS";
-const static char* ENTRY_SUB_HANDLING = "CAR HANDLING";
+const static char* ENTRY_SUB_HANDLING = "CAR SETUP";
 
 // Game Engine: Enhancements Sub-Menu
 const static char* ENTRY_ATTRACT = "NEW ATTRACT ";
 const static char* ENTRY_PROTOTYPE = "PROTOTYPE STAGE 1 ";
 const static char* ENTRY_OBJECTS = "OBJECTS ";
 
-// Game Engine: Car Handling Sub-Menu
+// Game Engine: Car Setup Sub-Menu
 const static char* ENTRY_GRIP    = "GRIPPY TYRES ";
 const static char* ENTRY_OFFROAD = "OFFROAD TYRES ";
 const static char* ENTRY_BUMPER  = "STRONG BUMPER ";
 const static char* ENTRY_TURBO   = "FASTER CAR ";
+const static char* ENTRY_COLOR   = "COLOR ";
+
+const static char* COLOR_LABELS[5] = { "RED", "BLUE", "YELLOW", "GREEN", "CYAN" };
 
 // Music Test Menu
 const static char* ENTRY_MUSIC1 = "PLAY TRACK";

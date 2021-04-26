@@ -313,6 +313,9 @@
     <!-- Drive 20% Faster -->
     <turbo>0</turbo>
     
+    <!-- 0 = Red, 1 = Blue, 2 = Yellow, 3 = Green, 4 = Cyan -->
+    <car_color>0</car_color>
+    
     <!-- Display debug info that's useful for LayOut track editing -->
     <layout_debug>0</layout_debug>
 </engine>

@@ -377,7 +377,8 @@ void OCrash::do_collision()
     else
         spr_ferrari->control &= ~OSprites::HFLIP;
 
-    spr_ferrari->pal_src = roms.rom0p->read8(5 + property_table);
+    //spr_ferrari->pal_src = roms.rom0p->read8(5 + property_table);
+    spr_ferrari->pal_src = oferrari.ferrari_pal;
     spin_pass_frame = (int8_t) roms.rom0p->read8(6 + property_table);
 
     if (--spinflipcount2 > 0)
@@ -520,7 +521,8 @@ void OCrash::do_bump()
     else
         spr_ferrari->control &= ~OSprites::HFLIP;
     
-    spr_ferrari->pal_src = roms.rom0p->read8(frames + 5);
+    //spr_ferrari->pal_src = roms.rom0p->read8(frames + 5);
+    spr_ferrari->pal_src = oferrari.ferrari_pal;
     spin_pass_frame = (int8_t) roms.rom0p->read8(frames + 6);
 
     if (++lookup_index >= 0x10)
@@ -659,8 +661,12 @@ void OCrash::do_car_flip()
         spr_ferrari->control |= OSprites::HFLIP;
     else 
         spr_ferrari->control &= ~OSprites::HFLIP;
-
-    spr_ferrari->pal_src = roms.rom0p->read8(4 + frames);
+  
+    // Palette Hack for recoloured cars. Original version was simply: spr_ferrari->pal_src = roms.rom0p->read8(4 + frames);
+    if (frame >= 7)
+        spr_ferrari->pal_src = oferrari.ferrari_pal;
+    else
+        spr_ferrari->pal_src = oferrari.ferrari_pal == OFerrari::PAL_RED ? roms.rom0p->read8(4 + frames) : oferrari.ferrari_pal + 4;
 
     if (--spinflipcount2 > 0)
     {
@@ -693,7 +699,6 @@ void OCrash::do_car_flip()
     {
         init_finger(frames);
     }
-
     done(spr_ferrari);
 }
 
@@ -747,7 +752,8 @@ void OCrash::trigger_smoke()
     else 
         spr_ferrari->control &= ~OSprites::HFLIP;
 
-    spr_ferrari->pal_src =     roms.rom0p->read8(5 + addr);
+    //spr_ferrari->pal_src =     roms.rom0p->read8(5 + addr);
+    spr_ferrari->pal_src = oferrari.ferrari_pal;
     spin_pass_frame = (int8_t) roms.rom0p->read8(6 + addr);
 
     // Slow Car

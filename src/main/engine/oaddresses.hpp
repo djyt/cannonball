@@ -169,9 +169,6 @@ const uint32_t TILEMAP_PALS = 0xDF9C;
 // Palette: Music Select Screen
 const uint32_t PAL_MUSIC_SELECT = 0x175CC;
 
-// Palette Data. Stored in blocks of 32 bytes.
-const uint32_t PAL_DATA = 0x14ED8;
-
 // Table of long addresses of ground colours
 const uint32_t PAL_GND_TABLE = 0x17350;
 

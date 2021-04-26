@@ -154,7 +154,6 @@ set(src_engine
     "${main_cpp_base}/engine/otraffic.hpp"
     "${main_cpp_base}/engine/outils.hpp"
     "${main_cpp_base}/engine/outrun.hpp"
-    "${main_cpp_base}/engine/ozoom_lookup.hpp"
 
     "${main_cpp_base}/engine/oanimseq.cpp"
     "${main_cpp_base}/engine/oattractai.cpp"
@@ -182,6 +181,11 @@ set(src_engine
     "${main_cpp_base}/engine/outrun.cpp"
     )
 
+set(src_engine_data
+    "${main_cpp_base}/engine/data/ozoom_lookup.hpp"
+    "${main_cpp_base}/engine/data/sprite_pals.hpp"
+    )
+
 set(src_engine_audio
     "${main_cpp_base}/engine/audio/commands.hpp"
     "${main_cpp_base}/engine/audio/osound.hpp"
@@ -201,6 +205,7 @@ set(SRCS
     ${src_render}
     ${src_directx}
     ${src_engine}
+    ${src_engine_data}
     ${src_engine_audio}
 )
 
@@ -213,6 +218,7 @@ SOURCE_GROUP(src\\sdl FILES ${src_sdl})
 SOURCE_GROUP(src\\sdl FILES ${src_render})
 SOURCE_GROUP(src\\directx FILES ${src_directx})
 SOURCE_GROUP(src\\engine FILES ${src_engine})
+SOURCE_GROUP(src\\engine\\data FILES ${src_engine_data})
 SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
 
 # Add Icon For Windows Builds

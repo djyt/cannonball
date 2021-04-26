@@ -241,6 +241,7 @@ void Config::load()
     engine.grippy_tyres    = pt_config.get("engine.grippy_tyres", 0);
     engine.bumper          = pt_config.get("engine.bumper", 0);
     engine.turbo           = pt_config.get("engine.turbo", 0);
+    engine.car_pal         = pt_config.get("engine.car_color", 0);
 
     if (!engine.hiscore_timer)
         engine.hiscore_timer = HIGHSCORE_TIMER;
@@ -325,6 +326,7 @@ bool Config::save()
     pt_config.put("engine.grippy_tyres",    (int) engine.grippy_tyres);
     pt_config.put("engine.bumper",          (int) engine.bumper);
     pt_config.put("engine.turbo",           (int) engine.turbo);
+    pt_config.put("engine.car_color",       engine.car_pal);
 
     pt_config.put("time_trial.laps",    ttrial.laps);
     pt_config.put("time_trial.traffic", ttrial.traffic);

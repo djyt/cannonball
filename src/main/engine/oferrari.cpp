@@ -31,8 +31,18 @@
 
 OFerrari oferrari;
 
+static const uint16_t FERRARI_PALETTES[] =
+{
+    OFerrari::PAL_RED,      // Red
+    OFerrari::PAL_BLUE,     // Blue
+    OFerrari::PAL_YELLOW,   // Yellow
+    OFerrari::PAL_GREEN,    // Green
+    OFerrari::PAL_CYAN,     // Cyan
+};
+
 OFerrari::OFerrari(void)
 {
+
 }
 
 OFerrari::~OFerrari(void)
@@ -102,6 +112,11 @@ void OFerrari::init(oentry *f, oentry *p1, oentry *p2, oentry *s)
     
     // Change high gear torque value to enable faster speeds
     torque_lookup[0x1F] = config.engine.turbo ? 0x558 : 0x66C;
+
+    int size = sizeof(FERRARI_PALETTES)/sizeof(FERRARI_PALETTES[0]);
+    if (config.engine.car_pal >= size)
+        config.engine.car_pal = 0;
+    ferrari_pal = FERRARI_PALETTES[config.engine.car_pal];
 }
 
 // Reset all values relating to car speed, revs etc.
@@ -182,7 +197,7 @@ void OFerrari::tick()
 
         // Ferrari End Sequence Logic
         case FERRARI_END_SEQ:
-                oanimseq.tick_end_seq();
+            oanimseq.tick_end_seq();
             break;
     }
 }
@@ -250,49 +265,49 @@ void OFerrari::logic()
                 // note fall through!
             }
             
-            case OBonus::BONUS_SEQ0:
-                if ((oroad.road_pos >> 16) < 0x18E)
-                {
-                    init_end_seq();
-                    return;
-                }
-                obonus.bonus_control = OBonus::BONUS_SEQ1;
-                // fall through
+        case OBonus::BONUS_SEQ0:
+            if ((oroad.road_pos >> 16) < 0x18E)
+            {
+                init_end_seq();
+                return;
+            }
+            obonus.bonus_control = OBonus::BONUS_SEQ1;
+            // fall through
             
-            case OBonus::BONUS_SEQ1:
-                if ((oroad.road_pos >> 16) < 0x18F)
-                {
-                    init_end_seq();
-                    return;
-                }
-                obonus.bonus_control = OBonus::BONUS_SEQ2;
+        case OBonus::BONUS_SEQ1:
+            if ((oroad.road_pos >> 16) < 0x18F)
+            {
+                init_end_seq();
+                return;
+            }
+            obonus.bonus_control = OBonus::BONUS_SEQ2;
 
-            case OBonus::BONUS_SEQ2:
-                if ((oroad.road_pos >> 16) < 0x190)
-                {
-                    init_end_seq();
-                    return;
-                }
-                obonus.bonus_control = OBonus::BONUS_SEQ3;
+        case OBonus::BONUS_SEQ2:
+            if ((oroad.road_pos >> 16) < 0x190)
+            {
+                init_end_seq();
+                return;
+            }
+            obonus.bonus_control = OBonus::BONUS_SEQ3;
             
-            case OBonus::BONUS_SEQ3:
-                if ((oroad.road_pos >> 16) < 0x191)
-                {
-                    init_end_seq();
-                    return;
-                }
-                else
-                {
-                    oferrari.car_ctrl_active = false; // -1
-                    oinitengine.car_increment = 0;
-                    obonus.bonus_control = OBonus::BONUS_END;
-                }
+        case OBonus::BONUS_SEQ3:
+            if ((oroad.road_pos >> 16) < 0x191)
+            {
+                init_end_seq();
+                return;
+            }
+            else
+            {
+                oferrari.car_ctrl_active = false; // -1
+                oinitengine.car_increment = 0;
+                obonus.bonus_control = OBonus::BONUS_END;
+            }
 
-            case OBonus::BONUS_END:
-                oinputs.acc_adjust = 0;
-                oinputs.brake_adjust = 0xFF;
-                do_end_seq();
-                break;
+        case OBonus::BONUS_END:
+            oinputs.acc_adjust = 0;
+            oinputs.brake_adjust = 0xFF;
+            do_end_seq();
+            break;
     }
 }
 
@@ -533,7 +548,7 @@ void OFerrari::do_end_seq()
     spr_ferrari->addr    = roms.rom0p->read32(addr);
     sprite_pass_y        = roms.rom0p->read8(4 + addr);  // Set Passenger Y Offset
     spr_ferrari->x       = roms.rom0p->read8(5 + addr);
-    spr_ferrari->pal_src = roms.rom0p->read8(6 + addr);
+    spr_ferrari->pal_src = ferrari_pal;//  roms.rom0p->read8(6 + addr);
     spr_ferrari->control = roms.rom0p->read8(7 + addr) | (spr_ferrari->control & 0xFE); // HFlip
 
     osprites.map_palette(spr_ferrari);
@@ -576,7 +591,7 @@ void OFerrari::set_ferrari_palette()
         else
             wheel_counter--;
     }
-    spr_ferrari->pal_src = pal + 2 + (wheel_pal & 1);
+    spr_ferrari->pal_src = pal + ferrari_pal + (wheel_pal & 1);
 }
 
 // Set Ferrari X Position

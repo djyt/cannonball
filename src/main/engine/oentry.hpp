@@ -83,7 +83,7 @@ public:
 	//            For the car sprite:
 	//            0-2 = Wheels turning
 	//            3-5 = Brake lights on, Wheels turning
-	uint8_t pal_src;
+	uint16_t pal_src;
 
 	// +0B [Byte] Sprite Colour Palette: Destination index into PALETTE RAM. 0 - 7F.
 	uint8_t pal_dst;

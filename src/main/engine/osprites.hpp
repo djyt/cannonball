@@ -17,6 +17,7 @@
 #include "oentry.hpp"
 #include "osprite.hpp"
 #include "outrun.hpp"
+#include "engine/data/sprite_pals.hpp"
 
 class OSprites
 {
@@ -165,10 +166,11 @@ private:
 	// Word 4: Palette RAM Destination Offset
 	//
 	//etc.
-	uint16_t pal_addresses[0x100]; // todo: rename to pal_mapping
+	const static int PAL_ENTRIES = 0x100; // hardware palette entries (before extra CannonBall palettes)
+	uint16_t pal_addresses[PAL_ENTRIES]; // todo: rename to pal_mapping
 
-	// Palette Lookup Table
-	uint8_t pal_lookup[0x100];
+	// Palette Lookup Table (was 0x100, but extended to account for extra palettes in CannonBall)
+	uint8_t pal_lookup[PAL_LOOKUP_LENGTH];
 
 	// Converted sprite entries in RAM for hardware.
 	uint8_t sprite_order[0x2000];

@@ -164,9 +164,8 @@ void OLevelObjs::setup_sprite(oentry* sprite, uint32_t z)
     sprite->yw      = READ16(addr + 2) << 7;
     sprite->type    = ((uint8_t) READ8 (addr + 5)) << 2;
     sprite->addr    = roms.rom0p->read32(outrun.adr.sprite_type_table + sprite->type);
-
-    sprite->pal_src = READ8 (addr + 7);
-    
+    sprite->pal_src = (uint8_t) (READ8 (addr + 7));
+   
     osprites.map_palette(sprite);
 
     sprite->width = 0;
@@ -471,13 +470,13 @@ void OLevelObjs::sprite_lights(oentry *sprite)
 void OLevelObjs::sprite_lights_countdown(oentry *sprite)
 {
     // Yes, here we use the game_state to control the countdown palette :-s
-    int8_t countdown_pal = outrun.game_state - 9;
+    int countdown_pal = outrun.game_state - 9;
 
     // We're in countdown mode, let's adjust the palette
     if (countdown_pal >= 0 && countdown_pal <= 3)
     {
         countdown_pal += 0x7A + ostats.cur_stage;
-        sprite->pal_src = countdown_pal;
+        sprite->pal_src = (uint8_t) countdown_pal;
         osprites.map_palette(sprite);
     }
     

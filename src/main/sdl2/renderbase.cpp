@@ -1,5 +1,6 @@
 #include "renderbase.hpp"
 #include <iostream>
+#include <cmath>
 
 RenderBase::RenderBase()
 {

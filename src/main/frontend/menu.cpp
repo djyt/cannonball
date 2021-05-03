@@ -57,6 +57,13 @@ void Menu::populate()
     else
         populate_for_pc();
 
+    menu_handling.push_back(ENTRY_GRIP);
+    menu_handling.push_back(ENTRY_OFFROAD);
+    menu_handling.push_back(ENTRY_BUMPER);
+    menu_handling.push_back(ENTRY_TURBO);
+    menu_handling.push_back(ENTRY_COLOR);
+    menu_handling.push_back(ENTRY_BACK);
+
     menu_cont.push_back(ENTRY_START_CONT);
     menu_cont.push_back(ENTRY_TRAFFIC);
     menu_cont.push_back(ENTRY_BACK);
@@ -145,13 +152,6 @@ void Menu::populate_for_pc()
     menu_enhancements.push_back(ENTRY_OBJECTS);
     menu_enhancements.push_back(ENTRY_PROTOTYPE);
     menu_enhancements.push_back(ENTRY_BACK);
-
-    menu_handling.push_back(ENTRY_GRIP);
-    menu_handling.push_back(ENTRY_OFFROAD);
-    menu_handling.push_back(ENTRY_BUMPER);
-    menu_handling.push_back(ENTRY_TURBO);
-    menu_handling.push_back(ENTRY_COLOR);
-    menu_handling.push_back(ENTRY_BACK);
 }
 
 // Split into own function to handle controllers being added/removed
@@ -217,11 +217,11 @@ void Menu::populate_for_cabinet()
     menu_s_exsettings.push_back(ENTRY_SCORES);
     menu_s_exsettings.push_back(ENTRY_SAVE);
 
+    menu_s_enhance.push_back(ENTRY_SUB_HANDLING);
     menu_s_enhance.push_back(ENTRY_PREVIEWSND);
     menu_s_enhance.push_back(ENTRY_FIXSAMPLES);
     menu_s_enhance.push_back(ENTRY_ATTRACT);
     menu_s_enhance.push_back(ENTRY_OBJECTS);
-    menu_s_enhance.push_back(ENTRY_PROTOTYPE);
     menu_s_enhance.push_back(ENTRY_TIMER);
     menu_s_enhance.push_back(ENTRY_S_BUGS);
     menu_s_enhance.push_back(ENTRY_BACK);
@@ -267,7 +267,7 @@ void Menu::init(bool init_main_menu)
 
     if (init_main_menu)
     {
-        cursor_stack.clear();
+        menu_stack.clear();
         set_menu(&menu_main);
         refresh_menu();
     }
@@ -297,7 +297,7 @@ void Menu::tick()
             if (cabdiag->tick())
             {
                 init(false);
-                set_menu(&menu_s_tests, true);
+                menu_back();
                 refresh_menu();
             }
             break;
@@ -458,7 +458,7 @@ void Menu::tick_menu()
         if (SELECTED(ENTRY_SAVE))
         {
             display_message(config.save() ? "SETTINGS SAVED" : "ERROR SAVING SETTINGS!");
-            set_menu(&menu_main, true);
+            menu_back();
         }
         else if (SELECTED(ENTRY_FIXSAMPLES))
         {
@@ -498,7 +498,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_ORIGINAL))      start_game(Outrun::MODE_ORIGINAL, 2);
             else if (SELECTED(ENTRY_CONT))          set_menu(&menu_cont);
             else if (SELECTED(ENTRY_TIMETRIAL))     set_menu(&menu_timetrial);
-            else if (SELECTED(ENTRY_BACK))          set_menu(&menu_main, true);
+            else if (SELECTED(ENTRY_BACK))          menu_back();
         }
         else if (menu_selected == &menu_cont)
         {
@@ -514,7 +514,7 @@ void Menu::tick_menu()
                     config.cont_traffic = 0;
             }
             else if (SELECTED(ENTRY_BACK))
-                set_menu(&menu_gamemodes, true);
+                menu_back();
         }
         else if (menu_selected == &menu_timetrial)
         {
@@ -538,11 +538,11 @@ void Menu::tick_menu()
                     config.ttrial.traffic = 0;
             }
             else if (SELECTED(ENTRY_BACK))
-                set_menu(&menu_gamemodes, true);
+                menu_back();
         }
         else if (menu_selected == &menu_about)
         {
-            set_menu(&menu_main, true);
+            menu_back();
         }
         else if (menu_selected == &menu_settings)
         {
@@ -585,25 +585,25 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_S_MOTOR))
             {
-                cursor_stack.push_back(cursor);
+                set_menu(&menu_s_tests); // dummy (just store cursor for menu_back)
                 cabdiag->set(CabDiag::STATE_MOTORT);
                 state = STATE_DIAGNOSTICS; return;
             }
             else if (SELECTED(ENTRY_S_INPUTS))
             {
-                cursor_stack.push_back(cursor);
+                set_menu(&menu_s_tests); // dummy (just store cursor for menu_back)
                 cabdiag->set(CabDiag::STATE_INPUT);
                 state = STATE_DIAGNOSTICS; return;
             }
             else if (SELECTED(ENTRY_S_OUTPUTS))
             {
-                cursor_stack.push_back(cursor);
+                set_menu(&menu_s_tests); // dummy (just store cursor for menu_back)
                 cabdiag->set(CabDiag::STATE_OUTPUT);
                 state = STATE_DIAGNOSTICS; return;
             }
             else if (SELECTED(ENTRY_S_CRT))
             {
-                cursor_stack.push_back(cursor);
+                set_menu(&menu_s_tests); // dummy (just store cursor for menu_back)
                 cabdiag->set(CabDiag::STATE_CRT);
                 state = STATE_DIAGNOSTICS; return;
             }
@@ -613,7 +613,7 @@ void Menu::tick_menu()
                 set_menu(&menu_musictest);
             }
             else if (SELECTED(ENTRY_BACK))
-                set_menu(&menu_main, true);
+                menu_back();
         }
         // DIP Menu (SmartyPi Only)
         else if (menu_selected == &menu_s_dips)
@@ -633,13 +633,14 @@ void Menu::tick_menu()
         // Enahnce Menu (SmartyPi Only)
         else if (menu_selected == &menu_s_enhance)
         {
-            if (SELECTED(ENTRY_PREVIEWSND))         config.sound.preview ^= 1;
+            if (SELECTED(ENTRY_SUB_HANDLING))       set_menu(&menu_handling);
+            else if (SELECTED(ENTRY_PREVIEWSND))    config.sound.preview ^= 1;
             else if (SELECTED(ENTRY_ATTRACT))       config.engine.new_attract ^= 1;
             else if (SELECTED(ENTRY_OBJECTS))       config.engine.level_objects ^= 1;
             else if (SELECTED(ENTRY_PROTOTYPE))     config.engine.prototype ^= 1;
             else if (SELECTED(ENTRY_S_BUGS))        config.engine.fix_bugs ^= 1;
             else if (SELECTED(ENTRY_TIMER))         config.engine.fix_timer ^= 1;
-            else if (SELECTED(ENTRY_BACK))          set_menu(&menu_s_exsettings, true);
+            else if (SELECTED(ENTRY_BACK))          menu_back();
         }
         else if (menu_selected == &menu_video)
         {
@@ -690,7 +691,7 @@ void Menu::tick_menu()
                 config.set_fps(config.video.fps);
             }
             else if (SELECTED(ENTRY_BACK))
-                set_menu(&menu_settings, true);
+                menu_back();
         }
         else if (menu_selected == &menu_sound)
         {
@@ -712,7 +713,7 @@ void Menu::tick_menu()
                 set_menu(&menu_musictest);
             }
             else if (SELECTED(ENTRY_BACK))
-                set_menu(&menu_settings, true);
+                menu_back();
         }
         else if (menu_selected == &menu_controls)
         {
@@ -741,7 +742,7 @@ void Menu::tick_menu()
                     config.controls.pedal_speed = 1;
             }
             else if (SELECTED(ENTRY_BACK))
-                set_menu(&menu_settings, true);
+                menu_back();
         }
         else if (menu_selected == &menu_controls_gp)
         {
@@ -765,7 +766,7 @@ void Menu::tick_menu()
                 input.reset_axis_config();
             }
             else if (SELECTED(ENTRY_BACK))
-                set_menu(&menu_controls, true);
+                menu_back();
         }
         else if (menu_selected == &menu_engine)
         {
@@ -775,7 +776,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_FREEPLAY))          config.engine.freeplay = !config.engine.freeplay;
             else if (SELECTED(ENTRY_SUB_ENHANCEMENTS))  set_menu(&menu_enhancements);
             else if (SELECTED(ENTRY_SUB_HANDLING))      set_menu(&menu_handling);
-            else if (SELECTED(ENTRY_BACK))              set_menu(&menu_settings, true);
+            else if (SELECTED(ENTRY_BACK))              menu_back();
         }
         else if (menu_selected == &menu_enhancements)
         {
@@ -783,7 +784,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_OBJECTS))           config.engine.level_objects ^= 1;
             else if (SELECTED(ENTRY_PROTOTYPE))         config.engine.prototype ^= 1;
             else if (SELECTED(ENTRY_TIMER))             config.engine.fix_timer ^= 1;
-            else if (SELECTED(ENTRY_BACK))              set_menu(&menu_engine, true);           
+            else if (SELECTED(ENTRY_BACK))              menu_back();
         }
         else if (menu_selected == &menu_handling)
         {
@@ -792,7 +793,7 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_BUMPER))            config.engine.bumper ^= 1;
             else if (SELECTED(ENTRY_TURBO))             config.engine.turbo ^= 1;
             else if (SELECTED(ENTRY_COLOR))             { if (++config.engine.car_pal > 4) config.engine.car_pal = 0; }
-            else if (SELECTED(ENTRY_BACK))              set_menu(&menu_engine, true);  
+            else if (SELECTED(ENTRY_BACK))              menu_back();
         }
         else if (menu_selected == &menu_musictest)
         {
@@ -818,7 +819,7 @@ void Menu::tick_menu()
             {
                 cannonball::audio.clear_wav();
                 osoundint.queue_sound(sound::FM_RESET);
-                set_menu(config.smartypi.enabled ? &menu_s_tests : &menu_sound, true);
+                menu_back();
             }
         }
         else
@@ -839,22 +840,28 @@ bool Menu::select_pressed()
         return input.has_pressed(Input::START) || input.has_pressed(Input::ACCEL) || input.has_pressed(Input::GEAR1);
 }
 
-// Set Current Menu
-void Menu::set_menu(std::vector<std::string> *menu, bool back)
+void Menu::set_menu(std::vector<std::string> *menu)
 {
-    menu_selected = menu;
+    menu_pair m;
+    m.cursor = cursor;
+    m.menu   = menu_selected;
+    menu_stack.push_back(m);
 
-    if (back && !cursor_stack.empty())
-    {
-        cursor = cursor_stack.back();
-        cursor_stack.pop_back();
-    }
-    else
-    {
-        cursor_stack.push_back(cursor);
-        cursor = 0;
-    }
+    menu_selected = menu;
+    cursor = 0;
     is_text_menu = (menu == &menu_about);
+}
+
+void Menu::menu_back()
+{
+    if (!menu_stack.empty())
+    {
+        menu_pair m = menu_stack.back();
+        cursor = m.cursor;
+        menu_selected = m.menu;
+        menu_stack.pop_back();
+    }
+    is_text_menu = (menu_selected == &menu_about);
 }
 
 

@@ -60,7 +60,14 @@ private:
 
     // Cursor
     int16_t cursor;
-    std::vector<std::int16_t> cursor_stack;
+
+    struct menu_pair
+    {
+        int16_t cursor;
+        std::vector<std::string>* menu;
+    };
+
+    std::vector<menu_pair> menu_stack;
 
     // Stores whether this is a textual menu (i.e. no options that can be chosen)
     bool is_text_menu;
@@ -98,7 +105,8 @@ private:
     void draw_text(std::string);
     void tick_menu();
     bool select_pressed();
-    void set_menu(std::vector<std::string>*, bool back = false);
+    void set_menu(std::vector<std::string>*);
+    void menu_back();
     void refresh_menu();
     void set_menu_text(std::string s1, std::string s2);
     void redefine_keyboard();

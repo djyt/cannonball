@@ -22,6 +22,9 @@ set(sdl2_dir ${lib_base}/SDL2-2.0.12)
 # Use OpenGLES for rendering.
 set(OPENGLES 1)
 
+# GCC Specific flags (optimize for Pi4 CPU)
+set(CMAKE_CXX_FLAGS "-O3 -mtune=cortex-a72")
+
 # Platform Specific Libraries
 set(platform_link_libs
     SDL2

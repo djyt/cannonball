@@ -610,7 +610,7 @@ void OSprites::do_sprite(oentry* input)
     
     if (top_bit == 0)
     {
-        if (ZOOM_LOOKUP[index] != 0)
+        if (ZOOM_LOOKUP[index] != SIZE1) // Not largest sized sprite
         {
             lookup_mask += 0x4000;
             d0 = lookup_mask;

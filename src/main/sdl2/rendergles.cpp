@@ -504,6 +504,6 @@ void Render::draw_frame(uint16_t* pixels)
 
 bool Render::supports_vsync()
 {
-	return SDL_GL_GetSwapInterval() == 1;
+    return SDL_GL_SetSwapInterval(1) == 0;
 }
 

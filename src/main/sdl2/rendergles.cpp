@@ -252,6 +252,7 @@ bool Render::init(int src_width, int src_height,
     glDisable(GL_DEPTH_TEST);	// Disable Depth Buffer
 
     glClearColor(0, 0, 0, 0);	// Black background
+    glClear(GL_COLOR_BUFFER_BIT);
 
     glViewport(screen_xoff, screen_yoff, dst_width, dst_height);
 

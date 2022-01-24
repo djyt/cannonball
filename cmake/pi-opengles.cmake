@@ -22,8 +22,8 @@ set(sdl2_dir ${lib_base}/SDL2-2.0.12)
 # Use OpenGLES for rendering.
 set(OPENGLES 1)
 
-# GCC Specific flags (optimize for Pi4 CPU)
-set(CMAKE_CXX_FLAGS "-O3 -mtune=cortex-a72")
+# GCC Specific flags (optimize for Pi1/2/3/4 CPU, depending on where it's being built.)
+set(CMAKE_CXX_FLAGS "-O3 -march=native -mcpu=native -O2 -ftree-vectorize -pipe -fomit-frame-pointer")
 
 # Platform Specific Libraries
 set(platform_link_libs

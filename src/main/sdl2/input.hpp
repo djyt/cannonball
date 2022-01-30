@@ -39,6 +39,14 @@ public:
     bool keys[15];
     bool keys_old[15];
 
+    enum limits
+    {
+        SW_LEFT   = 0,
+        SW_CENTRE = 1,   
+        SW_RIGHT  = 2,   
+    };
+    bool motor_limits[3];
+
     // Has gamepad been found?
     bool gamepad;
 
@@ -58,6 +66,7 @@ public:
     int wheel, a_wheel;
     int a_accel;
     int a_brake;
+    int a_motor;
 
     Input(void);
     ~Input(void);

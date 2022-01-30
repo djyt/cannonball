@@ -77,7 +77,7 @@ void Menu::populate()
     menu_musictest.push_back(ENTRY_MUSIC2);
     menu_musictest.push_back(ENTRY_BACK);
 
-    menu_about.push_back("CANNONBALL 0.34 © CHRIS WHITE 2021");
+    menu_about.push_back("CANNONBALL 0.35 © CHRIS WHITE 2022");
     menu_about.push_back("REASSEMBLER.BLOGSPOT.COM");
     menu_about.push_back(" ");
     menu_about.push_back("CANNONBALL IS FREE AND MAY NOT BE SOLD.");
@@ -620,10 +620,8 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_S_CAB))
             {
-                if (config.smartypi.cabinet == config.CABINET_MINI)
-                    config.smartypi.cabinet = config.CABINET_UPRIGHT;
-                else
-                    config.smartypi.cabinet = config.CABINET_MINI;
+                if (++config.smartypi.cabinet > config.CABINET_MINI)
+                    config.smartypi.cabinet = config.CABINET_MOVING;
             }
             else if (SELECTED(ENTRY_FREEPLAY))      config.engine.freeplay = !config.engine.freeplay;
             else if (SELECTED(ENTRY_TIME))          config.inc_time();
@@ -921,7 +919,7 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_OBJECTS))       set_menu_text(ENTRY_OBJECTS, config.engine.level_objects ? "ENHANCED" : "ORIGINAL");
             else if (SELECTED(ENTRY_PROTOTYPE))     set_menu_text(ENTRY_PROTOTYPE, config.engine.prototype ? "ON" : "OFF");
             else if (SELECTED(ENTRY_ATTRACT))       set_menu_text(ENTRY_ATTRACT, config.engine.new_attract ? "ON" : "OFF");
-            else if (SELECTED(ENTRY_S_CAB))         set_menu_text(ENTRY_S_CAB, config.smartypi.cabinet == config.CABINET_UPRIGHT ? "UPRIGHT" : "MINI");
+            else if (SELECTED(ENTRY_S_CAB))         set_menu_text(ENTRY_S_CAB, CAB_LABELS[config.smartypi.cabinet]);
             else if (SELECTED(ENTRY_FREEPLAY))      set_menu_text(ENTRY_FREEPLAY, config.engine.freeplay ? "ON" : "OFF");
             else if (SELECTED(ENTRY_ADVERTISE))     set_menu_text(ENTRY_ADVERTISE, config.sound.advertise ? "ON" : "OFF");
         }

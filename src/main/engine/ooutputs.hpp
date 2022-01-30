@@ -39,7 +39,7 @@ public:
     // 5 = Left
     // 8 = Centre
     // B = Right
-    uint8_t hw_motor_control;
+    uint8_t hw_motor_control, hw_motor_control_old;
 
     // Digital Outputs
     enum
@@ -61,8 +61,8 @@ public:
 
     void init();
     void set_mode(int);
-    bool diag_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets);
-    bool calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit, uint32_t packets);
+    bool diag_motor(int16_t input_motor, uint8_t hw_motor_limit);
+    bool calibrate_motor(int16_t input_motor, uint8_t hw_motor_limit);
     void tick(int16_t input_motor = 0);
     void writeDigitalToConsole();
     void set_digital(uint8_t);

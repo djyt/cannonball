@@ -1,13 +1,13 @@
 /***************************************************************************
     Microsoft DirectX 8 Force Feedback (aka Haptic) Support
-    
+
     - Currently, SDL does not support haptic devices. So this is Win32 only.
 
     - DirectX 8 still works on Windows XP, so I'm not attempting to support
-      a higher version for now. 
+      a higher version for now.
 
     Ref: http://msdn.microsoft.com/en-us/library/windows/desktop/ee417563%28v=vs.85%29.aspx
-    
+
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
@@ -17,7 +17,7 @@
 //-----------------------------------------------------------------------------
 // Dummy Functions For Non-Windows Builds
 //-----------------------------------------------------------------------------
-#ifndef WIN32
+#ifndef HAVE_DIRECTX
 namespace forcefeedback
 {
     bool init(int a, int b, int c) { return false; } // Did not initialize
@@ -41,7 +41,7 @@ namespace forcefeedback
 {
 
 //-----------------------------------------------------------------------------
-// Function prototypes 
+// Function prototypes
 //-----------------------------------------------------------------------------
 HRESULT InitDirectInput( HWND hDlg );
 BOOL CALLBACK EnumFFDevicesCallback( const DIDEVICEINSTANCE* pInst, VOID* pContext );
@@ -54,7 +54,7 @@ HRESULT       InitForceEffects();
 
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
 
-LPDIRECTINPUT8        g_pDI       = NULL;         
+LPDIRECTINPUT8        g_pDI       = NULL;
 LPDIRECTINPUTDEVICE8  g_pDevice   = NULL;
 LPDIRECTINPUTEFFECT   g_pEffect   = NULL;           // Force Feedback Effect
 DWORD                 g_dwNumForceFeedbackAxis = 0;
@@ -81,7 +81,7 @@ bool init(int max_force, int min_force, int force_duration)
         SDL_Window* window;
         window = SDL_CreateWindow("", 0, 0, 0, 0, SDL_WINDOW_HIDDEN);
         SDL_SysWMinfo i;
-        SDL_VERSION(&i.version); 
+        SDL_VERSION(&i.version);
         if (SDL_GetWindowWMInfo(window, &i))
         {
             HWND hwnd = i.info.win.window;
@@ -94,11 +94,11 @@ bool init(int max_force, int min_force, int force_duration)
 
 void close()
 {
-    // Unacquire the device one last time just in case 
+    // Unacquire the device one last time just in case
     // the app tried to exit while the device is still acquired.
-    if( g_pDevice ) 
+    if( g_pDevice )
         g_pDevice->Unacquire();
-    
+
     // Release any DirectInput objects.
     SAFE_RELEASE( g_pEffect );
     SAFE_RELEASE( g_pDevice );
@@ -113,7 +113,7 @@ HRESULT InitDirectInput( HWND hDlg )
 
     // Register with the DirectInput subsystem and get a pointer
     // to a IDirectInput interface we can use.
-    if( FAILED( hr = DirectInput8Create( GetModuleHandle(NULL), DIRECTINPUT_VERSION, 
+    if( FAILED( hr = DirectInput8Create( GetModuleHandle(NULL), DIRECTINPUT_VERSION,
                                          IID_IDirectInput8, (VOID**)&g_pDI, NULL ) ) )
     {
         return hr;
@@ -148,7 +148,7 @@ HRESULT InitDirectInput( HWND hDlg )
     // interact with the system and with other DInput applications.
     // Exclusive access is required in order to perform force feedback.
     if( FAILED( hr = g_pDevice->SetCooperativeLevel( hDlg,
-                                                     DISCL_EXCLUSIVE | 
+                                                     DISCL_EXCLUSIVE |
                                                      DISCL_BACKGROUND ) ) )
     {
         return hr;
@@ -165,8 +165,8 @@ HRESULT InitDirectInput( HWND hDlg )
     if( FAILED( hr = g_pDevice->SetProperty( DIPROP_AUTOCENTER, &dipdw.diph ) ) )
         return hr;
 
-    // Enumerate and count the axes of the joystick 
-    if ( FAILED( hr = g_pDevice->EnumObjects( EnumAxesCallback, 
+    // Enumerate and count the axes of the joystick
+    if ( FAILED( hr = g_pDevice->EnumObjects( EnumAxesCallback,
                                               (VOID*)&g_dwNumForceFeedbackAxis, DIDFT_AXIS ) ) )
         return hr;
 
@@ -200,7 +200,7 @@ BOOL CALLBACK EnumAxesCallback( const DIDEVICEOBJECTINSTANCE* pdidoi,
 // Desc: Called once for each enumerated force feedback device. If we find
 //       one, create a device interface on it so we can play with it.
 //-----------------------------------------------------------------------------
-BOOL CALLBACK EnumFFDevicesCallback( const DIDEVICEINSTANCE* pInst, 
+BOOL CALLBACK EnumFFDevicesCallback( const DIDEVICEINSTANCE* pInst,
                                             VOID* pContext )
 {
     LPDIRECTINPUTDEVICE8 pDevice;
@@ -212,10 +212,10 @@ BOOL CALLBACK EnumFFDevicesCallback( const DIDEVICEINSTANCE* pInst,
     // If it failed, then we can't use this device for some
     // bizarre reason.  (Maybe the user unplugged it while we
     // were in the middle of enumerating it.)  So continue enumerating
-    if( FAILED(hr) ) 
+    if( FAILED(hr) )
         return DIENUM_CONTINUE;
 
-    // We successfully created an IDirectInputDevice8.  So stop looking 
+    // We successfully created an IDirectInputDevice8.  So stop looking
     // for another one.
     g_pDevice = pDevice;
 
@@ -227,12 +227,12 @@ HRESULT InitForceEffects()
     HRESULT     hr;
 
     // Cap Default Values
-    if (g_force_duration <= 0) 
+    if (g_force_duration <= 0)
         g_force_duration = 20;
- 
+
     DWORD            dwAxes[2]     = { DIJOFS_X, DIJOFS_Y };
     LONG             lDirection[2] = { 0, 0 };
-    DICONSTANTFORCE  cf            = { 0 };    
+    DICONSTANTFORCE  cf            = { 0 };
     DIEFFECT         eff;
     ZeroMemory( &eff, sizeof(eff) );
     eff.dwSize                  = sizeof(DIEFFECT) ;
@@ -245,7 +245,7 @@ HRESULT InitForceEffects()
     eff.cAxes                   = g_dwNumForceFeedbackAxis;
     eff.rgdwAxes                = dwAxes;
     eff.rglDirection            = lDirection;
-    eff.lpEnvelope              = 0;    
+    eff.lpEnvelope              = 0;
     eff.cbTypeSpecificParams    = sizeof(DICONSTANTFORCE);
     eff.lpvTypeSpecificParams   = &cf;
     eff.dwStartDelay            = 0;
@@ -273,11 +273,11 @@ int set(int xdirection, int force)
         return -1;
 
     LONG lDirection[2] = { 0, 0 }; // centred by default
-       
+
     if (xdirection > 0x08)         // push right
-        lDirection[0] = 1;  
+        lDirection[0] = 1;
     else if (xdirection < 0x08)    // push left
-        lDirection[0] = -1;  
+        lDirection[0] = -1;
 
     // 7 possible force positions, so divide maximum amount to subtract by 7.
     LONG magnitude = g_max_force - (((g_max_force-g_min_force) / 7) * force);
@@ -293,8 +293,8 @@ int set(int xdirection, int force)
 
     DIEFFECT eff;
     ZeroMemory( &eff, sizeof(eff) );
-    eff.dwSize                = sizeof(DIEFFECT); 
-    eff.cbTypeSpecificParams  = sizeof(DICONSTANTFORCE); 
+    eff.dwSize                = sizeof(DIEFFECT);
+    eff.cbTypeSpecificParams  = sizeof(DICONSTANTFORCE);
     eff.lpvTypeSpecificParams = &cf;
     eff.cAxes                 = g_dwNumForceFeedbackAxis;
     eff.dwFlags               = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;    // Using X/Y style coords

@@ -88,6 +88,10 @@ bool CabDiag::tick()
 
             case STATE_MOTORT:
                 init_motor_test();
+                if (config.smartypi.cabinet != Config::CABINET_MOVING)
+                    ohud.blit_text_new(13, 6, "MOTOR", 0x84);
+                else
+                    outrun.outputs->init();
                 //press_start_to_exit = false; // Not skippable
                 break;
         }
@@ -116,8 +120,17 @@ bool CabDiag::tick()
             break;
 
         case STATE_MOTORT:
-            //press_start_to_exit = outrun.outputs->diag_motor(packet->ai1, packet->mci, 0);
-            tick_motor();
+            if (config.smartypi.cabinet != Config::CABINET_MOVING)
+                tick_motor();
+            else
+            {
+                uint8_t limit = (input.motor_limits[Input::SW_LEFT]   ? 0 : BIT_5) |
+                                (input.motor_limits[Input::SW_CENTRE] ? 0 : BIT_4) |
+                                (input.motor_limits[Input::SW_RIGHT]  ? 0 : BIT_3);
+
+                press_start_to_exit = outrun.outputs->diag_motor(input.a_motor, limit);
+                outrun.outputs->writeDigitalToConsole();
+            }
             break;
     }
     osprites.sprite_copy();
@@ -305,9 +318,6 @@ void CabDiag::init_motor_test()
     // Draw Text
     ohud.blit_text_new(15, 2, "DIAGNOSTIC", 0x86);
     ohud.blit_text_new(15, 4, "MOTOR TEST", 0x80);
-
-    // Draw Text
-    ohud.blit_text_new(13, 6, "MOTOR", 0x84);
 }
 
 void CabDiag::tick_motor()

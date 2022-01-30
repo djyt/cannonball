@@ -112,3 +112,4 @@ const static char* FPS_LABELS[3] = { "30 FPS", "ORIGINAL", "60 FPS" };
 const static char* ANALOG_LABELS[3] = { "OFF", "ON", "ON WHEEL ONLY" };
 const static char* VIDEO_LABELS[3] = { "OFF", "ON", "STRETCH" };
 const static char* RUMBLE_LABELS[5] = { "OFF", "LOW", "MED", "HIGH", "FULL" };
+const static char* CAB_LABELS[3] = { "MOVING", "UPRIGHT", "MINI" };

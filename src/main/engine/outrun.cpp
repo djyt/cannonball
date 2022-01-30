@@ -278,17 +278,23 @@ void Outrun::jump_table()
     {
         if (game_state == GS_CALIBRATE_MOTOR)
         {
-           // if (outputs->calibrate_motor(packet->ai1, packet->mci, 0))
+            uint8_t limit = (input.motor_limits[Input::SW_LEFT]   ? 0 : BIT_5) |
+                            (input.motor_limits[Input::SW_CENTRE] ? 0 : BIT_4) |
+                            (input.motor_limits[Input::SW_RIGHT]  ? 0 : BIT_3);
+            if (outputs->calibrate_motor(input.a_motor, limit))
             {
                 video.enabled     = false;
                 video.clear_text_ram();
                 oroad.horizon_set = 0;
                 boot();
             }
+
+            outputs->tick(input.a_motor);
         }
         else
         {
-            outputs->tick(oinputs.input_steering); // Todo: Should be motor_input on real cab!
+            int16_t motor = (config.smartypi.enabled && config.smartypi.cabinet == Config::CABINET_MOVING) ? input.a_motor : oinputs.input_steering;
+            outputs->tick(motor);
         }
     }
 }

@@ -133,7 +133,7 @@
     SMARTYPI Interface
  -->
 <smartypi enabled="0">
-    <!-- Machine Type. 0 = Moving (Not Supported), 1 = Up Cockpit, 2 = Mini -->
+    <!-- Machine Type. 0 = Moving, 1 = Up Cockpit, 2 = Mini -->
     <cabinet>1</cabinet>
     <!-- Write Lamp/Motor Outputs To Console-->
     <outputs>1</outputs>

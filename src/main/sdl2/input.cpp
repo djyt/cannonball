@@ -39,6 +39,7 @@ void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* 
     this->invert      = invert;
     this->wheel_zone  = analog_settings[0];
     this->wheel_dead  = analog_settings[1];
+    motor_limits[0] = motor_limits[1] = motor_limits[2] = 0;
 }
 
 void Input::open_joy()
@@ -252,6 +253,13 @@ void Input::handle_axis(const uint8_t ax, const int16_t value)
             a_brake = scale_trigger(invert[2] ? -workingv : workingv);
             if (a_brake > 0xff) a_brake = 0xff;
         }
+
+        // Motor Banking (Moving Cabient Only with SmartyPi)
+        else if (ax == axis[3])
+        {
+            //a_motor = (workingv + 0x8000) / 0x100;
+            a_motor = scale_trigger(workingv);
+        }
     }
 }
 
@@ -351,6 +359,11 @@ void Input::handle_joy(const uint8_t button, const bool is_pressed)
     if (button == pad_config[9])   keys[DOWN]      = is_pressed;
     if (button == pad_config[10])  keys[LEFT]      = is_pressed;
     if (button == pad_config[11])  keys[RIGHT]     = is_pressed;
+   
+    // Limit Input Switches
+    if (button == pad_config[12])  motor_limits[SW_LEFT]   = is_pressed;
+    if (button == pad_config[13])  motor_limits[SW_CENTRE] = is_pressed;
+    if (button == pad_config[14])  motor_limits[SW_RIGHT]  = is_pressed;
 }
 
 void Input::handle_joy_hat(SDL_JoyHatEvent* evt)

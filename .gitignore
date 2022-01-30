@@ -4,12 +4,6 @@
 
 # ROMs
 
-roms/epr*
-roms/opr*
-roms/enhanced*
-roms/a*
-roms/*key
-
 epr-10187.88
 epr-10327a.76
 epr-10328a.75

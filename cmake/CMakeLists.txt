@@ -5,44 +5,18 @@
 # Everything should go into a win64.cmake equivalent.
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.8)
-project(cannonball CXX)
-
-add_executable(cannonball)
+cmake_minimum_required (VERSION 3.3.2) # Might compile lower, but untested
+project (cannonball)
 
 # -----------------------------------------------------------------------------
 # Directory Setup
 # -----------------------------------------------------------------------------
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+# CMake default file (override with -DTARGET=file)
+set(DCMAKE win64-opengl.cmake)
 
 # Source location
-set(main_cpp_base ${CMAKE_CURRENT_LIST_DIR}/src/main)
-
-# Include
-target_include_directories(cannonball PRIVATE
-    ${main_cpp_base}
-)
-
-set(RENDER_ENGINE "OpenGL" CACHE STRING "Render engine library")
-set_property(CACHE RENDER_ENGINE PROPERTY STRINGS OpenGL OpenGLES Software)
-
-if(WIN32)
-    set(HAVE_DIRECTX TRUE CACHE BOOL "Use DirectX (DInput8) for force feedback support")
-endif()
-
-# -----------------------------------------------------------------------------
-# Find default packages
-# -----------------------------------------------------------------------------
-
-find_package(Boost REQUIRED)
-find_package(SDL2 REQUIRED)
-
-target_link_libraries(cannonball PRIVATE
-    Boost::boost
-    SDL2::SDL2
-    SDL2::SDL2main
-)
+set(main_cpp_base ../src/main)
 
 # -----------------------------------------------------------------------------
 # Platform Specific Setup
@@ -50,18 +24,22 @@ target_link_libraries(cannonball PRIVATE
 
 # Include relevant CMAKE file (default, mingw, pandora etc.)
 if(TARGET)
-    if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/cmake/${TARGET}")
-        message(STATUS "CMake files for ${TARGET} found")
-        include(cmake/${TARGET})
+    if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/${TARGET}")
+        message("CMake files for ${TARGET} found")
+        include(${TARGET})
     else()
-        message(WARNING "CMake files for ${TARGET} not found")
+        message("CMake files for ${TARGET} not found, using ${DCMAKE}")
+        include(${DCMAKE})
     endif()
-endif()
+else()
+    message("TARGET not passed, using ${DCMAKE}")
+    include(${DCMAKE})
+endif(TARGET)
 
 # -----------------------------------------------------------------------------
 # Project Source Files
 # -----------------------------------------------------------------------------
-
+    
 set(src_main
     "${main_cpp_base}/globals.hpp"
     "${main_cpp_base}/romloader.hpp"
@@ -77,9 +55,9 @@ set(src_main
     "${main_cpp_base}/romloader.cpp"
     "${main_cpp_base}/trackloader.cpp"
     "${main_cpp_base}/roms.cpp"
-    "${main_cpp_base}/utils.cpp"
     "${main_cpp_base}/video.cpp"
-)
+    "${main_cpp_base}/utils.cpp"
+    )
 
 set(src_frontend
     "${main_cpp_base}/frontend/cabdiag.hpp"
@@ -92,7 +70,7 @@ set(src_frontend
     "${main_cpp_base}/frontend/config.cpp"
     "${main_cpp_base}/frontend/menu.cpp"
     "${main_cpp_base}/frontend/ttrial.cpp"
-)
+    )
 
 set(src_hwvideo
     "${main_cpp_base}/hwvideo/hwroad.hpp"
@@ -102,45 +80,45 @@ set(src_hwvideo
     "${main_cpp_base}/hwvideo/hwroad.cpp"
     "${main_cpp_base}/hwvideo/hwsprites.cpp"
     "${main_cpp_base}/hwvideo/hwtiles.cpp"
-)
-
+    )
+    
 set(src_hwaudio
     "${main_cpp_base}/hwaudio/segapcm.hpp"
     "${main_cpp_base}/hwaudio/soundchip.hpp"
     "${main_cpp_base}/hwaudio/ym2151.hpp"
-
+    
     "${main_cpp_base}/hwaudio/segapcm.cpp"
     "${main_cpp_base}/hwaudio/soundchip.cpp"
     "${main_cpp_base}/hwaudio/ym2151.cpp"
-)
+    )
 
 set(src_sdl
-    "${main_cpp_base}/sdl2/audio.hpp"
-    "${main_cpp_base}/sdl2/input.hpp"
-    "${main_cpp_base}/sdl2/renderbase.hpp"
-    "${main_cpp_base}/sdl2/timer.hpp"
+	"${main_cpp_base}/sdl2/audio.hpp"
+	"${main_cpp_base}/sdl2/timer.hpp"
+	"${main_cpp_base}/sdl2/input.hpp"
+	"${main_cpp_base}/sdl2/renderbase.hpp"
 
     "${main_cpp_base}/sdl2/audio.cpp"
-    "${main_cpp_base}/sdl2/input.cpp"
-    "${main_cpp_base}/sdl2/renderbase.cpp"
-    "${main_cpp_base}/sdl2/timer.cpp"
-)
-
-if(RENDER_ENGINE STREQUAL "OpenGLES")
-    set(src_render
-        "${main_cpp_base}/sdl2/rendergles.hpp"
-        "${main_cpp_base}/sdl2/rendergles.cpp"
+	"${main_cpp_base}/sdl2/timer.cpp"
+	"${main_cpp_base}/sdl2/input.cpp"
+	"${main_cpp_base}/sdl2/renderbase.cpp"
     )
-elseif(RENDER_ENGINE STREQUAL "OpenGL")
-    set(src_render
-        "${main_cpp_base}/sdl2/rendergl.hpp"
-        "${main_cpp_base}/sdl2/rendergl.cpp"
-    )
+   
+if(OPENGL)
+	set(src_render
+	    "${main_cpp_base}/sdl2/rendergl.hpp"
+	    "${main_cpp_base}/sdl2/rendergl.cpp"
+	)
+elseif(OPENGLES)
+	set(src_render
+	    "${main_cpp_base}/sdl2/rendergles.hpp"
+	    "${main_cpp_base}/sdl2/rendergles.cpp"
+	)   
 else()
-    set(src_render
-        "${main_cpp_base}/sdl2/rendersurface.hpp"
-        "${main_cpp_base}/sdl2/rendersurface.cpp"
-    )
+	set(src_render
+	    "${main_cpp_base}/sdl2/rendersurface.hpp"
+	    "${main_cpp_base}/sdl2/rendersurface.cpp"
+	)
 endif()
 
 set(src_directx
@@ -201,22 +179,22 @@ set(src_engine
     "${main_cpp_base}/engine/otraffic.cpp"
     "${main_cpp_base}/engine/outils.cpp"
     "${main_cpp_base}/engine/outrun.cpp"
-)
+    )
 
 set(src_engine_data
     "${main_cpp_base}/engine/data/ozoom_lookup.hpp"
     "${main_cpp_base}/engine/data/sprite_pals.hpp"
-)
+    )
 
 set(src_engine_audio
     "${main_cpp_base}/engine/audio/commands.hpp"
     "${main_cpp_base}/engine/audio/osound.hpp"
-    "${main_cpp_base}/engine/audio/osoundadr.hpp"
     "${main_cpp_base}/engine/audio/osoundint.hpp"
+    "${main_cpp_base}/engine/audio/osoundadr.hpp"
 
     "${main_cpp_base}/engine/audio/osound.cpp"
     "${main_cpp_base}/engine/audio/osoundint.cpp"
-)
+    )
 
 set(SRCS
     ${src_main}
@@ -232,69 +210,78 @@ set(SRCS
 )
 
 # Group files into relevant filters for Visual Studio build
-source_group(src FILES ${src_main})
-source_group(src\\frontend FILES ${src_frontend})
-source_group(src\\hwvideo FILES ${src_hwvideo})
-source_group(src\\hwaudio FILES ${src_hwaudio})
-source_group(src\\sdl FILES ${src_sdl})
-source_group(src\\sdl FILES ${src_render})
-source_group(src\\directx FILES ${src_directx})
-source_group(src\\engine FILES ${src_engine})
-source_group(src\\engine\\data FILES ${src_engine_data})
-source_group(src\\engine\\audio FILES ${src_engine_audio})
+SOURCE_GROUP(src FILES ${src_main})
+SOURCE_GROUP(src\\frontend FILES ${src_frontend})
+SOURCE_GROUP(src\\hwvideo FILES ${src_hwvideo})
+SOURCE_GROUP(src\\hwaudio FILES ${src_hwaudio})
+SOURCE_GROUP(src\\sdl FILES ${src_sdl})
+SOURCE_GROUP(src\\sdl FILES ${src_render})
+SOURCE_GROUP(src\\directx FILES ${src_directx})
+SOURCE_GROUP(src\\engine FILES ${src_engine})
+SOURCE_GROUP(src\\engine\\data FILES ${src_engine_data})
+SOURCE_GROUP(src\\engine\\audio FILES ${src_engine_audio})
 
 # Add Icon For Windows Builds
 if(WIN32)
-    set(SRCS ${SRCS} ../res/cannonball.rc)
+  set(SRCS ${SRCS} ../res/cannonball.rc)
+endif(WIN32)
+
+add_executable(cannonball ${SRCS})
+
+# -----------------------------------------------------------------------------
+# Compiler Definitions
+# -----------------------------------------------------------------------------
+
+if(OPENGL)
+    add_definitions(-DWITH_OPENGL)
+endif()
+
+if(OPENGLES)
+    add_definitions(-DWITH_OPENGLES)
 endif()
 
 # -----------------------------------------------------------------------------
 # Library Setup
 # -----------------------------------------------------------------------------
 
-target_sources(cannonball PRIVATE ${SRCS})
+set(BOOST_INCLUDEDIR ${boost_dir})
+find_package(Boost REQUIRED)
 
-target_link_directories(cannonball PRIVATE
+set(SDL2_DIR ${sdl2_dir})
+find_package(SDL2 REQUIRED)
+message("SDL2 Include  : ${SDL2_INCLUDE_DIRS}")
+message("SDL2 Libraries: ${SDL2_LIBRARIES}")
+
+# Include
+include_directories(
+    ${main_cpp_base}
+    ${BOOST_INCLUDEDIR}
+    ${SDL2_INCLUDE_DIRS}
+)
+
+link_directories(
     ${platform_link_dirs}
 )
 
-target_link_libraries(cannonball PRIVATE
+target_link_libraries(cannonball
+    ${SDL2_LIBRARIES}
     ${platform_link_libs}
 )
-
-if(WIN32)
-    if(HAVE_DIRECTX)
-        add_definitions(-DHAVE_DIRECTX)
-
-        target_link_libraries(cannonball PRIVATE
-            dxguid   # Direct X Haptic Support
-            dinput8  # Direct X Haptic Support
-        )
-    endif()
-else()
-    set(OpenGL_GL_PREFERENCE "GLVND" CACHE STRING "OpenGL driver preference")
-endif()
-
-if(RENDER_ENGINE STREQUAL "OpenGLES")
-    message(STATUS "Use OpenGL ES backend")
-    find_package(OpenGLES REQUIRED)
-    target_link_libraries(cannonball PRIVATE ${OPENGLES_LIBRARIES})
-    target_compile_definitions(cannonball PRIVATE WITH_OPENGLES)
-elseif(RENDER_ENGINE STREQUAL "OpenGL")
-    message(STATUS "Use OpenGL backend")
-    find_package(OpenGL REQUIRED)
-    target_link_libraries(cannonball PRIVATE OpenGL::GL OpenGL::GLU)
-    target_compile_definitions(cannonball PRIVATE WITH_OPENGL)
-endif()
 
 # -----------------------------------------------------------------------------
 # Copy useful files to build destination
 # -----------------------------------------------------------------------------
 
-configure_file(res/config.xml ${CMAKE_CURRENT_BINARY_DIR}/config.xml COPYONLY)
+configure_file(../res/config.xml ./config.xml 
+    COPYONLY
+)
 
-configure_file(res/tilemap.bin ${CMAKE_CURRENT_BINARY_DIR}/res/tilemap.bin COPYONLY)
-
-configure_file(res/tilepatch.bin ${CMAKE_CURRENT_BINARY_DIR}/res/tilepatch.bin COPYONLY)
-
-configure_file(res/gamecontrollerdb.txt ${CMAKE_CURRENT_BINARY_DIR}/res/gamecontrollerdb.txt COPYONLY)
+configure_file(../res/tilemap.bin ./res/tilemap.bin
+    COPYONLY 
+)
+configure_file(../res/tilepatch.bin ./res/tilepatch.bin
+    COPYONLY 
+)
+configure_file(../res/gamecontrollerdb.txt ./res/gamecontrollerdb.txt
+    COPYONLY 
+)

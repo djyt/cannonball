@@ -386,6 +386,17 @@ void OHiScore::do_input(uint32_t adr)
 // Source: 0xD4DA
 int8_t OHiScore::read_controls()
 {
+    int fast_threshold, slow_threshold;
+
+    if (input.analog || input.gamepad) {
+        fast_threshold = 0x30;
+        slow_threshold = 0x10;
+    } else {
+	// Don't demand as much of a steering input to change letters when using keyboard
+        fast_threshold = 0x10;
+        slow_threshold = 0x04;
+    }
+
     // Determine when accelerator has been pressed then depressed
     if (oinputs.input_acc < 0x30)
     {
@@ -404,7 +415,7 @@ int8_t OHiScore::read_controls()
 
     // Check Steering Wheel
     int8_t movement = 1; // default to right
-    int16_t steering = (oinputs.input_steering & 0xFF) - 0x80;
+    int16_t steering = (oinputs.input_steering & 0xFF) - OInputs::STEERING_CENTRE;
     if (steering < 0)
     {
         steering = -steering;
@@ -413,9 +424,9 @@ int8_t OHiScore::read_controls()
 
     // Set increment to potentially advance to next letter.
     // This depends on how far the steering wheel is turned.
-    if (steering >= 0x30)
+    if (steering >= fast_threshold)
         steer += 5;
-    else if (steering >= 0x10)
+    else if (steering >= slow_threshold)
         steer += 1;
 
     if (steer >= 0x14)

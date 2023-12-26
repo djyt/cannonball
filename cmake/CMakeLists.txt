@@ -13,7 +13,35 @@ project (cannonball)
 # -----------------------------------------------------------------------------
 
 # CMake default file (override with -DTARGET=file)
-set(DCMAKE win64-opengl.cmake)
+if(NOT DEFINED TARGET)
+	# Check to see whether the toolchain is set up for a particular CPU target
+	if (DEFINED CMAKE_CXX_FLAGS AND CMAKE_CXX_FLAGS MATCHES ".*-march=.*")
+        set(TARGET_ARCH_REGEX "^.*-march[= ]([^ ]+).*$")
+        string(REGEX MATCH "${TARGET_ARCH_REGEX}" TARGET_ARCH_MATCH ${CMAKE_CXX_FLAGS})
+        if (TARGET_ARCH_MATCH)
+           string(REGEX REPLACE "${TARGET_ARCH_REGEX}" "\\1" TARGET_ARCH ${CMAKE_CXX_FLAGS})
+        else()
+			# Could not extract target architecture, assume same as host
+            set(TARGET_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
+		endif()
+	else()
+		# Assume we are not cross-compiling
+        set(TARGET_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
+    endif()
+	message("Detected target architecture as ${TARGET_ARCH}")
+
+	if (TARGET_ARCH MATCHES "[Aa]?[Aa][Rr][Mm].*")
+		message("Detected ARM target, setting up for Rasberry Pi OpenGL ES build; use -DTARGET= to change")
+        set(DCMAKE pi4-opengles.cmake)
+	elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+		message("Automatically setting up for a Windows build; use -DTARGET= to change")
+        set(DCMAKE win64-opengl.cmake)
+    else()
+		message("Automatically setting up for a Linux/Unix build; use -DTARGET= to change")
+		set(OpenGL_GL_PREFERENCE GLVND)
+        set(DCMAKE linux.cmake)
+    endif()
+endif()
 
 # Source location
 set(main_cpp_base ../src/main)

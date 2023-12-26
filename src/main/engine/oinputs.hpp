@@ -51,6 +51,9 @@ public:
     bool is_analog_r();
     bool is_analog_select();
 
+    // Steering position is a one-byte value, center of range == neutral
+    const static uint8_t STEERING_CENTRE = 0x80;
+
 private:
     // ------------------------------------------------------------------------
     // Variables for port
@@ -77,7 +80,6 @@ private:
 
     const static uint8_t STEERING_MIN = 0x48;
     const static uint8_t STEERING_MAX = 0xB8;
-    const static uint8_t STEERING_CENTRE = 0x80;
     
     // Current steering value
     int16_t steering_old;
